@@ -1,0 +1,33 @@
+{
+  "name": "gdc-common-utils-ts",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@noble/post-quantum": "^0.8.0",
+    "@stablelib/base64": "^1.0.1",
+    "@stablelib/utf8": "^1.0.2",
+    "base-x": "^4.0.0",
+    "multiformats": "^13.0.0",
+    "pako": "^2.1.0"
+  },
+  "scripts": {
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./AesManager": "./src/AesManager.ts",
+    "./CryptographyService": "./src/CryptographyService.ts",
+    "./hmac": "./src/hmac.ts",
+    "./constants/*": "./src/constants/*.ts",
+    "./models/*": "./src/models/*.ts",
+    "./utils/*": "./src/utils/*.ts",
+    "./interfaces/*": "./src/interfaces/*.ts",
+    "./constants": "./src/constants/index.ts",
+    "./models": "./src/models/index.ts",
+    "./utils": "./src/utils/index.ts",
+    "./interfaces": "./src/interfaces/index.ts"
+  }
+}
