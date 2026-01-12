@@ -1,9 +1,9 @@
 // crypto-ts/utils/convert.ts
 
-import * as baseConvert from './base-convert.js';
-import * as objectConvert from './object-convert.js';
-import * as stringConvert from './string-convert.js';
-import * as stringUtils from './string-utils.js';
+import * as baseConvert from './base-convert';
+import * as objectConvert from './object-convert';
+import * as stringConvert from './string-convert';
+import * as stringUtils from './string-utils';
 
 /**
  * A unified facade class for all data conversion and utility functions.

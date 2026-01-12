@@ -2,11 +2,11 @@
 // File: crypto-ts/AesManager.ts
 
 import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
-import { Content } from './utils/content.js';
-import { ProtectedDataAES } from './models/aes.js';
+import { Content } from './utils/content';
+import { ProtectedDataAES } from './models/aes';
 
 /**
- * Manages AES-GCM encryption and decryption using Node.js's native crypto module.
+ * Manages AES-GCM encryption and decryption using Node's native crypto module.
  * This class handles the core cryptography and the base64url serialization required for JWE.
  */
 export class AesManager {

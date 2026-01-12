@@ -4,8 +4,8 @@
 // Use `import * as pako` to ensure compatibility with CommonJS/ESM module resolution.
 // This resolves a stubborn TypeScript error (`esModuleInterop`) during testing.
 import * as pako from 'pako';
-import { Content } from './content.js';
-import { DataCompactJWT, JwtCompactParts } from '../models/jwt.js';
+import { Content } from './content';
+import { DataCompactJWT, JwtCompactParts } from '../models/jwt';
 
 // --- JWT Parsing and Decoding ---
 

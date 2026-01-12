@@ -1,7 +1,7 @@
 // Copyright 2025 Antifraud Services Inc. under the Apache License, Version 2.0.
 // File: crypto-ts/interfaces/IWallet.ts
 
-import { JwkSet } from '../models/jwk.js';
+import { JwkSet } from '../models/jwk';
 
 /**
  * @interface IWallet

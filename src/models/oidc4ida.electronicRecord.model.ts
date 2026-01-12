@@ -1,7 +1,7 @@
 // Copyright 2025 Antifraud Services Inc. under the Apache License, Version 2.0.
 // File: crypto-ts/models/oidc4ida.electronicRecord.model.ts
 
-import { AttachmentExternalDLT, CheckDetails, VerifierDLT } from './oidc4ida.common.model.js';
+import { AttachmentExternalDLT, CheckDetails, VerifierDLT } from './oidc4ida.common.model';
 
 // TODO: IssuerElectronicRecordOpenID with personal_number
 

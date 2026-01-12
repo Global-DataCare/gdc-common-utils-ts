@@ -1,8 +1,8 @@
 // Copyright 2025 Antifraud Services Inc. under the Apache License, Version 2.0.
 // File: crypto-ts/models/oidc4ida.document.model.ts
 
-import { AttachmentExternalDLT, CheckDetails, VerifierDLT } from './oidc4ida.common.model.js';
-import { IssuerElectronicRecordDLT } from './oidc4ida.electronicRecord.model.js';
+import { AttachmentExternalDLT, CheckDetails, VerifierDLT } from './oidc4ida.common.model';
+import { IssuerElectronicRecordDLT } from './oidc4ida.electronicRecord.model';
 
 /** Common for Document and Bill evidences  */
 export interface EvidenceCommonSubElementDLT {

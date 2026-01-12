@@ -2,8 +2,8 @@
 // File: crypto-ts/models/confidential-message.ts
 // Description: Defines the core communication and data structures based on DIDComm and FHIR.
 
-import { ProtectedHeadersJWE } from "./jwe.js";
-import { JwsHeader } from "./jws.js";
+import { ProtectedHeadersJWE } from "./jwe";
+import { JwsHeader } from "./jws";
 
 /**
  * Defines the structure of the cryptographic metadata associated with a job request.

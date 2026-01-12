@@ -1,8 +1,8 @@
 // Copyright 2025 Antifraud Services Inc. under the Apache License, Version 2.0.
 // File: crypto-ts/models/did.ts
 
-import { PublicJwk } from "../interfaces/Cryptography.types.js";
-import { RecipientPublicKey } from "./crypto.js";
+import { PublicJwk } from "../interfaces/Cryptography.types";
+import { RecipientPublicKey } from "./crypto";
 
 /**
  * The parameters required to construct a service endpoint selector.

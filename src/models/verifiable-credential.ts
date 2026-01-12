@@ -1,7 +1,7 @@
 // Copyright 2025 Antifraud Services Inc. under the Apache License, Version 2.0.
 // File: crypto-ts/models/verifiable-credential.ts
 
-import { EvidenceObjectDLT } from "./oidc4ida.evidence.model.js"
+import { EvidenceObjectDLT } from "./oidc4ida.evidence.model"
 
 /**
  * Defines the JSON-LD context URI for W3C Verifiable Credentials Data Model v2.0.

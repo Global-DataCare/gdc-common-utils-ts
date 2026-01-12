@@ -1,7 +1,7 @@
 // Copyright 2025 Antifraud Services Inc. under the Apache License, Version 2.0.
 // File: src/models/jsonapi.ts
 
-import { RecordBase } from "./resource-document.js";
+import { RecordBase } from "./resource-document";
 
 /**
  * Represents a resource object in a JSON:API 'included' array.

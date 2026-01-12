@@ -4,18 +4,16 @@
 // Use `import * as pako` to ensure compatibility with CommonJS/ESM module resolution.
 // This resolves a stubborn TypeScript error (`esModuleInterop`) during testing.
 
-import { ICryptoHelper } from './interfaces/ICryptoHelper.js';
+import { ICryptoHelper } from './interfaces/ICryptoHelper';
 import * as pako from 'pako';
-import * as mlDsa from '@noble/post-quantum/ml-dsa.js';
-import * as mlKem from '@noble/post-quantum/ml-kem.js';
-import * as jwtUtils from './utils/jwt.js';
-import { ICryptography } from './interfaces/ICryptography.js';
-import { AesManager } from './AesManager.js';
-import { DataCompactJWT, JwtCompactParts } from './models/jwt.js';
-import { JweObject, ProtectedHeadersJWE, RecipientDataJWE } from './models/jwe.js';
-import { MlkemPublicJwk, MldsaPublicJwk, PublicJwk, MlkemPrivateJwk, MldsaAlg, MlkemCurve, BaseJwk, EcBaseJwk } from './interfaces/Cryptography.types.js';
-import { ProtectedDataAES } from './models/aes.js';
-import { Content } from './utils/content.js';
+import * as jwtUtils from './utils/jwt';
+import { ICryptography } from './interfaces/ICryptography';
+import { AesManager } from './AesManager';
+import { DataCompactJWT, JwtCompactParts } from './models/jwt';
+import { JweObject, ProtectedHeadersJWE, RecipientDataJWE } from './models/jwe';
+import { MlkemPublicJwk, MldsaPublicJwk, PublicJwk, MlkemPrivateJwk, MldsaAlg, MlkemCurve, BaseJwk, EcBaseJwk } from './interfaces/Cryptography.types';
+import { ProtectedDataAES } from './models/aes';
+import { Content } from './utils/content';
 
 
 /**
@@ -26,6 +24,8 @@ import { Content } from './utils/content.js';
 export class CryptographyService implements ICryptography {
   private aesManager: AesManager;
   private cryptoHelper: ICryptoHelper;
+  private mlDsaModule: any | null = null;
+  private mlKemModule: any | null = null;
 
   // Constants for seed sizes, as per @noble library requirements.
   private readonly ML_KEM_SEED_SIZE = 64;
@@ -35,6 +35,32 @@ export class CryptographyService implements ICryptography {
     this.aesManager = new AesManager();
     this.cryptoHelper = cryptoHelper;
   }
+
+  private async loadMlDsa(): Promise<any> {
+    if (this.mlDsaModule) return this.mlDsaModule;
+    try {
+      const module = await import('@noble/post-quantum/ml-dsa');
+      this.mlDsaModule = module;
+      return module;
+    } catch (error) {
+      throw new Error(
+        '[CryptographyService] Missing dependency "@noble/post-quantum/ml-dsa". Install it for ML-DSA operations.',
+      );
+    }
+  }
+
+  private async loadMlKem(): Promise<any> {
+    if (this.mlKemModule) return this.mlKemModule;
+    try {
+      const module = await import('@noble/post-quantum/ml-kem');
+      this.mlKemModule = module;
+      return module;
+    } catch (error) {
+      throw new Error(
+        '[CryptographyService] Missing dependency "@noble/post-quantum/ml-kem". Install it for ML-KEM operations.',
+      );
+    }
+  }
   
   digestString(data: string, algorithm: string): Promise<string> {
     return this.cryptoHelper.digestString(data, algorithm);
@@ -43,6 +69,7 @@ export class CryptographyService implements ICryptography {
   // --- Key Generation ---
 
   async generateKeyPairMlKem(seedBytes?: Uint8Array, crv: MlkemCurve = 'ML-KEM-768'): Promise<{ publicJWKey: MlkemPublicJwk & { kid: string }; secretKeyBytes: Uint8Array }> {
+    const mlKem = await this.loadMlKem();
     let seed: Uint8Array;
     if (seedBytes && seedBytes.length === this.ML_KEM_SEED_SIZE) {
       seed = seedBytes;
@@ -69,6 +96,7 @@ export class CryptographyService implements ICryptography {
   }
 
   async generateKeyPairMlDsa(seedBytes?: Uint8Array, alg: MldsaAlg = 'ML-DSA-44'): Promise<{ publicJWKey: MldsaPublicJwk & { kid: string }; secretKeyBytes: Uint8Array }> {
+    const mlDsa = await this.loadMlDsa();
     let seed: Uint8Array;
     if (seedBytes && seedBytes.length === this.ML_DSA_SEED_SIZE) {
       seed = seedBytes;
@@ -122,17 +150,12 @@ export class CryptographyService implements ICryptography {
     // 2. Now, use the *derived* CEK to encrypt the payload with AES.
     const protectedHeaderB64Url = Content.objectToRawBase64UrlSafe(protectedHeader);
     let payloadBytes = Content.objectToBytes(payload);
+    let payloadString: string;
     if ((protectedHeader as ProtectedHeadersJWE).zip === 'DEF') {
       payloadBytes = pako.deflate(payloadBytes);
-    }
-    const payloadString = Content.bytesToStringASCII(payloadBytes);
-    if (process.env.NODE_ENV !== 'production') {
-      /*
-      console.log('[CryptoService] Encrypting content with:', {
-        cek_b64: Content.bytesToRawBase64UrlSafe(derivedCekBytes),
-        aad: protectedHeaderB64Url,
-      });
-      */
+      payloadString = Content.bytesToRawBase64UrlSafe(payloadBytes);
+    } else {
+      payloadString = Content.bytesToStringASCII(payloadBytes);
     }
     const encrypted = await this.encrypt(payloadString, derivedCekBytes, protectedHeaderB64Url);
 
@@ -171,20 +194,12 @@ export class CryptographyService implements ICryptography {
     if ((finalProtectedHeader as ProtectedHeadersJWE).zip === 'DEF') {
       // Note: Compressing a compact JWS string is often inefficient, but supported.
       const compressedPayload = pako.deflate(payloadBytes);
-      const payloadString = Content.bytesToStringASCII(compressedPayload);
+      const payloadString = Content.bytesToRawBase64UrlSafe(compressedPayload);
       const encrypted = await this.encrypt(payloadString, derivedCekBytes, protectedHeaderB64Url);
       return `${protectedHeaderB64Url}.${encapsulatedKeyB64Url}.${encrypted.iv}.${encrypted.ciphertext}.${encrypted.tag}`;
     }
 
     const payloadString = Content.bytesToStringASCII(payloadBytes);
-    if (process.env.NODE_ENV !== 'production') {
-      /*
-      console.log('[CryptoService] Encrypting content for Compact serialization with:', {
-        cek_b64: Content.bytesToRawBase64UrlSafe(derivedCekBytes),
-        aad: protectedHeaderB64Url,
-      });
-      */
-    }
     const encrypted = await this.encrypt(payloadString, derivedCekBytes, protectedHeaderB64Url);
 
     // 4. Assemble the 5 parts of the compact JWE.
@@ -208,21 +223,16 @@ export class CryptographyService implements ICryptography {
 
     // Decrypt the payload
     const encryptedData = { ciphertext: jweObject.ciphertext, iv: jweObject.iv, tag: jweObject.tag };
-    if (process.env.NODE_ENV !== 'production') {
-      /*
-      console.log('[CryptoService] Decrypting content with:', {
-        cek_b64: Content.bytesToRawBase64UrlSafe(cekBytes),
-        aad: jweObject.protected,
-      });
-      */
-    }
     const decryptedPayloadString = await this.decrypt(encryptedData, cekBytes, jweObject.protected);
 
     // Handle decompression
-    let decryptedBytes = Content.stringToBytesUTF8(decryptedPayloadString);
     const protectedHeader = Content.base64UrlSafeToJSON(jweObject.protected) as ProtectedHeadersJWE;
+    let decryptedBytes: Uint8Array;
     if (protectedHeader.zip === 'DEF') {
-      decryptedBytes = pako.inflate(decryptedBytes);
+      const compressedBytes = Content.base64ToBytes(decryptedPayloadString);
+      decryptedBytes = pako.inflate(compressedBytes);
+    } else {
+      decryptedBytes = Content.stringToBytesUTF8(decryptedPayloadString);
     }
 
     return { decryptedBytes, protectedHeader };
@@ -258,18 +268,15 @@ export class CryptographyService implements ICryptography {
         signature: Content.bytesToRawBase64UrlSafe(signatureBytes),
     };
 
-    if (process.env.NODE_ENV !== 'production') {
-      // console.log('[CryptoService] JWS Parts Created:', jwsParts);
-    }
-
     return jwsParts;
   }
 
   async verifyJws(jws: JwtCompactParts | string, publicJwk: PublicJwk): Promise<boolean> {
-    const jwsParts = typeof jws === 'string' ? this.parseCompactJws(jws) : jws;
-    const signingInput = `${jwsParts.protected}.${jwsParts.payload}`;
+    const parts = typeof jws === 'string' ? jwtUtils.getPartsJWT(jws) : jws;
+    if (!parts) throw new Error('Invalid Compact JWS format');
+    const signingInput = `${parts.protected}.${parts.payload}`;
     const signingInputBytes = Content.stringToBytesUTF8(signingInput);
-    const signatureBytes = Content.base64ToBytes(jwsParts.signature as string);
+    const signatureBytes = Content.base64ToBytes(parts.signature as string);
     return this.verifyBytes(signatureBytes, signingInputBytes, publicJwk);
   }
 
@@ -304,15 +311,18 @@ export class CryptographyService implements ICryptography {
     // The `encapsulate` function from the noble library handles this correctly by accepting the
     // seed as the second argument. It returns both the encapsulated key (`cipherText`)
     // and the derived shared secret, which we must use as the actual AES key.
+    const mlKem = await this.loadMlKem();
     const { sharedSecret, cipherText } = await mlKem.ml_kem768.encapsulate(recipientPublicKeyBytes, cekSeedBytes);
     return { derivedCekBytes: sharedSecret, encapsulatedCekBytes: cipherText };
   }
   
   async decapsulate(encapsulatedBytes: Uint8Array, secretKeyBytes: Uint8Array): Promise<Uint8Array> {
+    const mlKem = await this.loadMlKem();
     return mlKem.ml_kem768.decapsulate(encapsulatedBytes, secretKeyBytes);
   }
 
   async signBytes(payloadBytes: Uint8Array, secretKeyBytes: Uint8Array, alg: MldsaAlg): Promise<Uint8Array> {
+    const mlDsa = await this.loadMlDsa();
     switch (alg) {
       case 'ML-DSA-44': return mlDsa.ml_dsa44.sign(payloadBytes, secretKeyBytes);
       case 'ML-DSA-65': return mlDsa.ml_dsa65.sign(payloadBytes, secretKeyBytes);
@@ -322,6 +332,7 @@ export class CryptographyService implements ICryptography {
   }
 
   async verifyBytes(signatureBytes: Uint8Array, dataBytes: Uint8Array, publicKey: PublicJwk): Promise<boolean> {
+    const mlDsa = await this.loadMlDsa();
     const publicKeyBytes = Content.base64ToBytes((publicKey as any).pub || (publicKey as any).x);
     const alg = (publicKey as MldsaPublicJwk).alg;
     if (!alg) throw new Error("Public key must contain 'alg' property for verification.");
@@ -446,4 +457,3 @@ export class CryptographyService implements ICryptography {
     return bytes;
   }
 }
-

@@ -1,7 +1,7 @@
 // Copyright 2025 Antifraud Services Inc. under the Apache License, Version 2.0.
 // File: gdc-common-utils-ts/src/models/confidential-storage.ts
 
-import { ParameterType } from './params.js';
+import { ParameterType } from './params';
 
 /**
  * FHIR `Coding`-like tag used for research/analytics metadata.

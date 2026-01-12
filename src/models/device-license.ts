@@ -69,15 +69,15 @@ export interface DeviceLicense {
   /**
    * **CRITICAL:** Defines the class of user this license is intended for.
    * This allows for stratified licensing (e.g., selling "professional seats"
-   * separately from "customer access").
+   * separately from "individual access").
    */
-  userClass: 'employee' | 'customer';
+  userClass: 'employee' | 'individual';
 
   /**
    * **Specifies the functional category for an 'employee' license.**
    * This determines the set of roles the user is permitted to have.
    * This field MUST be present if userClass is 'employee'.
-   * It is typically undefined for 'customer' licenses.
+   * It is typically undefined for 'individual' licenses.
    * @example "medicalStaff", "firstResponder", "admin"
    */
   userCategory?: string;

@@ -31,7 +31,7 @@
  */
 'use strict';
 
-import { bytesToStringUTF8, stringToBytesUTF8 } from './string-convert.js';
+import { bytesToStringUTF8, stringToBytesUTF8 } from './string-convert';
 
 // baseN alphabet indexes
 const _reverseAlphabets: any = [];

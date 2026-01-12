@@ -1,7 +1,7 @@
 // Copyright 2025 Antifraud Services Inc. under the Apache License, Version 2.0.
 // File: src/models/indexing.ts
 
-import { ClaimsOrganizationSchemaorg } from "../constants/schemaorg.js";
+import { ClaimsOrganizationSchemaorg } from "../constants/schemaorg";
 
 /**
  * Defines which claims are allowed to be indexed for different resource types.

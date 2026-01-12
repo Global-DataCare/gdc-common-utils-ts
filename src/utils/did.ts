@@ -1,7 +1,7 @@
 // crypto-ts/utils/did.ts
 // Copyright 2025 Antifraud Services Inc. under the Apache License, Version 2.0.
 
-import { ServiceEndpointSelector } from "../models/did.js";
+import { ServiceEndpointSelector } from "../models/did";
 
 /**
  * Generates a DID Service ID fragment from a selector object.

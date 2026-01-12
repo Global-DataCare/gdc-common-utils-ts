@@ -1,7 +1,7 @@
 // crypto-ts/utils/format-converter.ts
 // Copyright 2025 Antifraud Services Inc. under the Apache License, Version 2.0.
 
-import { safelyJoinUrl } from "./url.js";
+import { safelyJoinUrl } from "./url";
 
 /**
  * Normalizes a FHIR resource or Bundle into an array of entries.

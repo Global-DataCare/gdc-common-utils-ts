@@ -1,10 +1,10 @@
 // Copyright 2025 Antifraud Services Inc. under the Apache License, Version 2.0.
 // File: crypto-ts/interfaces/ICryptography.ts
 
-import { JweObject } from '../models/jwe.js';
-import { ProtectedDataAES } from '../models/aes.js';
-import { MlkemPublicJwk, MldsaPublicJwk, PublicJwk, MlkemPrivateJwk, MldsaAlg, MlkemCurve } from './Cryptography.types.js';
-import { DataCompactJWT, JwtCompactParts } from '../models/jwt.js';
+import { JweObject } from '../models/jwe';
+import { ProtectedDataAES } from '../models/aes';
+import { MlkemPublicJwk, MldsaPublicJwk, PublicJwk, MlkemPrivateJwk, MldsaAlg, MlkemCurve } from './Cryptography.types';
+import { DataCompactJWT, JwtCompactParts } from '../models/jwt';
 
 /**
  * Defines the class for the low-level, stateless cryptography utility (the "Engine").

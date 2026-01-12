@@ -6,8 +6,8 @@ import {
     decodeURLSafe,
     encodeURLSafe,
 } from "@stablelib/base64";
-import { alphabetBase58, decodeN, encodeN } from './baseN.js';
-import { stringToBytesUTF8 } from './string-convert.js';
+import { alphabetBase58, decodeN, encodeN } from './baseN';
+import { stringToBytesUTF8 } from './string-convert';
 
 /** Converts a Uint8Array to a hexadecimal string. */
 export function bytesToHexString(bytes: Uint8Array): string {

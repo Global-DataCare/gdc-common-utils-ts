@@ -1,3 +1,3 @@
-export * from './AesManager.js';
-export * from './CryptographyService.js';
-export * from './hmac.js';
+export * from './AesManager';
+export * from './CryptographyService';
+export * from './hmac';

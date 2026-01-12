@@ -1,7 +1,7 @@
 // src/utils/manager-error.ts
 // Copyright 2025 Antifraud Services Inc. under the Apache License, Version 2.0.
 
-import { IssueTypeCode, IssueTypeToHttpStatus } from "../models/issue.js";
+import { IssueTypeCode, IssueTypeToHttpStatus } from "../models/issue";
 
 /**
  * A custom error class used to propagate specific operational failures from deep

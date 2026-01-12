@@ -2,4 +2,4 @@
 // File: crypto-ts/models/response.ts
 
 // Re-exported for backwards compatibility. The canonical definition lives in `confidential-message.ts`.
-export type { IDecodedDidcommPayload } from './confidential-message.js';
+export type { IDecodedDidcommPayload } from './confidential-message';

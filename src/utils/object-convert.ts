@@ -1,8 +1,8 @@
 // crypto-ts/utils/object-convert.ts
 
 import { decodeURLSafe } from "@stablelib/base64";
-import { bytesToStringUTF8, stringToBytesUTF8 } from './string-convert.js';
-import { bytesToRawBase64UrlSafe } from './base-convert.js';
+import { bytesToStringUTF8, stringToBytesUTF8 } from './string-convert';
+import { bytesToRawBase64UrlSafe } from './base-convert';
 
 /** Compares two arrays and returns true if they are the same, false otherwise. */
 export function arrayCompare(a: any[], b: any[]): boolean {

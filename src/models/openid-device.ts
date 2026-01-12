@@ -7,7 +7,7 @@
  * @see https://openid.net/specs/openid-connect-registration-1_0.html
  */
 
-import { JwkSet } from "./jwk.js";
+import { JwkSet } from "./jwk";
 
 /**
  * Represents the information about the physical device being registered.

@@ -1,7 +1,7 @@
 // Copyright 2025 Antifraud Services Inc. under the Apache License, Version 2.0.
 // File: crypto-ts/models/crypto.ts
 
-import { PublicJwk } from "../interfaces/Cryptography.types.js";
+import { PublicJwk } from "../interfaces/Cryptography.types";
 
 /**
  * Describes a public key and its controller, for use in JWE recipients or DID documents.

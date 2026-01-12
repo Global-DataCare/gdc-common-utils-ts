@@ -1,7 +1,7 @@
 // Copyright 2025 Antifraud Services Inc. under the Apache License, Version 2.0.
 // File: crypto-ts/models/jwe.ts
 
-import { JWK } from "./jwk.js";
+import { JWK } from "./jwk";
 
 /**
  * Represents the core components of a JWE (JSON Web Encryption) structure,

@@ -1,7 +1,7 @@
 // Copyright 2025 Antifraud Services Inc. under the Apache License, Version 2.0.
 // File: src/models/schemaorg.ts
 
-import { ParameterData } from "../models/params.js";
+import { ParameterData } from "../models/params";
 
 export enum ClaimsServiceSchemaorg {
     category = "org.schema.Service.category",

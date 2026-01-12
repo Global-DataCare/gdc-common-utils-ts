@@ -36,14 +36,11 @@ export function safelyJoinUrl(base_url: string, path: string): string {
  * const result = splitUrl('invalid-url');
  */
 export function splitUrl(urlString: string): { domain: string; path: string } | null {
-    const domain = "";
-    const path = "";
     try {
         const url = new URL(urlString);
-        const domain = url.hostname;
-        const path = url.pathname;
+        return { domain: url.hostname, path: url.pathname };
     } catch (error) {
         console.error("Invalid URL provided:", (error as any).message);
     }
-    return { domain, path };
+    return null;
 }

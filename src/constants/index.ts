@@ -1,1 +1,1 @@
-export * from './schemaorg.js';
+export * from './schemaorg';

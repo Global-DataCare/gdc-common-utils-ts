@@ -1,7 +1,7 @@
 // src/models/fhir/operation-outcome.ts
 // Copyright 2025 Antifraud Services Inc. under the Apache License, Version 2.0.
 
-import { IssueLevel, IssueTypeCode } from './issue.js';
+import { IssueLevel, IssueTypeCode } from './issue';
 
 /**
  * A single detail associated with an operation, based on a simplified FHIR structure.

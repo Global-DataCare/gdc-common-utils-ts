@@ -24,7 +24,7 @@
  *     - `request`/`response`: Contextual objects indicating the operation's details or result.
  */
 
-import { OperationOutcome } from "./operation-outcome.js";
+import { OperationOutcome } from "./operation-outcome";
 
 // ===================================================================================
 // BUNDLE ENTRY COMPONENTS

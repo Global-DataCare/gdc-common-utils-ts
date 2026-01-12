@@ -7,9 +7,9 @@
  * @sdk
  */
 
-import { IDecodedDidcommPayload as DecodedDidcommPayload } from "./confidential-message.js";
-import { ConfidentialStorageDoc, IndexedData } from "./confidential-storage.js";
-import { ServiceEndpointSelector } from "./did.js";
+import { IDecodedDidcommPayload as DecodedDidcommPayload } from "./confidential-message";
+import { ConfidentialStorageDoc, IndexedData } from "./confidential-storage";
+import { ServiceEndpointSelector } from "./did";
 
 /** When the organization has its own domain for the connector do not appear in the path:
  * - the tenantId and jurisdiction, and
@@ -54,6 +54,11 @@ export enum JobStatus {
 export interface JobRequest extends ConfidentialStorageDoc, JobRequestInfo {
     // 'id' serves as the primary key in the vault.
     id: string;
+    /**
+     * DIDComm thread ID for correlating async jobs.
+     * Stored outside encrypted `content` so UIs can query jobs by thread without decrypting.
+     */
+    thid?: string;
     status: JobStatus;
     versionId?: string;
     vaultId?: string;
@@ -93,4 +98,3 @@ export interface JobRequest extends ConfidentialStorageDoc, JobRequestInfo {
     /** CAUTION: Only for debugging purposes. It is the last error message, o*/
     errorMessage?: string;
 }
-
