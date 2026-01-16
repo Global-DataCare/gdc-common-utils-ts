@@ -149,7 +149,7 @@ export function getBaseUrlFromDidWeb(did: string): string {
   
   const path = pathParts.join('/').replace(/cds-(es|us|gb)/, (match, p1) => `cds-${p1.toUpperCase()}`);
 
-  // Ensure a trailing slash for the base URL
-  return `${protocol}://${decodedDomain}/${path}/`;
+  // Ensure a trailing slash for the base URL, without double slashes when no path is present.
+  const normalizedPath = path ? `${path}/` : '';
+  return `${protocol}://${decodedDomain}/${normalizedPath}`;
 }
-

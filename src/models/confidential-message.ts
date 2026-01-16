@@ -5,6 +5,8 @@
 import { ProtectedHeadersJWE } from "./jwe";
 import { JwsHeader } from "./jws";
 
+export type { DataEntry } from "./comm";
+
 /**
  * Defines the structure of the cryptographic metadata associated with a job request.
  */

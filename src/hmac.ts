@@ -1,6 +1,7 @@
 // Copyright 2025 Antifraud Services Inc. under the Apache License, Version 2.0.
 // File: crypto-ts/hmac.ts
 
+// Use explicit .js subpaths to satisfy package exports in Metro/Node ESM.
 import { hmac } from '@noble/hashes/hmac.js';
 import { sha3_256 } from '@noble/hashes/sha3.js';
 import { Content } from './utils/content';

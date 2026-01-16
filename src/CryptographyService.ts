@@ -39,12 +39,13 @@ export class CryptographyService implements ICryptography {
   private async loadMlDsa(): Promise<any> {
     if (this.mlDsaModule) return this.mlDsaModule;
     try {
-      const module = await import('@noble/post-quantum/ml-dsa');
+      // Use explicit .js subpath to satisfy package exports in Metro/Node ESM.
+      const module = await import('@noble/post-quantum/ml-dsa.js');
       this.mlDsaModule = module;
       return module;
     } catch (error) {
       throw new Error(
-        '[CryptographyService] Missing dependency "@noble/post-quantum/ml-dsa". Install it for ML-DSA operations.',
+        '[CryptographyService] Missing dependency "@noble/post-quantum/ml-dsa.js". Install it for ML-DSA operations.',
       );
     }
   }
@@ -52,12 +53,13 @@ export class CryptographyService implements ICryptography {
   private async loadMlKem(): Promise<any> {
     if (this.mlKemModule) return this.mlKemModule;
     try {
-      const module = await import('@noble/post-quantum/ml-kem');
+      // Use explicit .js subpath to satisfy package exports in Metro/Node ESM.
+      const module = await import('@noble/post-quantum/ml-kem.js');
       this.mlKemModule = module;
       return module;
     } catch (error) {
       throw new Error(
-        '[CryptographyService] Missing dependency "@noble/post-quantum/ml-kem". Install it for ML-KEM operations.',
+        '[CryptographyService] Missing dependency "@noble/post-quantum/ml-kem.js". Install it for ML-KEM operations.',
       );
     }
   }
