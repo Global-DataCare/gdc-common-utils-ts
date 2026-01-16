@@ -1,7 +1,9 @@
 {
   "name": "gdc-common-utils-ts",
   "version": "1.0.1",
-  "private": true,
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "dependencies": {
     "@noble/post-quantum": "^0.8.0",
