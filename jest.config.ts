@@ -18,6 +18,7 @@ const config: JestConfigWithTsJest = {
           moduleResolution: 'bundler',
           allowSyntheticDefaultImports: true,
           esModuleInterop: true,
+          types: ['jest', 'node'],
         },
       },
     ],
