@@ -4,12 +4,14 @@ export type ParsedActor = {
   /**
    * The token subject / authenticated actor identifier (as provided in the token request).
    * Examples:
-   * - did:web:api.acme.org:employee:doctor1@acme.org:role:ISCO-08|2211
-   * - doctor1@acme.org
+   * - did:web:api.acme.org:employee:doctor1@acme.org:ISCO-08|2211
+   * - did:web:api.acme.org:employee:doctor1@acme.org:ISCO-08|2211:<device-uuid>
+   * - did:web:api.acme.org:family:<id>:v3-RoleCode|ONESELF
+   * - did:web:api.acme.org:family:<id>:v3-RoleCode|CHILD:<device-uuid>
    */
   sub: string;
-  /** The employee email if present (either from did:web employee DID or raw email). */
-  email?: string;
+  /** The actor identifier (employee email, familyId, or raw email). */
+  identifier?: string;
   /** The employee role code if present (e.g. "ISCO-08|2211"). */
   role?: string;
   /** The base organization did:web if `sub` is did:web (e.g. "did:web:api.acme.org"). */
@@ -28,25 +30,27 @@ export function parseActorFromSub(sub: string): ParsedActor {
     const host = after.split(':')[0];
     if (host) parsed.organization = `did:web:${host}`;
 
-    // Extract email and role from the canonical employee DID shape:
-    // did:web:<host>:employee:<email>:role:<roleCode>[:device:<uuid>]
+    // Extract email and role from endpoint-style DID shapes:
+    // did:web:<host>:(employee|family):<id>:<roleSystem>|<roleCode>[:<uuid>]
     const parts = after.split(':');
     const employeeIdx = parts.indexOf('employee');
-    if (employeeIdx >= 0 && parts.length > employeeIdx + 1) {
-      const email = parts[employeeIdx + 1];
-      if (email && email.includes('@')) parsed.email = email.toLowerCase();
+    const familyIdx = parts.indexOf('family');
+    const idIdx = employeeIdx >= 0 ? employeeIdx + 1 : familyIdx >= 0 ? familyIdx + 1 : -1;
+    const identifier = idIdx >= 0 ? parts[idIdx] : undefined;
+    if (identifier) {
+      parsed.identifier = identifier.includes('@') ? identifier.toLowerCase() : identifier;
     }
-    const roleIdx = parts.indexOf('role');
-    if (roleIdx >= 0 && parts.length > roleIdx + 1) {
-      parsed.role = parts[roleIdx + 1];
+
+    if (idIdx >= 0 && parts.length > idIdx + 1) {
+      const roleCandidate = parts[idIdx + 1];
+      if (roleCandidate && roleCandidate.includes('|')) parsed.role = roleCandidate;
     }
     return parsed;
   }
 
   // Raw email actor identifier
   if (trimmed.includes('@') && !/\s/.test(trimmed)) {
-    parsed.email = trimmed.toLowerCase();
+    parsed.identifier = trimmed.toLowerCase();
   }
   return parsed;
 }
-
