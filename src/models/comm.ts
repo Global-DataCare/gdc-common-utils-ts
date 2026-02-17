@@ -59,5 +59,4 @@ export interface CommMsgExtended extends DidCommPayload {
 /**
  * A type placeholder for a FHIR Communication resource.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type FhirCommunication = any;
+export type { FhirCommunicationResource as FhirCommunication } from './fhir-documents';

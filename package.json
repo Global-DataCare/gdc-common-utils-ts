@@ -1,6 +1,6 @@
 {
   "name": "gdc-common-utils-ts",
-  "version": "1.0.5",
+  "version": "1.0.8",
   "publishConfig": {
     "access": "public"
   },
@@ -16,22 +16,64 @@
     "test": "jest",
     "test:coverage": "jest --coverage",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "prepublishOnly": "npm run typecheck && npm test -- --watchman=false"
+    "build": "tsc -p tsconfig.build.json && node patch-esm-imports.mjs",
+    "prepublishOnly": "npm run typecheck && npm test -- --watchman=false && npm run build"
   },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts",
-    "./AesManager": "./src/AesManager.ts",
-    "./CryptographyService": "./src/CryptographyService.ts",
-    "./hmac": "./src/hmac.ts",
-    "./constants/*": "./src/constants/*.ts",
-    "./models/*": "./src/models/*.ts",
-    "./utils/*": "./src/utils/*.ts",
-    "./interfaces/*": "./src/interfaces/*.ts",
-    "./constants": "./src/constants/index.ts",
-    "./models": "./src/models/index.ts",
-    "./utils": "./src/utils/index.ts",
-    "./interfaces": "./src/interfaces/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./AesManager": {
+      "types": "./dist/AesManager.d.ts",
+      "default": "./dist/AesManager.js"
+    },
+    "./CryptographyService": {
+      "types": "./dist/CryptographyService.d.ts",
+      "default": "./dist/CryptographyService.js"
+    },
+    "./hmac": {
+      "types": "./dist/hmac.d.ts",
+      "default": "./dist/hmac.js"
+    },
+    "./constants/*": {
+      "types": "./dist/constants/*.d.ts",
+      "default": "./dist/constants/*.js"
+    },
+    "./models/*": {
+      "types": "./dist/models/*.d.ts",
+      "default": "./dist/models/*.js"
+    },
+    "./utils/*": {
+      "types": "./dist/utils/*.d.ts",
+      "default": "./dist/utils/*.js"
+    },
+    "./interfaces/*": {
+      "types": "./dist/interfaces/*.d.ts",
+      "default": "./dist/interfaces/*.js"
+    },
+    "./constants": {
+      "types": "./dist/constants/index.d.ts",
+      "default": "./dist/constants/index.js"
+    },
+    "./models": {
+      "types": "./dist/models/index.d.ts",
+      "default": "./dist/models/index.js"
+    },
+    "./utils": {
+      "types": "./dist/utils/index.d.ts",
+      "default": "./dist/utils/index.js"
+    },
+    "./interfaces": {
+      "types": "./dist/interfaces/index.d.ts",
+      "default": "./dist/interfaces/index.js"
+    }
   },
+  "files": [
+    "dist"
+  ],
   "devDependencies": {
     "@babel/preset-env": "^7.24.0",
     "@types/jest": "^29.5.12",

@@ -11,6 +11,8 @@ export * from './consent-rule';
 export * from './crypto';
 export * from './device-license';
 export * from './did';
+export * from './fhir-documents';
+export * from './interoperable-claims';
 export * from './indexing';
 export * from './issue';
 export * from './jsonapi';
