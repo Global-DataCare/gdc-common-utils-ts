@@ -4,6 +4,7 @@ export * from './baseN';
 export * from './bundle';
 export * from './content';
 export * from './did';
+export * from './didcomm';
 export * from './format-converter';
 export * from './jwt';
 export * from './manager-error';

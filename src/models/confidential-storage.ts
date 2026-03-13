@@ -141,22 +141,6 @@ export interface ConfidentialStorageDoc {
 
     /** Policy-dependent research/analytics metadata, kept outside encrypted `content`. */
     research?: ResearchInfo;
-
-    /**
-     * @deprecated Use `created`, `contentType`, and `research` instead.
-     * This legacy field is kept for backwards compatibility with older stored documents.
-     */
-    meta?: {
-        created?: string;
-        contentType?: string;
-        chunks?: number;
-        jurisdiction?: string;
-        yearOfBirth?: string;
-        gender?: string;
-        sexAtBirth?: string;
-        /** @deprecated Use `tag` instead. */
-        tags?: string;
-    };
 }
 
 /**

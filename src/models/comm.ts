@@ -32,6 +32,15 @@ export interface DataEntry {
 }
 
 /**
+ * DIDComm attachment structure.
+ */
+export interface DidCommAttachment {
+  id: string;
+  media_type: string;
+  data: { links?: string[]; base64?: string; json?: any };
+}
+
+/**
  * The canonical, internal representation of a secure message, extending
  * the standard DIDComm payload with FHIR-specific, flattened metadata.
  */
