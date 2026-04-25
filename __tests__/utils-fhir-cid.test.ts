@@ -1,0 +1,105 @@
+import {
+  assignCidToClaimsId,
+  assignCidToFhirBundleEntries,
+  assignCidToFhirResourceVersionId,
+  claimsToCid,
+  canonicalizeFhirResource,
+  fhirResourceToCid,
+} from '../src/utils/fhir-cid.js';
+
+describe('fhir-cid utilities', () => {
+  it('canonicalizes recursively and strips meta.versionId by default', () => {
+    const resource = {
+      resourceType: 'Observation',
+      id: '8f0f9f88-7a8e-42c4-b89a-a58d5d3ca2df',
+      meta: { versionId: 'old', source: 'ehr' },
+      code: { text: 'BP', coding: [{ code: '85354-9', system: 'http://loinc.org' }] },
+    };
+
+    const canonical = canonicalizeFhirResource(resource);
+    expect(canonical).toContain('"source":"ehr"');
+    expect(canonical).not.toContain('"versionId"');
+  });
+
+  it('generates deterministic CID for semantically identical resources with different key order', () => {
+    const a = {
+      resourceType: 'Patient',
+      id: '68a78f38-7d7d-4f6e-b6ef-0d0066f8c241',
+      meta: { versionId: 'previous', profile: ['http://hl7.org/fhir/StructureDefinition/Patient'] },
+      name: [{ given: ['Ana'], family: 'Lopez' }],
+    };
+    const b = {
+      name: [{ family: 'Lopez', given: ['Ana'] }],
+      resourceType: 'Patient',
+      id: '68a78f38-7d7d-4f6e-b6ef-0d0066f8c241',
+      meta: { profile: ['http://hl7.org/fhir/StructureDefinition/Patient'], versionId: 'another' },
+    };
+
+    const cidA = fhirResourceToCid(a);
+    const cidB = fhirResourceToCid(b);
+    expect(cidA.cid).toBe(cidB.cid);
+    expect(cidA.versionId).toBe(cidA.cid);
+    expect(cidA.cid.startsWith('z')).toBe(true);
+  });
+
+  it('keeps resource.id unchanged and maps CID into meta.versionId', () => {
+    const resource = {
+      resourceType: 'DocumentReference',
+      id: '8e4db04c-3536-4b03-a33a-69bb1f3729e7',
+      meta: { source: 'portal' },
+    };
+    const assigned = assignCidToFhirResourceVersionId(resource);
+    expect(assigned.resource.id).toBe(resource.id);
+    expect((assigned.resource.meta as any).versionId).toBe(assigned.mapping.cid);
+  });
+
+  it('assigns CID versionIds across bundle entries and returns mappings', () => {
+    const bundle = {
+      resourceType: 'Bundle',
+      type: 'collection',
+      entry: [
+        {
+          fullUrl: 'urn:uuid:11111111-1111-1111-1111-111111111111',
+          resource: { resourceType: 'Patient', id: '11111111-1111-1111-1111-111111111111' },
+        },
+        {
+          fullUrl: 'urn:uuid:22222222-2222-2222-2222-222222222222',
+          resource: { resourceType: 'Observation', id: '22222222-2222-2222-2222-222222222222' },
+        },
+      ],
+    };
+
+    const result = assignCidToFhirBundleEntries(bundle);
+    expect(result.mappings.length).toBe(2);
+    expect(((result.bundle.entry as any[])[0].resource.meta.versionId).startsWith('z')).toBe(true);
+    expect(result.mappings[0].fullUrl).toBe('urn:uuid:11111111-1111-1111-1111-111111111111');
+  });
+
+  it('generates claims CID excluding @context/@type/@id and writes claims.@id', () => {
+    const claimsA = {
+      '@context': 'org.hl7.fhir.api',
+      '@type': 'Consent',
+      '@id': 'old',
+      'Consent.subject': 'did:web:subject.example.com',
+      'Consent.actor-role': 'Practitioner',
+    };
+    const claimsB = {
+      '@type': 'Consent',
+      'Consent.actor-role': 'Practitioner',
+      'Consent.subject': 'did:web:subject.example.com',
+      '@context': 'org.hl7.fhir.api',
+      '@id': 'another',
+    };
+
+    const cidA = claimsToCid(claimsA);
+    const cidB = claimsToCid(claimsB);
+    expect(cidA.cid).toBe(cidB.cid);
+    expect(cidA.canonicalJson).not.toContain('@context');
+    expect(cidA.canonicalJson).not.toContain('@type');
+    expect(cidA.canonicalJson).not.toContain('@id');
+
+    const assigned = assignCidToClaimsId(claimsA);
+    expect(assigned.claims['@id']).toBe(assigned.cid);
+    expect(String(assigned.cid).startsWith('z')).toBe(true);
+  });
+});

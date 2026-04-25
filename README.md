@@ -47,6 +47,7 @@ The `utils` export exposes reusable helpers for DID and message handling, such a
 - `utils/jwt`
 - `utils/content`
 - `utils/normalize`
+- `utils/fhir-cid` for recursive FHIR canonicalization + CID generation + `meta.versionId` assignment
 - conversion, formatting, and multibase helpers
 
 These helpers support DIDComm-style message construction and related transport/data-shaping workflows.
@@ -55,6 +56,7 @@ Example:
 
 ```ts
 import { normalizeDidWeb, generateServiceId } from 'gdc-common-utils-ts/utils/did';
+import { fhirResourceToCid, assignCidToFhirResourceVersionId } from 'gdc-common-utils-ts/utils/fhir-cid';
 ```
 
 ### Models
@@ -113,3 +115,7 @@ Those request/response flows belong in connector SDKs and backend orchestration 
 
 - The package is published as ESM.
 - The `files` field only publishes `dist/`, so source imports should use the documented package entry points rather than local file paths.
+
+## Roadmap and Briefing
+- `BRIEFING_DATASPACE_EN.md`
+- `TODO_ROADMAP.md`
