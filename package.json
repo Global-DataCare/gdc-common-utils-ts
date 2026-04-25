@@ -69,6 +69,14 @@
     "./interfaces": {
       "types": "./dist/interfaces/index.d.ts",
       "default": "./dist/interfaces/index.js"
+    },
+    "./storage": {
+      "types": "./dist/storage/index.d.ts",
+      "default": "./dist/storage/index.js"
+    },
+    "./storage/*": {
+      "types": "./dist/storage/*.d.ts",
+      "default": "./dist/storage/*.js"
     }
   },
   "files": [
