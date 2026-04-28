@@ -6,11 +6,6 @@ describe('normalizeUuid', () => {
   const uuidDashed = '123e4567-e89b-12d3-a456-426614174000';
   const mb58 = encodeHexToMultibase58btc(uuidHex);
 
-  console.log('DEBUG mb58:', mb58);
-  console.log('DEBUG decodeMultibase58btcToHex(mb58):', decodeMultibase58btcToHex(mb58));
-  console.log('DEBUG decodeMultibase58btcToHex(z3FfGK34vwMvVFDedyb2nkf):', decodeMultibase58btcToHex('z3FfGK34vwMvVFDedyb2nkf'));
-  console.log('DEBUG normalizeUuid(mb58):', normalizeUuid(mb58));
-
   it('normalizes urn:uuid:<uuid>', () => {
     expect(normalizeUuid('urn:uuid:' + uuidDashed)).toBe(uuidHex);
   });
