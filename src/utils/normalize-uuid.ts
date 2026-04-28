@@ -1,7 +1,7 @@
 // Normalizes a subject identifier to a canonical UUID (hexadecimal, lowercase, no dashes)
 // Accepts: urn:uuid:<uuid>, <ResourceType>/<uuid>, <uuid> (with or without dashes), base58 (optional)
 // Returns: canonical hex string (no dashes, lowercase) or undefined if not valid
-export function normalizeSubjectUuid(input: string | undefined): string | undefined {
+export function normalizeUuid(input: string | undefined): string | undefined {
   if (!input) return undefined;
   let s = String(input).trim();
   // urn:uuid:<uuid>

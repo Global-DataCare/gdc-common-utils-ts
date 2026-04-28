@@ -14,4 +14,4 @@ export * from './multibase58';
 export * from './multibasehash';
 export * from './normalize';
 export * from './object-convert';
-export * from './normalize-subject-uuid';
+export * from './normalize-uuid';
