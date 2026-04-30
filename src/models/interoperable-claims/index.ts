@@ -5,3 +5,6 @@ export * from './types';
 export * from './composition-claims';
 export * from './communication-claims';
 export * from './document-reference-claims';
+export * from './medication-statement-claims';
+export * from './appointment-claims';
+export * from './appointment-response-claims';
