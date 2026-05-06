@@ -78,9 +78,8 @@ export enum ClaimsPersonSchemaorg {
     gender = "org.schema.Person.gender",
     givenName = "org.schema.Person.givenName",
     hasOccupation = "org.schema.Person.hasOccupation",
-    /** Credential material (public key metadata) bound to the person identity in VC payloads */
+    /** Credential material bound to the person identity in VC payloads (for activation flow this is the representative signing kid). */
     hasCredentialMaterial = "org.schema.Person.hasCredential.material",
-    hasCredentialMaterialKid = "org.schema.Person.hasCredential.material.kid",
     identifier = "org.schema.Person.identifier", // the URN (composed by the provider)
     identifierType = "org.schema.Person.identifier.additionalType", // retrieved from a form
     identifierValue = "org.schema.Person.identifier.value", // retrieved from a form
