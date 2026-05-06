@@ -47,13 +47,6 @@ function getHeaderValue(
 }
 
 async function parseBody(response: DidcommFetchResponse): Promise<unknown> {
-  if (typeof response.json === 'function') {
-    try {
-      return await response.json();
-    } catch {
-      // Continue to text fallback.
-    }
-  }
   if (typeof response.text === 'function') {
     const raw = await response.text();
     if (!raw) return undefined;
@@ -117,4 +110,3 @@ export async function submitDidcomm(input: DidcommSubmitInput): Promise<DidcommS
     contentType,
   };
 }
-

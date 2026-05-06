@@ -78,12 +78,16 @@ export enum ClaimsPersonSchemaorg {
     gender = "org.schema.Person.gender",
     givenName = "org.schema.Person.givenName",
     hasOccupation = "org.schema.Person.hasOccupation",
+    /** Credential material (public key metadata) bound to the person identity in VC payloads */
+    hasCredentialMaterial = "org.schema.Person.hasCredential.material",
+    hasCredentialMaterialKid = "org.schema.Person.hasCredential.material.kid",
     identifier = "org.schema.Person.identifier", // the URN (composed by the provider)
     identifierType = "org.schema.Person.identifier.additionalType", // retrieved from a form
     identifierValue = "org.schema.Person.identifier.value", // retrieved from a form
     /** ICAO transliteration of official given name (including middlenames), family name and addtional surname */
     name = "org.schema.Person.name",
     memberOf = "org.schema.Person.memberOf", // for employees
+    memberOfTaxId = "org.schema.Person.memberOf.taxID",
     telephone = "org.schema.Person.telephone",
     worksFor = "org.schema.Person.worksFor", // for employees
     /*
@@ -190,4 +194,3 @@ export const fullPersonParamsSchemaorg: ParameterData[] = [
   },
   */
 ];
-

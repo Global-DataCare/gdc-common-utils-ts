@@ -5,7 +5,7 @@ describe('submitDidcomm', () => {
     const fetcher = jest.fn().mockResolvedValue({
       status: 202,
       headers: { get: (name: string) => (name.toLowerCase() === 'location' ? '/jobs/1' : null) },
-      json: async () => ({ ok: true }),
+      text: async () => '{"ok":true}',
     });
 
     const result = await submitDidcomm({
@@ -67,4 +67,3 @@ describe('submitDidcomm', () => {
     expect(result.submitKind).toBe('encrypted');
   });
 });
-
