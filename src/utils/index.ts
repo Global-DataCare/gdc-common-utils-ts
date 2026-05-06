@@ -6,6 +6,7 @@ export * from './content';
 export * from './consent';
 export * from './did';
 export * from './didcomm';
+export * from './didcomm-submit';
 export * from './didcomm-submit-policy';
 export * from './format-converter';
 export * from './fhir-cid';
