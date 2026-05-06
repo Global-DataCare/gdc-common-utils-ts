@@ -17,10 +17,9 @@
  *     such as registering one organization or creating one employee. It has a strict
  *     structure:
  *     - `type`: A string that defines the business action (e.g., 'Organization-registration-offer-v1.0').
- *     - `meta`: A **TOP-LEVEL** property containing the original `claims` for the operation.
- *               This is crucial for both processing and error reporting.
- *     - `resource`: A FHIR-like resource object that is the subject of the action. It
- *                   contains the structured data derived from the claims.
+ *     - `resource.meta.claims`: Canonical location for claims in request entries.
+ *     - `meta.claims`: Legacy compatibility location accepted during migration.
+ *     - `resource`: A FHIR-like resource object that is the subject of the action.
  *     - `request`/`response`: Contextual objects indicating the operation's details or result.
  */
 
@@ -59,6 +58,24 @@ export interface BundleEntryMeta {
   claims?: Record<string, any>;
 }
 
+/**
+ * Canonical resource shape for batch-style entries.
+ * Claims should be authored in `resource.meta.claims`.
+ */
+/**
+ * Agnostic resource shape for batch-style entries.
+ * Canonical claims location: resource.meta.claims
+ * Allows any resource structure, but meta.claims is always present for business logic.
+ */
+export interface BundleEntryResource {
+  meta?: {
+    claims?: Record<string, any>;
+    [key: string]: any;
+  };
+  resourceType?: string;
+  // Add other standard FHIR/JSON:API fields as needed, but do NOT use [key: string]: any
+}
+
 // ===================================================================================
 // BUNDLE ENTRY TYPES
 // ===================================================================================
@@ -71,7 +88,8 @@ export interface BundleEntryRequest {
   id?: string;
   type: string;
   request: BundleRequest;
-  resource?: Record<string, any>;
+  resource?: BundleEntryResource;
+  /** @deprecated Legacy claims location. Prefer resource.meta.claims. */
   meta?: BundleEntryMeta;
 }
 
@@ -83,7 +101,8 @@ export interface BundleEntryResponse {
   id?: string;
   type: string;
   response: BundleResponse;
-  resource?: Record<string, any>;
+  resource?: BundleEntryResource;
+  /** @deprecated Legacy claims location. Prefer resource.meta.claims. */
   meta?: BundleEntryMeta;
 }
 
@@ -116,16 +135,18 @@ export interface ErrorEntry {
  * This structure is used for both requests and successful responses.
  *
  * @property {string} type - A string identifying the business action of the entry.
- * @property {BundleEntryMeta} meta - **(TOP-LEVEL PROPERTY)** Contains the original, unprocessed claims.
  * @property {object} resource - The primary FHIR-like resource that is the subject of the action.
+ *                               Canonical claims location is `resource.meta.claims`.
+ * @property {BundleEntryMeta} [meta] - Legacy top-level claims location for backward compatibility.
  * @property {BundleRequest} [request] - Details of the requested operation (for request bundles).
  * @property {BundleResponse} [response] - Details of the operation outcome (for response bundles).
  */
 export type BundleEntry = {
   id?: string;
   type: string;
+  /** @deprecated Legacy claims location. Prefer resource.meta.claims. */
   meta?: BundleEntryMeta;
-  resource?: Record<string, any>;
+  resource?: BundleEntryResource;
   request?: BundleRequest;
   response?: BundleResponse;
 }
@@ -149,4 +170,3 @@ export interface BundleJsonApi<T = BundleEntry | ErrorEntry> {
   total?: number;
   type: string;
 }
-
