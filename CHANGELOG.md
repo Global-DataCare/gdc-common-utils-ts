@@ -2,6 +2,12 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [1.4.19] - 2026-05-18
+
+### Changed
+- Canonicalized legal-representative occupation extraction to support `credentialSubject.hasOccupation.identifier.value`.
+- Kept backward-compatible normalization for legacy role tokens (`|RESPRSN`, `v3-RoleCode|RESPRSN`) while validating against canonical code value.
+
 ## [1.4.17] - 2026-05-18
 
 ### Added

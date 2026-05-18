@@ -17,7 +17,7 @@ describe('Activation Policy Utils', () => {
     credentialSubject: {
       id: 'did:web:provider.example:organization:taxid:ESB00112233:member:zabc:RESPRSN',
       memberOf: { taxID: 'esb00112233' },
-      hasOccupation: { identifier: '|RESPRSN' },
+      hasOccupation: { identifier: { value: 'RESPRSN' } },
       hasCredential: { material: 'sha256:abc' },
     },
   };
@@ -37,13 +37,28 @@ describe('Activation Policy Utils', () => {
         credentialSubject: {
           id: 'did:web:provider.example:organization:taxid:OTHER:member:zabc:OTHER',
           memberOf: { taxID: 'ES999' },
-          hasOccupation: { identifier: '|OTHER' },
+          hasOccupation: { identifier: { value: 'OTHER' } },
         },
       },
     });
     expect(errors.map((e) => e.code)).toContain('REPRESENTATIVE_TAXID_MISMATCH');
     expect(errors.map((e) => e.code)).toContain('MISSING_REPRESENTATIVE_ROLE_RESPRSN');
     expect(errors.map((e) => e.code)).toContain('MISSING_REPRESENTATIVE_CREDENTIAL_MATERIAL');
+  });
+
+  it('accepts legacy tokenized occupation values', () => {
+    const errors = validateActivationRepresentativePolicy({
+      organizationCredential,
+      representativeCredential: {
+        credentialSubject: {
+          id: 'did:web:provider.example:organization:taxid:ESB00112233:member:zabc:RESPRSN',
+          memberOf: { taxID: 'ESB00112233' },
+          hasOccupation: { identifier: 'v3-RoleCode|RESPRSN' },
+          hasCredential: { material: 'sha256:abc' },
+        },
+      },
+    });
+    expect(errors).toHaveLength(0);
   });
 
   it('builds and validates member did:web hierarchy', () => {

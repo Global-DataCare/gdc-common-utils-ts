@@ -56,8 +56,15 @@ export function extractRepresentativeRoleCode(representativeCredential: unknown)
   if (typeof occupation === 'string') return occupation.trim() || undefined;
   if (occupation && typeof occupation === 'object') {
     const occ = occupation as Record<string, unknown>;
-    const id = String(occ.identifier || '').trim();
-    if (id) return id;
+    const idRaw = occ.identifier;
+    if (typeof idRaw === 'string' && idRaw.trim()) return idRaw.trim();
+    if (idRaw && typeof idRaw === 'object') {
+      const idObj = idRaw as Record<string, unknown>;
+      const idValue = String(idObj.value || '').trim();
+      if (idValue) return idValue;
+    }
+    const idValue = String(occ.value || '').trim();
+    if (idValue) return idValue;
     const name = String(occ.name || '').trim();
     if (name) return name;
   }
@@ -65,7 +72,11 @@ export function extractRepresentativeRoleCode(representativeCredential: unknown)
 }
 
 export function hasRoleCode(roleCode: string | undefined, requiredCode = 'RESPRSN'): boolean {
-  const normalizedRole = String(roleCode || '').trim().toUpperCase();
+  const normalizedRole = String(roleCode || '')
+    .trim()
+    .toUpperCase()
+    .replace(/^.*\|/, '')
+    .replace(/^[|:]+/, '');
   const normalizedRequired = String(requiredCode || '').trim().toUpperCase();
   return normalizedRole.includes(normalizedRequired);
 }
