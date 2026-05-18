@@ -1,4 +1,5 @@
 export * from './actor';
+export * from './activation-policy';
 export * from './base-convert';
 export * from './baseN';
 export * from './bundle';

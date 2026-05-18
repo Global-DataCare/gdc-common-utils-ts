@@ -2,6 +2,15 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [1.4.17] - 2026-05-18
+
+### Added
+- Added shared activation representative policy utils in `src/utils/activation-policy.ts`:
+  - DID extraction for credentials (`extractDidWebFromCredential`)
+  - legal representative policy validation (`validateActivationRepresentativePolicy`)
+  - member DID helpers (`buildMemberDidWeb`, `isMemberDidWebUnderOwner`) with canonical `:member:<member-id>:<role>` shape.
+- Added tests in `__tests__/utils-activation-policy.test.ts` for representative policy and member DID hierarchy.
+
 ## [Unreleased] - 2026-05-06
 
 ### Added
