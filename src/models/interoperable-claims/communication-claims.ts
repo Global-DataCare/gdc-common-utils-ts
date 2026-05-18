@@ -12,7 +12,7 @@ export const CommunicationClaim = {
   ContentAttachmentData: 'Communication.content-attachment-data',
   ContentAttachmentType: 'Communication.content-attachment-type',
   ContentAttachmentTitle: 'Communication.content-attachment-title',
-  PartOf: 'Communication.partOf',
+  PartOf: 'Communication.part-of'
 } as const;
 
 export type CommunicationClaimKey = typeof CommunicationClaim[keyof typeof CommunicationClaim];
