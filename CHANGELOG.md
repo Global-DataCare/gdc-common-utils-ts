@@ -2,6 +2,11 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [1.4.20] - 2026-05-18
+
+### Changed
+- Documented npm publish authentication flow using `NPM_TOKEN` loaded from `~/.zshrc`.
+
 ## [1.4.19] - 2026-05-18
 
 ### Changed
