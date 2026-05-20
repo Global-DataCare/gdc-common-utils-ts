@@ -2,6 +2,28 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [1.4.21] - 2026-05-20
+
+### Changed
+- MedicationStatement clinical converters aligned to canonical claims and IPS-first capture semantics:
+  - keeps `MedicationStatement.effective` as canonical date/time search claim,
+  - supports `MedicationStatement.note` as primary captured human text,
+  - supports `MedicationStatement.dosage-instruction`,
+  - supports `MedicationStatement.medication-text`,
+  - supports `MedicationStatement.medication-identifier`,
+  - supports `MedicationStatement.medication-serial-number`,
+  - supports `MedicationStatement.medication-expiration-date`.
+- Mapping now projects medication artifact claims to `MedicationStatement.contained[]` (`Medication`) plus `medicationReference` in FHIR R4.
+
+### Tests
+- Expanded roundtrip conversion tests to include canonical medication claims and contained Medication mapping assertions.
+
+### Inventory
+- Complete modified file inventory for this branch snapshot:
+  - `AGENTS.md`
+  - `__tests__/utils-clinical-resource-converters.test.ts`
+  - `src/utils/clinical-resource-converters.ts`
+
 ## [1.4.20] - 2026-05-18
 
 ### Changed

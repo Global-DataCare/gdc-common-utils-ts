@@ -19,9 +19,35 @@ describe('clinical-resource-converters', () => {
       'MedicationStatement.status': 'active',
       'MedicationStatement.effective': '2026-05-17T08:00:00Z',
       'MedicationStatement.code': 'http://rxnorm|123',
+      'MedicationStatement.medication-text': 'Paracetamol 500mg capsule',
+      'MedicationStatement.note': 'captured by voice assistant',
+      'MedicationStatement.dosage-instruction': '1 capsule every 8 hours',
+      'MedicationStatement.medication-identifier': '08470001234567',
+      'MedicationStatement.medication-serial-number': 'LOT-2026-01',
+      'MedicationStatement.medication-expiration-date': '2027-12-31',
     };
 
     expect(medicationStatementFhirToFlat(medicationStatementFlatToFhir(flat))).toEqual(flat);
+  });
+
+  it('maps MedicationStatement.medication-* claims to contained Medication in FHIR R4', () => {
+    const flat = {
+      'MedicationStatement.subject': 'Patient/p2',
+      'MedicationStatement.status': 'active',
+      'MedicationStatement.medication-text': 'Ibuprofen 400mg tablet',
+      'MedicationStatement.medication-identifier': '05550001112222',
+      'MedicationStatement.medication-serial-number': 'LOT-IBU-9',
+      'MedicationStatement.medication-expiration-date': '2028-01-01',
+    };
+
+    const fhir = medicationStatementFlatToFhir(flat);
+    expect((fhir.medicationReference as { reference?: string } | undefined)?.reference).toBe('#medication-contained-1');
+    expect(Array.isArray(fhir.contained)).toBe(true);
+    const medication = (fhir.contained as Array<Record<string, unknown>>)[0];
+    expect(medication.resourceType).toBe('Medication');
+    expect((medication.identifier as Array<{ value?: string }>)[0]?.value).toBe('05550001112222');
+    expect((medication.batch as { lotNumber?: string })?.lotNumber).toBe('LOT-IBU-9');
+    expect((medication.batch as { expirationDate?: string })?.expirationDate).toBe('2028-01-01');
   });
 
   it('roundtrips AllergyIntolerance flat -> FHIR -> flat', () => {

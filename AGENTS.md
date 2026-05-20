@@ -22,6 +22,10 @@ Primary references in this repo:
 - hash algorithm
 - multicodec/multibase assumptions
 - compatibility constraints.
+6. Activation representative policy is centralized here:
+- canonical legal-representative occupation claim is `credentialSubject.hasOccupation.identifier.value`.
+- canonical code value for responsible party is `RESPRSN`.
+- legacy role token formats (for compatibility) may be normalized but must not become canonical examples.
 
 ## Communication + DocumentReference Rules
 1. Distinguish FHIR native model vs atomic conversion profile:
@@ -49,6 +53,15 @@ Run before merge:
 - `npm run typecheck`
 - `npm test -- --watchman=false`
 - `npm run build`
+
+## Current Canonical Security Contract (Activation)
+1. Representative DID must be `did:web`.
+2. `memberOf.taxID` must match organization tax identifier.
+3. `hasOccupation.identifier.value` must resolve to `RESPRSN` after normalization.
+4. `hasCredential.material` must be present.
+
+Implementation reference:
+- `src/utils/activation-policy.ts`
 
 ## Release Discipline
 - Update `CHANGELOG.md` under `Unreleased` with concrete bullets.

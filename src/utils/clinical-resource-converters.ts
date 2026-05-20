@@ -50,16 +50,51 @@ function requireDidWeb(value: string, key: string): void {
 export function medicationStatementFlatToFhir(claims: FlatClaims): FhirResource {
   const subject = requireClaim(claims, 'MedicationStatement.subject');
   const status = requireClaim(claims, 'MedicationStatement.status');
+  const effectiveDateTime = claims['MedicationStatement.effective'];
+
+  const medicationText = claims['MedicationStatement.medication-text'];
+
+  const medicationIdentifier = claims['MedicationStatement.medication-identifier'];
+  const medicationSerialNumber = claims['MedicationStatement.medication-serial-number'];
+  const medicationExpirationDate = claims['MedicationStatement.medication-expiration-date'];
+  const hasContainedMedication =
+    Boolean(medicationIdentifier)
+    || Boolean(medicationSerialNumber)
+    || Boolean(medicationExpirationDate)
+    || Boolean(medicationText);
+
+  const containedMedicationId = 'medication-contained-1';
+  const containedMedication = hasContainedMedication
+    ? {
+      resourceType: 'Medication',
+      id: containedMedicationId,
+      identifier: medicationIdentifier ? [{ value: medicationIdentifier }] : undefined,
+      code: medicationText ? { text: medicationText } : undefined,
+      batch: medicationSerialNumber || medicationExpirationDate
+        ? {
+          lotNumber: medicationSerialNumber,
+          expirationDate: medicationExpirationDate,
+        }
+        : undefined,
+    }
+    : undefined;
+
+  const dosageInstructionText = claims['MedicationStatement.dosage-instruction'];
+  const noteText = claims['MedicationStatement.note'];
 
   return {
     resourceType: 'MedicationStatement',
     identifier: claims['MedicationStatement.identifier'] ? [{ value: claims['MedicationStatement.identifier'] }] : undefined,
     status,
     subject: { reference: subject },
-    effectiveDateTime: claims['MedicationStatement.effective'],
+    effectiveDateTime,
     medicationCodeableConcept: claims['MedicationStatement.code']
       ? { coding: codingFromValue(claims['MedicationStatement.code']) }
-      : undefined,
+      : (!hasContainedMedication && medicationText ? { text: medicationText } : undefined),
+    medicationReference: hasContainedMedication ? { reference: `#${containedMedicationId}` } : undefined,
+    contained: containedMedication ? [containedMedication] : undefined,
+    dosage: dosageInstructionText ? [{ text: dosageInstructionText }] : undefined,
+    note: noteText ? [{ text: noteText }] : undefined,
   };
 }
 
@@ -67,12 +102,35 @@ export function medicationStatementFlatToFhir(claims: FlatClaims): FhirResource 
  * Converts a minimal MedicationStatement resource to flat claims.
  */
 export function medicationStatementFhirToFlat(resource: FhirResource): FlatClaims {
+  const medicationReference = (resource.medicationReference as { reference?: string } | undefined)?.reference;
+  const containedResources = Array.isArray(resource.contained) ? (resource.contained as Array<Record<string, unknown>>) : [];
+  const containedMedication = medicationReference?.startsWith('#')
+    ? containedResources.find((item) =>
+      item?.resourceType === 'Medication' && String(item?.id || '') === medicationReference.slice(1))
+    : containedResources.find((item) => item?.resourceType === 'Medication');
+  const containedMedicationIdentifier = (containedMedication?.identifier as Array<{ value?: string }> | undefined)?.[0]?.value;
+  const containedMedicationText = (containedMedication?.code as { text?: string } | undefined)?.text;
+  const batch = containedMedication?.batch as { lotNumber?: string; expirationDate?: string } | undefined;
+  const dosageInstructionText = (resource.dosage as Array<{ text?: string }> | undefined)?.[0]?.text;
+  const noteText = (resource.note as Array<{ text?: string }> | undefined)?.[0]?.text;
+  const medicationCode = codingToValue((resource.medicationCodeableConcept as { coding?: Array<{ system?: string; code?: string }> } | undefined)?.coding?.[0]);
+  const medicationText =
+    containedMedicationText
+    || (resource.medicationCodeableConcept as { text?: string } | undefined)?.text
+    || undefined;
+
   return {
     'MedicationStatement.identifier': (resource.identifier as Array<{ value?: string }> | undefined)?.[0]?.value,
     'MedicationStatement.subject': (resource.subject as { reference?: string } | undefined)?.reference,
     'MedicationStatement.status': resource.status as string | undefined,
     'MedicationStatement.effective': resource.effectiveDateTime as string | undefined,
-    'MedicationStatement.code': codingToValue((resource.medicationCodeableConcept as { coding?: Array<{ system?: string; code?: string }> } | undefined)?.coding?.[0]),
+    'MedicationStatement.code': medicationCode,
+    'MedicationStatement.medication-text': medicationText,
+    'MedicationStatement.note': noteText,
+    'MedicationStatement.dosage-instruction': dosageInstructionText,
+    'MedicationStatement.medication-identifier': containedMedicationIdentifier,
+    'MedicationStatement.medication-serial-number': batch?.lotNumber,
+    'MedicationStatement.medication-expiration-date': batch?.expirationDate,
   };
 }
 
