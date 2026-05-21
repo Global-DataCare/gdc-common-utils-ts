@@ -11,3 +11,4 @@ export * from './condition-claims';
 export * from './device-use-statement-claims';
 export * from './appointment-claims';
 export * from './appointment-response-claims';
+export * from './task-claims';
