@@ -73,7 +73,8 @@ export interface BundleEntryResource {
     [key: string]: any;
   };
   resourceType?: string;
-  // Add other standard FHIR/JSON:API fields as needed, but do NOT use [key: string]: any
+  // FHIR resources are open content by design; keep this agnostic.
+  [key: string]: any;
 }
 
 // ===================================================================================

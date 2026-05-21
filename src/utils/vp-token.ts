@@ -71,6 +71,64 @@ export function addVC(vpPayload: VpTokenPayload, vcJwt: string): VpTokenPayload 
   return vpPayload;
 }
 
+export function addVCs(vpPayload: VpTokenPayload, vcs: string[]): VpTokenPayload {
+  for (const vc of vcs || []) addVC(vpPayload, vc);
+  return vpPayload;
+}
+
+function decodeVcPayload(vc: string): Record<string, unknown> | undefined {
+  const raw = String(vc || '').trim();
+  if (!raw) return undefined;
+  if (raw.startsWith('{')) {
+    try {
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === 'object' ? parsed as Record<string, unknown> : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+  const parts = raw.split('.');
+  if (parts.length !== 3 || !parts[1]) return undefined;
+  try {
+    const payloadJson = Buffer.from(parts[1], 'base64url').toString('utf8');
+    const parsed = JSON.parse(payloadJson);
+    return parsed && typeof parsed === 'object' ? parsed as Record<string, unknown> : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function vcHasAnyType(vcPayload: Record<string, unknown> | undefined, acceptedTypes: string[]): boolean {
+  if (!vcPayload) return false;
+  const typeRaw =
+    (vcPayload as any)?.type
+    ?? (vcPayload as any)?.vc?.type
+    ?? (vcPayload as any)?.credential?.type;
+  const types = Array.isArray(typeRaw) ? typeRaw.map(String) : [String(typeRaw || '')];
+  return acceptedTypes.some((t) => types.includes(t));
+}
+
+function addTypedVC(
+  vpPayload: VpTokenPayload,
+  vc: string,
+  acceptedTypes: string[],
+  label: string,
+): VpTokenPayload {
+  const payload = decodeVcPayload(vc);
+  if (!vcHasAnyType(payload, acceptedTypes)) {
+    throw new Error(`${label} VC must include one of types: ${acceptedTypes.join(', ')}`);
+  }
+  return addVC(vpPayload, vc);
+}
+
+export function addOrganizationCredential(vpPayload: VpTokenPayload, vc: string): VpTokenPayload {
+  return addTypedVC(vpPayload, vc, ['OrganizationCredential', 'LegalOrganizationCredential'], 'Organization');
+}
+
+export function addLegalRepresentativeCredential(vpPayload: VpTokenPayload, vc: string): VpTokenPayload {
+  return addTypedVC(vpPayload, vc, ['LegalRepresentativeCredential', 'PersonCredential'], 'LegalRepresentative');
+}
+
 export function prepareForSignature(header: VpTokenHeader, payload: VpTokenPayload): {
   encodedHeader: string;
   encodedPayload: string;

@@ -10,8 +10,16 @@ When creating a token in npmjs.com:
 
 ## Configure the token
 
+In this workspace, the shell config exports `NPM_TOKEN` from `~/.zshrc`:
+
 ```bash
-npm config set //registry.npmjs.org/:_authToken=YOUR_TOKEN
+source ~/.zshrc
+```
+
+Then configure npm auth from that variable:
+
+```bash
+npm config set //registry.npmjs.org/:_authToken="$NPM_TOKEN"
 ```
 
 Verify:

@@ -4,6 +4,13 @@ Shared TypeScript utilities for GDC client and connector code. This package prov
 
 It is intentionally not a full backend orchestration layer.
 
+## Non-Negotiable Conventions
+
+- FHIR SearchParameter names must use canonical FHIR naming (lowercase, with `-` when defined by FHIR).
+- Never use invented camelCase parameter names for FHIR claims/search keys (example: `Communication.part-of` is valid, `Communication.partOf` is not).
+- Only define custom names when no canonical FHIR SearchParameter exists.
+- `resource.meta.claims` is the canonical claims container and must be preserved across conversions/transports.
+
 ## Install
 
 ```bash
@@ -48,6 +55,7 @@ The `utils` export exposes reusable helpers for DID and message handling, such a
 - `utils/content`
 - `utils/normalize`
 - `utils/fhir-cid` for recursive FHIR canonicalization + CID generation + `meta.versionId` assignment
+- `utils/fhir-validator` for adapter-based FHIR validation (`validateFhirResource`, pluggable formal validator)
 - conversion, formatting, and multibase helpers
 
 These helpers support DIDComm-style message construction and related transport/data-shaping workflows.

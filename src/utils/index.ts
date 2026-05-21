@@ -1,4 +1,5 @@
 export * from './actor';
+export * from './activation-policy';
 export * from './base-convert';
 export * from './baseN';
 export * from './bundle';
@@ -10,6 +11,10 @@ export * from './didcomm-submit';
 export * from './didcomm-submit-policy';
 export * from './format-converter';
 export * from './fhir-cid';
+export * from './communication-fhir-r4';
+export * from './communication-document-reference';
+export * from './clinical-resource-converters';
+export * from './fhir-validator';
 export * from './jwt';
 export * from './manager-error';
 export * from './multibase58';
