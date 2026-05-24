@@ -10,6 +10,19 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ### Testing
 
+## [1.5.0] - 2026-05-23
+
+### Added
+- Promoted the shared bootstrap, DID resolution, discovery normalization, and consent example foundations to the next minor release surface.
+- Added reusable API flow examples, SMART scope helpers, VP extraction helpers, and the consent access matrix task document as shared package artifacts.
+
+### Changed
+- Clarified the separation between transport identity and person/controller signing identity across the shared contracts and JSDoc.
+- Standardized canonical bootstrap/discovery constants and `service[]` resolution helpers for GW and SDK consumers.
+
+### Testing
+- Verified the release surface with `44/44` passing suites and `199/199` passing tests before publish.
+
 ## [1.4.22] - 2026-05-23
 
 ### Added
