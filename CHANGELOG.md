@@ -2,7 +2,7 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
-## [Unreleased]
+## [1.5.1] - 2026-05-24
 
 ### Added
 - Added shared consent-access models and examples:
