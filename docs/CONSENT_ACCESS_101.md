@@ -11,6 +11,37 @@ This guide defines the shared consent-access evaluation model used across:
 It does not reopen bootstrap decisions around `_activate`, `vp_token`,
 `controller.*`, `owner`, or legal representative semantics.
 
+It also does not replace the broader SDK flow documentation for:
+
+- organization onboarding
+- employee invitation / activation
+- individual onboarding
+- relationship invitation / acceptance
+- clinical import/search flows
+
+But it is one of the core building blocks those flows depend on.
+
+## Where This Fits In The Bigger Flow Map
+
+Consent access is not an isolated feature. It sits inside these broader flows:
+
+- organization controller creates employees and issues access-enabling bootstrap material
+- individual controller creates or updates permissions for:
+  - professional
+  - related person
+  - caregiver or other allowed actor
+- a professional or related person later requests access to the individual
+- the SDK evaluates whether that access is already covered
+- if not covered, the SDK builds a canonical permission-request `Communication`
+- once access exists, actors may read or write only the sections/actions covered
+
+This means the 101 must be read together with:
+
+- `gdc-common-utils-ts/src/examples/organization-controller.ts`
+- `gdc-common-utils-ts/src/examples/individual-controller.ts`
+- `gdc-common-utils-ts/src/examples/professional.ts`
+- `gdc-common-utils-ts/src/examples/related-person.ts`
+
 ## Goal
 
 Given:
@@ -132,6 +163,14 @@ contract closes it explicitly.
 - canonical permission-request `Communication` creation
 - canonical permission-request lookup query creation
 
+Downstream runtime packages then use that shared layer for:
+
+- permission management screens and APIs
+- invitation and acceptance flows
+- notification flows
+- write-access gating for imports into the subject index
+- SMART access gating for document retrieval
+
 ## Permission request `Communication`
 
 When coverage is missing, the SDK should build a canonical `Communication`
@@ -145,3 +184,16 @@ Canonical retrieval identifiers:
 
 Push/email/SMS are notification channels around this canonical
 `Communication`, not the main contract.
+
+## What This 101 Does Not Yet Cover By Itself
+
+This document does not by itself define:
+
+- employee activation runtime
+- invitation OTP providers
+- relationship PIN storage
+- GW routing details
+- UNID reminder runtime
+
+Those belong to the corresponding runtime or extension packages, but they must
+consume this consent model instead of duplicating it.

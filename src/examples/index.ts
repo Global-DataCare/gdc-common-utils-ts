@@ -4,6 +4,7 @@ export * from './individual-controller';
 export * from './professional';
 export * from './related-person';
 export * from './consent-access';
+export * from './relationship-access';
 export * from './frontend-session';
 export * from './api-flow-examples';
 export * from './contract-examples';
