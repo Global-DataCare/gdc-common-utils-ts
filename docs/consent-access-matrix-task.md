@@ -2,6 +2,29 @@
 
 Purpose: define the next cross-repository task after bootstrap alignment.
 
+## Implementation Status
+
+Implemented in the current repository thread:
+
+- shared consent-access models and helpers in `gdc-common-utils-ts`
+- shared consent-access SDK surface in `gdc-sdk-core-ts`
+- package re-export availability through `gdc-sdk-node-ts` and `gdc-sdk-front-ts`
+- live GW SMART evaluation update in `gwtemplate-node-ts`
+- controller-side `Communication` recovery by `Communication.identifier`, `thid`, and linked `DocumentReference.contenthash`
+
+Current implemented evaluation model:
+
+1. read all active consent rules for the subject
+2. normalize actor matching candidates as actor-specific, organization, jurisdiction, and phone-extension targets
+3. evaluate per requested section and optional resource type
+4. apply precedence:
+   - explicit deny for a concrete email
+   - explicit permit for a concrete email
+   - organization decision
+   - jurisdiction decision
+   - default deny
+5. expose grouped active-consent views and deterministic missing-permission explanations for SDK/controller use
+
 This document covers the missing authorization layer shared by:
 
 - `gdc-common-utils-ts`
@@ -81,10 +104,10 @@ The model must support both positive grants and explicit exclusions.
 
 Recommended precedence:
 
-1. explicit deny for a concrete actor target
-2. explicit allow for a concrete actor target
-3. allow for organization target
-4. allow for jurisdiction target
+1. explicit deny for a concrete email
+2. explicit permit for a concrete email
+3. permit for organization target
+4. permit for jurisdiction target
 5. otherwise deny
 
 This precedence must be evaluated per:

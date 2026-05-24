@@ -5,10 +5,25 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Added shared consent-access models and examples:
+  - `ConsentCoverageRequest`
+  - `EffectiveAccessEvaluation`
+  - `MissingPermissionSet`
+  - `ActiveConsentView`
+  - reusable consent access matrix examples under `src/examples/consent-access.ts`
+- Added `docs/CONSENT_ACCESS_101.md` as the shared cross-repository guide for dynamic consent evaluation.
 
 ### Changed
+- Extended `src/utils/consent.ts` with shared consent-access helpers for:
+  - target normalization
+  - actor resolution
+  - active-rule grouping
+  - effective access evaluation
+  - missing-permission explanation
+- Clarified consent precedence documentation to describe the first tier as concrete email permit/deny semantics while keeping the existing selector support surface.
 
 ### Testing
+- Added consent-access matrix coverage in `__tests__/utils-consent.test.ts`, including direct email, organization, jurisdiction, explicit deny, revoked consent, and related-person cases.
 
 ## [1.5.0] - 2026-05-23
 

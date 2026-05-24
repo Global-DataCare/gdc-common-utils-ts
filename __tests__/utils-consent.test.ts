@@ -1,11 +1,29 @@
 import {
   buildConsentClaimsSimple,
   buildConsentClaimsSimpleWithCid,
+  evaluateConsentCoverage,
+  groupActiveConsentsByTarget,
+  normalizeConsentTarget,
   normalizeConsentActors,
   parseConsentActorToken,
+  resolveConsentActor,
   resolveActorIdentifier,
   resolveSubjectIdentifier,
 } from '../src/utils/consent';
+import {
+  EXAMPLE_CONSENT_ACCESS_JURISDICTION,
+  EXAMPLE_CONSENT_ACCESS_PROVIDER_DID,
+  EXAMPLE_CONSENT_ACCESS_PROVIDER_EMAIL,
+  EXAMPLE_CONSENT_ACCESS_RELATED_PERSON_EMAIL,
+  EXAMPLE_CONSENT_ACCESS_RULES,
+  EXAMPLE_CONSENT_ACCESS_SUBJECT,
+} from '../src/examples/consent-access';
+import {
+  HealthcareActorRoles,
+  HealthcareBasicSections,
+  HealthcareConsentPurposes,
+} from '../src/constants/healthcare';
+import { ResourceTypesFhirR4 } from '../src/constants/fhir-resource-types';
 
 describe('consent utilities', () => {
   it('resolves actor identifier with canonical-first precedence', () => {
@@ -101,5 +119,184 @@ describe('consent utilities', () => {
     expect(withCidA.consentClaims['@id']).toBe(withCidA.claimsCid);
     expect(withCidA.claimsCid.startsWith('z')).toBe(true);
     expect(withCidA.claimsCid).toBe(withCidB.claimsCid);
+  });
+
+  it('normalizes organization URL targets into did:web organization selectors', () => {
+    expect(normalizeConsentTarget('https://hospital.example.org/portal', { preferOrganizationDid: true })).toMatchObject({
+      kind: 'organization',
+      canonicalValue: 'did:web:hospital.example.org',
+      isOrganizationTarget: true,
+    });
+  });
+
+  it('resolves consent actor with direct, organization, and jurisdiction targets', () => {
+    const actor = resolveConsentActor({
+      actorKind: 'professional',
+      email: EXAMPLE_CONSENT_ACCESS_PROVIDER_EMAIL,
+      did: 'did:web:hospital.acme.org:employee:doctor.oncall@example.org:physician',
+      jurisdiction: EXAMPLE_CONSENT_ACCESS_JURISDICTION,
+    });
+    expect(actor.directTargets.map((target) => target.canonicalValue)).toContain(EXAMPLE_CONSENT_ACCESS_PROVIDER_EMAIL);
+    expect(actor.organizationTargets.map((target) => target.canonicalValue)).toContain('did:web:hospital.acme.org');
+    expect(actor.jurisdictionTargets.map((target) => target.canonicalValue)).toContain('ES');
+  });
+
+  it('groups active consent rules by direct target, organization, and jurisdiction', () => {
+    const grouped = groupActiveConsentsByTarget(Object.values(EXAMPLE_CONSENT_ACCESS_RULES) as any, {
+      subject: EXAMPLE_CONSENT_ACCESS_SUBJECT,
+      now: '2026-05-23T10:00:00Z',
+    });
+    expect(grouped.byDirectTarget[EXAMPLE_CONSENT_ACCESS_PROVIDER_EMAIL]).toHaveLength(3);
+    expect(grouped.byOrganizationTarget[EXAMPLE_CONSENT_ACCESS_PROVIDER_DID]).toHaveLength(2);
+    expect(grouped.byJurisdictionTarget.ES).toHaveLength(2);
+    expect(grouped.byDirectTarget[EXAMPLE_CONSENT_ACCESS_RELATED_PERSON_EMAIL]).toHaveLength(1);
+  });
+
+  it('allows physician by direct email and role for continuous care', () => {
+    const evaluation = evaluateConsentCoverage(Object.values(EXAMPLE_CONSENT_ACCESS_RULES) as any, {
+      subject: EXAMPLE_CONSENT_ACCESS_SUBJECT,
+      actor: {
+        actorKind: 'professional',
+        email: EXAMPLE_CONSENT_ACCESS_PROVIDER_EMAIL,
+        organizationDid: EXAMPLE_CONSENT_ACCESS_PROVIDER_DID,
+        jurisdiction: EXAMPLE_CONSENT_ACCESS_JURISDICTION,
+      },
+      actorRole: HealthcareActorRoles.Physician,
+      purpose: HealthcareConsentPurposes.Treatment,
+      sections: [HealthcareBasicSections.AllergiesAndIntolerances.claim],
+      resourceTypes: [ResourceTypesFhirR4.AllergyIntolerance],
+      now: '2026-05-23T10:00:00Z',
+    });
+    expect(evaluation.allowed).toBe(true);
+    expect(evaluation.allowedSections).toContain(HealthcareBasicSections.AllergiesAndIntolerances.claim);
+  });
+
+  it('allows physician by direct email and role for emergencies', () => {
+    const evaluation = evaluateConsentCoverage(Object.values(EXAMPLE_CONSENT_ACCESS_RULES) as any, {
+      subject: EXAMPLE_CONSENT_ACCESS_SUBJECT,
+      actor: {
+        actorKind: 'professional',
+        email: EXAMPLE_CONSENT_ACCESS_PROVIDER_EMAIL,
+        organizationDid: EXAMPLE_CONSENT_ACCESS_PROVIDER_DID,
+        jurisdiction: EXAMPLE_CONSENT_ACCESS_JURISDICTION,
+      },
+      actorRole: HealthcareActorRoles.Physician,
+      purpose: HealthcareConsentPurposes.EmergencyTreatment,
+      sections: [HealthcareBasicSections.PatientSummaryDocument.claim],
+      resourceTypes: [ResourceTypesFhirR4.DocumentReference],
+      now: '2026-05-23T10:00:00Z',
+    });
+    expect(evaluation.allowed).toBe(true);
+  });
+
+  it('applies explicit deny over broader organization allow for a concrete physician', () => {
+    const evaluation = evaluateConsentCoverage(Object.values(EXAMPLE_CONSENT_ACCESS_RULES) as any, {
+      subject: EXAMPLE_CONSENT_ACCESS_SUBJECT,
+      actor: {
+        actorKind: 'professional',
+        email: EXAMPLE_CONSENT_ACCESS_PROVIDER_EMAIL,
+        organizationDid: EXAMPLE_CONSENT_ACCESS_PROVIDER_DID,
+        jurisdiction: EXAMPLE_CONSENT_ACCESS_JURISDICTION,
+      },
+      actorRole: HealthcareActorRoles.Physician,
+      purpose: HealthcareConsentPurposes.Treatment,
+      sections: [HealthcareBasicSections.Results.claim],
+      resourceTypes: [ResourceTypesFhirR4.DiagnosticReport],
+      now: '2026-05-23T10:00:00Z',
+    });
+    expect(evaluation.allowed).toBe(false);
+    expect(evaluation.explicitDenials).toHaveLength(1);
+    expect(evaluation.explicitDenials[0].matchKind).toBe('direct');
+  });
+
+  it('allows organization-scoped nurse access', () => {
+    const evaluation = evaluateConsentCoverage(Object.values(EXAMPLE_CONSENT_ACCESS_RULES) as any, {
+      subject: EXAMPLE_CONSENT_ACCESS_SUBJECT,
+      actor: {
+        actorKind: 'professional',
+        email: 'nurse1@hospital.acme.org',
+        organizationDid: EXAMPLE_CONSENT_ACCESS_PROVIDER_DID,
+      },
+      actorRole: HealthcareActorRoles.NursingProfessional,
+      purpose: HealthcareConsentPurposes.Treatment,
+      sections: [HealthcareBasicSections.HistoryOfMedicationUse.claim],
+      resourceTypes: [ResourceTypesFhirR4.MedicationStatement],
+      now: '2026-05-23T10:00:00Z',
+    });
+    expect(evaluation.allowed).toBe(true);
+    expect(evaluation.winningRules[0].matchKind).toBe('organization');
+  });
+
+  it('allows jurisdiction-scoped paramedic access', () => {
+    const evaluation = evaluateConsentCoverage(Object.values(EXAMPLE_CONSENT_ACCESS_RULES) as any, {
+      subject: EXAMPLE_CONSENT_ACCESS_SUBJECT,
+      actor: {
+        actorKind: 'professional',
+        email: 'paramedic1@example.es',
+        jurisdiction: EXAMPLE_CONSENT_ACCESS_JURISDICTION,
+      },
+      actorRole: HealthcareActorRoles.Paramedic,
+      purpose: HealthcareConsentPurposes.EmergencyTreatment,
+      sections: [HealthcareBasicSections.PatientSummaryDocument.claim],
+      resourceTypes: [ResourceTypesFhirR4.Observation],
+      now: '2026-05-23T10:00:00Z',
+    });
+    expect(evaluation.allowed).toBe(true);
+    expect(evaluation.winningRules[0].matchKind).toBe('jurisdiction');
+  });
+
+  it('denies physician obstetrician when only allergies consent exists', () => {
+    const evaluation = evaluateConsentCoverage([
+      EXAMPLE_CONSENT_ACCESS_RULES.physicianByEmailContinuousCare as any,
+    ], {
+      subject: EXAMPLE_CONSENT_ACCESS_SUBJECT,
+      actor: {
+        actorKind: 'professional',
+        email: EXAMPLE_CONSENT_ACCESS_PROVIDER_EMAIL,
+      },
+      actorRole: `${HealthcareActorRoles.Physician}:obstetrician`,
+      purpose: HealthcareConsentPurposes.Treatment,
+      sections: [HealthcareBasicSections.Results.claim],
+      resourceTypes: [ResourceTypesFhirR4.DiagnosticReport],
+      now: '2026-05-23T10:00:00Z',
+    });
+    expect(evaluation.allowed).toBe(false);
+    expect(evaluation.missing.sections).toContain(HealthcareBasicSections.Results.claim);
+  });
+
+  it('denies physician by email when consent is revoked and no broader rule remains active', () => {
+    const evaluation = evaluateConsentCoverage([
+      EXAMPLE_CONSENT_ACCESS_RULES.revokedPhysicianEmailConsent as any,
+    ], {
+      subject: EXAMPLE_CONSENT_ACCESS_SUBJECT,
+      actor: {
+        actorKind: 'professional',
+        email: EXAMPLE_CONSENT_ACCESS_PROVIDER_EMAIL,
+      },
+      actorRole: HealthcareActorRoles.Physician,
+      purpose: HealthcareConsentPurposes.EmergencyTreatment,
+      sections: [HealthcareBasicSections.PatientSummaryDocument.claim],
+      resourceTypes: [ResourceTypesFhirR4.DocumentReference],
+      now: '2026-05-23T10:00:00Z',
+    });
+    expect(evaluation.allowed).toBe(false);
+    expect(evaluation.missing.pairs[0].reason).toBe('default-deny-no-active-consent');
+  });
+
+  it('allows related person by direct email target', () => {
+    const evaluation = evaluateConsentCoverage(Object.values(EXAMPLE_CONSENT_ACCESS_RULES) as any, {
+      subject: EXAMPLE_CONSENT_ACCESS_SUBJECT,
+      actor: {
+        actorKind: 'related-person',
+        email: EXAMPLE_CONSENT_ACCESS_RELATED_PERSON_EMAIL,
+      },
+      actorRole: 'v3-RoleCode|RESPRSN',
+      purpose: HealthcareConsentPurposes.Treatment,
+      sections: [HealthcareBasicSections.PatientSummaryDocument.claim],
+      resourceTypes: [ResourceTypesFhirR4.DocumentReference],
+      now: '2026-05-23T10:00:00Z',
+    });
+    expect(evaluation.allowed).toBe(true);
+    expect(evaluation.winningRules[0].matchKind).toBe('direct');
   });
 });

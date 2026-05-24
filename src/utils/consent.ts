@@ -1,6 +1,19 @@
 // Copyright 2026 Antifraud Services Inc. under the Apache License, Version 2.0.
 
-import { assignCidToClaimsId } from './fhir-cid';
+import type {
+  ActiveConsentView,
+  ConsentActorDescriptor,
+  ConsentActorKind,
+  ConsentCoverageRequest,
+  ConsentMatchKind,
+  ConsentRuleMatch,
+  EffectiveAccessEvaluation,
+  MissingPermissionSet,
+  NormalizedConsentTarget,
+  ResolvedConsentActor,
+} from '../models/consent-access.js';
+import type { ConsentRule } from '../models/consent-rule.js';
+import { assignCidToClaimsId } from './fhir-cid.js';
 
 /**
  * Legacy structured actor selector kept for backwards compatibility while the
@@ -306,5 +319,527 @@ export function buildConsentClaimsSimpleWithCid(
     subjectIdentifier: built.subjectIdentifier,
     consentClaims: assigned.claims,
     claimsCid: assigned.cid,
+  };
+}
+
+function normalizeJurisdiction(value: string): string {
+  const trimmed = String(value || '').trim();
+  if (!trimmed) return '';
+  if (/^[A-Z]{2}$/i.test(trimmed)) return trimmed.toUpperCase();
+  const isoStd = trimmed.match(/^urn:iso:std:iso:3166\|([a-z]{2})$/i);
+  if (isoStd) return isoStd[1].toUpperCase();
+  const iso = trimmed.match(/^urn:iso:3166(?:-2)?:([a-z]{2})(?:[-:].*)?$/i);
+  if (iso) return iso[1].toUpperCase();
+  return trimmed.toUpperCase();
+}
+
+function normalizeDidWebFromUrl(value: string): string | undefined {
+  const raw = String(value || '').trim();
+  if (!raw) return undefined;
+  if (raw.startsWith('did:web:')) return raw.toLowerCase();
+  try {
+    const parsed = raw.includes('://') ? new URL(raw) : new URL(`https://${raw}`);
+    return parsed.hostname ? `did:web:${parsed.hostname.toLowerCase()}` : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function normalizeConsentRoleValue(value: string): string {
+  const trimmed = String(value || '').trim();
+  if (!trimmed || trimmed === '*') return trimmed;
+  const [system, code] = trimmed.includes('|') ? trimmed.split('|', 2) : ['', trimmed];
+  return system
+    ? `${system.trim().toLowerCase()}|${code.trim()}`
+    : trimmed.toLowerCase();
+}
+
+function splitCsv(value: unknown): string[] {
+  return String(value || '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function normalizeSectionToken(value: string): string {
+  const trimmed = String(value || '').trim();
+  if (!trimmed || !trimmed.includes('|')) return trimmed;
+  const [system, code] = trimmed.split('|', 2);
+  const normalizedSystem = system
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\/loinc\.org$/i, 'loinc')
+    .replace(/^urn:oid:2\.16\.840\.1\.113883\.6\.1$/i, 'loinc');
+  return `${normalizedSystem}|${code.trim()}`;
+}
+
+function uniqueTargets(targets: NormalizedConsentTarget[]): NormalizedConsentTarget[] {
+  const seen = new Set<string>();
+  const result: NormalizedConsentTarget[] = [];
+  for (const target of targets) {
+    const key = `${target.kind}:${target.canonicalValue}:${target.isDirectTarget ? 'd' : ''}${target.isOrganizationTarget ? 'o' : ''}${target.isJurisdictionTarget ? 'j' : ''}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(target);
+  }
+  return result;
+}
+
+/**
+ * Normalizes a consent target token into a reusable matching descriptor.
+ *
+ * The helper keeps the current GW contract:
+ * - the first precedence tier is intended for concrete professional email matches
+ * - direct runtime selectors may still include email / `did:web` / phone
+ * - organization targets are normalized to `did:web:<host>`
+ * - jurisdictions resolve to ISO-like uppercase codes
+ * - phone targets stay marked as extension-specific
+ *
+ * @param input Raw target input from a rule or runtime request.
+ * @param options.actorKind Optional actor family hint.
+ * @param options.preferOrganizationDid When true, base `did:web:<host>` values are treated as organization targets.
+ */
+export function normalizeConsentTarget(
+  input: string,
+  options: {
+    actorKind?: ConsentActorKind;
+    preferOrganizationDid?: boolean;
+  } = {},
+): NormalizedConsentTarget {
+  const raw = String(input || '').trim();
+  const parsed = parseConsentActorToken(raw);
+  if (parsed?.kind === 'email') {
+    return {
+      raw,
+      kind: 'email',
+      canonicalValue: parsed.value,
+      isDirectTarget: true,
+      isOrganizationTarget: false,
+      isJurisdictionTarget: false,
+      isPhoneExtension: false,
+    };
+  }
+  if (parsed?.kind === 'phone') {
+    return {
+      raw,
+      kind: 'phone',
+      canonicalValue: parsed.value,
+      isDirectTarget: true,
+      isOrganizationTarget: false,
+      isJurisdictionTarget: false,
+      isPhoneExtension: true,
+    };
+  }
+  if (parsed?.kind === 'country') {
+    return {
+      raw,
+      kind: 'jurisdiction',
+      canonicalValue: parsed.value,
+      isDirectTarget: false,
+      isOrganizationTarget: false,
+      isJurisdictionTarget: true,
+      isPhoneExtension: false,
+    };
+  }
+
+  const organizationDid = normalizeDidWebFromUrl(raw);
+  const isEmployeeLikeDid = /^did:web:[^:\s]+:(employee|family|relatedperson|related-person):/i.test(raw);
+  if (raw.startsWith('did:')) {
+    const preferOrganizationDid = Boolean(options.preferOrganizationDid && !isEmployeeLikeDid);
+    return {
+      raw,
+      kind: preferOrganizationDid ? 'organization' : 'did',
+      canonicalValue: raw.toLowerCase(),
+      isDirectTarget: !preferOrganizationDid,
+      isOrganizationTarget: preferOrganizationDid,
+      isJurisdictionTarget: false,
+      isPhoneExtension: false,
+    };
+  }
+  if (organizationDid) {
+    return {
+      raw,
+      kind: 'organization',
+      canonicalValue: organizationDid,
+      isDirectTarget: false,
+      isOrganizationTarget: true,
+      isJurisdictionTarget: false,
+      isPhoneExtension: false,
+    };
+  }
+
+  const jurisdiction = normalizeJurisdiction(raw);
+  if (/^[A-Z]{2}$/.test(jurisdiction)) {
+    return {
+      raw,
+      kind: 'jurisdiction',
+      canonicalValue: jurisdiction,
+      isDirectTarget: false,
+      isOrganizationTarget: false,
+      isJurisdictionTarget: true,
+      isPhoneExtension: false,
+    };
+  }
+
+  return {
+    raw,
+    kind: 'unknown',
+    canonicalValue: raw,
+    isDirectTarget: false,
+    isOrganizationTarget: false,
+    isJurisdictionTarget: false,
+    isPhoneExtension: false,
+  };
+}
+
+/**
+ * Resolves all actor match targets used by consent evaluation.
+ *
+ * Organization matching prefers explicit `organizationDid` / `organizationUrl`.
+ * When those are absent but an email exists, the email domain is exposed as a
+ * fallback organization target through `did:web:<domain>`.
+ *
+ * @param actor Runtime actor descriptor.
+ */
+export function resolveConsentActor(actor: ConsentActorDescriptor): ResolvedConsentActor {
+  const actorKind = actor.actorKind || 'professional';
+  const directTargets: NormalizedConsentTarget[] = [];
+  const organizationTargets: NormalizedConsentTarget[] = [];
+  const jurisdictionTargets: NormalizedConsentTarget[] = [];
+  const phoneTargets: NormalizedConsentTarget[] = [];
+
+  const email = String(actor.email || '').trim();
+  if (email) {
+    const direct = normalizeConsentTarget(email, { actorKind });
+    directTargets.push(direct);
+    const domain = email.includes('@') ? email.split('@')[1] : '';
+    const fallbackOrganizationDid = normalizeDidWebFromUrl(domain);
+    if (fallbackOrganizationDid) {
+      organizationTargets.push(normalizeConsentTarget(fallbackOrganizationDid, {
+        actorKind,
+        preferOrganizationDid: true,
+      }));
+    }
+  }
+
+  const did = String(actor.did || '').trim();
+  if (did) {
+    directTargets.push(normalizeConsentTarget(did, { actorKind }));
+    const baseOrgDid = did.startsWith('did:web:') ? `did:web:${did.slice('did:web:'.length).split(':')[0]}` : '';
+    if (baseOrgDid) {
+      organizationTargets.push(normalizeConsentTarget(baseOrgDid, {
+        actorKind,
+        preferOrganizationDid: true,
+      }));
+    }
+  }
+
+  const phone = normalizePhone(String(actor.phone || ''));
+  if (phone) {
+    const phoneTarget = normalizeConsentTarget(`tel:${phone}`, { actorKind });
+    directTargets.push(phoneTarget);
+    phoneTargets.push(phoneTarget);
+  }
+
+  const orgDid = String(actor.organizationDid || '').trim();
+  if (orgDid) {
+    organizationTargets.push(normalizeConsentTarget(orgDid, {
+      actorKind,
+      preferOrganizationDid: true,
+    }));
+  }
+
+  const orgUrl = String(actor.organizationUrl || '').trim();
+  if (orgUrl) {
+    const normalized = normalizeDidWebFromUrl(orgUrl);
+    if (normalized) {
+      organizationTargets.push(normalizeConsentTarget(normalized, {
+        actorKind,
+        preferOrganizationDid: true,
+      }));
+    }
+  }
+
+  const jurisdiction = normalizeJurisdiction(String(actor.jurisdiction || ''));
+  if (jurisdiction) {
+    jurisdictionTargets.push(normalizeConsentTarget(jurisdiction, { actorKind }));
+  }
+
+  return {
+    actorKind,
+    directTargets: uniqueTargets(directTargets),
+    organizationTargets: uniqueTargets(organizationTargets),
+    jurisdictionTargets: uniqueTargets(jurisdictionTargets),
+    phoneTargets: uniqueTargets(phoneTargets),
+  };
+}
+
+/**
+ * Returns `true` when a consent rule is currently active.
+ *
+ * A rule is active when:
+ * - it matches the requested subject when one is provided
+ * - `Consent.period-start` is absent or already effective
+ * - `Consent.period-end` is absent or still in the future
+ *
+ * @param rule Consent rule to inspect.
+ * @param options.subject Optional subject filter.
+ * @param options.now Optional evaluation timestamp.
+ */
+export function isConsentRuleActive(
+  rule: ConsentRule,
+  options: {
+    subject?: string;
+    now?: string | Date;
+  } = {},
+): boolean {
+  if (options.subject && String(rule['Consent.subject'] || '').trim() !== String(options.subject || '').trim()) {
+    return false;
+  }
+  const now = options.now instanceof Date
+    ? options.now.getTime()
+    : options.now
+      ? new Date(options.now).getTime()
+      : Date.now();
+  const periodStart = String(rule['Consent.period-start'] || '').trim();
+  const periodEnd = String(rule['Consent.period-end'] || '').trim();
+  if (periodStart && !Number.isNaN(Date.parse(periodStart)) && Date.parse(periodStart) > now) return false;
+  if (periodEnd && !Number.isNaN(Date.parse(periodEnd)) && Date.parse(periodEnd) < now) return false;
+  return true;
+}
+
+function groupRulesBy(
+  rules: ConsentRule[],
+  predicate: (target: NormalizedConsentTarget) => boolean,
+): Record<string, ConsentRule[]> {
+  const groups: Record<string, ConsentRule[]> = {};
+  for (const rule of rules) {
+    for (const token of splitCsv(rule['Consent.actor-identifier'])) {
+      const normalized = normalizeConsentTarget(token, { preferOrganizationDid: true });
+      if (!predicate(normalized)) continue;
+      groups[normalized.canonicalValue] ||= [];
+      groups[normalized.canonicalValue].push(rule);
+    }
+  }
+  return groups;
+}
+
+/**
+ * Builds an aggregated active-consent view grouped by target kind.
+ *
+ * @param rules Full consent-rule set available for the subject.
+ * @param options.subject Optional subject filter.
+ * @param options.now Optional evaluation timestamp.
+ */
+export function groupActiveConsentsByTarget(
+  rules: ConsentRule[],
+  options: {
+    subject?: string;
+    now?: string | Date;
+  } = {},
+): ActiveConsentView {
+  const activeRules = rules.filter((rule) => isConsentRuleActive(rule, options));
+  return {
+    activeRules,
+    byDirectTarget: groupRulesBy(activeRules, (target) => target.isDirectTarget && !target.isPhoneExtension),
+    byOrganizationTarget: groupRulesBy(activeRules, (target) => target.isOrganizationTarget),
+    byJurisdictionTarget: groupRulesBy(activeRules, (target) => target.isJurisdictionTarget),
+    byPhoneTarget: groupRulesBy(activeRules, (target) => target.isPhoneExtension),
+  };
+}
+
+function normalizeRequestedList(values: string[] | undefined, wildcard = '*'): string[] {
+  const normalized = (values || []).map((value) => String(value || '').trim()).filter(Boolean);
+  return normalized.length ? Array.from(new Set(normalized)) : [wildcard];
+}
+
+function extractRuleResourceTypes(rule: ConsentRule & Record<string, unknown>): string[] {
+  const candidates = [
+    rule['Consent.resourceType'],
+    rule['Consent.resource-type'],
+    rule['Consent.resource'],
+    rule['Consent.data-type'],
+  ];
+  for (const candidate of candidates) {
+    const values = splitCsv(candidate);
+    if (values.length > 0) return values;
+  }
+  return [];
+}
+
+function ruleMatchesRole(rule: ConsentRule, actorRole?: string): boolean {
+  const ruleRoles = splitCsv(rule['Consent.actor-role']).map(normalizeConsentRoleValue).filter(Boolean);
+  if (ruleRoles.length === 0 || ruleRoles.includes('*')) return true;
+  const requestedRole = normalizeConsentRoleValue(String(actorRole || ''));
+  return !!requestedRole && ruleRoles.includes(requestedRole);
+}
+
+function ruleMatchesPurpose(rule: ConsentRule, purpose?: string): boolean {
+  const rulePurpose = String(rule['Consent.purpose'] || '').trim();
+  if (!purpose || !rulePurpose) return true;
+  return rulePurpose === purpose;
+}
+
+function ruleMatchesSection(rule: ConsentRule, section?: string): boolean {
+  if (!section || section === '*') return true;
+  const requestedSection = normalizeSectionToken(section);
+  const actions = splitCsv(rule['Consent.action']).map(normalizeSectionToken);
+  if (actions.length === 0) return false;
+  return actions.includes(requestedSection) || actions.includes('*');
+}
+
+function ruleMatchesResourceType(rule: ConsentRule & Record<string, unknown>, resourceType?: string): boolean {
+  if (!resourceType || resourceType === '*') return true;
+  const resourceTypes = extractRuleResourceTypes(rule);
+  if (resourceTypes.length === 0) return true;
+  return resourceTypes.includes(resourceType) || resourceTypes.includes('*');
+}
+
+function resolveRuleMatch(
+  rule: ConsentRule,
+  actor: ResolvedConsentActor,
+): { matchKind: ConsentMatchKind; target?: NormalizedConsentTarget; precedenceBase?: number } {
+  for (const token of splitCsv(rule['Consent.actor-identifier'])) {
+    const normalized = normalizeConsentTarget(token, { preferOrganizationDid: true });
+    if (actor.directTargets.some((target: NormalizedConsentTarget) => target.canonicalValue === normalized.canonicalValue)) {
+      return { matchKind: 'direct', target: normalized, precedenceBase: 10 };
+    }
+    if (actor.organizationTargets.some((target: NormalizedConsentTarget) => target.canonicalValue === normalized.canonicalValue)) {
+      return { matchKind: 'organization', target: normalized, precedenceBase: 20 };
+    }
+    if (actor.jurisdictionTargets.some((target: NormalizedConsentTarget) => target.canonicalValue === normalized.canonicalValue)) {
+      return { matchKind: 'jurisdiction', target: normalized, precedenceBase: 30 };
+    }
+  }
+  return { matchKind: 'none' };
+}
+
+function toRuleMatch(
+  rule: ConsentRule,
+  actor: ResolvedConsentActor,
+  section?: string,
+  resourceType?: string,
+): ConsentRuleMatch | undefined {
+  const resolved = resolveRuleMatch(rule, actor);
+  if (!resolved.target || resolved.matchKind === 'none' || resolved.precedenceBase === undefined) return undefined;
+  const decision = rule['Consent.decision'];
+  const precedence = resolved.precedenceBase + (decision === 'deny' ? 0 : 1);
+  return {
+    rule,
+    ruleId: String(((rule as unknown as { id?: unknown }).id) || '').trim() || undefined,
+    decision,
+    matchKind: resolved.matchKind,
+    target: resolved.target,
+    precedence,
+    section: section === '*' ? undefined : section,
+    resourceType: resourceType === '*' ? undefined : resourceType,
+  };
+}
+
+function emptyMissing(): MissingPermissionSet {
+  return { sections: [], resourceTypes: [], pairs: [] };
+}
+
+/**
+ * Evaluates effective consent coverage for a runtime access request.
+ *
+ * Precedence implemented by the shared evaluator:
+ * 1. explicit deny for a concrete email
+ * 2. explicit permit for a concrete email
+ * 3. organization-scoped decisions
+ * 4. jurisdiction-scoped decisions
+ * 5. default deny
+ *
+ * Resource-type evaluation is optional: when a rule does not carry an explicit
+ * resource-type filter, it is treated as section-scoped wildcard coverage.
+ *
+ * @param rules Full consent-rule set available to the caller.
+ * @param request Runtime request to evaluate.
+ */
+export function evaluateConsentCoverage(
+  rules: ConsentRule[],
+  request: ConsentCoverageRequest,
+): EffectiveAccessEvaluation {
+  const actor = resolveConsentActor(request.actor);
+  const sections = normalizeRequestedList(request.sections);
+  const resourceTypes = normalizeRequestedList(request.resourceTypes);
+  const activeRules = rules.filter((rule) => isConsentRuleActive(rule, {
+    subject: request.subject,
+    now: request.now,
+  }));
+
+  const matchedRules: ConsentRuleMatch[] = [];
+  const winningRules: ConsentRuleMatch[] = [];
+  const explicitDenials: ConsentRuleMatch[] = [];
+  const allowedSections = new Set<string>();
+  const deniedSections = new Set<string>();
+  const allowedResourceTypes = new Set<string>();
+  const deniedResourceTypes = new Set<string>();
+  const missing: MissingPermissionSet = emptyMissing();
+
+  for (const section of sections) {
+    for (const resourceType of resourceTypes) {
+      const candidates = activeRules
+        .filter((rule) =>
+          ruleMatchesRole(rule, request.actorRole)
+          && ruleMatchesPurpose(rule, request.purpose)
+          && ruleMatchesSection(rule, section)
+          && ruleMatchesResourceType(rule as ConsentRule & Record<string, unknown>, resourceType))
+        .map((rule) => toRuleMatch(rule, actor, section, resourceType))
+        .filter((match): match is ConsentRuleMatch => Boolean(match))
+        .sort((a, b) => a.precedence - b.precedence);
+
+      matchedRules.push(...candidates);
+      const winner = candidates[0];
+      if (!winner) {
+        missing.pairs.push({
+          section: section === '*' ? undefined : section,
+          resourceType: resourceType === '*' ? undefined : resourceType,
+          reason: 'default-deny-no-active-consent',
+        });
+        if (section !== '*') missing.sections.push(section);
+        if (resourceType !== '*') missing.resourceTypes.push(resourceType);
+        if (section !== '*') deniedSections.add(section);
+        if (resourceType !== '*') deniedResourceTypes.add(resourceType);
+        continue;
+      }
+
+      winningRules.push(winner);
+      if (winner.decision === 'deny') {
+        explicitDenials.push(winner);
+        if (section !== '*') deniedSections.add(section);
+        if (resourceType !== '*') deniedResourceTypes.add(resourceType);
+        missing.pairs.push({
+          section: section === '*' ? undefined : section,
+          resourceType: resourceType === '*' ? undefined : resourceType,
+          reason: `explicit-${winner.matchKind}-deny`,
+        });
+        if (section !== '*') missing.sections.push(section);
+        if (resourceType !== '*') missing.resourceTypes.push(resourceType);
+      } else {
+        if (section !== '*') allowedSections.add(section);
+        if (resourceType !== '*') allowedResourceTypes.add(resourceType);
+      }
+    }
+  }
+
+  return {
+    allowed: missing.pairs.length === 0,
+    denied: missing.pairs.length > 0 && allowedSections.size === 0 && allowedResourceTypes.size === 0,
+    partial: missing.pairs.length > 0 && (allowedSections.size > 0 || allowedResourceTypes.size > 0),
+    subject: request.subject,
+    actor,
+    matchedRules,
+    winningRules,
+    explicitDenials,
+    allowedSections: Array.from(allowedSections),
+    deniedSections: Array.from(deniedSections),
+    allowedResourceTypes: Array.from(allowedResourceTypes),
+    deniedResourceTypes: Array.from(deniedResourceTypes),
+    missing: {
+      sections: Array.from(new Set(missing.sections)),
+      resourceTypes: Array.from(new Set(missing.resourceTypes)),
+      pairs: missing.pairs,
+    },
   };
 }
