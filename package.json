@@ -1,6 +1,6 @@
 {
   "name": "gdc-common-utils-ts",
-  "version": "1.4.21",
+  "version": "1.4.22",
   "publishConfig": {
     "access": "public"
   },
@@ -37,6 +37,14 @@
     "./hmac": {
       "types": "./dist/hmac.d.ts",
       "default": "./dist/hmac.js"
+    },
+    "./examples": {
+      "types": "./dist/examples/index.d.ts",
+      "default": "./dist/examples/index.js"
+    },
+    "./examples/*": {
+      "types": "./dist/examples/*.d.ts",
+      "default": "./dist/examples/*.js"
     },
     "./constants/*": {
       "types": "./dist/constants/*.d.ts",

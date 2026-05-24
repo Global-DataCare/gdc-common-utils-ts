@@ -7,6 +7,7 @@ export const CommunicationClaim = {
   Recipient: 'Communication.recipient',
   Sender: 'Communication.sender',
   Sent: 'Communication.sent',
+  NoteText: 'Communication.note-text',
   Text: 'Communication.text',
   ContentReference: 'Communication.content-reference',
   ContentAttachmentData: 'Communication.content-attachment-data',

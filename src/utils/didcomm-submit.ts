@@ -59,6 +59,20 @@ async function parseBody(response: DidcommFetchResponse): Promise<unknown> {
   return undefined;
 }
 
+/**
+ * Submits a DIDComm payload using either plaintext or encrypted transport,
+ * depending on the resolved submission policy.
+ *
+ * @param input.mode Communication mode that drives plain vs encrypted submission.
+ * @param input.url Target endpoint URL.
+ * @param input.payload DIDComm payload body to submit.
+ * @param input.defaultHeaders Optional extra request headers.
+ * @param input.bearerToken Optional bearer token.
+ * @param input.recipientEncryptionJwk Recipient public key for encrypted mode.
+ * @param input.fetcher Runtime fetch-like implementation.
+ * @param input.signCompactJws Callback used to sign plaintext claims before encryption.
+ * @param input.encryptCompactJwe Callback used to encrypt the signed JWS.
+ */
 export async function submitDidcomm(input: DidcommSubmitInput): Promise<DidcommSubmitResult> {
   const plan = resolveDidcommSubmissionPlan(input.mode, {
     hasRecipientEncryptionJwk: !!input.recipientEncryptionJwk,

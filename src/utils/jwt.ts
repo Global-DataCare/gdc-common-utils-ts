@@ -72,6 +72,7 @@ export async function decodePayload(payloadB64Url: string, isDeflated?: boolean)
 
 /**
  * Fully decodes a compact JWT into a `DataCompactJWT` object with JSON headers and payload.
+ * @param compactJWT Compact JWT string.
  * @returns A (compact) JWT object or undefined if parsing fails.
  */
 export async function getDataJWT(compactJWT: string | undefined): Promise<DataCompactJWT | undefined> {
@@ -162,4 +163,3 @@ export async function compactJWT(header: object, payload: object, signatureBytes
 
   return `${encodedHeader}.${encodedPayload}.${encodedSignature}`;
 }
-

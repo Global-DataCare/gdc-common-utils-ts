@@ -1,3 +1,5 @@
+import { CommunicationCategoryCodes } from '../constants/communication';
+
 /**
  * LOINC Document Ontology helpers for Communication ingestion workflows.
  *
@@ -53,9 +55,9 @@ export const loincOntology = Object.freeze({
 /**
  * Defaults agreed for Communication ingestion:
  * - datatype: KindOfDocument.Note
- * - category: Arrival notification note
+ * - category: Notification
  */
 export const communicationIngestionDefaults = Object.freeze({
   datatype: toLoincToken(loincOntology.KindOfDocument.Note.code),
-  category: toLoincToken(loincOntology.KindOfDocument.Note.ArrivalNotificationNote.code),
+  category: CommunicationCategoryCodes.Notification.claim,
 });

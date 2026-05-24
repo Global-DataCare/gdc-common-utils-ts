@@ -7,6 +7,9 @@ import {
   buildEpochWindow,
   buildVpTokenCompact,
   createVP,
+  getLegalRepresentativeCredentialFromVpToken,
+  getOrganizationCredentialFromVpToken,
+  getVpCredentials,
   generateUuidLike,
   prepareBytesForSignature,
   prepareForSignature,
@@ -90,5 +93,43 @@ describe('vp token utilities', () => {
     expect(() => addLegalRepresentativeCredential(vp, vcJwt('OrganizationCredential'))).toThrow(
       /LegalRepresentative VC must include one of types/,
     );
+  });
+
+  it('extracts organization and legal representative credentials from a VP token', () => {
+    const orgVc = {
+      type: ['VerifiableCredential', 'OrganizationCredential'],
+      credentialSubject: { id: 'did:web:org.example.org', taxID: 'ESB00112233' },
+    };
+    const repVc = {
+      type: ['VerifiableCredential', 'LegalRepresentativeCredential'],
+      credentialSubject: {
+        id: 'did:web:rep.example.org',
+        hasOccupation: { identifier: { value: 'RESPRSN' } },
+        hasCredential: { material: 'controller-sig-kid' },
+      },
+    };
+    const vp = createVP({
+      iss: 'did:web:example.com:alice',
+      vp: {
+        verifiableCredential: [
+          JSON.stringify(orgVc),
+          JSON.stringify(repVc),
+        ],
+      },
+    });
+    const compact = buildVpTokenCompact(
+      Buffer.from(JSON.stringify({ alg: 'none', typ: 'JWT' })).toString('base64url'),
+      Buffer.from(JSON.stringify(vp)).toString('base64url'),
+      'sig',
+    );
+
+    expect(getVpCredentials(compact)).toHaveLength(2);
+    expect(getOrganizationCredentialFromVpToken(compact)?.credentialSubject).toMatchObject({
+      id: 'did:web:org.example.org',
+      taxID: 'ESB00112233',
+    });
+    expect(getLegalRepresentativeCredentialFromVpToken(compact)?.credentialSubject).toMatchObject({
+      id: 'did:web:rep.example.org',
+    });
   });
 });

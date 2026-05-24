@@ -1,0 +1,100 @@
+// Copyright 2026 Antifraud Services Inc. under the Apache License, Version 2.0.
+
+import {
+  ClaimsOrganizationSchemaorg,
+  ClaimsPersonSchemaorg,
+  ClaimsServiceSchemaorg,
+} from '../constants/schemaorg';
+import { EXAMPLE_CONTROLLER_BINDING } from './shared';
+import { EXAMPLE_SECTOR, EXAMPLE_JURISDICTION } from './shared';
+
+/**
+ * Examples for organization-controller and host-onboarding flows.
+ */
+
+export const EXAMPLE_ACTIVATE_ORGANIZATION_FROM_ICA_PROOF_INPUT = {
+  vpToken: '<ica-proof-token>',
+  controller: EXAMPLE_CONTROLLER_BINDING,
+  additionalClaims: {
+    [ClaimsOrganizationSchemaorg.alternateName]: 'acme',
+    [ClaimsOrganizationSchemaorg.legalName]: 'ACME HEALTH SL',
+    [ClaimsOrganizationSchemaorg.identifierType]: 'taxID',
+    [ClaimsOrganizationSchemaorg.identifierValue]: 'VATES-B00112233',
+    [ClaimsOrganizationSchemaorg.addressCountry]: EXAMPLE_JURISDICTION,
+    [ClaimsOrganizationSchemaorg.taxId]: 'VATES-B00112233',
+    [ClaimsPersonSchemaorg.email]: 'controller@example.com',
+    [ClaimsPersonSchemaorg.hasOccupationalRoleValue]: 'RESPRSN',
+    [ClaimsServiceSchemaorg.category]: EXAMPLE_SECTOR,
+    [ClaimsServiceSchemaorg.identifier]: 'did:web:public.acme.org',
+    [ClaimsServiceSchemaorg.url]: `https://operator.example.net/acme/cds-${String(EXAMPLE_JURISDICTION).toLowerCase()}/v1/${EXAMPLE_SECTOR}`,
+  },
+} as const;
+
+export const EXAMPLE_GW_ORGANIZATION_ACTIVATE_PAYLOAD = {
+  vp_token: '<ica-proof-token>',
+  controller: EXAMPLE_CONTROLLER_BINDING,
+} as const;
+
+export const EXAMPLE_GW_ORGANIZATION_ACTIVATE_ACCEPTED_RESPONSE = {
+  submit: { status: 202, body: {} },
+  poll: {
+    status: 200,
+    body: {
+      data: [
+        {
+          type: 'Organization-activation-request-v1.0',
+          response: { status: '200' },
+        },
+      ],
+    },
+    attempts: 1,
+  },
+} as const;
+
+export const EXAMPLE_LEGAL_ORGANIZATION_ORDER_INPUT = {
+  offerId: 'offer-123',
+  jurisdiction: EXAMPLE_JURISDICTION,
+  sector: EXAMPLE_SECTOR,
+  timeoutSeconds: 12,
+  intervalSeconds: 3,
+} as const;
+
+export const EXAMPLE_LEGAL_ORGANIZATION_ORDER_RESPONSE = {
+  submit: { status: 202, body: {} },
+  poll: { status: 200, body: {}, attempts: 1 },
+} as const;
+
+export const EXAMPLE_ORGANIZATION_EMPLOYEE_INPUT = {
+  employeeClaims: {
+    [ClaimsPersonSchemaorg.identifier]: 'urn:uuid:11b2c3d4-e5f6-7890-1234-567890abcdef',
+    [ClaimsPersonSchemaorg.email]: 'receptionist1@acme.org',
+    [ClaimsPersonSchemaorg.hasOccupationalRoleValue]: 'ISCO-08|4226',
+  },
+} as const;
+
+export const EXAMPLE_LIVE_EMPLOYEE_INPUT = {
+  employeeClaims: {
+    '@context': 'org.schema',
+    [ClaimsPersonSchemaorg.identifier]: 'urn:uuid:11b2c3d4-e5f6-7890-1234-567890abcdef',
+    [ClaimsPersonSchemaorg.email]: 'controller@example.com',
+    [ClaimsPersonSchemaorg.hasOccupationalRoleValue]: 'RESPRSN',
+  },
+} as const;
+
+export const EXAMPLE_EMPLOYEE_DEVICE_ACTIVATION_INPUT = {
+  activationCode: 'ACT-001',
+  idToken: 'employee-id-token-001',
+  dcrPayload: {
+    application_type: 'web',
+  },
+} as const;
+
+export const EXAMPLE_EMPLOYEE_DEVICE_EXCHANGE_RESPONSE = {
+  submit: { status: 202, body: {} },
+  poll: { status: 200, body: { body: { initial_access_token: 'initial-access-001' } }, attempts: 1 },
+} as const;
+
+export const EXAMPLE_EMPLOYEE_DEVICE_DCR_RESPONSE = {
+  submit: { status: 202, body: {} },
+  poll: { status: 200, body: { body: { client_id: 'did:web:device-001' } }, attempts: 1 },
+} as const;

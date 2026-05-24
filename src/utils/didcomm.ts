@@ -25,6 +25,10 @@ export class DidCommMessage implements DidCommPayload {
   body: { [key: string]: any };
   attachments?: DidCommAttachment[];
 
+  /**
+   * Creates an empty DIDComm message with generated `id`, empty `type`,
+   * and empty `body`.
+   */
   constructor() {
     this.id = generateId();
     this.type = '';
@@ -34,6 +38,10 @@ export class DidCommMessage implements DidCommPayload {
 
 /**
  * Prepares a DIDComm request message.
+ *
+ * @param type DIDComm message type.
+ * @param body DIDComm body payload.
+ * @param attachments Optional DIDComm attachments.
  */
 export function prepareDidCommRequest(type: string, body: any = {}, attachments: DidCommAttachment[] = []): DidCommMessage {
   const message = new DidCommMessage();
@@ -46,6 +54,9 @@ export function prepareDidCommRequest(type: string, body: any = {}, attachments:
 
 /**
  * Includes VP token in DIDComm message body.
+ *
+ * @param message DIDComm message to mutate.
+ * @param vpToken VP token string to place under `body.vp_token`.
  */
 export function includeVpTokenInMessage(message: DidCommMessage, vpToken: string): void {
   message.body.vp_token = vpToken;
@@ -53,6 +64,11 @@ export function includeVpTokenInMessage(message: DidCommMessage, vpToken: string
 
 /**
  * Includes file bytes as base64 attachment in DIDComm message.
+ *
+ * @param message DIDComm message to mutate.
+ * @param fileBytes Raw file bytes.
+ * @param mediaType Attachment media type.
+ * @param id Attachment identifier.
  */
 export function includeFileInMessage(message: DidCommMessage, fileBytes: Uint8Array, mediaType: string, id: string): void {
   const base64 = Buffer.from(fileBytes).toString('base64');
@@ -66,6 +82,8 @@ export function includeFileInMessage(message: DidCommMessage, fileBytes: Uint8Ar
 
 /**
  * Gets THID from DIDComm message.
+ *
+ * @param message DIDComm message.
  */
 export function getThidFromMessage(message: DidCommMessage): string {
   return message.thid || message.id;
@@ -73,6 +91,8 @@ export function getThidFromMessage(message: DidCommMessage): string {
 
 /**
  * Gets data results from polling response body.
+ *
+ * @param response DIDComm response carrying `body.data`.
  */
 export function getDataResults(response: DidCommMessage): any[] {
   return response.body?.data || [];

@@ -13,12 +13,24 @@ export type TransformCommunicationClaimsToResourceFhirR4Result = {
   warnings: string[];
 };
 
+/**
+ * Validates a FHIR R4 `Communication` resource through the configured validator pipeline.
+ *
+ * @param resource Candidate FHIR R4 `Communication` resource.
+ */
 export async function validateCommunicationResourceFhirR4(
   resource: Record<string, unknown>,
 ): Promise<{ ok: boolean; issues: Array<{ severity: 'error' | 'warning'; code: string; diagnostics: string; expression?: string }> }> {
   return validateFhirResource(resource, 'r4');
 }
 
+/**
+ * Transforms canonical communication claims into FHIR R4 `Communication` resources.
+ *
+ * @param communicationClaims Flat canonical claims rows to convert.
+ * @param options.mode `strict` throws on ambiguous/invalid shapes, `normalize` keeps best-effort output.
+ * @param options.defaultStatus Default FHIR status when none is provided.
+ */
 export function transformCommunicationClaimsToResourceFhirR4(
   communicationClaims: CommunicationClaims[],
   options: TransformCommunicationClaimsToResourceFhirR4Options = {},
@@ -46,7 +58,11 @@ export function transformCommunicationClaimsToResourceFhirR4(
       warnings.push(`${msg} Keeping attachment > reference > code.`);
     }
 
-    const noteValues = normalizeNoteValues(claims['Communication.note'] ?? claims['Communication.text']);
+    const noteValues = normalizeNoteValues(
+      claims['Communication.note-text']
+      ?? claims['Communication.note']
+      ?? claims['Communication.text'],
+    );
     if (noteValues.length > 1) {
       const msg = `Communication[${index}] has more than one note.`;
       if (mode === 'strict') throw new Error(msg);
@@ -108,6 +124,12 @@ export function transformCommunicationClaimsToResourceFhirR4(
   return { resources, warnings };
 }
 
+/**
+ * Extracts canonical communication claims from a FHIR R4 `Communication` resource.
+ *
+ * @param resource FHIR R4 `Communication` resource.
+ * @param options.preferMetaClaims When true, existing `resource.meta.claims` wins over structural extraction.
+ */
 export function extractCommunicationClaimsFromResourceFhirR4(
   resource: Record<string, unknown>,
   options: { preferMetaClaims?: boolean } = {},
@@ -143,8 +165,8 @@ export function extractCommunicationClaimsFromResourceFhirR4(
   setIf(claims, 'Communication.recipient', recipientRef);
   setIf(claims, 'Communication.sender', senderRef);
   setIf(claims, 'Communication.part-of', partOfRef);
+  setIf(claims, 'Communication.note-text', noteText);
   setIf(claims, 'Communication.text', noteText);
-  setIf(claims, 'Communication.note', noteText);
 
   if (categoryCoding) {
     const system = toStringOrUndefined(categoryCoding.system);

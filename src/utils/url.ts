@@ -23,9 +23,8 @@ export function safelyJoinUrl(base_url: string, path: string): string {
 /**
  * Splits a given URL into its domain and path components.
  *
- * @param {string} urlString - The full URL string to be split.
- * @returns {{ domain: string; path: string }} An object containing the `domain` and `path` of the URL.
- * If the URL is not valid it returns empty domain and path.
+ * @param urlString The full URL string to be split.
+ * @returns An object containing the `domain` and `path` of the URL, or `null` when invalid.
  *
  * @example
  * Returns { domain: 'www.example.com', path: '/some/path' }

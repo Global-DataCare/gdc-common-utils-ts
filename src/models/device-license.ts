@@ -1,6 +1,8 @@
 // src/models/device-license.ts
 // Copyright 2025 Antifraud Services Inc. under the Apache License, Version 2.0.
 
+import type { DeviceAppType, DeviceUserClass } from '../constants/device';
+
 /**
  * A fingerprint of a specific device, used for binding a license to it.
  */
@@ -71,7 +73,7 @@ export interface DeviceLicense {
    * This allows for stratified licensing (e.g., selling "professional seats"
    * separately from "individual access").
    */
-  userClass: 'employee' | 'individual';
+  userClass: DeviceUserClass;
 
   /**
    * **Specifies the functional category for an 'employee' license.**
@@ -86,7 +88,7 @@ export interface DeviceLicense {
   /**
    * Defines the platform this license is for.
    */
-  type: 'mobile' | 'web';
+  type: DeviceAppType;
 
   /**
    * The current lifecycle status of the license.

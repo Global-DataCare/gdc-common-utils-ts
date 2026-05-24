@@ -1,9 +1,13 @@
 import {
+  buildIndividualDidWeb,
   buildHostedDidDetails,
+  buildOrganizationDidWeb,
+  buildProfessionalDidWeb,
   createHostedDidWeb,
   getBaseUrlFromDidWeb,
   normalizeDidWeb,
 } from '../src/utils/did.js';
+import { HealthcareActorRoles } from '../src/constants/healthcare.js';
 
 describe('did utilities', () => {
   it('normalizes did:web values and role codes', () => {
@@ -29,5 +33,29 @@ describe('did utilities', () => {
   it('derives base URL from did:web', () => {
     const url = getBaseUrlFromDidWeb('did:web:localhost%3A3000:acme:cds-es:v1:health-care');
     expect(url).toBe('http://localhost:3000/acme/cds-ES/v1/health-care/');
+  });
+
+  it('builds organization/professional/individual data-space did:web values', () => {
+    const organizationDid = buildOrganizationDidWeb({
+      hostDidWeb: 'did:web:api.example.org',
+      tenantId: 'Acme-TaxID',
+      jurisdiction: 'ES',
+      sector: 'health-care',
+    });
+    expect(organizationDid).toBe('did:web:api.example.org:Acme-TaxID:cds-ES:v1:health-care');
+
+    const professionalDid = buildProfessionalDidWeb({
+      organizationDidWeb: organizationDid,
+      email: 'Doctor@Example.Org',
+      role: HealthcareActorRoles.Physician,
+    });
+    expect(professionalDid).toContain(`${organizationDid}:employee:`);
+    expect(professionalDid.endsWith(`:${HealthcareActorRoles.Physician}`)).toBe(true);
+
+    const individualDid = buildIndividualDidWeb({
+      organizationDidWeb: organizationDid,
+      subjectId: 'subject-001',
+    });
+    expect(individualDid).toBe(`${organizationDid}:family:subject-001:org.hl7.v3.RoleCode|ONESELF`);
   });
 });

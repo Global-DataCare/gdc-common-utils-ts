@@ -2,6 +2,54 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [Unreleased]
+
+### Added
+
+### Changed
+
+### Testing
+
+## [1.4.22] - 2026-05-23
+
+### Added
+- Added canonical bootstrap contracts for `_activate` and explicit controller key binding:
+  - `ControllerBindingInput`
+  - `OrganizationBindingInput`
+  - `OrganizationActivationRequest`
+  - validation issue/result shapes
+- Added DID/discovery constants and pure helpers for canonical endpoint resolution:
+  - `DidServiceIds`
+  - `DidServiceTypes`
+  - `DiscoveryCapabilities`
+  - DID `service[]` extraction helpers
+  - provider/organization DID derivation helpers
+- Added normalized identity/result models:
+  - `DidResolutionResult`
+  - `ResolvedServiceEndpoint`
+  - `ActorIdentity`
+  - `TransportIdentity`
+- Added pure normalization helpers for ICA, node-operator, and service-provider discovery metadata.
+- Added shared canonical API flow examples under `src/examples/api-flow-examples.ts`:
+  - reusable request examples
+  - reusable response examples
+  - frontend session/profile examples
+  - SMART/bootstrap/discovery-oriented payload builders
+- Kept `src/examples/contract-examples.ts` only as a compatibility alias while consumers migrate away from the overloaded `contract` name.
+
+### Changed
+- Clarified `communication-identity` JSDoc so technical transport identity is explicitly distinct from person/controller signing identity.
+- Added explicit bootstrap claim constants:
+  - `controller.did`
+  - `controller.sameAs`
+  - `controller.publicKeyJwk`
+  - `controller.jwks`
+  - `organization.publicKeyJwk`
+  - `organization.jwks`
+
+### Testing
+- Added unit coverage for activation-request validation, DID service resolution, and discovery normalization.
+
 ## [1.4.21] - 2026-05-20
 
 ### Changed

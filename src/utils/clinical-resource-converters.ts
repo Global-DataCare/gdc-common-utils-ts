@@ -46,6 +46,8 @@ function requireDidWeb(value: string, key: string): void {
 
 /**
  * Converts flat claims into a minimal MedicationStatement resource.
+ *
+ * @param claims Flat medication claims map.
  */
 export function medicationStatementFlatToFhir(claims: FlatClaims): FhirResource {
   const subject = requireClaim(claims, 'MedicationStatement.subject');
@@ -100,6 +102,8 @@ export function medicationStatementFlatToFhir(claims: FlatClaims): FhirResource 
 
 /**
  * Converts a minimal MedicationStatement resource to flat claims.
+ *
+ * @param resource FHIR `MedicationStatement` resource.
  */
 export function medicationStatementFhirToFlat(resource: FhirResource): FlatClaims {
   const medicationReference = (resource.medicationReference as { reference?: string } | undefined)?.reference;
@@ -134,6 +138,11 @@ export function medicationStatementFhirToFlat(resource: FhirResource): FlatClaim
   };
 }
 
+/**
+ * Converts flat claims into a minimal AllergyIntolerance resource.
+ *
+ * @param claims Flat allergy/intolerance claims map.
+ */
 export function allergyIntoleranceFlatToFhir(claims: FlatClaims): FhirResource {
   const patient = claims['AllergyIntolerance.subject'] ?? claims['AllergyIntolerance.patient'];
   if (!patient) {
@@ -159,6 +168,11 @@ export function allergyIntoleranceFlatToFhir(claims: FlatClaims): FhirResource {
   };
 }
 
+/**
+ * Converts a minimal AllergyIntolerance resource to flat claims.
+ *
+ * @param resource FHIR `AllergyIntolerance` resource.
+ */
 export function allergyIntoleranceFhirToFlat(resource: FhirResource): FlatClaims {
   const subject = (resource.patient as { reference?: string } | undefined)?.reference;
   return {
@@ -172,6 +186,11 @@ export function allergyIntoleranceFhirToFlat(resource: FhirResource): FlatClaims
   };
 }
 
+/**
+ * Converts flat claims into a minimal Condition resource.
+ *
+ * @param claims Flat condition claims map.
+ */
 export function conditionFlatToFhir(claims: FlatClaims): FhirResource {
   const subject = requireClaim(claims, 'Condition.subject');
 
@@ -185,6 +204,11 @@ export function conditionFlatToFhir(claims: FlatClaims): FhirResource {
   };
 }
 
+/**
+ * Converts a minimal Condition resource to flat claims.
+ *
+ * @param resource FHIR `Condition` resource.
+ */
 export function conditionFhirToFlat(resource: FhirResource): FlatClaims {
   return {
     'Condition.identifier': (resource.identifier as Array<{ value?: string }> | undefined)?.[0]?.value,
@@ -195,6 +219,11 @@ export function conditionFhirToFlat(resource: FhirResource): FlatClaims {
   };
 }
 
+/**
+ * Converts flat claims into a minimal DeviceUseStatement resource.
+ *
+ * @param claims Flat device-use claims map.
+ */
 export function deviceUseStatementFlatToFhir(claims: FlatClaims): FhirResource {
   const subject = requireClaim(claims, 'DeviceUseStatement.subject');
   const device = requireClaim(claims, 'DeviceUseStatement.device');
@@ -211,6 +240,11 @@ export function deviceUseStatementFlatToFhir(claims: FlatClaims): FhirResource {
   };
 }
 
+/**
+ * Converts a minimal DeviceUseStatement resource to flat claims.
+ *
+ * @param resource FHIR `DeviceUseStatement` resource.
+ */
 export function deviceUseStatementFhirToFlat(resource: FhirResource): FlatClaims {
   return {
     'DeviceUseStatement.identifier': (resource.identifier as Array<{ value?: string }> | undefined)?.[0]?.value,
@@ -222,6 +256,11 @@ export function deviceUseStatementFhirToFlat(resource: FhirResource): FlatClaims
   };
 }
 
+/**
+ * Converts flat claims into a minimal DocumentReference resource.
+ *
+ * @param claims Flat document reference claims map.
+ */
 export function documentReferenceFlatToFhir(claims: FlatClaims): FhirResource {
   const subject = requireClaim(claims, DocumentReferenceClaim.Subject);
 
@@ -245,6 +284,11 @@ export function documentReferenceFlatToFhir(claims: FlatClaims): FhirResource {
   };
 }
 
+/**
+ * Converts a minimal DocumentReference resource to flat claims.
+ *
+ * @param resource FHIR `DocumentReference` resource.
+ */
 export function documentReferenceFhirToFlat(resource: FhirResource): FlatClaims {
   const attachment = (resource.content as Array<{ attachment?: Record<string, string> }> | undefined)?.[0]?.attachment;
   return {

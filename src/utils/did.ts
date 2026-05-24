@@ -2,6 +2,8 @@
 // Copyright 2025 Antifraud Services Inc. under the Apache License, Version 2.0.
 
 import { ServiceEndpointSelector } from "../models/did";
+import { encodeMultibaseSha384 } from './multibasehash';
+import { HL7_CLAIMS_CODING_SYSTEM, HL7_DEFAULT_ROLE_HEALTH } from '../constants/hl7-roles';
 
 /**
  * Generates a DID Service ID fragment from a selector object.
@@ -81,20 +83,20 @@ function getEncodedHost(apiUrl: string): string {
 * Creates the deterministic "hosted" did:web for a tenant (Organization).
 *
 * @param hostDidWeb The DID of the host (e.g., 'did:web:host.example.com').
-* @param tenantAlternateName The alternate name of the tenant (e.g., 'acme').
+ * @param tenantId Canonical tenant identifier (for example a tax-ID based tenant id).
 * @param context An object containing jurisdiction, version, and sector.
 * @returns The tenant's full, correctly formatted hosted did:web.
 *          Example: 'did:web:host.example.com:acme:cds-es:v1:health-care'
 */
 export function createHostedDidWeb(
   hostDidWeb: string,
-  tenantAlternateName: string,
+  tenantId: string,
   context: { jurisdiction: string; version: string; sector: string }
 ): string {
   const hostPart = hostDidWeb.replace(/^did:web:/, '');
   // The path in a did:web uses colons as separators.
   const didPath = `cds-${context.jurisdiction}:${context.version}:${context.sector}`;
-  return `did:web:${hostPart}:${tenantAlternateName}:${didPath}`;
+  return `did:web:${hostPart}:${tenantId}:${didPath}`;
 }
 
 
@@ -104,24 +106,31 @@ export function createHostedDidWeb(
  *
  * @param options An object with the components of the DID.
  * @param options.host The provider's domain (e.g., 'provider.com').
- * @param options.alternateName The tenant's identifier (e.g., 'acme').
+ * @param options.tenantId The canonical tenant identifier.
+ * @param options.alternateName Deprecated legacy alias kept only for backward compatibility.
  * @param options.jurisdiction The legal jurisdiction (defaults to 'ES').
  * @param options.sector The business sector (defaults to 'health-care').
  * @returns An object with the full URL (with trailing /) and the canonical did:web.
  */
 export function buildHostedDidDetails({
   host,
+  tenantId,
   alternateName,
   jurisdiction = 'ES',
   sector = 'health-care',
 }: {
   host: string;
+  tenantId?: string;
   alternateName: string;
   jurisdiction?: string;
   sector?: string;
 }) {
+  const resolvedTenantId = String(tenantId || alternateName || '').trim();
+  if (!resolvedTenantId) {
+    throw new Error('buildHostedDidDetails requires tenantId.');
+  }
   // 1. Build the path part of the DID/URL.
-  const pathPart = `${alternateName}/cds-${jurisdiction}/v1/${sector}`;
+  const pathPart = `${resolvedTenantId}/cds-${jurisdiction}/v1/${sector}`;
   
   // 2. Build the full URL, ensuring a trailing slash.
   const url = `https://${host}/${pathPart}/`;
@@ -152,4 +161,94 @@ export function getBaseUrlFromDidWeb(did: string): string {
   // Ensure a trailing slash for the base URL, without double slashes when no path is present.
   const normalizedPath = path ? `${path}/` : '';
   return `${protocol}://${decodedDomain}/${normalizedPath}`;
+}
+
+/**
+ * Builds the canonical hosted organization/tenant DID in the data space.
+ *
+ * This is a semantic alias over `createHostedDidWeb(...)` for callers that want
+ * the API name to reflect the organization role more explicitly.
+ *
+ * @param input.hostDidWeb Host/provider DID root such as `did:web:api.example.org`.
+ * @param input.tenantId Canonical tenant identifier used in the data space. In
+ * new integrations this should be the real tenant ID, typically tax-ID based.
+ * @param input.tenantAlternateName Deprecated legacy alias kept only for backward compatibility.
+ * @param input.jurisdiction Jurisdiction segment used in the hosted DID path.
+ * @param input.version API/version segment. Defaults to `v1`.
+ * @param input.sector Functional data-space sector such as `health-care`.
+ */
+export function buildOrganizationDidWeb(input: {
+  hostDidWeb: string;
+  tenantId?: string;
+  tenantAlternateName?: string;
+  jurisdiction: string;
+  version?: string;
+  sector: string;
+}): string {
+  const tenantId = String(input.tenantId || input.tenantAlternateName || '').trim();
+  if (!tenantId) throw new Error('buildOrganizationDidWeb requires tenantId.');
+  return createHostedDidWeb(input.hostDidWeb, tenantId, {
+    jurisdiction: input.jurisdiction,
+    version: input.version || 'v1',
+    sector: input.sector,
+  });
+}
+
+/**
+ * Builds a professional/member DID under a hosted organization DID.
+ *
+ * The stable actor identifier is derived from the email using multibase(base58btc(multihash(sha384))).
+ *
+ * @param input.organizationDidWeb Canonical hosted organization DID.
+ * @param input.email Professional email used to derive a stable member identifier.
+ * @param input.role Canonical role code such as `ISCO-08|2211`.
+ * @param input.deviceId Optional per-device suffix for device-bound identities.
+ */
+export function buildProfessionalDidWeb(input: {
+  organizationDidWeb: string;
+  email: string;
+  role: string;
+  deviceId?: string;
+}): string {
+  const normalizedEmail = String(input.email || '').trim().toLowerCase();
+  const role = String(input.role || '').trim();
+  if (!normalizedEmail) throw new Error('buildProfessionalDidWeb requires email.');
+  if (!role) throw new Error('buildProfessionalDidWeb requires role.');
+  const memberId = encodeMultibaseSha384(normalizedEmail);
+  return [
+    String(input.organizationDidWeb).trim(),
+    'employee',
+    memberId,
+    role,
+    input.deviceId ? String(input.deviceId).trim() : undefined,
+  ].filter(Boolean).join(':');
+}
+
+/**
+ * Builds an individual/family DID under a hosted organization DID.
+ *
+ * `subjectId` should already be a stable logical subject identifier. If no
+ * relationship role is provided, the health-sector default (`ONESELF`) is used.
+ *
+ * @param input.organizationDidWeb Canonical hosted organization DID.
+ * @param input.subjectId Stable logical subject identifier.
+ * @param input.relationshipRole Optional HL7 relationship role claim.
+ * @param input.deviceId Optional per-device suffix for device-bound identities.
+ */
+export function buildIndividualDidWeb(input: {
+  organizationDidWeb: string;
+  subjectId: string;
+  relationshipRole?: string;
+  deviceId?: string;
+}): string {
+  const subjectId = String(input.subjectId || '').trim();
+  if (!subjectId) throw new Error('buildIndividualDidWeb requires subjectId.');
+  const role = String(input.relationshipRole || `${HL7_CLAIMS_CODING_SYSTEM}|${HL7_DEFAULT_ROLE_HEALTH}`).trim();
+  return [
+    String(input.organizationDidWeb).trim(),
+    'family',
+    subjectId,
+    role,
+    input.deviceId ? String(input.deviceId).trim() : undefined,
+  ].filter(Boolean).join(':');
 }

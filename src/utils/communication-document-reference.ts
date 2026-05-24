@@ -80,6 +80,11 @@ function toStringOrUndefined(value: unknown): string | undefined {
   return text || undefined;
 }
 
+/**
+ * Detects the logical attachment kind from a MIME type.
+ *
+ * @param contentType Attachment content type.
+ */
 export function detectAttachmentKind(contentType?: string): AttachmentKind {
   const ct = String(contentType || '').toLowerCase();
   if (ct.includes('fhir') || ct.includes('application/json+fhir')) return 'fhir';
@@ -111,6 +116,13 @@ function isCidLike(value?: string): boolean {
   return !!value && value.startsWith('z') && value.length > 10;
 }
 
+/**
+ * Builds a simplified `DocumentReference` projection from the first
+ * `Communication.payload[0].contentAttachment`.
+ *
+ * @param communication FHIR `Communication`-like resource carrying the attachment.
+ * @param options.mode `strict` throws on invalid input, `normalize` applies best-effort defaults.
+ */
 export function buildDocumentReferenceFromCommunicationPayload(
   communication: Record<string, any>,
   options: BuildDocumentReferenceOptions = {},

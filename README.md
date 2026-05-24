@@ -25,6 +25,8 @@ The published package exposes these entry points through `package.json`:
 - `gdc-common-utils-ts/AesManager`
 - `gdc-common-utils-ts/CryptographyService`
 - `gdc-common-utils-ts/hmac`
+- `gdc-common-utils-ts/examples`
+- `gdc-common-utils-ts/examples/*`
 - `gdc-common-utils-ts/constants`
 - `gdc-common-utils-ts/models`
 - `gdc-common-utils-ts/utils`
@@ -82,6 +84,231 @@ Example:
 import { JweObject, JwtCompactParts } from 'gdc-common-utils-ts/models';
 ```
 
+## Cross-Repo Task Docs
+
+- [docs/consent-access-matrix-task.md](docs/consent-access-matrix-task.md)
+  - next-step design/task document for active consent aggregation, explicit deny precedence, controller views, permission-request communications, and SMART access evaluation
+
+## API Index
+
+The canonical API contract should live in JSDoc on exported code. The README acts as a navigable index.
+
+### Shared terminology constants
+
+- [`FhirCodeSystems`](src/constants/fhir-code-systems.ts)
+  - Canonical code system URLs such as `Loinc` and `CommunicationCategory`.
+  - Use instead of inline system strings like `http://loinc.org`.
+- [`ResourceTypesFhirR4`](src/constants/fhir-resource-types.ts)
+  - Canonical FHIR R4 `resourceType` names such as `Communication`, `Bundle`, `DocumentReference`, `Observation`, `MedicationStatement`, `Consent`.
+  - Use instead of inline resource type strings.
+- [`CommunicationCategoryCodes`](src/constants/communication.ts)
+  - Canonical `Communication.category` coding descriptors and `<system>|<code>` claims.
+- [`ObservationCategoryCodes`, `VitalSignsCodes`, `VitalSignsUnits`](src/constants/vital-signs.ts)
+  - Canonical Vital Signs category, code, and UCUM unit descriptors for `Observation`.
+- [`HealthcareBasicSections`, `HealthcareAdditionalSections`, `HealthcareAllSections`](src/constants/healthcare.ts)
+  - Shared IPS/healthcare document section catalogs.
+- [`HealthcareConsentPurposes`, `HealthcareConsentActions`, `HealthcareActorRoles`, `HealthcareActorRoleCodes`](src/constants/healthcare.ts)
+  - Shared healthcare authorization and role constants.
+- [`EXAMPLE_PROFESSIONAL_ACCESS_SCENARIOS`](src/examples/professional.ts)
+  - Reusable professional role/permission examples tying actor role, consent action, SMART scope, and expected FHIR resource types together.
+- [`DeviceUserClasses`, `DeviceAppTypes`](src/constants/device.ts)
+  - Shared user-class and app/device-type constants used by licensing and SDK flows.
+- [`NodeOperatorNetworkTypes`](src/constants/network.ts)
+  - Shared network/environment labels for node-operator discovery/bootstrap.
+- [`SmartGatewayScopesFhirR4`](src/constants/smart.ts)
+  - Current CORE GW SMART scope literals such as `organization/Consent.cruds`.
+
+### Root exports
+
+- [`AesManager`](src/AesManager.ts)
+  - AES helper class exported from the package root.
+- [`CryptographyService`](src/CryptographyService.ts)
+  - Main cryptography service implementation exported from the package root.
+- [`computeHmacSha256(...)`, `computeHmacSha256Base64Url(...)`](src/hmac.ts)
+  - Low-level HMAC helpers for UTF-8 plaintext and raw key bytes.
+
+### Communication / document utilities
+
+- [`initializeCommunicationIdentityFromSeed(...)`](src/utils/communication-identity.ts)
+  - Derives the technical ML-DSA/ML-KEM communication identity for a device, portal, or app profile and returns JOSE header templates for `meta.jws.protected` and `meta.jwe.header`.
+  - Accepts optional explicit `seedMaterial`; otherwise deterministic mode derives from `entityId`, while random mode delegates entropy generation to the cryptography engine.
+- [`buildOrganizationDidWeb(...)`, `buildProfessionalDidWeb(...)`, `buildIndividualDidWeb(...)`](src/utils/did.ts)
+  - Build canonical data-space `did:web` identifiers for hosted organizations, professionals, and individuals/family actors.
+- [`buildSmartCompositionReadScope(...)`](src/utils/smart-scope.ts)
+  - Builds the current CORE GW pinned SMART root scope for `organization/Composition...` token requests.
+- [`getOrganizationCredentialFromVpToken(...)`, `getLegalRepresentativeCredentialFromVpToken(...)`](src/utils/vp-token.ts)
+  - Extract typed VC objects from a VP token when GW/SDK flows carry canonical proof only in `vp_token`.
+- [`validateCommunicationResourceFhirR4(...)`](src/utils/communication-fhir-r4.ts)
+  - Validates FHIR R4 `Communication` resources.
+- [`transformCommunicationClaimsToResourceFhirR4(...)`](src/utils/communication-fhir-r4.ts)
+  - Converts canonical communication claims into FHIR R4 resources.
+- [`extractCommunicationClaimsFromResourceFhirR4(...)`](src/utils/communication-fhir-r4.ts)
+  - Extracts canonical claims from FHIR R4 `Communication`.
+- [`detectAttachmentKind(...)`](src/utils/communication-document-reference.ts)
+  - Detects `fhir` / `pdf` / `png` / `jpg` / `binary` from MIME type.
+- [`buildDocumentReferenceFromCommunicationPayload(...)`](src/utils/communication-document-reference.ts)
+  - Projects a simplified `DocumentReference` from `Communication.payload[0].contentAttachment`.
+
+### Identity bootstrap / discovery utilities
+
+- [`DidServiceIds`, `DidServiceTypes`, `DiscoveryCapabilities`](src/constants/did-services.ts)
+  - Canonical DID service ids, service types, and capability names used to publish and resolve `service[]` entries consistently across GW and SDK layers.
+- [`ControllerBindingInput`, `OrganizationBindingInput`, `ActivationProofInput`, `OrganizationActivationRequest`](src/models/identity-bootstrap.ts)
+  - Canonical bootstrap contracts that explicitly separate person/controller key binding from provider/organization key binding.
+  - `vp_token` is the canonical proof carrier; `controller.*` and `organization.*` carry public key binding material for DID publication.
+- [`IdentityBootstrapValidationIssue`, `IdentityBootstrapValidationResult`](src/models/identity-bootstrap.ts)
+  - Shared validation result shapes used by bootstrap builders/validators.
+- [`buildOrganizationActivationRequest(...)`](src/utils/activation-request.ts)
+  - Builds the canonical `_activate` payload with `vp_token` as the primary proof plus optional explicit controller/organization binding data.
+- [`validateOrganizationActivationRequest(...)`](src/utils/activation-request.ts)
+  - Enforces bootstrap contract priority: canonical `vp_token`, explicit `controller.*` key binding when needed, and legacy credential side-fields only as deprecated compatibility inputs.
+- [`resolveDidDocumentServices(...)`](src/utils/did-resolution.ts)
+  - Normalizes a DID Document `service[]` block into capability-aware endpoint descriptors.
+- [`getDidDocumentService(...)`, `selectServiceEndpoint(...)`](src/utils/did-resolution.ts)
+  - Select a DID service entry or its invocable `serviceEndpoint` by `id`, `type`, or logical capability.
+- [`getDidDocumentEndpoint(...)`, `getJwksServiceEndpoint(...)`, `getSmartTokenEndpoint(...)`](src/utils/did-resolution.ts)
+  - Resolve well-known public/operational endpoints from a DID Document instead of reconstructing them from URL conventions.
+- [`getOrganizationDidFromIndividualDid(...)`, `getProviderDidFromSubjectDid(...)`](src/utils/did-resolution.ts)
+  - Collapse actor/member DIDs back to their owning organization/provider DID using the current naming conventions.
+- [`getActorKindFromDid(...)`](src/utils/did-resolution.ts)
+  - Heuristically classify current data-space actor DID patterns into actor kinds.
+- [`toDidResolutionResult(...)`](src/utils/did-resolution.ts)
+  - Build a reusable DID resolution carrier from a raw DID Document.
+- [`normalizeIcaDiscoveryMetadata(...)`, `normalizeNodeOperatorDiscoveryMetadata(...)`, `normalizeServiceProviderEntry(...)`](src/utils/discovery-normalization.ts)
+  - Normalize ICA, node-operator, and provider/DCAT-style discovery payloads into a shared DID/discovery shape for higher-level SDK runtime code.
+
+### Shared API flow examples
+
+- [`src/examples/organization-controller.ts`](src/examples/organization-controller.ts)
+  - Host onboarding and organization-controller examples such as `_activate`, legal order, employee creation, and employee device activation.
+- [`src/examples/individual-controller.ts`](src/examples/individual-controller.ts)
+  - Individual-controller examples such as family/subject organization bootstrap, consent, search, communication ingestion, and digital twin flows.
+  - CORE canonical examples are email-first and do not require phone-only fields unless an extension layer adds them.
+- [`src/examples/professional.ts`](src/examples/professional.ts)
+  - Professional/physician runtime access examples such as SMART token and clinical access request payloads.
+- [`src/examples/related-person.ts`](src/examples/related-person.ts)
+  - RelatedPerson/family-member examples.
+- [`src/examples/frontend-session.ts`](src/examples/frontend-session.ts)
+  - Frontend profile/session bootstrap examples.
+- [`src/examples/shared.ts`](src/examples/shared.ts)
+  - Shared route contexts, controller binding fragments, and reusable helper builders.
+  - `tenantId` is modeled as an identifier-like route token (`acme-id`), not as a friendly alternate name.
+- [`src/examples/api-flow-examples.ts`](src/examples/api-flow-examples.ts)
+  - Preferred compatibility aggregator for consumers that want one import surface without using the overloaded term `contract`.
+- [`src/examples/contract-examples.ts`](src/examples/contract-examples.ts)
+  - Legacy compatibility aggregator retained only so older imports keep working while consumers migrate to flow-specific modules or `api-flow-examples`.
+
+### DID / DIDComm utilities
+
+- [`generateServiceId(...)`](src/utils/did.ts)
+- [`normalizeDidWeb(...)`](src/utils/did.ts)
+- [`createHostedDidWeb(...)`](src/utils/did.ts)
+- [`buildHostedDidDetails(...)`](src/utils/did.ts)
+- [`getBaseUrlFromDidWeb(...)`](src/utils/did.ts)
+- [`submitDidcomm(...)`](src/utils/didcomm-submit.ts)
+- [`DidCommMessage`](src/utils/didcomm.ts)
+- [`prepareDidCommRequest(...)`](src/utils/didcomm.ts)
+- [`includeVpTokenInMessage(...)`](src/utils/didcomm.ts)
+- [`includeFileInMessage(...)`](src/utils/didcomm.ts)
+- [`getThidFromMessage(...)`](src/utils/didcomm.ts)
+- [`getDataResults(...)`](src/utils/didcomm.ts)
+
+### FHIR validation and conversion
+
+- [`registerFhirValidatorAdapter(...)`](src/utils/fhir-validator.ts)
+- [`clearFhirValidatorAdapters()`](src/utils/fhir-validator.ts)
+- [`listFhirValidatorAdapters()`](src/utils/fhir-validator.ts)
+- [`validateFhirResource(...)`](src/utils/fhir-validator.ts)
+- [`validateFhirResourceBasic(...)`](src/utils/fhir-validator.ts)
+- [`medicationStatementFlatToFhir(...)`](src/utils/clinical-resource-converters.ts)
+- [`medicationStatementFhirToFlat(...)`](src/utils/clinical-resource-converters.ts)
+- [`allergyIntoleranceFlatToFhir(...)`](src/utils/clinical-resource-converters.ts)
+- [`allergyIntoleranceFhirToFlat(...)`](src/utils/clinical-resource-converters.ts)
+- [`conditionFlatToFhir(...)`](src/utils/clinical-resource-converters.ts)
+- [`conditionFhirToFlat(...)`](src/utils/clinical-resource-converters.ts)
+- [`deviceUseStatementFlatToFhir(...)`](src/utils/clinical-resource-converters.ts)
+- [`deviceUseStatementFhirToFlat(...)`](src/utils/clinical-resource-converters.ts)
+- [`documentReferenceFlatToFhir(...)`](src/utils/clinical-resource-converters.ts)
+- [`documentReferenceFhirToFlat(...)`](src/utils/clinical-resource-converters.ts)
+- [`extractResources(...)`](src/utils/bundle.ts)
+- [`getNextLink(...)`](src/utils/bundle.ts)
+
+### JWT utilities
+
+- [`getPartsJWT(...)`](src/utils/jwt.ts)
+- [`decodeHeader(...)`](src/utils/jwt.ts)
+- [`decodePayload(...)`](src/utils/jwt.ts)
+- [`getDataJWT(...)`](src/utils/jwt.ts)
+- [`encodeHeader(...)`](src/utils/jwt.ts)
+- [`encodePayload(...)`](src/utils/jwt.ts)
+- [`encodeSignature(...)`](src/utils/jwt.ts)
+- [`compactJWT(...)`](src/utils/jwt.ts)
+
+### Activation / URL / base conversion utilities
+
+- [`extractCredentialSubject(...)`](src/utils/activation-policy.ts)
+- [`normalizeTaxIdentifier(...)`](src/utils/activation-policy.ts)
+- [`extractOrganizationTaxId(...)`](src/utils/activation-policy.ts)
+- [`extractRepresentativeMemberOfTaxId(...)`](src/utils/activation-policy.ts)
+- [`extractRepresentativeRoleCode(...)`](src/utils/activation-policy.ts)
+- [`hasRoleCode(...)`](src/utils/activation-policy.ts)
+- [`extractRepresentativeCredentialMaterial(...)`](src/utils/activation-policy.ts)
+- [`extractDidWebFromCredential(...)`](src/utils/activation-policy.ts)
+- [`buildMemberDidWeb(...)`](src/utils/activation-policy.ts)
+- [`isMemberDidWebUnderOwner(...)`](src/utils/activation-policy.ts)
+- [`validateActivationRepresentativePolicy(...)`](src/utils/activation-policy.ts)
+- [`safelyJoinUrl(...)`](src/utils/url.ts)
+- [`splitUrl(...)`](src/utils/url.ts)
+- [`bytesToHexString(...)`](src/utils/base-convert.ts)
+- [`bytesToBase58(...)`](src/utils/base-convert.ts)
+- [`base58ToBytes(...)`](src/utils/base-convert.ts)
+- [`stringToStdBase64(...)`](src/utils/base-convert.ts)
+- [`base64ToBase64Url(...)`](src/utils/base-convert.ts)
+- [`stringToBase64Url(...)`](src/utils/base-convert.ts)
+- [`base64UrlToBase64(...)`](src/utils/base-convert.ts)
+- [`base64OrUrlSafeToBytes(...)`](src/utils/base-convert.ts)
+- [`bytesToBase64(...)`](src/utils/base-convert.ts)
+- [`bytesToRawBase64UrlSafe(...)`](src/utils/base-convert.ts)
+
+### Consent utilities
+
+- [`normalizePhone(...)`](src/utils/consent.ts)
+- [`normalizeIdentifierToken(...)`](src/utils/consent.ts)
+- [`resolveActorIdentifier(...)`](src/utils/consent.ts)
+- [`resolveSubjectIdentifier(...)`](src/utils/consent.ts)
+- [`buildConsentClaimsSimple(...)`](src/utils/consent.ts)
+- [`buildConsentClaimsSimpleWithCid(...)`](src/utils/consent.ts)
+
+These helpers are the shared base for consent claim construction across GW and SDKs.
+
+### Public module surfaces
+
+- [`src/constants/`](src/constants)
+  - Shared constants and code catalogs.
+- [`src/utils/`](src/utils)
+  - Shared functional helpers used by GW and SDK layers.
+- [`src/models/`](src/models)
+  - Shared transport, FHIR, DID, consent, and storage models.
+- [`src/storage/`](src/storage)
+  - Shared vault/storage contracts and in-memory implementation.
+
+### Documentation rule
+
+- Add or update JSDoc on exported functions, classes, and constants first.
+- Keep README sections as a linked index to those exports, not as a second source of truth.
+- If a function signature changes, update its JSDoc and then refresh the README link/index entry.
+
+### Current bootstrap / discovery status
+
+- Implemented here:
+  - Canonical bootstrap payload models for `vp_token`, `controller.*`, and `organization.*`
+  - Pure DID `service[]` resolution helpers
+  - Pure discovery normalization helpers for ICA, node operators, and provider entries
+- Intentionally not implemented here:
+  - Network fetch/resolution
+  - Runtime cache/state
+  - GW/SDK orchestration side effects
+
 ### Interfaces
 
 The `interfaces` export contains the shared type contracts and cryptography types, including:
@@ -115,6 +342,14 @@ Those request/response flows belong in connector SDKs and backend orchestration 
 ## Relationship To Other SDKs
 
 `gdc-sdk-client-ts` and `dataconv-client-sdk-ts` are consumers of this package, not replacements for it.
+
+## SDK Integration Note
+
+When integrating the converged SDKs:
+
+- use [`initializeCommunicationIdentityFromSeed(...)`](src/utils/communication-identity.ts) from this package for the technical communication identity bootstrap
+- use `gdc-sdk-core-ts` for runtime-neutral communication/document helpers
+- use `gdc-sdk-front-ts` or `gdc-sdk-node-ts` for the runtime-specific session and orchestration layer
 
 - Use `gdc-common-utils-ts` when you need shared crypto primitives, DID/DIDComm helpers, and common types
 - Use `gdc-sdk-client-ts` or `dataconv-client-sdk-ts` when you need higher-level client orchestration, transport, or API workflows

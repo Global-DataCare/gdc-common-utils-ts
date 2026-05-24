@@ -8,6 +8,7 @@ export enum ClaimsServiceSchemaorg {
     identifier = "org.schema.Service.identifier",
     serviceType = "org.schema.Service.serviceType",
     termsOfService = "org.schema.Service.termsOfService",
+    url = "org.schema.Service.url",
 }
 
 /**
@@ -35,12 +36,18 @@ export enum ClaimsOrganizationSchemaorg {
     url = "org.schema.Organization.url",
     /** The identifier is a URN generated using the legal ID (TAX or EI) */
     identifier = "org.schema.Organization.identifier",
+    /** Repeated route/business identifier used by current GW onboarding claims. */
+    taxId = "org.schema.Organization.taxID",
     /** DUNS (free) or LEI could be provided */
     duns = "org.schema.Organization.duns",
     /** Public contact email */
     email = "org.schema.Organization.email",
     /** Public contact phone */
     telephone = "org.schema.Organization.telephone",
+    /** Individual/family owner email used by subject-index registration flows. */
+    ownerEmail = "org.schema.Organization.owner.email",
+    /** Individual/family owner telephone used by subject-index registration flows. */
+    ownerTelephone = "org.schema.Organization.owner.telephone",
     numberOfEmployees = "org.schema.Organization.numberOfEmployees.value" // to purchase licenses for device profile's activation
 }
 
@@ -78,6 +85,11 @@ export enum ClaimsPersonSchemaorg {
     gender = "org.schema.Person.gender",
     givenName = "org.schema.Person.givenName",
     hasOccupation = "org.schema.Person.hasOccupation",
+    /**
+     * Canonical nested role value used in ICA/VC credential subjects and
+     * supported by activation/normalization helpers.
+     */
+    hasOccupationalRoleValue = "org.schema.Person.hasOccupation.identifier.value",
     /** Credential material bound to the person identity in VC payloads (for activation flow this is the representative signing kid). */
     hasCredentialMaterial = "org.schema.Person.hasCredential.material",
     identifier = "org.schema.Person.identifier", // the URN (composed by the provider)
@@ -87,6 +99,7 @@ export enum ClaimsPersonSchemaorg {
     name = "org.schema.Person.name",
     memberOf = "org.schema.Person.memberOf", // for employees
     memberOfTaxId = "org.schema.Person.memberOf.taxID",
+    memberOfOrgTaxId = "org.schema.Person.memberOf.taxID",
     telephone = "org.schema.Person.telephone",
     worksFor = "org.schema.Person.worksFor", // for employees
     /*
@@ -120,6 +133,29 @@ export enum ClaimsActionSchemaorg {
 
   // The time the action was initiated
   startTime = 'org.schema.Action.startTime',
+}
+
+/**
+ * Explicit bootstrap-time key binding claims.
+ *
+ * These claims intentionally distinguish person/controller identity from
+ * technical transport identity.
+ */
+export enum ClaimsIdentityBootstrap {
+  controllerDid = 'controller.did',
+  controllerSameAs = 'controller.sameAs',
+  controllerPublicKeyJwk = 'controller.publicKeyJwk',
+  controllerJwks = 'controller.jwks',
+  organizationPublicKeyJwk = 'organization.publicKeyJwk',
+  organizationJwks = 'organization.jwks',
+  /**
+   * @deprecated Legacy compatibility field. Canonical proof must be carried in `vp_token`.
+   */
+  organizationCredential = 'organizationCredential',
+  /**
+   * @deprecated Legacy compatibility field. Canonical proof must be carried in `vp_token`.
+   */
+  representativeCredential = 'representativeCredential',
 }
 
 export const ICAOReverseDns = 'int.icao';

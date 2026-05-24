@@ -15,6 +15,7 @@ export * from './did';
 export * from './fhir-documents';
 export * from './interoperable-claims';
 export * from './indexing';
+export * from './identity-bootstrap';
 export * from './issue';
 export * from './jsonapi';
 export * from './jwe';

@@ -25,6 +25,8 @@ export type VpTokenPayload = {
   [key: string]: unknown;
 };
 
+export type VpCredential = Record<string, unknown>;
+
 function fallbackId(): string {
   const rand = Math.random().toString(36).slice(2, 10);
   return `id-${Date.now()}-${rand}`;
@@ -96,6 +98,89 @@ function decodeVcPayload(vc: string): Record<string, unknown> | undefined {
   } catch {
     return undefined;
   }
+}
+
+/**
+ * Decodes a compact VP token payload into a JSON object.
+ *
+ * Supports either a raw JSON string payload or a compact JWT/JWS token.
+ *
+ * @param vpToken Compact VP token or raw JSON string.
+ */
+export function decodeVpTokenPayload(vpToken: string): VpTokenPayload | undefined {
+  const raw = String(vpToken || '').trim();
+  if (!raw) return undefined;
+  if (raw.startsWith('{')) {
+    try {
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === 'object' ? parsed as VpTokenPayload : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+  const parts = raw.split('.');
+  if (parts.length !== 3 || !parts[1]) return undefined;
+  try {
+    const payloadJson = Buffer.from(parts[1], 'base64url').toString('utf8');
+    const parsed = JSON.parse(payloadJson);
+    return parsed && typeof parsed === 'object' ? parsed as VpTokenPayload : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Extracts decoded VC objects from a VP token.
+ *
+ * VCs may be embedded as compact JWT/JWS strings, raw JSON strings, or direct
+ * objects inside `vp.verifiableCredential`.
+ *
+ * @param vpToken Compact VP token or raw JSON string.
+ */
+export function getVpCredentials(vpToken: string): VpCredential[] {
+  const payload = decodeVpTokenPayload(vpToken);
+  const vcs = payload?.vp?.verifiableCredential;
+  if (!Array.isArray(vcs)) return [];
+  return vcs
+    .map((candidate) => {
+      if (candidate && typeof candidate === 'object') {
+        return candidate as VpCredential;
+      }
+      if (typeof candidate === 'string') {
+        return decodeVcPayload(candidate);
+      }
+      return undefined;
+    })
+    .filter((candidate): candidate is VpCredential => Boolean(candidate && typeof candidate === 'object'));
+}
+
+/**
+ * Returns the first decoded VC in a VP token whose `type` includes any of the
+ * accepted credential types.
+ *
+ * @param vpToken Compact VP token or raw JSON string.
+ * @param acceptedTypes Accepted VC types such as `OrganizationCredential`.
+ */
+export function getVpCredentialByAnyType(vpToken: string, acceptedTypes: string[]): VpCredential | undefined {
+  return getVpCredentials(vpToken).find((credential) => vcHasAnyType(credential, acceptedTypes));
+}
+
+/**
+ * Extracts the organization credential from a VP token when present.
+ *
+ * @param vpToken Compact VP token or raw JSON string.
+ */
+export function getOrganizationCredentialFromVpToken(vpToken: string): VpCredential | undefined {
+  return getVpCredentialByAnyType(vpToken, ['OrganizationCredential', 'LegalOrganizationCredential']);
+}
+
+/**
+ * Extracts the legal representative credential from a VP token when present.
+ *
+ * @param vpToken Compact VP token or raw JSON string.
+ */
+export function getLegalRepresentativeCredentialFromVpToken(vpToken: string): VpCredential | undefined {
+  return getVpCredentialByAnyType(vpToken, ['LegalRepresentativeCredential', 'PersonCredential']);
 }
 
 function vcHasAnyType(vcPayload: Record<string, unknown> | undefined, acceptedTypes: string[]): boolean {

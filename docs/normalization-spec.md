@@ -32,7 +32,7 @@ Rules:
 
 ### 2.2 Communication ingestion
 - `Communication.datatype`: document ontology/type token (recommended `LOINC|LP...`).
-- `Communication.category`: subtype/classification token (recommended `LOINC|LP...`).
+- `Communication.category`: FHIR `Communication.category` token using its bound terminology system, typically `http://terminology.hl7.org/CodeSystem/communication-category|<code>`.
 - `Communication.section` (optional): target clinical section token (`LOINC|...`) when message content is projected into Composition indexing.
 - If no `datatype` and no explicit section hints are present, route to fallback notifications bucket according to service policy.
 
@@ -100,4 +100,3 @@ Mandatory persistence target:
 3. FHIR output always emits `http://loinc.org` in coding system.
 4. i18n lookup always uses `org.loinc.<code>`.
 5. DB adapter key transform does not leak into public API contracts.
-

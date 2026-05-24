@@ -3,6 +3,7 @@
 
 import { PublicJwk } from "../interfaces/Cryptography.types";
 import { RecipientPublicKey } from "./crypto";
+import { JwkSet } from "./jwk";
 
 /**
  * The parameters required to construct a service endpoint selector.
@@ -78,4 +79,49 @@ export interface VerificationMethod extends RecipientPublicKey {
   type: string; // e.g., JsonWebKey2020
   controller: string; // e.g., did:web:example.com
   publicKeyJwk: PublicJwk;
+}
+
+export type ActorKind =
+  | 'host_onboarding'
+  | 'organization_controller'
+  | 'organization_employee'
+  | 'individual_controller'
+  | 'individual_member'
+  | 'professional';
+
+export interface ResolvedServiceEndpoint {
+  id: string;
+  type: string;
+  serviceEndpoint: string;
+  capability?: string;
+  raw: DidService;
+}
+
+export interface ActorIdentity {
+  did: string;
+  kind?: ActorKind | 'unknown';
+  sameAs?: string;
+  didDocument?: DidDocument;
+  jwks?: JwkSet;
+  publicKeyJwk?: PublicJwk;
+}
+
+export interface TransportIdentity {
+  did?: string;
+  didDocument?: DidDocument;
+  jwks?: JwkSet;
+  signingKid?: string;
+  encryptionKid?: string;
+}
+
+export interface DidResolutionResult {
+  did: string;
+  issuer?: string;
+  didDocument?: DidDocument;
+  didDocumentUrl?: string;
+  jwksUri?: string;
+  jwks?: JwkSet;
+  smartTokenEndpoint?: string;
+  serviceEndpoints: ResolvedServiceEndpoint[];
+  metadata?: Record<string, unknown>;
 }

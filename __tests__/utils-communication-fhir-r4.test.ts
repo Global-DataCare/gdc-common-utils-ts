@@ -1,3 +1,4 @@
+import { CommunicationCategoryCodes } from '../src/constants/communication';
 import {
   extractCommunicationClaimsFromResourceFhirR4,
   transformCommunicationClaimsToResourceFhirR4,
@@ -67,7 +68,10 @@ describe('utils/communication-fhir-r4', () => {
       sent: '2026-05-15T12:00:00Z',
       category: [
         {
-          coding: [{ system: 'http://terminology.hl7.org/CodeSystem/communication-category', code: 'appointment-reminder' }],
+          coding: [{
+            system: CommunicationCategoryCodes.Reminder.system,
+            code: CommunicationCategoryCodes.Reminder.code,
+          }],
         },
       ],
       partOf: [{ reference: 'urn:uuid:thread-777' }],
@@ -80,8 +84,9 @@ describe('utils/communication-fhir-r4', () => {
     expect(claims['Communication.subject']).toBe('did:web:subject.example');
     expect(claims['Communication.part-of']).toBe('urn:uuid:thread-777');
     expect(claims['Communication.content-reference']).toBe('Appointment/appt-777');
+    expect(claims['Communication.category']).toBe(CommunicationCategoryCodes.Reminder.claim);
     expect(claims['Communication.text']).toBe('Reminder text');
-    expect(claims['Communication.note']).toBe('Reminder text');
+    expect(claims['Communication.note-text']).toBe('Reminder text');
   });
 
   it('returns existing meta.claims as canonical source by default', () => {

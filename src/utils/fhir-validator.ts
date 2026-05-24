@@ -33,6 +33,8 @@ const validators: FhirValidatorAdapter[] = [];
 /**
  * Registers a custom FHIR validator adapter.
  * Adapters are checked in registration order.
+ *
+ * @param adapter Validator adapter to register.
  */
 export function registerFhirValidatorAdapter(adapter: FhirValidatorAdapter): void {
   validators.push(adapter);
@@ -59,6 +61,8 @@ export function listFhirValidatorAdapters(): FhirValidatorAdapter[] {
  *
  * This utility is intentionally adapter-based so SDK/GW can share one validation entrypoint while
  * keeping the formal validator implementation pluggable per deployment.
+ * @param resource FHIR resource candidate.
+ * @param version Requested FHIR version, defaults to `r4`.
  */
 export async function validateFhirResource(
   resource: Record<string, unknown>,
@@ -73,6 +77,9 @@ export async function validateFhirResource(
  * Minimal built-in structural validation.
  * This does not replace a formal HL7 profile validator; it provides a safe baseline
  * and deterministic checks for common gateway constraints.
+ *
+ * @param resource FHIR resource candidate.
+ * @param _version Requested FHIR version, defaults to `r4`.
  */
 export function validateFhirResourceBasic(
   resource: Record<string, unknown>,

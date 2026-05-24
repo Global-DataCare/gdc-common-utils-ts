@@ -14,6 +14,11 @@ function asObject(value: unknown): Record<string, unknown> | undefined {
   return value as Record<string, unknown>;
 }
 
+/**
+ * Extracts `credentialSubject` from a VC-like object.
+ *
+ * @param credential Candidate VC-like object.
+ */
 export function extractCredentialSubject(credential: unknown): Record<string, unknown> | undefined {
   const obj = asObject(credential);
   if (!obj) return undefined;
@@ -22,11 +27,21 @@ export function extractCredentialSubject(credential: unknown): Record<string, un
   return asObject(subject);
 }
 
+/**
+ * Normalizes a tax identifier into uppercase trimmed form.
+ *
+ * @param value Raw tax identifier value.
+ */
 export function normalizeTaxIdentifier(value: unknown): string | undefined {
   const normalized = String(value || '').trim().toUpperCase();
   return normalized || undefined;
 }
 
+/**
+ * Extracts an organization tax id from a VC-like organization credential.
+ *
+ * @param organizationCredential Candidate organization credential.
+ */
 export function extractOrganizationTaxId(organizationCredential: unknown): string | undefined {
   const subject = extractCredentialSubject(organizationCredential) || {};
   const identifier = asObject(subject.identifier);
@@ -38,6 +53,11 @@ export function extractOrganizationTaxId(organizationCredential: unknown): strin
   );
 }
 
+/**
+ * Extracts the `memberOf` tax id from a representative credential.
+ *
+ * @param representativeCredential Candidate representative credential.
+ */
 export function extractRepresentativeMemberOfTaxId(representativeCredential: unknown): string | undefined {
   const subject = extractCredentialSubject(representativeCredential) || {};
   const memberOf = asObject(subject.memberOf) || {};
@@ -50,6 +70,11 @@ export function extractRepresentativeMemberOfTaxId(representativeCredential: unk
   );
 }
 
+/**
+ * Extracts the representative role code from `credentialSubject.hasOccupation`.
+ *
+ * @param representativeCredential Candidate representative credential.
+ */
 export function extractRepresentativeRoleCode(representativeCredential: unknown): string | undefined {
   const subject = extractCredentialSubject(representativeCredential) || {};
   const occupation = subject.hasOccupation;
@@ -71,6 +96,12 @@ export function extractRepresentativeRoleCode(representativeCredential: unknown)
   return undefined;
 }
 
+/**
+ * Checks whether a role code contains the required code, ignoring prefixes such as `SYSTEM|`.
+ *
+ * @param roleCode Candidate role code.
+ * @param requiredCode Required normalized code, defaults to `RESPRSN`.
+ */
 export function hasRoleCode(roleCode: string | undefined, requiredCode = 'RESPRSN'): boolean {
   const normalizedRole = String(roleCode || '')
     .trim()
@@ -81,6 +112,11 @@ export function hasRoleCode(roleCode: string | undefined, requiredCode = 'RESPRS
   return normalizedRole.includes(normalizedRequired);
 }
 
+/**
+ * Extracts representative credential material from `credentialSubject.hasCredential`.
+ *
+ * @param representativeCredential Candidate representative credential.
+ */
 export function extractRepresentativeCredentialMaterial(representativeCredential: unknown): string | undefined {
   const subject = extractCredentialSubject(representativeCredential) || {};
   const credentialData = subject.hasCredential;
@@ -98,6 +134,11 @@ export function extractRepresentativeCredentialMaterial(representativeCredential
   return undefined;
 }
 
+/**
+ * Extracts a `did:web:` identifier from a VC-like credential.
+ *
+ * @param credential Candidate credential.
+ */
 export function extractDidWebFromCredential(credential: unknown): string | undefined {
   const obj = asObject(credential);
   if (!obj) return undefined;
@@ -106,10 +147,23 @@ export function extractDidWebFromCredential(credential: unknown): string | undef
   return didCandidate.startsWith('did:web:') ? didCandidate : undefined;
 }
 
+/**
+ * Builds a deterministic member DID under an owner DID namespace.
+ *
+ * @param ownerDidWeb Owner DID.
+ * @param memberId Member identifier fragment.
+ * @param roleCode Role code fragment.
+ */
 export function buildMemberDidWeb(ownerDidWeb: string, memberId: string, roleCode: string): string {
   return `${String(ownerDidWeb).trim()}:member:${String(memberId).trim()}:${String(roleCode).trim()}`;
 }
 
+/**
+ * Checks whether a member DID is scoped under an owner DID namespace.
+ *
+ * @param memberDidWeb Candidate member DID.
+ * @param ownerDidWeb Owner DID namespace.
+ */
 export function isMemberDidWebUnderOwner(memberDidWeb: string, ownerDidWeb: string): boolean {
   const did = String(memberDidWeb || '').trim();
   const owner = String(ownerDidWeb || '').trim();
@@ -117,6 +171,13 @@ export function isMemberDidWebUnderOwner(memberDidWeb: string, ownerDidWeb: stri
   return did.startsWith(`${owner}:member:`);
 }
 
+/**
+ * Validates the activation representative policy against organization and representative credentials.
+ *
+ * @param input.organizationCredential Candidate organization credential.
+ * @param input.representativeCredential Candidate representative credential.
+ * @param input.requiredRoleCode Required representative role, defaults to `RESPRSN`.
+ */
 export function validateActivationRepresentativePolicy(input: {
   organizationCredential?: unknown;
   representativeCredential?: unknown;

@@ -3,6 +3,8 @@
 /**
  * Normalizes either FHIR Bundle (entry[]) or JSON:API bundle (data[])
  * into an array of resources.
+ *
+ * @param bundle FHIR bundle, JSON:API bundle, or single resource.
  */
 export function extractResources(bundle: any): any[] {
   if (!bundle) return [];
@@ -20,6 +22,11 @@ export function extractResources(bundle: any): any[] {
   return [];
 }
 
+/**
+ * Returns the next-page link from either FHIR `link[]` or JSON:API `links.next`.
+ *
+ * @param bundle FHIR bundle or JSON:API bundle.
+ */
 export function getNextLink(bundle: any): string | null {
   if (Array.isArray(bundle?.link)) {
     const next = bundle.link.find((l: any) => l.relation === 'next');
