@@ -32,6 +32,7 @@ export * from './openid-device';
 export * from './operation-outcome';
 export * from './params';
 export * from './resource-document';
+export * from './relationship-access';
 export * from './response';
 export * from './urlPath';
 export * from './verifiable-credential';
