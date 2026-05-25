@@ -21,6 +21,53 @@ It also does not replace the broader SDK flow documentation for:
 
 But it is one of the core building blocks those flows depend on.
 
+## Documentation Rules For Consent Examples
+
+These rules exist so developers and AI agents do not repeat the same mistakes.
+
+### Use canonical semantic names
+
+Prefer:
+
+- `individualDidWeb`
+- `emailProfessional`
+- `emailControllerOrg`
+- `emailControllerIndividual`
+- `emailRelatedPerson`
+
+Legacy aliases such as `EXAMPLE_CONSENT_ACCESS_SUBJECT` may remain only for
+compatibility, not as the preferred names in new docs.
+
+### Prefer shared constants over raw literals
+
+Use:
+
+- `HealthcareActorRoles`
+- `HealthcareConsentPurposes`
+- `HealthcareBasicSections`
+
+Do not teach new flows from inline literals like:
+
+- `'TREAT'`
+- `'professional'`
+- `'medications'`
+
+unless the purpose of the snippet is to document the literal contract itself.
+
+### Teach where values come from
+
+A consent example should always make clear whether a value comes from:
+
+- the subject DID already selected in the UI/runtime
+- the invited or requesting actor identity
+- a prior onboarding step
+- a previous SDK call result
+
+### Build the subject DID, do not invent it manually
+
+When docs need to show subject DID construction, prefer `buildIndividualDidWeb(...)`
+instead of handwritten `did:web` concatenation.
+
 ## Where This Fits In The Bigger Flow Map
 
 Consent access is not an isolated feature. It sits inside these broader flows:
