@@ -7,11 +7,20 @@
  * delivery.
  */
 export type RelationshipEnrollmentChannel = 'phone' | 'email' | 'app';
+export const RelationshipEnrollmentChannels = Object.freeze({
+  Phone: 'phone',
+  Email: 'email',
+  App: 'app',
+} as const);
 
 /**
  * Subject categories used to generalize person and animal flows.
  */
 export type RelationshipSubjectKind = 'person' | 'animal';
+export const RelationshipSubjectKinds = Object.freeze({
+  Person: 'person',
+  Animal: 'animal',
+} as const);
 
 /**
  * High-level actor kinds that can be bound to a subject relationship.
@@ -21,6 +30,12 @@ export type RelationshipAccessActorKind =
   | 'caregiver'
   | 'professional'
   | 'related-person';
+export const RelationshipAccessActorKinds = Object.freeze({
+  Controller: 'controller',
+  Caregiver: 'caregiver',
+  Professional: 'professional',
+  RelatedPerson: 'related-person',
+} as const);
 
 /**
  * Relationship invitation lifecycle used by shared enrollment flows.
@@ -39,6 +54,11 @@ export type RelationshipInvitationStatus =
  * Delivery mechanisms available for OTP challenges.
  */
 export type RelationshipOtpDeliveryChannel = 'sms' | 'call' | 'email';
+export const RelationshipOtpDeliveryChannels = Object.freeze({
+  Sms: 'sms',
+  Call: 'call',
+  Email: 'email',
+} as const);
 
 /**
  * Supported KDF labels for wrapping a relationship-local key with a PIN-derived

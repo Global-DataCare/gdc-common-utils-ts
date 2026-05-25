@@ -160,6 +160,8 @@ The canonical API contract should live in JSDoc on exported code. The README act
   - Build canonical `controller.*` and `organization.*` binding fragments from semantic variables such as `publicSignKey`, `publicKeys`, `did`, `sameAs`, or `url`.
 - [`RelationshipChannelInvitationInput`, `RelationshipChannelInvitationSummary`, `RelationshipChannelOtpStartInput`, `RelationshipChannelOtpConfirmInput`](src/models/relationship-access.ts)
   - Shared contracts for controller-driven invitation and acceptance flows between an individual/subject and a related person or professional across phone, email, and app channels.
+- [`RelationshipEnrollmentChannels`, `RelationshipSubjectKinds`, `RelationshipAccessActorKinds`, `RelationshipOtpDeliveryChannels`](src/models/relationship-access.ts)
+  - Shared constant objects for relationship flows so docs and app code do not hardcode actor kinds or channel labels inline.
 - [`RelationshipChannelOtpChallengeSummary`, `RelationshipPinPolicy`, `RelationshipPinSetInput`, `RelationshipPinVerifyInput`, `RelationshipLocalKeyEnvelope`](src/models/relationship-access.ts)
   - Shared OTP, relationship PIN, and offline-first local-key envelope contracts for channel enrollment and subject-scoped local protection.
 - [`IdentityBootstrapValidationIssue`, `IdentityBootstrapValidationResult`](src/models/identity-bootstrap.ts)
