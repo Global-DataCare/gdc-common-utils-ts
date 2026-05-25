@@ -14,21 +14,21 @@ import type {
 import { HealthcareConsentPurposes } from '../constants/healthcare';
 import { EXAMPLE_JURISDICTION, EXAMPLE_SECTOR } from './shared';
 import {
-  EXAMPLE_CONSENT_ACCESS_PROVIDER_EMAIL,
-  EXAMPLE_CONSENT_ACCESS_RELATED_PERSON_EMAIL,
-  EXAMPLE_CONSENT_ACCESS_SUBJECT,
+  EXAMPLE_EMAIL_PROFESSIONAL,
+  EXAMPLE_EMAIL_RELATED_PERSON,
+  EXAMPLE_INDIVIDUAL_DID_WEB,
 } from './consent-access';
 
 export const EXAMPLE_RELATIONSHIP_CHANNEL_INVITATION_INPUT: RelationshipChannelInvitationInput = {
   tenantId: 'acme-id',
   jurisdiction: EXAMPLE_JURISDICTION,
   sector: EXAMPLE_SECTOR,
-  subjectId: EXAMPLE_CONSENT_ACCESS_SUBJECT,
+  subjectId: EXAMPLE_INDIVIDUAL_DID_WEB,
   subjectKind: 'person',
   actorKind: 'related-person',
-  actorIdentifier: EXAMPLE_CONSENT_ACCESS_RELATED_PERSON_EMAIL,
+  actorIdentifier: EXAMPLE_EMAIL_RELATED_PERSON,
   deliveryChannel: 'email',
-  deliveryTarget: EXAMPLE_CONSENT_ACCESS_RELATED_PERSON_EMAIL,
+  deliveryTarget: EXAMPLE_EMAIL_RELATED_PERSON,
   purpose: HealthcareConsentPurposes.CareManagement,
   relationshipLabel: 'family caregiver',
   phonePinOptional: false,
@@ -37,10 +37,10 @@ export const EXAMPLE_RELATIONSHIP_CHANNEL_INVITATION_INPUT: RelationshipChannelI
 export const EXAMPLE_RELATIONSHIP_CHANNEL_INVITATION_SUMMARY: RelationshipChannelInvitationSummary = {
   invitationId: 'inv-rel-001',
   tenantId: 'acme-id',
-  subjectId: EXAMPLE_CONSENT_ACCESS_SUBJECT,
+  subjectId: EXAMPLE_INDIVIDUAL_DID_WEB,
   subjectKind: 'person',
   actorKind: 'related-person',
-  actorIdentifier: EXAMPLE_CONSENT_ACCESS_RELATED_PERSON_EMAIL,
+  actorIdentifier: EXAMPLE_EMAIL_RELATED_PERSON,
   deliveryChannel: 'email',
   deliveryTargetMasked: 'p***@example.org',
   status: 'otp_pending',
@@ -53,13 +53,13 @@ export const EXAMPLE_RELATIONSHIP_PROFESSIONAL_INVITATION_INPUT: RelationshipCha
   tenantId: 'acme-id',
   jurisdiction: EXAMPLE_JURISDICTION,
   sector: EXAMPLE_SECTOR,
-  subjectId: EXAMPLE_CONSENT_ACCESS_SUBJECT,
+  subjectId: EXAMPLE_INDIVIDUAL_DID_WEB,
   subjectKind: 'person',
   actorKind: 'professional',
-  actorIdentifier: EXAMPLE_CONSENT_ACCESS_PROVIDER_EMAIL,
+  actorIdentifier: EXAMPLE_EMAIL_PROFESSIONAL,
   actorRole: 'ISCO-08|2211',
   deliveryChannel: 'email',
-  deliveryTarget: EXAMPLE_CONSENT_ACCESS_PROVIDER_EMAIL,
+  deliveryTarget: EXAMPLE_EMAIL_PROFESSIONAL,
   purpose: HealthcareConsentPurposes.Treatment,
   relationshipLabel: 'attending physician',
   phonePinOptional: false,
@@ -111,8 +111,8 @@ export const EXAMPLE_RELATIONSHIP_PIN_VERIFY_INPUT: RelationshipPinVerifyInput =
 
 export const EXAMPLE_RELATIONSHIP_LOCAL_KEY_ENVELOPE: RelationshipLocalKeyEnvelope = {
   relationshipId: 'rel-001',
-  actorIdentifier: EXAMPLE_CONSENT_ACCESS_PROVIDER_EMAIL,
-  subjectId: EXAMPLE_CONSENT_ACCESS_SUBJECT,
+  actorIdentifier: EXAMPLE_EMAIL_PROFESSIONAL,
+  subjectId: EXAMPLE_INDIVIDUAL_DID_WEB,
   subjectKind: 'person',
   channel: 'app',
   wrappedLocalAccessKey: 'base64url-wrapped-local-access-key',

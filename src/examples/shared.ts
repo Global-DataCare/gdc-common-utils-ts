@@ -9,6 +9,8 @@ import { DataspaceSectors } from '../constants/sectors';
 export const EXAMPLE_TENANT_IDENTIFIER = 'acme-id' as const;
 export const EXAMPLE_JURISDICTION = 'ES' as const;
 export const EXAMPLE_SECTOR = DataspaceSectors.HealthCare;
+export const EXAMPLE_EMAIL_CONTROLLER_ORG = 'controller@acme.org' as const;
+export const EXAMPLE_EMAIL_CONTROLLER_INDIVIDUAL = 'ana.parent@example.org' as const;
 
 export const EXAMPLE_TENANT_ROUTE_CONTEXT = {
   tenantId: EXAMPLE_TENANT_IDENTIFIER,
@@ -22,7 +24,7 @@ export const EXAMPLE_HOST_ROUTE_CONTEXT = {
 } as const;
 
 export const EXAMPLE_CONTROLLER_DID = 'did:web:people.acme.org:controllers:primary' as const;
-export const EXAMPLE_CONTROLLER_EMAIL = 'controller@acme.org' as const;
+export const EXAMPLE_CONTROLLER_EMAIL = EXAMPLE_EMAIL_CONTROLLER_ORG;
 export const EXAMPLE_CONTROLLER_SAME_AS = `mailto:${EXAMPLE_CONTROLLER_EMAIL}` as const;
 
 export const EXAMPLE_CONTROLLER_SIGN_KEY = {

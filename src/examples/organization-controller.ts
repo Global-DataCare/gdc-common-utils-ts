@@ -6,7 +6,7 @@ import {
   ClaimsServiceSchemaorg,
 } from '../constants/schemaorg';
 import { EXAMPLE_CONTROLLER_BINDING } from './shared';
-import { EXAMPLE_SECTOR, EXAMPLE_JURISDICTION } from './shared';
+import { EXAMPLE_SECTOR, EXAMPLE_JURISDICTION, EXAMPLE_EMAIL_CONTROLLER_ORG } from './shared';
 
 /**
  * Examples for organization-controller and host-onboarding flows.
@@ -22,7 +22,7 @@ export const EXAMPLE_ACTIVATE_ORGANIZATION_FROM_ICA_PROOF_INPUT = {
     [ClaimsOrganizationSchemaorg.identifierValue]: 'VATES-B00112233',
     [ClaimsOrganizationSchemaorg.addressCountry]: EXAMPLE_JURISDICTION,
     [ClaimsOrganizationSchemaorg.taxId]: 'VATES-B00112233',
-    [ClaimsPersonSchemaorg.email]: 'controller@example.com',
+    [ClaimsPersonSchemaorg.email]: EXAMPLE_EMAIL_CONTROLLER_ORG,
     [ClaimsPersonSchemaorg.hasOccupationalRoleValue]: 'RESPRSN',
     [ClaimsServiceSchemaorg.category]: EXAMPLE_SECTOR,
     [ClaimsServiceSchemaorg.identifier]: 'did:web:public.acme.org',
@@ -76,7 +76,7 @@ export const EXAMPLE_LIVE_EMPLOYEE_INPUT = {
   employeeClaims: {
     '@context': 'org.schema',
     [ClaimsPersonSchemaorg.identifier]: 'urn:uuid:11b2c3d4-e5f6-7890-1234-567890abcdef',
-    [ClaimsPersonSchemaorg.email]: 'controller@example.com',
+    [ClaimsPersonSchemaorg.email]: EXAMPLE_EMAIL_CONTROLLER_ORG,
     [ClaimsPersonSchemaorg.hasOccupationalRoleValue]: 'RESPRSN',
   },
 } as const;

@@ -16,9 +16,11 @@
  *   organization activation and VC/member semantics, not to `owner.*` claims
  */
 
+import { EXAMPLE_EMAIL_CONTROLLER_INDIVIDUAL } from './shared';
+
 export const EXAMPLE_INDIVIDUAL_ORGANIZATION_START_INPUT = {
   alternateName: 'ana',
-  controllerEmail: 'ana.parent@example.org',
+  controllerEmail: EXAMPLE_EMAIL_CONTROLLER_INDIVIDUAL,
   timeoutSeconds: 7,
   intervalSeconds: 2,
 } as const;
