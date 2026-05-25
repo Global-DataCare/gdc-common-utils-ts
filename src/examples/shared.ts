@@ -21,31 +21,39 @@ export const EXAMPLE_HOST_ROUTE_CONTEXT = {
   sector: EXAMPLE_SECTOR,
 } as const;
 
+export const EXAMPLE_CONTROLLER_DID = 'did:web:people.acme.org:controllers:primary' as const;
+export const EXAMPLE_CONTROLLER_EMAIL = 'controller@acme.org' as const;
+export const EXAMPLE_CONTROLLER_SAME_AS = `mailto:${EXAMPLE_CONTROLLER_EMAIL}` as const;
+
+export const EXAMPLE_CONTROLLER_SIGN_KEY = {
+  kid: 'controller-es384-001',
+  kty: 'EC',
+  crv: 'P-384',
+  x: '<x>',
+  y: '<y>',
+  alg: 'ES384',
+  use: 'sig',
+} as const;
+
+export const EXAMPLE_CONTROLLER_ENCRYPTION_KEY = {
+  kid: 'controller-didcomm-enc-001',
+  kty: 'EC',
+  crv: 'P-384',
+  x: '<enc-x>',
+  y: '<enc-y>',
+  use: 'enc',
+  purposes: ['didcomm-enc'],
+} as const;
+
+export const EXAMPLE_CONTROLLER_PUBLIC_KEYS = {
+  keys: [EXAMPLE_CONTROLLER_ENCRYPTION_KEY],
+} as const;
+
 export const EXAMPLE_CONTROLLER_BINDING = {
-  did: 'did:web:people.acme.org:controllers:primary',
-  sameAs: 'mailto:controller@acme.org',
-  publicKeyJwk: {
-    kid: 'controller-es384-001',
-    kty: 'EC',
-    crv: 'P-384',
-    x: '<x>',
-    y: '<y>',
-    alg: 'ES384',
-    use: 'sig',
-  },
-  jwks: {
-    keys: [
-      {
-        kid: 'controller-didcomm-enc-001',
-        kty: 'EC',
-        crv: 'P-384',
-        x: '<enc-x>',
-        y: '<enc-y>',
-        use: 'enc',
-        purposes: ['didcomm-enc'],
-      },
-    ],
-  },
+  did: EXAMPLE_CONTROLLER_DID,
+  sameAs: EXAMPLE_CONTROLLER_SAME_AS,
+  publicKeyJwk: EXAMPLE_CONTROLLER_SIGN_KEY,
+  jwks: EXAMPLE_CONTROLLER_PUBLIC_KEYS,
 } as const;
 
 export function buildExampleCommunicationIngestionPayload({

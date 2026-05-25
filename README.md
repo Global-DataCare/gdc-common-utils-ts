@@ -156,6 +156,8 @@ The canonical API contract should live in JSDoc on exported code. The README act
 - [`ControllerBindingInput`, `OrganizationBindingInput`, `ActivationProofInput`, `OrganizationActivationRequest`](src/models/identity-bootstrap.ts)
   - Canonical bootstrap contracts that explicitly separate person/controller key binding from provider/organization key binding.
   - `vp_token` is the canonical proof carrier; `controller.*` and `organization.*` carry public key binding material for DID publication.
+- [`buildControllerBindingInput(...)`, `buildOrganizationBindingInput(...)`](src/utils/activation-request.ts)
+  - Build canonical `controller.*` and `organization.*` binding fragments from semantic variables such as `publicSignKey`, `publicKeys`, `did`, `sameAs`, or `url`.
 - [`RelationshipChannelInvitationInput`, `RelationshipChannelInvitationSummary`, `RelationshipChannelOtpStartInput`, `RelationshipChannelOtpConfirmInput`](src/models/relationship-access.ts)
   - Shared contracts for controller-driven invitation and acceptance flows between an individual/subject and a related person or professional across phone, email, and app channels.
 - [`RelationshipChannelOtpChallengeSummary`, `RelationshipPinPolicy`, `RelationshipPinSetInput`, `RelationshipPinVerifyInput`, `RelationshipLocalKeyEnvelope`](src/models/relationship-access.ts)

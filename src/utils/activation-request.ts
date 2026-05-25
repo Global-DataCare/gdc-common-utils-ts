@@ -7,6 +7,7 @@ import {
   OrganizationActivationRequest,
   OrganizationBindingInput,
 } from '../models/identity-bootstrap';
+import { JwkSet } from '../models/jwk';
 
 /**
  * Builder input for the canonical organization/service activation payload.
@@ -28,6 +29,28 @@ export interface BuildOrganizationActivationRequestInput {
   representativeCredential?: unknown;
 }
 
+export interface BuildControllerBindingInputInput {
+  /** Public DID to publish or bind for the controller/person. */
+  did?: string;
+  /** Additional public alias such as `mailto:`. */
+  sameAs?: string;
+  /** Primary controller signing key. */
+  publicSignKey?: Record<string, unknown>;
+  /** Optional additional public keys, typically DidComm encryption keys. */
+  publicKeys?: JwkSet | { keys: Array<Record<string, unknown>> } | Array<Record<string, unknown>>;
+}
+
+export interface BuildOrganizationBindingInputInput {
+  /** Public DID to publish or bind for the organization/provider. */
+  did?: string;
+  /** Public URL associated with the organization identity. */
+  url?: string;
+  /** Primary organization signing key. */
+  publicSignKey?: Record<string, unknown>;
+  /** Optional additional public keys. */
+  publicKeys?: JwkSet | { keys: Array<Record<string, unknown>> } | Array<Record<string, unknown>>;
+}
+
 function pushIssue(
   issues: IdentityBootstrapValidationIssue[],
   severity: 'error' | 'warning',
@@ -36,6 +59,57 @@ function pushIssue(
   path?: string,
 ): void {
   issues.push({ severity, code, message, ...(path ? { path } : {}) });
+}
+
+function normalizeJwkSet(
+  publicKeys?: JwkSet | { keys: Array<Record<string, unknown>> } | Array<Record<string, unknown>>,
+): JwkSet | undefined {
+  if (!publicKeys) {
+    return undefined;
+  }
+  if (Array.isArray(publicKeys)) {
+    return { keys: publicKeys };
+  }
+  return publicKeys;
+}
+
+/**
+ * Builds the canonical controller/person binding from semantic variables.
+ *
+ * Use this when your integration starts from variables such as:
+ * - `controllerDid`
+ * - `controllerEmail` converted to `sameAs`
+ * - `publicSignKey`
+ * - `publicKeys`
+ *
+ * so the caller does not have to manually shape `controller.publicKeyJwk` and
+ * `controller.jwks`.
+ */
+export function buildControllerBindingInput(
+  input: BuildControllerBindingInputInput,
+): ControllerBindingInput {
+  const jwks = normalizeJwkSet(input.publicKeys);
+  return {
+    ...(input.did ? { did: input.did } : {}),
+    ...(input.sameAs ? { sameAs: input.sameAs } : {}),
+    ...(input.publicSignKey ? { publicKeyJwk: input.publicSignKey } : {}),
+    ...(jwks ? { jwks } : {}),
+  };
+}
+
+/**
+ * Builds the canonical organization/provider binding from semantic variables.
+ */
+export function buildOrganizationBindingInput(
+  input: BuildOrganizationBindingInputInput,
+): OrganizationBindingInput {
+  const jwks = normalizeJwkSet(input.publicKeys);
+  return {
+    ...(input.did ? { did: input.did } : {}),
+    ...(input.url ? { url: input.url } : {}),
+    ...(input.publicSignKey ? { publicKeyJwk: input.publicSignKey } : {}),
+    ...(jwks ? { jwks } : {}),
+  };
 }
 
 /**
