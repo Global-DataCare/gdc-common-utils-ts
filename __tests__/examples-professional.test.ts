@@ -6,8 +6,15 @@ import {
   EXAMPLE_PROFESSIONAL_ACCESS_SCENARIOS,
   EXAMPLE_PROFESSIONAL_CONSENT_SCENARIOS,
 } from '../src/examples/professional.js';
+import {
+  EXAMPLE_EMAIL_PROFESSIONAL,
+  EXAMPLE_HEALTHCARE_JURISDICTION,
+  EXAMPLE_PROVIDER_ORGANIZATION_URL,
+} from '../src/examples/shared.js';
 
 describe('professional access examples', () => {
+  // These assertions must use the shared synthetic fixtures from `src/examples/shared.ts`.
+  // Tests here should never re-hardcode actor emails, organization URLs, or jurisdictions.
   it('defines reusable scenarios for multiple professional roles and data sections', () => {
     expect(EXAMPLE_PROFESSIONAL_ACCESS_SCENARIOS.physicianAllergiesRead.actorRole).toBe(HealthcareActorRoles.Physician);
     expect(EXAMPLE_PROFESSIONAL_ACCESS_SCENARIOS.nursingMedicationRead.actorRole).toBe(HealthcareActorRoles.NursingProfessional);
@@ -23,11 +30,11 @@ describe('professional access examples', () => {
   });
 
   it('defines consent scenarios for email, organization, and jurisdiction targeting', () => {
-    expect(EXAMPLE_PROFESSIONAL_CONSENT_SCENARIOS.physicianByEmailContinuousCareAllergiesAllowed.actorId).toBe('doctor.oncall@example.org');
+    expect(EXAMPLE_PROFESSIONAL_CONSENT_SCENARIOS.physicianByEmailContinuousCareAllergiesAllowed.actorId).toBe(EXAMPLE_EMAIL_PROFESSIONAL);
     expect(EXAMPLE_PROFESSIONAL_CONSENT_SCENARIOS.physicianByOrganizationResultsAllowed.actorId).toMatchObject({
-      organizationUrl: 'https://hospital.acme.org',
+      organizationUrl: EXAMPLE_PROVIDER_ORGANIZATION_URL,
     });
-    expect(EXAMPLE_PROFESSIONAL_CONSENT_SCENARIOS.physicianByJurisdictionEmergencySummaryAllowed.actorId).toBe('ES');
+    expect(EXAMPLE_PROFESSIONAL_CONSENT_SCENARIOS.physicianByJurisdictionEmergencySummaryAllowed.actorId).toBe(EXAMPLE_HEALTHCARE_JURISDICTION);
   });
 
   it('defines both allowed and denied consent-vs-smart outcomes', () => {

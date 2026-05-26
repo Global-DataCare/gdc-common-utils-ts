@@ -1,7 +1,7 @@
 export type ActivationRepresentativePolicyErrorCode =
   | 'MISSING_REPRESENTATIVE_DID_WEB'
   | 'MISSING_REPRESENTATIVE_ROLE_RESPRSN'
-  | 'MISSING_REPRESENTATIVE_CREDENTIAL_MATERIAL'
+  | 'MISSING_REPRESENTATIVE_CREDENTIAL_BINDING'
   | 'REPRESENTATIVE_TAXID_MISMATCH';
 
 export type ActivationRepresentativePolicyError = {
@@ -113,25 +113,42 @@ export function hasRoleCode(roleCode: string | undefined, requiredCode = 'RESPRS
 }
 
 /**
- * Extracts representative credential material from `credentialSubject.hasCredential`.
+ * Extracts representative signing/binding continuity data from `credentialSubject.hasCredential`.
+ *
+ * Compatibility rules:
+ * - legacy VC payloads may still carry `hasCredential.material`
+ * - newer payloads may carry the same semantic value in `hasCredential.value`
+ *   or `hasCredential.identifier.value`
  *
  * @param representativeCredential Candidate representative credential.
  */
-export function extractRepresentativeCredentialMaterial(representativeCredential: unknown): string | undefined {
+export function extractRepresentativeCredentialBinding(representativeCredential: unknown): string | undefined {
   const subject = extractCredentialSubject(representativeCredential) || {};
   const credentialData = subject.hasCredential;
   if (typeof credentialData === 'string') return credentialData.trim() || undefined;
   if (Array.isArray(credentialData)) {
     for (const item of credentialData) {
-      const mat = String((item as Record<string, unknown>)?.material || '').trim();
-      if (mat) return mat;
+      const candidate = extractCredentialBindingValue(item);
+      if (candidate) return candidate;
     }
   }
   if (credentialData && typeof credentialData === 'object') {
-    const mat = String((credentialData as Record<string, unknown>)?.material || '').trim();
-    if (mat) return mat;
+    const candidate = extractCredentialBindingValue(credentialData);
+    if (candidate) return candidate;
   }
   return undefined;
+}
+
+function extractCredentialBindingValue(value: unknown): string | undefined {
+  const obj = asObject(value) || {};
+  const identifier = asObject(obj.identifier);
+  const candidate = String(
+    obj.material
+    || obj.value
+    || identifier?.value
+    || '',
+  ).trim();
+  return candidate || undefined;
 }
 
 /**
@@ -214,11 +231,11 @@ export function validateActivationRepresentativePolicy(input: {
     });
   }
 
-  const material = extractRepresentativeCredentialMaterial(input.representativeCredential);
-  if (!material) {
+  const binding = extractRepresentativeCredentialBinding(input.representativeCredential);
+  if (!binding) {
     errors.push({
-      code: 'MISSING_REPRESENTATIVE_CREDENTIAL_MATERIAL',
-      message: 'ICA-issued representative credential is missing credentialSubject.hasCredential.material.',
+      code: 'MISSING_REPRESENTATIVE_CREDENTIAL_BINDING',
+      message: 'ICA-issued representative credential is missing credentialSubject.hasCredential binding data (material, value, or identifier.value).',
     });
   }
   return errors;

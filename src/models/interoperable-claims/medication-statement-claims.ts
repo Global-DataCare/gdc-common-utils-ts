@@ -1,4 +1,23 @@
 // src/models/fhir/MedicationStatement.claims.ts
+// Always create JSDoc, do not use strings inline in keys nor values, use types instead, and reuse the data test examples.
+
+/**
+ * Canonical flat claim keys for the lightweight `MedicationStatement.*` mapping
+ * used by shared examples, GW ingestion, and converter roundtrip tests.
+ */
+export const MedicationStatementClaim = {
+  Identifier: 'MedicationStatement.identifier',
+  Subject: 'MedicationStatement.subject',
+  Status: 'MedicationStatement.status',
+  Effective: 'MedicationStatement.effective',
+  Code: 'MedicationStatement.code',
+  MedicationText: 'MedicationStatement.medication-text',
+  Note: 'MedicationStatement.note',
+  DosageInstruction: 'MedicationStatement.dosage-instruction',
+  MedicationIdentifier: 'MedicationStatement.medication-identifier',
+  MedicationSerialNumber: 'MedicationStatement.medication-serial-number',
+  MedicationExpirationDate: 'MedicationStatement.medication-expiration-date',
+} as const;
 
 /**
  * Flat claims contract for MedicationStatement using FHIR API-like search params.

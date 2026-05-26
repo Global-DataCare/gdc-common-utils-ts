@@ -12,7 +12,7 @@ import type {
   NormalizedConsentTarget,
   ResolvedConsentActor,
 } from '../models/consent-access.js';
-import type { ConsentRule } from '../models/consent-rule.js';
+import { ClaimConsent, type ConsentRule } from '../models/consent-rule.js';
 import { assignCidToClaimsId } from './fhir-cid.js';
 
 /**
@@ -287,16 +287,16 @@ export function buildConsentClaimsSimple(
     subjectIdentifier,
     consentClaims: {
       '@context': 'org.hl7.fhir.api',
-      'Consent.decision': input.decision || 'permit',
-      'Consent.subject': subjectIdentifier,
-      'Consent.identifier': consentIdentifier,
-      'Consent.date': consentDate,
-      'Consent.purpose': input.purpose,
-      'Consent.action': (input.actions || []).join(','),
-      'Consent.actor-identifier': actorIdentifier,
-      'Consent.actor-role': input.actorRole,
-      'Consent.attachment-contentType': input.attachmentContentType || 'application/odrl+json',
-      'Consent.attachment-data': input.attachmentBase64 || 'e30=',
+      [ClaimConsent.decision]: input.decision || 'permit',
+      [ClaimConsent.subject]: subjectIdentifier,
+      [ClaimConsent.identifier]: consentIdentifier,
+      [ClaimConsent.date]: consentDate,
+      [ClaimConsent.purpose]: input.purpose,
+      [ClaimConsent.action]: (input.actions || []).join(','),
+      [ClaimConsent.actorIdentifier]: actorIdentifier,
+      [ClaimConsent.actorRole]: input.actorRole,
+      [ClaimConsent.attachmentContentType]: input.attachmentContentType || 'application/odrl+json',
+      [ClaimConsent.attachmentData]: input.attachmentBase64 || 'e30=',
     },
   };
 }
@@ -593,7 +593,7 @@ export function isConsentRuleActive(
     now?: string | Date;
   } = {},
 ): boolean {
-  if (options.subject && String(rule['Consent.subject'] || '').trim() !== String(options.subject || '').trim()) {
+  if (options.subject && String(rule[ClaimConsent.subject] || '').trim() !== String(options.subject || '').trim()) {
     return false;
   }
   const now = options.now instanceof Date
@@ -601,8 +601,8 @@ export function isConsentRuleActive(
     : options.now
       ? new Date(options.now).getTime()
       : Date.now();
-  const periodStart = String(rule['Consent.period-start'] || '').trim();
-  const periodEnd = String(rule['Consent.period-end'] || '').trim();
+  const periodStart = String(rule[ClaimConsent.periodStart] || '').trim();
+  const periodEnd = String(rule[ClaimConsent.periodEnd] || '').trim();
   if (periodStart && !Number.isNaN(Date.parse(periodStart)) && Date.parse(periodStart) > now) return false;
   if (periodEnd && !Number.isNaN(Date.parse(periodEnd)) && Date.parse(periodEnd) < now) return false;
   return true;
@@ -614,7 +614,7 @@ function groupRulesBy(
 ): Record<string, ConsentRule[]> {
   const groups: Record<string, ConsentRule[]> = {};
   for (const rule of rules) {
-    for (const token of splitCsv(rule['Consent.actor-identifier'])) {
+    for (const token of splitCsv(rule[ClaimConsent.actorIdentifier])) {
       const normalized = normalizeConsentTarget(token, { preferOrganizationDid: true });
       if (!predicate(normalized)) continue;
       groups[normalized.canonicalValue] ||= [];
@@ -655,7 +655,7 @@ function normalizeRequestedList(values: string[] | undefined, wildcard = '*'): s
 
 function extractRuleResourceTypes(rule: ConsentRule & Record<string, unknown>): string[] {
   const candidates = [
-    rule['Consent.resourceType'],
+    rule[ClaimConsent.resourceType],
     rule['Consent.resource-type'],
     rule['Consent.resource'],
     rule['Consent.data-type'],
@@ -668,14 +668,14 @@ function extractRuleResourceTypes(rule: ConsentRule & Record<string, unknown>): 
 }
 
 function ruleMatchesRole(rule: ConsentRule, actorRole?: string): boolean {
-  const ruleRoles = splitCsv(rule['Consent.actor-role']).map(normalizeConsentRoleValue).filter(Boolean);
+  const ruleRoles = splitCsv(rule[ClaimConsent.actorRole]).map(normalizeConsentRoleValue).filter(Boolean);
   if (ruleRoles.length === 0 || ruleRoles.includes('*')) return true;
   const requestedRole = normalizeConsentRoleValue(String(actorRole || ''));
   return !!requestedRole && ruleRoles.includes(requestedRole);
 }
 
 function ruleMatchesPurpose(rule: ConsentRule, purpose?: string): boolean {
-  const rulePurpose = String(rule['Consent.purpose'] || '').trim();
+  const rulePurpose = String(rule[ClaimConsent.purpose] || '').trim();
   if (!purpose || !rulePurpose) return true;
   return rulePurpose === purpose;
 }
@@ -683,7 +683,7 @@ function ruleMatchesPurpose(rule: ConsentRule, purpose?: string): boolean {
 function ruleMatchesSection(rule: ConsentRule, section?: string): boolean {
   if (!section || section === '*') return true;
   const requestedSection = normalizeSectionToken(section);
-  const actions = splitCsv(rule['Consent.action']).map(normalizeSectionToken);
+  const actions = splitCsv(rule[ClaimConsent.action]).map(normalizeSectionToken);
   if (actions.length === 0) return false;
   return actions.includes(requestedSection) || actions.includes('*');
 }
@@ -699,7 +699,7 @@ function resolveRuleMatch(
   rule: ConsentRule,
   actor: ResolvedConsentActor,
 ): { matchKind: ConsentMatchKind; target?: NormalizedConsentTarget; precedenceBase?: number } {
-  for (const token of splitCsv(rule['Consent.actor-identifier'])) {
+  for (const token of splitCsv(rule[ClaimConsent.actorIdentifier])) {
     const normalized = normalizeConsentTarget(token, { preferOrganizationDid: true });
     if (actor.directTargets.some((target: NormalizedConsentTarget) => target.canonicalValue === normalized.canonicalValue)) {
       return { matchKind: 'direct', target: normalized, precedenceBase: 10 };
@@ -722,7 +722,7 @@ function toRuleMatch(
 ): ConsentRuleMatch | undefined {
   const resolved = resolveRuleMatch(rule, actor);
   if (!resolved.target || resolved.matchKind === 'none' || resolved.precedenceBase === undefined) return undefined;
-  const decision = rule['Consent.decision'];
+  const decision = rule[ClaimConsent.decision];
   const precedence = resolved.precedenceBase + (decision === 'deny' ? 0 : 1);
   return {
     rule,

@@ -1,21 +1,26 @@
+// Always create JSDoc, do not use strings inline in keys nor values, use types instead, and reuse the data test examples.
 import { CommunicationCategoryCodes } from '../src/constants/communication';
+import { CommunicationClaim } from '../src/models/interoperable-claims/communication-claims';
 import {
   extractCommunicationClaimsFromResourceFhirR4,
   transformCommunicationClaimsToResourceFhirR4,
 } from '../src/utils/communication-fhir-r4';
 
 describe('utils/communication-fhir-r4', () => {
+  // Good practice note:
+  // reusable `Communication.*` claim keys must be imported from
+  // `CommunicationClaim`, not re-hardcoded in tests.
   it('transforms claims 1:1 and preserves resource.meta.claims', () => {
     const claims = [
       {
         '@context': 'org.hl7.fhir.r4',
-        'Communication.identifier': 'comm-001',
-        'Communication.subject': 'did:web:subject.example',
-        'Communication.recipient': 'did:web:recipient.example',
-        'Communication.sender': 'did:web:sender.example',
-        'Communication.part-of': 'urn:uuid:thread-001',
-        'Communication.note': 'hello',
-        'Communication.content-reference': 'DocumentReference/doc-1',
+        [CommunicationClaim.Identifier]: 'comm-001',
+        [CommunicationClaim.Subject]: 'did:web:subject.example',
+        [CommunicationClaim.Recipient]: 'did:web:recipient.example',
+        [CommunicationClaim.Sender]: 'did:web:sender.example',
+        [CommunicationClaim.PartOf]: 'urn:uuid:thread-001',
+        [CommunicationClaim.NoteText]: 'hello',
+        [CommunicationClaim.ContentReference]: 'DocumentReference/doc-1',
       },
     ];
 
@@ -23,7 +28,7 @@ describe('utils/communication-fhir-r4', () => {
     expect(result.resources).toHaveLength(1);
     expect(result.warnings).toHaveLength(0);
     expect(result.resources[0].resourceType).toBe('Communication');
-    expect((result.resources[0] as any).meta.claims['Communication.identifier']).toBe('comm-001');
+    expect((result.resources[0] as any).meta.claims[CommunicationClaim.Identifier]).toBe('comm-001');
     expect((result.resources[0] as any).partOf[0].reference).toBe('urn:uuid:thread-001');
   });
 
@@ -32,8 +37,8 @@ describe('utils/communication-fhir-r4', () => {
       transformCommunicationClaimsToResourceFhirR4(
         [
           {
-            'Communication.content-reference': 'DocumentReference/doc-1',
-            'Communication.content-code': 'http://loinc.org|LP173418-7',
+            [CommunicationClaim.ContentReference]: 'DocumentReference/doc-1',
+            [CommunicationClaim.ContentCode]: 'http://loinc.org|LP173418-7',
           },
         ],
         { mode: 'strict' },
@@ -45,9 +50,9 @@ describe('utils/communication-fhir-r4', () => {
     const result = transformCommunicationClaimsToResourceFhirR4(
       [
         {
-          'Communication.content-attachment-type': 'text/plain',
-          'Communication.content-reference': 'DocumentReference/doc-1',
-          'Communication.note': ['first', 'second'],
+          [CommunicationClaim.ContentAttachmentType]: 'text/plain',
+          [CommunicationClaim.ContentReference]: 'DocumentReference/doc-1',
+          [CommunicationClaim.NoteText]: ['first', 'second'],
         },
       ],
       { mode: 'normalize' },
@@ -80,13 +85,13 @@ describe('utils/communication-fhir-r4', () => {
     };
 
     const claims = extractCommunicationClaimsFromResourceFhirR4(resource);
-    expect(claims['Communication.identifier']).toBe('comm-777');
-    expect(claims['Communication.subject']).toBe('did:web:subject.example');
-    expect(claims['Communication.part-of']).toBe('urn:uuid:thread-777');
-    expect(claims['Communication.content-reference']).toBe('Appointment/appt-777');
-    expect(claims['Communication.category']).toBe(CommunicationCategoryCodes.Reminder.claim);
-    expect(claims['Communication.text']).toBe('Reminder text');
-    expect(claims['Communication.note-text']).toBe('Reminder text');
+    expect(claims[CommunicationClaim.Identifier]).toBe('comm-777');
+    expect(claims[CommunicationClaim.Subject]).toBe('did:web:subject.example');
+    expect(claims[CommunicationClaim.PartOf]).toBe('urn:uuid:thread-777');
+    expect(claims[CommunicationClaim.ContentReference]).toBe('Appointment/appt-777');
+    expect(claims[CommunicationClaim.Category]).toBe(CommunicationCategoryCodes.Reminder.claim);
+    expect(claims[CommunicationClaim.Text]).toBe('Reminder text');
+    expect(claims[CommunicationClaim.NoteText]).toBe('Reminder text');
   });
 
   it('returns existing meta.claims as canonical source by default', () => {
@@ -96,12 +101,12 @@ describe('utils/communication-fhir-r4', () => {
       meta: {
         claims: {
           '@context': 'org.hl7.fhir.r4',
-          'Communication.identifier': 'from-meta',
+          [CommunicationClaim.Identifier]: 'from-meta',
         },
       },
       identifier: [{ value: 'from-resource' }],
     };
     const claims = extractCommunicationClaimsFromResourceFhirR4(resource as any);
-    expect(claims['Communication.identifier']).toBe('from-meta');
+    expect(claims[CommunicationClaim.Identifier]).toBe('from-meta');
   });
 });

@@ -1,3 +1,5 @@
+// Always create JSDoc, do not use strings inline in keys nor values, use types instead, and reuse the data test examples.
+import { CommunicationClaim } from '../models/interoperable-claims/communication-claims';
 import { validateFhirResource } from './fhir-validator';
 
 export type CommunicationClaims = Record<string, unknown>;
@@ -35,17 +37,21 @@ export function transformCommunicationClaimsToResourceFhirR4(
   communicationClaims: CommunicationClaims[],
   options: TransformCommunicationClaimsToResourceFhirR4Options = {},
 ): TransformCommunicationClaimsToResourceFhirR4Result {
+  // Good practice note:
+  // use `CommunicationClaim` for canonical claim keys whenever this helper
+  // writes or reads reusable Communication claims. Keep string literals only
+  // for explicit legacy-compatibility aliases such as `Communication.partOf`.
   const mode = options.mode ?? 'strict';
   const defaultStatus = options.defaultStatus ?? 'completed';
   const warnings: string[] = [];
 
   const resources = communicationClaims.map((claims, index) => {
-    const payloadAttachmentData = toStringOrUndefined(claims['Communication.content-attachment-data']);
-    const payloadAttachmentType = toStringOrUndefined(claims['Communication.content-attachment-type']);
-    const payloadAttachmentTitle = toStringOrUndefined(claims['Communication.content-attachment-title']);
-    const payloadAttachmentUrl = toStringOrUndefined(claims['Communication.content-attachment-url']);
-    const payloadReference = toStringOrUndefined(claims['Communication.content-reference']);
-    const payloadCodeRaw = toStringOrUndefined(claims['Communication.content-code']);
+    const payloadAttachmentData = toStringOrUndefined(claims[CommunicationClaim.ContentAttachmentData]);
+    const payloadAttachmentType = toStringOrUndefined(claims[CommunicationClaim.ContentAttachmentType]);
+    const payloadAttachmentTitle = toStringOrUndefined(claims[CommunicationClaim.ContentAttachmentTitle]);
+    const payloadAttachmentUrl = toStringOrUndefined(claims[CommunicationClaim.ContentAttachmentUrl]);
+    const payloadReference = toStringOrUndefined(claims[CommunicationClaim.ContentReference]);
+    const payloadCodeRaw = toStringOrUndefined(claims[CommunicationClaim.ContentCode]);
 
     const hasAttachment = Boolean(payloadAttachmentData || payloadAttachmentType || payloadAttachmentTitle || payloadAttachmentUrl);
     const hasReference = Boolean(payloadReference);
@@ -59,9 +65,9 @@ export function transformCommunicationClaimsToResourceFhirR4(
     }
 
     const noteValues = normalizeNoteValues(
-      claims['Communication.note-text']
+      claims[CommunicationClaim.NoteText]
       ?? claims['Communication.note']
-      ?? claims['Communication.text'],
+      ?? claims[CommunicationClaim.Text],
     );
     if (noteValues.length > 1) {
       const msg = `Communication[${index}] has more than one note.`;
@@ -81,7 +87,7 @@ export function transformCommunicationClaimsToResourceFhirR4(
       payloadCodeRaw,
     });
 
-    const partOf = toStringOrUndefined(claims['Communication.part-of'] ?? claims['Communication.partOf']);
+    const partOf = toStringOrUndefined(claims[CommunicationClaim.PartOf] ?? claims['Communication.partOf']);
     if (claims['Communication.partOf'] !== undefined) {
       const msg = `Communication[${index}] uses legacy key 'Communication.partOf'. Use 'Communication.part-of'.`;
       if (mode === 'strict') throw new Error(msg);
@@ -90,28 +96,28 @@ export function transformCommunicationClaimsToResourceFhirR4(
 
     const resource: Record<string, unknown> = {
       resourceType: 'Communication',
-      status: toStringOrUndefined(claims['Communication.status']) || defaultStatus,
+      status: toStringOrUndefined(claims[CommunicationClaim.Status]) || defaultStatus,
       meta: {
         claims: { ...claims },
       },
     };
 
-    const identifier = toStringOrUndefined(claims['Communication.identifier']);
+    const identifier = toStringOrUndefined(claims[CommunicationClaim.Identifier]);
     if (identifier) resource['identifier'] = [{ value: identifier }];
 
-    const sent = toStringOrUndefined(claims['Communication.sent']);
+    const sent = toStringOrUndefined(claims[CommunicationClaim.Sent]);
     if (sent) resource['sent'] = sent;
 
-    const category = toStringOrUndefined(claims['Communication.category']);
+    const category = toStringOrUndefined(claims[CommunicationClaim.Category]);
     if (category) resource['category'] = [{ coding: [parseSystemCode(category)] }];
 
-    const subject = toStringOrUndefined(claims['Communication.subject']);
+    const subject = toStringOrUndefined(claims[CommunicationClaim.Subject]);
     if (subject) resource['subject'] = { reference: subject };
 
-    const recipient = toStringOrUndefined(claims['Communication.recipient']);
+    const recipient = toStringOrUndefined(claims[CommunicationClaim.Recipient]);
     if (recipient) resource['recipient'] = [{ reference: recipient }];
 
-    const sender = toStringOrUndefined(claims['Communication.sender']);
+    const sender = toStringOrUndefined(claims[CommunicationClaim.Sender]);
     if (sender) resource['sender'] = { reference: sender };
 
     if (partOf) resource['partOf'] = [{ reference: partOf }];
@@ -158,35 +164,35 @@ export function extractCommunicationClaimsFromResourceFhirR4(
   const contentAttachment = payload?.contentAttachment as Record<string, unknown> | undefined;
   const contentCodeableConcept = (payload?.contentCodeableConcept as { coding?: Array<{ system?: unknown; code?: unknown }> } | undefined)?.coding?.[0];
 
-  setIf(claims, 'Communication.identifier', identifierValue);
-  setIf(claims, 'Communication.status', status);
-  setIf(claims, 'Communication.sent', sent);
-  setIf(claims, 'Communication.subject', subjectRef);
-  setIf(claims, 'Communication.recipient', recipientRef);
-  setIf(claims, 'Communication.sender', senderRef);
-  setIf(claims, 'Communication.part-of', partOfRef);
-  setIf(claims, 'Communication.note-text', noteText);
-  setIf(claims, 'Communication.text', noteText);
+  setIf(claims, CommunicationClaim.Identifier, identifierValue);
+  setIf(claims, CommunicationClaim.Status, status);
+  setIf(claims, CommunicationClaim.Sent, sent);
+  setIf(claims, CommunicationClaim.Subject, subjectRef);
+  setIf(claims, CommunicationClaim.Recipient, recipientRef);
+  setIf(claims, CommunicationClaim.Sender, senderRef);
+  setIf(claims, CommunicationClaim.PartOf, partOfRef);
+  setIf(claims, CommunicationClaim.NoteText, noteText);
+  setIf(claims, CommunicationClaim.Text, noteText);
 
   if (categoryCoding) {
     const system = toStringOrUndefined(categoryCoding.system);
     const code = toStringOrUndefined(categoryCoding.code);
-    if (system && code) claims['Communication.category'] = `${system}|${code}`;
-    else if (code) claims['Communication.category'] = code;
+    if (system && code) claims[CommunicationClaim.Category] = `${system}|${code}`;
+    else if (code) claims[CommunicationClaim.Category] = code;
   }
 
-  setIf(claims, 'Communication.content-reference', contentReference);
+  setIf(claims, CommunicationClaim.ContentReference, contentReference);
   if (contentAttachment) {
-    setIf(claims, 'Communication.content-attachment-data', contentAttachment.data);
-    setIf(claims, 'Communication.content-attachment-type', contentAttachment.contentType);
-    setIf(claims, 'Communication.content-attachment-title', contentAttachment.title);
-    setIf(claims, 'Communication.content-attachment-url', contentAttachment.url);
+    setIf(claims, CommunicationClaim.ContentAttachmentData, contentAttachment.data);
+    setIf(claims, CommunicationClaim.ContentAttachmentType, contentAttachment.contentType);
+    setIf(claims, CommunicationClaim.ContentAttachmentTitle, contentAttachment.title);
+    setIf(claims, CommunicationClaim.ContentAttachmentUrl, contentAttachment.url);
   }
   if (contentCodeableConcept) {
     const system = toStringOrUndefined(contentCodeableConcept.system);
     const code = toStringOrUndefined(contentCodeableConcept.code);
-    if (system && code) claims['Communication.content-code'] = `${system}|${code}`;
-    else if (code) claims['Communication.content-code'] = code;
+    if (system && code) claims[CommunicationClaim.ContentCode] = `${system}|${code}`;
+    else if (code) claims[CommunicationClaim.ContentCode] = code;
   }
 
   return claims;

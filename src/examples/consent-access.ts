@@ -5,13 +5,23 @@ import {
   HealthcareBasicSections,
   HealthcareConsentPurposes,
 } from '../constants/healthcare';
+import { ClaimConsent, type ConsentRule } from '../models/consent-rule';
 import { ResourceTypesFhirR4 } from '../constants/fhir-resource-types';
+import {
+  EXAMPLE_CONSENT_DATE,
+  EXAMPLE_CONSENT_PERIOD_END,
+  EXAMPLE_EMAIL_PROFESSIONAL,
+  EXAMPLE_EMAIL_RELATED_PERSON,
+  EXAMPLE_HEALTHCARE_JURISDICTION,
+  EXAMPLE_PROVIDER_ORGANIZATION_DID,
+  EXAMPLE_RELATED_PERSON_ROLE,
+  EXAMPLE_SUBJECT_DID,
+} from './shared';
 
-export const EXAMPLE_INDIVIDUAL_DID_WEB = 'did:web:api.acme.org:individual:123' as const;
-export const EXAMPLE_PROVIDER_ORGANIZATION_DID_WEB = 'did:web:hospital.acme.org' as const;
-export const EXAMPLE_EMAIL_PROFESSIONAL = 'doctor.oncall@example.org' as const;
-export const EXAMPLE_EMAIL_RELATED_PERSON = 'parent.guardian@example.org' as const;
-export const EXAMPLE_CONSENT_ACCESS_JURISDICTION = 'ES' as const;
+export const EXAMPLE_INDIVIDUAL_DID_WEB = EXAMPLE_SUBJECT_DID;
+export const EXAMPLE_PROVIDER_ORGANIZATION_DID_WEB = EXAMPLE_PROVIDER_ORGANIZATION_DID;
+export { EXAMPLE_EMAIL_PROFESSIONAL, EXAMPLE_EMAIL_RELATED_PERSON };
+export const EXAMPLE_CONSENT_ACCESS_JURISDICTION = EXAMPLE_HEALTHCARE_JURISDICTION;
 
 /**
  * Legacy compatibility aliases kept so older docs/tests/imports continue to work
@@ -22,6 +32,14 @@ export const EXAMPLE_CONSENT_ACCESS_PROVIDER_DID = EXAMPLE_PROVIDER_ORGANIZATION
 export const EXAMPLE_CONSENT_ACCESS_PROVIDER_EMAIL = EXAMPLE_EMAIL_PROFESSIONAL;
 export const EXAMPLE_CONSENT_ACCESS_RELATED_PERSON_EMAIL = EXAMPLE_EMAIL_RELATED_PERSON;
 
+/**
+ * Consent example builder used by docs/tests.
+ *
+ * Contract note:
+ * repeated actor identifiers, dates, jurisdictions, role fixtures, and
+ * canonical consent claim keys must be imported, never re-hardcoded inline in
+ * each example rule.
+ */
 function buildRule(input: {
   identifier: string;
   actorIdentifier: string;
@@ -32,20 +50,20 @@ function buildRule(input: {
   resourceTypes?: string[];
   periodStart?: string;
   periodEnd?: string;
-}) {
+}): ConsentRule & Partial<Record<typeof ClaimConsent.resourceType, string>> {
   return {
     '@context': 'org.hl7.fhir.api',
-    'Consent.identifier': input.identifier,
-    'Consent.subject': EXAMPLE_INDIVIDUAL_DID_WEB,
-    'Consent.actor-identifier': input.actorIdentifier,
-    'Consent.actor-role': input.actorRole,
-    'Consent.decision': input.decision || 'permit',
-    'Consent.purpose': input.purpose,
-    'Consent.action': input.actions.join(','),
-    ...(input.resourceTypes?.length ? { 'Consent.resourceType': input.resourceTypes.join(',') } : {}),
-    ...(input.periodStart ? { 'Consent.period-start': input.periodStart } : {}),
-    ...(input.periodEnd ? { 'Consent.period-end': input.periodEnd } : {}),
-    'Consent.date': '2026-05-20',
+    [ClaimConsent.identifier]: input.identifier,
+    [ClaimConsent.subject]: EXAMPLE_INDIVIDUAL_DID_WEB,
+    [ClaimConsent.actorIdentifier]: input.actorIdentifier,
+    [ClaimConsent.actorRole]: input.actorRole,
+    [ClaimConsent.decision]: input.decision || 'permit',
+    [ClaimConsent.purpose]: input.purpose,
+    [ClaimConsent.action]: input.actions.join(','),
+    ...(input.resourceTypes?.length ? { [ClaimConsent.resourceType]: input.resourceTypes.join(',') } : {}),
+    ...(input.periodStart ? { [ClaimConsent.periodStart]: input.periodStart } : {}),
+    ...(input.periodEnd ? { [ClaimConsent.periodEnd]: input.periodEnd } : {}),
+    [ClaimConsent.date]: EXAMPLE_CONSENT_DATE,
   } as const;
 }
 
@@ -110,7 +128,7 @@ export const EXAMPLE_CONSENT_ACCESS_RULES = Object.freeze({
   relatedPersonByEmail: buildRule({
     identifier: 'urn:uuid:consent-related-person-email',
     actorIdentifier: EXAMPLE_EMAIL_RELATED_PERSON,
-    actorRole: 'v3-RoleCode|RESPRSN',
+    actorRole: EXAMPLE_RELATED_PERSON_ROLE,
     purpose: HealthcareConsentPurposes.Treatment,
     actions: [HealthcareBasicSections.PatientSummaryDocument.claim],
     resourceTypes: [ResourceTypesFhirR4.Composition, ResourceTypesFhirR4.DocumentReference],
@@ -121,7 +139,7 @@ export const EXAMPLE_CONSENT_ACCESS_RULES = Object.freeze({
     actorRole: HealthcareActorRoles.Physician,
     purpose: HealthcareConsentPurposes.EmergencyTreatment,
     actions: [HealthcareBasicSections.PatientSummaryDocument.claim],
-    periodEnd: '2026-05-01T00:00:00Z',
+    periodEnd: EXAMPLE_CONSENT_PERIOD_END,
   }),
 });
 

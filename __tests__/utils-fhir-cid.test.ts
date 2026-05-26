@@ -1,3 +1,6 @@
+// Always create JSDoc, do not use strings inline in keys nor values, use types instead, and reuse the data test examples.
+
+import { ClaimConsent } from '../src/models/consent-rule';
 import {
   assignCidToClaimsId,
   assignCidToFhirBundleEntries,
@@ -8,6 +11,7 @@ import {
 } from '../src/utils/fhir-cid.js';
 
 describe('fhir-cid utilities', () => {
+  // Reusable consent claim keys must be imported from shared models, never duplicated inline in CID tests.
   it('canonicalizes recursively and strips meta.versionId by default', () => {
     const resource = {
       resourceType: 'Observation',
@@ -80,13 +84,13 @@ describe('fhir-cid utilities', () => {
       '@context': 'org.hl7.fhir.api',
       '@type': 'Consent',
       '@id': 'old',
-      'Consent.subject': 'did:web:subject.example.com',
-      'Consent.actor-role': 'Practitioner',
+      [ClaimConsent.subject]: 'did:web:subject.example.com',
+      [ClaimConsent.actorRole]: 'Practitioner',
     };
     const claimsB = {
       '@type': 'Consent',
-      'Consent.actor-role': 'Practitioner',
-      'Consent.subject': 'did:web:subject.example.com',
+      [ClaimConsent.actorRole]: 'Practitioner',
+      [ClaimConsent.subject]: 'did:web:subject.example.com',
       '@context': 'org.hl7.fhir.api',
       '@id': 'another',
     };

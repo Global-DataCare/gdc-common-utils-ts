@@ -2,21 +2,32 @@
 
 /**
  * Examples for frontend session/profile bootstrap flows.
+ *
+ * Note:
+ *
+ * - profile/provider identifiers in this file are synthetic fixtures imported
+ *   from `./shared`
+ * - do not inline DID/email/profile literals directly in frontend examples
  */
 
-export const EXAMPLE_PROFILE_PROVIDER_DID = 'did:web:provider.example.org';
+import {
+  EXAMPLE_PROFILE_EMAIL,
+  EXAMPLE_PROFILE_ID,
+  EXAMPLE_PROFILE_ORGANIZATION_DID,
+  EXAMPLE_PROFILE_PROVIDER_DID,
+} from './shared';
 
 export const EXAMPLE_PROFILE_SESSION_INPUT = {
-  profileId: ' profile-1 ',
-  email: ' user@example.com ',
+  profileId: ` ${EXAMPLE_PROFILE_ID} `,
+  email: ` ${EXAMPLE_PROFILE_EMAIL} `,
   role: ' controller ',
-  providerDid: ' did:web:org.example ',
+  providerDid: ` ${EXAMPLE_PROFILE_ORGANIZATION_DID} `,
   appType: 'Family',
 } as const;
 
 export const EXAMPLE_PROFILE_REGISTRY_ENTRY = {
-  id: 'profile-1',
-  email: 'user@example.com',
+  id: EXAMPLE_PROFILE_ID,
+  email: EXAMPLE_PROFILE_EMAIL,
   role: 'controller',
-  providerDid: 'did:web:org.example',
+  providerDid: EXAMPLE_PROFILE_ORGANIZATION_DID,
 } as const;

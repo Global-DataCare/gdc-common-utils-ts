@@ -9,6 +9,9 @@ import {
 } from '../src/utils/did-resolution';
 
 describe('did-resolution utilities', () => {
+  // These DID literals are intentionally local to this suite because the parser
+  // behavior depends on the exact path shape under test. Shared fixtures should
+  // be preferred everywhere else for reusable example/test data.
   const didDocument = {
     '@context': 'https://www.w3.org/ns/did/v1',
     id: 'did:web:public.acme.org',

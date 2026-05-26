@@ -1,4 +1,5 @@
 export * from './shared';
+export * from './ica-activation-proof';
 export * from './organization-controller';
 export * from './individual-controller';
 export * from './professional';

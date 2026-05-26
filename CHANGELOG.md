@@ -2,6 +2,32 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [1.7.0] - 2026-05-26
+
+### Added
+- Added canonical service-capability contracts for legal-organization activation:
+  - `src/constants/service-capabilities.ts`
+  - `ServiceCapability`
+  - `ServiceCapabilityToken`
+  - capability parse/serialize helpers for `org.schema.Service.serviceType`
+- Added canonical activation-proof constants/examples for ICA-backed onboarding:
+  - `src/constants/verifiable-credentials.ts`
+  - `src/examples/ica-activation-proof.ts`
+
+### Changed
+- Reworked shared examples/tests to reduce hardcoded repeated claims and fixture values in favor of imported constants and shared synthetic examples.
+- Extended the shared activation-policy representative binding extraction so ICA compatibility accepts:
+  - `hasCredential.material`
+  - `hasCredential.value`
+  - `hasCredential.identifier.value`
+- Normalized communication/consent/clinical example surfaces around shared constants and healthcare codings.
+- Added explicit code/test guidance comments on touched files to reinforce JSDoc, imported keys, and shared fixture reuse.
+
+### Testing
+- `npm run typecheck`
+- focused Jest coverage for activation-policy, VP token, communication, consent, FHIR CID, and clinical resource converter suites
+- package build verified before publish
+
 ## [1.6.0] - 2026-05-25
 
 ### Added

@@ -3,6 +3,8 @@
 
 import type { ClaimSpec } from './types';
 
+// Always create JSDoc, do not use strings inline in keys nor values, use types instead, and reuse the data test examples.
+
 export const DeviceUseStatementClaim = {
   Identifier: 'DeviceUseStatement.identifier',
   Subject: 'DeviceUseStatement.subject',

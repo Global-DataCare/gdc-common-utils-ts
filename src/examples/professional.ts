@@ -8,6 +8,14 @@ import {
 import { ResourceTypesFhirR4 } from '../constants/fhir-resource-types';
 import { SmartGatewayScopesFhirR4 } from '../constants/smart';
 import { buildSmartCompositionReadScope } from '../utils/smart-scope';
+import {
+  EXAMPLE_CLINICAL_SECTION_ALLERGIES,
+  EXAMPLE_EMAIL_PROFESSIONAL,
+  EXAMPLE_HEALTHCARE_JURISDICTION,
+  EXAMPLE_PATIENT_DID,
+  EXAMPLE_PROVIDER_ORGANIZATION_URL,
+  EXAMPLE_SUBJECT_DID,
+} from './shared';
 
 /**
  * Examples for professional runtime access flows.
@@ -24,14 +32,14 @@ import { buildSmartCompositionReadScope } from '../utils/smart-scope';
  * professional clinical access permissions.
  */
 
-const EXAMPLE_SMART_SUBJECT_DID = 'did:web:api.acme.org:individual:123';
-const EXAMPLE_PHYSICIAN_EMAIL = 'doctor.oncall@example.org';
-const EXAMPLE_PROVIDER_ORG_URL = 'https://hospital.acme.org';
-const EXAMPLE_JURISDICTION = 'ES';
+const EXAMPLE_SMART_SUBJECT_DID = EXAMPLE_SUBJECT_DID;
+const EXAMPLE_PHYSICIAN_EMAIL = EXAMPLE_EMAIL_PROFESSIONAL;
+const EXAMPLE_PROVIDER_ORG_URL = EXAMPLE_PROVIDER_ORGANIZATION_URL;
+const EXAMPLE_JURISDICTION = EXAMPLE_HEALTHCARE_JURISDICTION;
 const EXAMPLE_CANONICAL_SMART_READ_SCOPES = [
   buildSmartCompositionReadScope({
     subjectDid: EXAMPLE_SMART_SUBJECT_DID,
-    sections: 'LOINC|48765-2',
+    sections: EXAMPLE_CLINICAL_SECTION_ALLERGIES,
   }),
 ] as const;
 
@@ -91,12 +99,12 @@ export const EXAMPLE_TOKEN_EXCHANGE_RESPONSE = {
 } as const;
 
 export const EXAMPLE_SEND_COMMUNICATION_INPUT = {
-  subject: 'did:web:patient.example',
+  subject: EXAMPLE_PATIENT_DID,
   text: 'Message body',
 } as const;
 
 export const EXAMPLE_SEARCH_CLINICAL_BUNDLE_INPUT = {
-  subject: 'did:web:patient.example',
+  subject: EXAMPLE_PATIENT_DID,
   includedTypes: ['Communication', 'DocumentReference'],
 } as const;
 
