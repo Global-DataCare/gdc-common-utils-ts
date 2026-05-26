@@ -1,7 +1,7 @@
 import { randomBytes, createHash, randomUUID } from 'crypto';
 import { CryptographyService } from '../src/CryptographyService';
 import type { ICryptoHelper } from '../src/interfaces/ICryptoHelper';
-import { initializeCommunicationIdentityFromSeed } from '../src/utils/communication-identity.js';
+import { initializeCommunicationIdentity } from '../src/utils/communication-identity.js';
 import {
   CommunicationKeyPurposes,
   DefaultEncryptionCurves,
@@ -23,17 +23,19 @@ const cryptoHelper: ICryptoHelper = {
   },
 };
 
-describe('initializeCommunicationIdentityFromSeed', () => {
+describe('initializeCommunicationIdentity', () => {
   const cryptography = new CryptographyService(cryptoHelper);
 
   it('derives deterministic communication keys and JOSE headers', async () => {
-    const first = await initializeCommunicationIdentityFromSeed({
+    const first = await initializeCommunicationIdentity({
       entityId: 'did:web:example.com:portal:acme',
+      seedMaterial: 'portal-seed-acme',
       cryptography,
       includeVcSigningKey: true,
     });
-    const second = await initializeCommunicationIdentityFromSeed({
+    const second = await initializeCommunicationIdentity({
       entityId: 'did:web:example.com:portal:acme',
+      seedMaterial: 'portal-seed-acme',
       cryptography,
       includeVcSigningKey: true,
     });
@@ -57,10 +59,9 @@ describe('initializeCommunicationIdentityFromSeed', () => {
   });
 
   it('supports random mode without requiring VC signing keys', async () => {
-    const result = await initializeCommunicationIdentityFromSeed({
+    const result = await initializeCommunicationIdentity({
       entityId: 'did:web:example.com:mobile:user-1',
       cryptography,
-      mode: 'random',
     });
 
     expect(result.commSigningKeyPair.publicJWKey.kid).toBeDefined();
@@ -68,5 +69,13 @@ describe('initializeCommunicationIdentityFromSeed', () => {
     expect(result.vcSigningKeyPair).toBeUndefined();
     expect(result.headers.jwsProtected.kid).toBe(result.commSigningKeyPair.publicJWKey.kid);
     expect(result.headers.jweHeader.skid).toBe(result.commEncryptionKeyPair.publicJWKey.kid);
+  });
+
+  it('rejects deterministic mode when no seedMaterial is provided', async () => {
+    await expect(initializeCommunicationIdentity({
+      entityId: 'did:web:example.com:mobile:user-1',
+      cryptography,
+      mode: 'deterministic',
+    })).rejects.toThrow(/requires seedMaterial/i);
   });
 });

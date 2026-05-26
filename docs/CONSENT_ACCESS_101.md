@@ -29,7 +29,10 @@ These rules exist so developers and AI agents do not repeat the same mistakes.
 
 Prefer:
 
-- `individualDidWeb`
+- `subjectDid`
+- `professionalDid`
+- `orgControllerDid`
+- `individualControllerDid`
 - `emailProfessional`
 - `emailControllerOrg`
 - `emailControllerIndividual`

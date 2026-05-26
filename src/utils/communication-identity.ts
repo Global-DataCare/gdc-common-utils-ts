@@ -21,20 +21,20 @@ export type CommunicationIdentityBootstrapMode = 'deterministic' | 'random';
 
 export interface CommunicationIdentityBootstrapOptions {
   /**
-   * Stable entity/profile/device identifier used to derive deterministic seeds
-   * when `mode` is set to `deterministic`.
+   * Stable logical identifier of the device/profile/app bootstrap context.
+   *
+   * This is metadata for the caller. It is not used as implicit seed material.
    */
   entityId: string;
   /**
-   * Optional raw seed material used as the deterministic bootstrap source
-   * instead of `entityId`.
+   * Raw seed material used as the deterministic bootstrap source.
    *
    * Use this when the device/app/portal keeps an explicit seed in a wallet or
    * secure store and wants communication keys to be derived from that seed.
    *
-   * When omitted:
-   * - `mode = deterministic` derives from `entityId`
-   * - `mode = random` delegates entropy generation to the cryptography engine
+   * When omitted, the helper defaults to random key generation unless the
+   * caller explicitly requests `mode = deterministic`, in which case an error
+   * is thrown.
    */
   seedMaterial?: string | Uint8Array;
   /**
@@ -42,8 +42,14 @@ export interface CommunicationIdentityBootstrapOptions {
    */
   cryptography: ICryptography;
   /**
-   * Bootstrap mode. `deterministic` reproduces the Expo/GW development pattern.
-   * `random` delegates seed generation to the cryptography engine.
+   * Bootstrap mode.
+   *
+   * - `deterministic` requires `seedMaterial`
+   * - `random` delegates seed generation to the cryptography engine
+   *
+   * When omitted:
+   * - `seedMaterial` present => `deterministic`
+   * - `seedMaterial` absent => `random`
    */
   mode?: CommunicationIdentityBootstrapMode;
   /**
@@ -112,9 +118,9 @@ export interface CommunicationIdentityBootstrapResult {
 
 /**
  * Bootstraps the technical communication identity for a portal, device, or app
- * profile from a stable seed source. This mirrors the deterministic development
- * pattern already used in Expo54 and CORE GW, while also supporting random mode
- * for production runtimes.
+ * profile from an explicit seed source. This supports deterministic derivation
+ * when a caller provides seed material, while also supporting random mode for
+ * production runtimes.
  *
  * This helper creates transport identity only. It does not bootstrap the
  * human/person signing identity used for controller/professional/individual
@@ -123,8 +129,8 @@ export interface CommunicationIdentityBootstrapResult {
  * The returned JOSE header templates match the current DIDComm metadata contract:
  * `meta.jws.protected` and `meta.jwe.header`.
  *
- * @param options.entityId Stable logical identity used as deterministic seed source.
- * @param options.seedMaterial Optional explicit seed material for deterministic derivation.
+ * @param options.entityId Stable logical identity of the bootstrap context.
+ * @param options.seedMaterial Explicit seed material for deterministic derivation.
  * @param options.cryptography Stateless crypto engine implementation.
  * @param options.mode Deterministic or random seed derivation mode.
  * @param options.includeVcSigningKey Whether to derive a separate VC signing key pair.
@@ -132,20 +138,27 @@ export interface CommunicationIdentityBootstrapResult {
  * @param options.vcSigningAlg Optional override for the VC ML-DSA algorithm.
  * @param options.encryptionCurve Optional override for the communication ML-KEM curve.
  */
-export async function initializeCommunicationIdentityFromSeed(
+export async function initializeCommunicationIdentity(
   options: CommunicationIdentityBootstrapOptions,
 ): Promise<CommunicationIdentityBootstrapResult> {
-  const mode = options.mode ?? 'deterministic';
-  const deterministicSource = resolveDeterministicSource(options.seedMaterial, options.entityId);
+  const mode = options.mode ?? (options.seedMaterial !== undefined ? 'deterministic' : 'random');
+  const deterministicSource = resolveDeterministicSource(options.seedMaterial, mode);
   const communicationSigningAlg = options.communicationSigningAlg ?? DefaultSigningAlgorithms.Communication;
   const vcSigningAlg = options.vcSigningAlg ?? DefaultSigningAlgorithms.VerifiableCredential;
   const encryptionCurve = options.encryptionCurve ?? DefaultEncryptionCurves.Communication;
 
-  const commSigningSeed = mode === 'deterministic' ? deriveSeed32WithSuffix(deterministicSource, '-dsa-comm') : undefined;
-  const vcSigningSeed = mode === 'deterministic' && options.includeVcSigningKey
-    ? deriveSeed32WithSuffix(deterministicSource, '-dsa-vc')
-    : undefined;
-  const encryptionSeed = mode === 'deterministic' ? deriveSeed64WithSuffix(deterministicSource, '-kem') : undefined;
+  const commSigningSeed =
+    mode === 'deterministic' && deterministicSource
+      ? deriveSeed32WithSuffix(deterministicSource, '-dsa-comm')
+      : undefined;
+  const vcSigningSeed =
+    mode === 'deterministic' && deterministicSource && options.includeVcSigningKey
+      ? deriveSeed32WithSuffix(deterministicSource, '-dsa-vc')
+      : undefined;
+  const encryptionSeed =
+    mode === 'deterministic' && deterministicSource
+      ? deriveSeed64WithSuffix(deterministicSource, '-kem')
+      : undefined;
 
   const commSigningRaw = await options.cryptography.generateKeyPairMlDsa(commSigningSeed, communicationSigningAlg);
   const encryptionRaw = await options.cryptography.generateKeyPairMlKem(encryptionSeed, encryptionCurve);
@@ -199,13 +212,22 @@ export async function initializeCommunicationIdentityFromSeed(
   };
 }
 
-function resolveDeterministicSource(seedMaterial: string | Uint8Array | undefined, entityId: string): Uint8Array {
+function resolveDeterministicSource(
+  seedMaterial: string | Uint8Array | undefined,
+  mode: CommunicationIdentityBootstrapMode,
+): Uint8Array | undefined {
+  if (mode !== 'deterministic') return undefined;
   if (seedMaterial instanceof Uint8Array) return seedMaterial;
   if (typeof seedMaterial === 'string' && seedMaterial.length > 0) {
     return Content.stringToBytesUTF8(seedMaterial);
   }
-  return Content.stringToBytesUTF8(entityId);
+  throw new Error('initializeCommunicationIdentity requires seedMaterial when mode="deterministic".');
 }
+
+/**
+ * @deprecated Use `initializeCommunicationIdentity(...)`.
+ */
+export const initializeCommunicationIdentityFromSeed = initializeCommunicationIdentity;
 
 function deriveSeed32WithSuffix(source: Uint8Array, suffix: string): Uint8Array {
   return sha256(concatSeedSource(source, suffix)).subarray(0, 32);

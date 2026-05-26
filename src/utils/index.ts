@@ -18,6 +18,7 @@ export * from './communication-document-reference';
 export * from './communication-identity';
 export * from './clinical-resource-converters';
 export * from './fhir-validator';
+export * from './individual-form-pdf';
 export * from './jwt';
 export * from './manager-error';
 export * from './multibase58';

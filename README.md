@@ -117,6 +117,7 @@ The canonical API contract should live in JSDoc on exported code. The README act
   - Shared network/environment labels for node-operator discovery/bootstrap.
 - [`SmartGatewayScopesFhirR4`](src/constants/smart.ts)
   - Current CORE GW SMART scope literals such as `organization/Consent.cruds`.
+  - Treat these as optional elevated scopes. Do not add them to the first read-only tutorial by default.
 
 ### Root exports
 
@@ -129,13 +130,14 @@ The canonical API contract should live in JSDoc on exported code. The README act
 
 ### Communication / document utilities
 
-- [`initializeCommunicationIdentityFromSeed(...)`](src/utils/communication-identity.ts)
+- [`initializeCommunicationIdentity(...)`](src/utils/communication-identity.ts)
   - Derives the technical ML-DSA/ML-KEM communication identity for a device, portal, or app profile and returns JOSE header templates for `meta.jws.protected` and `meta.jwe.header`.
-  - Accepts optional explicit `seedMaterial`; otherwise deterministic mode derives from `entityId`, while random mode delegates entropy generation to the cryptography engine.
+  - Uses explicit `seedMaterial` for deterministic derivation. Without `seedMaterial`, it defaults to random generation. `mode = deterministic` requires `seedMaterial`.
 - [`buildOrganizationDidWeb(...)`, `buildProfessionalDidWeb(...)`, `buildIndividualDidWeb(...)`](src/utils/did.ts)
   - Build canonical data-space `did:web` identifiers for hosted organizations, professionals, and individuals/family actors.
 - [`buildSmartCompositionReadScope(...)`](src/utils/smart-scope.ts)
   - Builds the current CORE GW pinned SMART root scope for `organization/Composition...` token requests.
+  - This is the preferred first scope to teach when the backend only needs subject-scoped read access.
 - [`getOrganizationCredentialFromVpToken(...)`, `getLegalRepresentativeCredentialFromVpToken(...)`](src/utils/vp-token.ts)
   - Extract typed VC objects from a VP token when GW/SDK flows carry canonical proof only in `vp_token`.
 - [`validateCommunicationResourceFhirR4(...)`](src/utils/communication-fhir-r4.ts)
@@ -194,13 +196,35 @@ The canonical API contract should live in JSDoc on exported code. The README act
   - CORE canonical examples are email-first and do not require phone-only fields unless an extension layer adds them.
 - [`src/examples/professional.ts`](src/examples/professional.ts)
   - Professional/physician runtime access examples such as SMART token and clinical access request payloads.
+  - The base token examples are read-only; richer scenario fixtures intentionally add `organization/Consent.cruds`.
 - [`src/examples/related-person.ts`](src/examples/related-person.ts)
   - RelatedPerson/family-member examples.
 - [`src/examples/frontend-session.ts`](src/examples/frontend-session.ts)
   - Frontend profile/session bootstrap examples.
+- [`src/examples/lifecycle.ts`](src/examples/lifecycle.ts)
+  - Canonical `enable/disable/delete` lifecycle examples with placeholders and no personal data.
+  - This is the source of truth for GW, Swagger, Node SDK, Front SDK, and portal examples.
 - [`src/examples/shared.ts`](src/examples/shared.ts)
   - Shared route contexts, controller binding fragments, and reusable helper builders.
   - `tenantId` is modeled as an identifier-like route token (`acme-id`), not as a friendly alternate name.
+- [`docs/LIFECYCLE_101.md`](docs/LIFECYCLE_101.md)
+  - Copy/paste lifecycle guide "for torpes" with semantic rules and reusable placeholders.
+
+## Documentation Naming Rules
+
+Prefer these semantic names in docs and examples:
+
+- `subjectDid`
+- `professionalDid`
+- `orgControllerDid`
+- `individualControllerDid`
+- `emailProfessional`
+- `emailControllerOrg`
+- `emailControllerIndividual`
+- `emailRelatedPerson`
+
+Avoid teaching new integrations from legacy names such as `individualDidWeb`
+when the active runtime variable is really the subject identifier.
 - [`src/examples/api-flow-examples.ts`](src/examples/api-flow-examples.ts)
   - Preferred compatibility aggregator for consumers that want one import surface without using the overloaded term `contract`.
 - [`src/examples/contract-examples.ts`](src/examples/contract-examples.ts)
@@ -355,7 +379,7 @@ Those request/response flows belong in connector SDKs and backend orchestration 
 
 When integrating the converged SDKs:
 
-- use [`initializeCommunicationIdentityFromSeed(...)`](src/utils/communication-identity.ts) from this package for the technical communication identity bootstrap
+- use [`initializeCommunicationIdentity(...)`](src/utils/communication-identity.ts) from this package for the technical communication identity bootstrap
 - use `gdc-sdk-core-ts` for runtime-neutral communication/document helpers
 - use `gdc-sdk-front-ts` or `gdc-sdk-node-ts` for the runtime-specific session and orchestration layer
 
@@ -368,5 +392,5 @@ When integrating the converged SDKs:
 - The `files` field only publishes `dist/`, so source imports should use the documented package entry points rather than local file paths.
 
 ## Roadmap and Briefing
-- `BRIEFING_DATASPACE_EN.md`
+- `docs/BRIEFING_DATASPACE_EN.md`
 - `TODO_ROADMAP.md`

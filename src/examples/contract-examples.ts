@@ -14,3 +14,4 @@ export * from './individual-controller';
 export * from './professional';
 export * from './related-person';
 export * from './frontend-session';
+export * from './lifecycle';
