@@ -2,6 +2,37 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [1.6.0] - 2026-05-25
+
+### Added
+- Added canonical lifecycle example surface for cross-repository reuse:
+  - `src/examples/lifecycle.ts`
+  - `docs/LIFECYCLE_101.md`
+  - exported via `examples`, `api-flow-examples`, and `contract-examples`
+- Added shared individual onboarding PDF claim derivation helper:
+  - `src/utils/individual-form-pdf.ts`
+  - `buildClaimsFromIndividualFormPdf(...)`
+  - `parseDistinguishedName(...)`
+- Added shared unit coverage for individual PDF claim derivation in:
+  - `__tests__/utils-individual-form-pdf.test.ts`
+- Added canonical organization owner identifier claim constant:
+  - `org.schema.Organization.owner.identifier.value`
+
+### Changed
+- Clarified and tightened communication identity bootstrap semantics:
+  - `initializeCommunicationIdentity(...)` is now the canonical helper name
+  - deterministic mode requires explicit `seedMaterial`
+  - random mode is the default when no explicit seed is provided
+  - kept `initializeCommunicationIdentityFromSeed` as a compatibility alias
+- Clarified shared naming/documentation guidance for actor examples:
+  - prefer `subjectDid`, `professionalDid`, `orgControllerDid`, and `individualControllerDid`
+  - avoid teaching legacy variable names such as `individualDidWeb` as the default semantic names
+- Adjusted professional SMART examples so the first tutorial path is read-only by default.
+- Moved the English briefing baseline to `docs/BRIEFING_DATASPACE_EN.md`.
+
+### Testing
+- Verified package typecheck and build before publication.
+
 ## [1.5.1] - 2026-05-24
 
 ### Added

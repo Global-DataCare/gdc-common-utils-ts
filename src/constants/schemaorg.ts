@@ -48,6 +48,8 @@ export enum ClaimsOrganizationSchemaorg {
     ownerEmail = "org.schema.Organization.owner.email",
     /** Individual/family owner telephone used by subject-index registration flows. */
     ownerTelephone = "org.schema.Organization.owner.telephone",
+    /** Individual/family owner legal identifier used by subject-index registration flows. */
+    ownerIdentifierValue = "org.schema.Organization.owner.identifier.value",
     numberOfEmployees = "org.schema.Organization.numberOfEmployees.value" // to purchase licenses for device profile's activation
 }
 

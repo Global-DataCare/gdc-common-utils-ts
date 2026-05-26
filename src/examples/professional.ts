@@ -17,6 +17,7 @@ import { buildSmartCompositionReadScope } from '../utils/smart-scope';
  * - the actor role of the professional (`Physician`, `NursingProfessional`, ...)
  * - the consented action/section over an individual subject
  * - the SMART scope ultimately requested against GW CORE
+ * - the difference between a minimal read scope and an elevated consent-management scope
  *
  * This differs from organization-controller and individual-owner bootstrap
  * examples, where the main concern is identity/bootstrap rather than
@@ -27,17 +28,21 @@ const EXAMPLE_SMART_SUBJECT_DID = 'did:web:api.acme.org:individual:123';
 const EXAMPLE_PHYSICIAN_EMAIL = 'doctor.oncall@example.org';
 const EXAMPLE_PROVIDER_ORG_URL = 'https://hospital.acme.org';
 const EXAMPLE_JURISDICTION = 'ES';
-const EXAMPLE_CANONICAL_SMART_SCOPES = [
+const EXAMPLE_CANONICAL_SMART_READ_SCOPES = [
   buildSmartCompositionReadScope({
     subjectDid: EXAMPLE_SMART_SUBJECT_DID,
     sections: 'LOINC|48765-2',
   }),
+] as const;
+
+const EXAMPLE_CANONICAL_SMART_SCOPES = [
+  ...EXAMPLE_CANONICAL_SMART_READ_SCOPES,
   SmartGatewayScopesFhirR4.ConsentCruds,
 ] as const;
 
 export const EXAMPLE_TOKEN_EXCHANGE_SMART_INPUT = {
   idToken: 'employee-id-token-001',
-  scopes: [...EXAMPLE_CANONICAL_SMART_SCOPES],
+  scopes: [...EXAMPLE_CANONICAL_SMART_READ_SCOPES],
   timeoutSeconds: 5,
   intervalSeconds: 1,
 } as const;
@@ -45,7 +50,7 @@ export const EXAMPLE_TOKEN_EXCHANGE_SMART_INPUT = {
 export const EXAMPLE_OPENID_SMART_TOKEN_INPUT = {
   idToken: 'employee-id-token-001',
   vpToken: '<vp-jws-or-jsonld>',
-  scopes: [...EXAMPLE_CANONICAL_SMART_SCOPES],
+  scopes: [...EXAMPLE_CANONICAL_SMART_READ_SCOPES],
   smartTokenKind: 'openid-smart',
   clientId: 'device-1',
   subjectDid: EXAMPLE_SMART_SUBJECT_DID,
@@ -64,7 +69,7 @@ export const EXAMPLE_SMART_TOKEN_RESPONSE = {
     body: {
       access_token: 'smart-token-openid-001',
       token_type: 'Bearer',
-      scope: EXAMPLE_CANONICAL_SMART_SCOPES.join(' '),
+      scope: EXAMPLE_CANONICAL_SMART_READ_SCOPES.join(' '),
       expires_in: 3600,
     },
     attempts: 1,
@@ -78,7 +83,7 @@ export const EXAMPLE_TOKEN_EXCHANGE_RESPONSE = {
     body: {
       access_token: 'smart-token-ctx-001',
       token_type: 'Bearer',
-      scope: EXAMPLE_CANONICAL_SMART_SCOPES.join(' '),
+      scope: EXAMPLE_CANONICAL_SMART_READ_SCOPES.join(' '),
       expires_in: 3600,
     },
     attempts: 1,
@@ -104,6 +109,13 @@ export const EXAMPLE_SEARCH_CLINICAL_BUNDLE_INPUT = {
  * - what consent purpose/action was granted
  * - what SMART scope is being requested
  * - which FHIR resource types are expected to be relevant after access
+ *
+ * Teaching rule:
+ *
+ * - use `EXAMPLE_TOKEN_EXCHANGE_SMART_INPUT` or `EXAMPLE_OPENID_SMART_TOKEN_INPUT`
+ *   for the first read-only examples
+ * - use the scenarios below when you explicitly want the composition read scope
+ *   plus `organization/Consent.cruds`
  */
 export const EXAMPLE_PROFESSIONAL_ACCESS_SCENARIOS = Object.freeze({
   physicianAllergiesRead: {
