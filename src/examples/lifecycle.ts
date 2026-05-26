@@ -8,6 +8,9 @@ import { ClaimConsent } from '../models/consent-rule';
 import {
   EXAMPLE_EMAIL_CONTROLLER_INDIVIDUAL,
   EXAMPLE_EMAIL_CONTROLLER_ORG,
+  EXAMPLE_CLINICAL_SECTION_ALLERGIES,
+  EXAMPLE_CONSENT_PURPOSE_TREATMENT,
+  EXAMPLE_HEALTHCARE_ACTOR_ROLE_PHYSICIAN,
   EXAMPLE_JURISDICTION,
   EXAMPLE_SECTOR,
   EXAMPLE_TENANT_IDENTIFIER,
@@ -32,6 +35,8 @@ export const EXAMPLE_LIFECYCLE_OPERATIONS = {
  * These are intentionally synthetic and stable. Repositories should override
  * them at runtime with environment variables, UI form values, or test fixtures
  * rather than committing personal data.
+ *
+ * Keep all repeated actor/section/code fixtures imported from `./shared`.
  */
 export const EXAMPLE_LIFECYCLE_PLACEHOLDERS = {
   tenantId: EXAMPLE_TENANT_IDENTIFIER,
@@ -236,9 +241,9 @@ export const EXAMPLE_CONSENT_ENABLE_MESSAGE = {
     [ClaimConsent.identifier]: EXAMPLE_LIFECYCLE_PLACEHOLDERS.consentIdentifier,
     [ClaimConsent.subject]: EXAMPLE_LIFECYCLE_PLACEHOLDERS.individualSubjectDid,
     [ClaimConsent.actorIdentifier]: EXAMPLE_LIFECYCLE_PLACEHOLDERS.consentActorIdentifier,
-    [ClaimConsent.actorRole]: 'ISCO-08|2211',
-    [ClaimConsent.purpose]: 'TREAT',
-    [ClaimConsent.action]: 'LOINC|48765-2',
+    [ClaimConsent.actorRole]: EXAMPLE_HEALTHCARE_ACTOR_ROLE_PHYSICIAN,
+    [ClaimConsent.purpose]: EXAMPLE_CONSENT_PURPOSE_TREATMENT,
+    [ClaimConsent.action]: EXAMPLE_CLINICAL_SECTION_ALLERGIES,
     [ClaimConsent.decision]: 'permit',
   },
 } as const;
@@ -256,9 +261,9 @@ export const EXAMPLE_CONSENT_DISABLE_MESSAGE = {
     [ClaimConsent.identifier]: EXAMPLE_LIFECYCLE_PLACEHOLDERS.consentIdentifier,
     [ClaimConsent.subject]: EXAMPLE_LIFECYCLE_PLACEHOLDERS.individualSubjectDid,
     [ClaimConsent.actorIdentifier]: EXAMPLE_LIFECYCLE_PLACEHOLDERS.consentActorIdentifier,
-    [ClaimConsent.actorRole]: 'ISCO-08|2211',
-    [ClaimConsent.purpose]: 'TREAT',
-    [ClaimConsent.action]: 'LOINC|48765-2',
+    [ClaimConsent.actorRole]: EXAMPLE_HEALTHCARE_ACTOR_ROLE_PHYSICIAN,
+    [ClaimConsent.purpose]: EXAMPLE_CONSENT_PURPOSE_TREATMENT,
+    [ClaimConsent.action]: EXAMPLE_CLINICAL_SECTION_ALLERGIES,
     [ClaimConsent.decision]: 'permit',
   },
 } as const;

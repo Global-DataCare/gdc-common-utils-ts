@@ -1,9 +1,14 @@
+// Always create JSDoc, do not use strings inline in keys nor values, use types instead, and reuse the data test examples.
+import { CommunicationClaim } from '../src/models/interoperable-claims/communication-claims.js';
 import {
   buildDocumentReferenceFromCommunicationPayload,
   detectAttachmentKind,
 } from '../src/utils/communication-document-reference.js';
 
 describe('communication-document-reference utilities', () => {
+  // Good practice note:
+  // reusable `Communication.*` claim keys in test fixtures must come from
+  // `CommunicationClaim`.
   it('detects attachment kinds for fhir/pdf/png/jpg', () => {
     expect(detectAttachmentKind('application/fhir+json')).toBe('fhir');
     expect(detectAttachmentKind('application/pdf')).toBe('pdf');
@@ -23,7 +28,7 @@ describe('communication-document-reference utilities', () => {
     const communication = {
       resourceType: 'Communication',
       payload: [{ contentAttachment: { contentType: 'application/fhir+json', data, title: 'patient.json' } }],
-      meta: { claims: { 'Communication.subject': 'did:web:example.com:patient:1' } },
+      meta: { claims: { [CommunicationClaim.Subject]: 'did:web:example.com:patient:1' } },
     };
 
     const result = buildDocumentReferenceFromCommunicationPayload(communication, { mode: 'strict' });
@@ -42,7 +47,7 @@ describe('communication-document-reference utilities', () => {
     const communication = {
       resourceType: 'Communication',
       payload: [{ contentAttachment: { id: cid, contentType: 'application/pdf', data, title: 'report.pdf' } }],
-      meta: { claims: { 'Communication.subject': 'did:web:example.com:patient:2' } },
+      meta: { claims: { [CommunicationClaim.Subject]: 'did:web:example.com:patient:2' } },
     };
 
     const result = buildDocumentReferenceFromCommunicationPayload(communication, { mode: 'strict' });

@@ -1,4 +1,11 @@
+// Always create JSDoc, do not use strings inline in keys nor values, use types instead, and reuse the data test examples.
 import { Content } from './content';
+import {
+  ORGANIZATION_ACTIVATION_VC_TYPES,
+  REPRESENTATIVE_ACTIVATION_VC_TYPES,
+  W3cCredentialContexts,
+  W3cCredentialTypes,
+} from '../constants/verifiable-credentials';
 
 export type VpTokenHeader = {
   alg: string;
@@ -56,8 +63,8 @@ export function createVP(input?: Partial<VpTokenPayload>): VpTokenPayload {
     exp: input?.exp ?? ttl?.exp,
     nonce,
     vp: {
-      '@context': ['https://www.w3.org/2018/credentials/v1'],
-      type: ['VerifiablePresentation'],
+      '@context': [W3cCredentialContexts.V1],
+      type: [W3cCredentialTypes.VerifiablePresentation],
       holder: input?.vp?.holder || input?.iss || '',
       verifiableCredential: [],
       ...(input?.vp || {}),
@@ -171,7 +178,7 @@ export function getVpCredentialByAnyType(vpToken: string, acceptedTypes: string[
  * @param vpToken Compact VP token or raw JSON string.
  */
 export function getOrganizationCredentialFromVpToken(vpToken: string): VpCredential | undefined {
-  return getVpCredentialByAnyType(vpToken, ['OrganizationCredential', 'LegalOrganizationCredential']);
+  return getVpCredentialByAnyType(vpToken, [...ORGANIZATION_ACTIVATION_VC_TYPES]);
 }
 
 /**
@@ -180,7 +187,7 @@ export function getOrganizationCredentialFromVpToken(vpToken: string): VpCredent
  * @param vpToken Compact VP token or raw JSON string.
  */
 export function getLegalRepresentativeCredentialFromVpToken(vpToken: string): VpCredential | undefined {
-  return getVpCredentialByAnyType(vpToken, ['LegalRepresentativeCredential', 'PersonCredential']);
+  return getVpCredentialByAnyType(vpToken, [...REPRESENTATIVE_ACTIVATION_VC_TYPES]);
 }
 
 function vcHasAnyType(vcPayload: Record<string, unknown> | undefined, acceptedTypes: string[]): boolean {
@@ -207,11 +214,11 @@ function addTypedVC(
 }
 
 export function addOrganizationCredential(vpPayload: VpTokenPayload, vc: string): VpTokenPayload {
-  return addTypedVC(vpPayload, vc, ['OrganizationCredential', 'LegalOrganizationCredential'], 'Organization');
+  return addTypedVC(vpPayload, vc, [...ORGANIZATION_ACTIVATION_VC_TYPES], 'Organization');
 }
 
 export function addLegalRepresentativeCredential(vpPayload: VpTokenPayload, vc: string): VpTokenPayload {
-  return addTypedVC(vpPayload, vc, ['LegalRepresentativeCredential', 'PersonCredential'], 'LegalRepresentative');
+  return addTypedVC(vpPayload, vc, [...REPRESENTATIVE_ACTIVATION_VC_TYPES], 'LegalRepresentative');
 }
 
 export function prepareForSignature(header: VpTokenHeader, payload: VpTokenPayload): {

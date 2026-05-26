@@ -16,7 +16,26 @@
  *   organization activation and VC/member semantics, not to `owner.*` claims
  */
 
-import { EXAMPLE_EMAIL_CONTROLLER_INDIVIDUAL } from './shared';
+import type {
+  ExampleClinicalBundleSearchInput,
+  ExampleLatestIpsSearchInput,
+} from './shared';
+import {
+  EXAMPLE_API_ORGANIZATION_DID,
+  EXAMPLE_CLINICAL_CODE_PROBLEM,
+  EXAMPLE_CLINICAL_DATE_RANGE,
+  EXAMPLE_CLINICAL_SECTION_ALLERGIES,
+  EXAMPLE_CLINICAL_SECTION_PATIENT_SUMMARY,
+  EXAMPLE_CONSENT_PURPOSE_TREATMENT,
+  EXAMPLE_EMAIL_CONTROLLER_INDIVIDUAL,
+  EXAMPLE_GENERIC_SUBJECT_DID,
+  EXAMPLE_HEALTHCARE_ACTOR_ROLE_PHYSICIAN,
+  EXAMPLE_HEALTHCARE_JURISDICTION,
+  EXAMPLE_HEALTHCARE_ROLE_PHYSICIAN_TEXT,
+  EXAMPLE_PRACTITIONER_DID,
+  EXAMPLE_PROFESSIONAL_DID,
+  EXAMPLE_SUBJECT_DID,
+} from './shared';
 
 export const EXAMPLE_INDIVIDUAL_ORGANIZATION_START_INPUT = {
   alternateName: 'ana',
@@ -44,19 +63,19 @@ export const EXAMPLE_INDIVIDUAL_ORGANIZATION_ORDER_RESPONSE = {
 } as const;
 
 export const EXAMPLE_CONSENT_GRANT_INPUT = {
-  actor: 'did:web:practitioner.example,ES',
-  actorRole: 'physician',
-  purpose: 'TREAT',
+  actor: `${EXAMPLE_PRACTITIONER_DID},${EXAMPLE_HEALTHCARE_JURISDICTION}`,
+  actorRole: EXAMPLE_HEALTHCARE_ROLE_PHYSICIAN_TEXT,
+  purpose: EXAMPLE_CONSENT_PURPOSE_TREATMENT,
   actions: ['read'],
-  subjectDid: 'did:web:subject.example',
+  subjectDid: EXAMPLE_GENERIC_SUBJECT_DID,
 } as const;
 
 export const EXAMPLE_LIVE_CONSENT_GRANT_INPUT = {
-  subjectDid: 'did:web:api.acme.org:individual:123',
-  actor: { identifier: 'did:web:api.acme.org' },
-  actorRole: 'ISCO-08|2211',
-  purpose: 'TREAT',
-  actions: ['LOINC|48765-2'],
+  subjectDid: EXAMPLE_SUBJECT_DID,
+  actor: { identifier: EXAMPLE_API_ORGANIZATION_DID },
+  actorRole: EXAMPLE_HEALTHCARE_ACTOR_ROLE_PHYSICIAN,
+  purpose: EXAMPLE_CONSENT_PURPOSE_TREATMENT,
+  actions: [EXAMPLE_CLINICAL_SECTION_ALLERGIES],
 } as const;
 
 export const EXAMPLE_CONSENT_GRANT_RESPONSE = {
@@ -85,15 +104,15 @@ export const EXAMPLE_DIGITAL_TWIN_COMPOSITION_INPUT = {
   format: 'api',
 } as const;
 
-export const EXAMPLE_CLINICAL_BUNDLE_SEARCH_INPUT = {
-  subject: 'did:web:api.acme.org:individual:123',
-  section: ['LOINC|60591-5', 'LOINC|48765-2'],
+export const EXAMPLE_CLINICAL_BUNDLE_SEARCH_INPUT: ExampleClinicalBundleSearchInput = {
+  subject: EXAMPLE_SUBJECT_DID,
+  section: [EXAMPLE_CLINICAL_SECTION_PATIENT_SUMMARY, EXAMPLE_CLINICAL_SECTION_ALLERGIES],
   includedTypes: ['Composition', 'DocumentReference'],
-  date: { start: '2026-01-01', end: '2026-12-31' },
-  code: 'LOINC|11450-4',
-  author: 'did:web:api.acme.org:professional:1',
-} as const;
+  date: EXAMPLE_CLINICAL_DATE_RANGE,
+  code: EXAMPLE_CLINICAL_CODE_PROBLEM,
+  author: EXAMPLE_PROFESSIONAL_DID,
+};
 
-export const EXAMPLE_LATEST_IPS_SEARCH_INPUT = {
-  subject: 'did:web:api.acme.org:individual:123',
-} as const;
+export const EXAMPLE_LATEST_IPS_SEARCH_INPUT: ExampleLatestIpsSearchInput = {
+  subject: EXAMPLE_SUBJECT_DID,
+};

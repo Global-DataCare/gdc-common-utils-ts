@@ -1,5 +1,8 @@
+// Always create JSDoc, do not use strings inline in keys nor values, use types instead, and reuse the data test examples.
 import { sha256 } from '@noble/hashes/sha2.js';
 import { utf8ToBytes } from '@noble/hashes/utils.js';
+import { CommunicationClaim } from '../models/interoperable-claims/communication-claims';
+import { DocumentReferenceClaim } from '../models/interoperable-claims/document-reference-claims';
 import { encodeMultibase58btc } from './multibase58.js';
 import { canonicalizeFhirResource, fhirResourceToCid } from './fhir-cid.js';
 import { EvidenceObjectDLT } from '../models/oidc4ida.evidence.model';
@@ -175,16 +178,19 @@ export function buildDocumentReferenceFromCommunicationPayload(
     throw new Error('Unable to generate content CID from attachment.');
   }
 
-  const subject = communication?.meta?.claims?.['Communication.subject'];
+  // Good practice note:
+  // reusable Communication claim keys consumed here must come from
+  // `CommunicationClaim`, not re-hardcoded inline in readers/tests.
+  const subject = communication?.meta?.claims?.[CommunicationClaim.Subject];
   const documentReference: Record<string, any> = {
     resourceType: 'DocumentReference',
     status: 'current',
     meta: {
       versionId: contentCid,
       claims: {
-        'DocumentReference.subject': subject,
-        'DocumentReference.contenttype': contentType,
-        'DocumentReference.identifier': contentCid,
+        [DocumentReferenceClaim.Subject]: subject,
+        [DocumentReferenceClaim.ContentType]: contentType,
+        [DocumentReferenceClaim.Identifier]: contentCid,
       },
     },
     subject: subject ? { reference: subject } : undefined,

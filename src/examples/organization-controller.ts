@@ -1,15 +1,33 @@
 // Copyright 2026 Antifraud Services Inc. under the Apache License, Version 2.0.
+// Always create JSDoc, do not use strings inline in keys nor values, use types instead, and reuse the data test examples.
 
 import {
   ClaimsOrganizationSchemaorg,
   ClaimsPersonSchemaorg,
   ClaimsServiceSchemaorg,
 } from '../constants/schemaorg';
-import { EXAMPLE_CONTROLLER_BINDING } from './shared';
-import { EXAMPLE_SECTOR, EXAMPLE_JURISDICTION, EXAMPLE_EMAIL_CONTROLLER_ORG } from './shared';
+import {
+  ServiceCapabilityToken,
+  serializeServiceCapabilityTokens,
+} from '../constants/service-capabilities';
+import {
+  EXAMPLE_CONTROLLER_BINDING,
+  EXAMPLE_DEVICE_CLIENT_ID,
+  EXAMPLE_EMAIL_CONTROLLER_ORG,
+  EXAMPLE_EMPLOYEE_ACTIVATION_CODE,
+  EXAMPLE_HEALTHCARE_ACTOR_ROLE_RECEPTIONIST,
+  EXAMPLE_JURISDICTION,
+  EXAMPLE_ORGANIZATION_CONTROLLER_ROLE,
+  EXAMPLE_SECTOR,
+  EXAMPLE_SERVICE_PUBLIC_DID,
+} from './shared';
 
 /**
  * Examples for organization-controller and host-onboarding flows.
+ *
+ * Contract note:
+ * repeated synthetic DIDs, roles, and activation fixtures must come from
+ * `./shared`, never be re-hardcoded inline in public example payloads.
  */
 
 export const EXAMPLE_ACTIVATE_ORGANIZATION_FROM_ICA_PROOF_INPUT = {
@@ -23,10 +41,14 @@ export const EXAMPLE_ACTIVATE_ORGANIZATION_FROM_ICA_PROOF_INPUT = {
     [ClaimsOrganizationSchemaorg.addressCountry]: EXAMPLE_JURISDICTION,
     [ClaimsOrganizationSchemaorg.taxId]: 'VATES-B00112233',
     [ClaimsPersonSchemaorg.email]: EXAMPLE_EMAIL_CONTROLLER_ORG,
-    [ClaimsPersonSchemaorg.hasOccupationalRoleValue]: 'RESPRSN',
+    [ClaimsPersonSchemaorg.hasOccupationalRoleValue]: EXAMPLE_ORGANIZATION_CONTROLLER_ROLE,
     [ClaimsServiceSchemaorg.category]: EXAMPLE_SECTOR,
-    [ClaimsServiceSchemaorg.identifier]: 'did:web:public.acme.org',
+    [ClaimsServiceSchemaorg.identifier]: EXAMPLE_SERVICE_PUBLIC_DID,
     [ClaimsServiceSchemaorg.url]: `https://operator.example.net/acme/cds-${String(EXAMPLE_JURISDICTION).toLowerCase()}/v1/${EXAMPLE_SECTOR}`,
+    [ClaimsServiceSchemaorg.serviceType]: serializeServiceCapabilityTokens([
+      ServiceCapabilityToken.IndexingCruds,
+      ServiceCapabilityToken.DigitalTwinReadSearch,
+    ]),
   },
 } as const;
 
@@ -68,7 +90,7 @@ export const EXAMPLE_ORGANIZATION_EMPLOYEE_INPUT = {
   employeeClaims: {
     [ClaimsPersonSchemaorg.identifier]: 'urn:uuid:11b2c3d4-e5f6-7890-1234-567890abcdef',
     [ClaimsPersonSchemaorg.email]: 'receptionist1@acme.org',
-    [ClaimsPersonSchemaorg.hasOccupationalRoleValue]: 'ISCO-08|4226',
+    [ClaimsPersonSchemaorg.hasOccupationalRoleValue]: EXAMPLE_HEALTHCARE_ACTOR_ROLE_RECEPTIONIST,
   },
 } as const;
 
@@ -77,12 +99,12 @@ export const EXAMPLE_LIVE_EMPLOYEE_INPUT = {
     '@context': 'org.schema',
     [ClaimsPersonSchemaorg.identifier]: 'urn:uuid:11b2c3d4-e5f6-7890-1234-567890abcdef',
     [ClaimsPersonSchemaorg.email]: EXAMPLE_EMAIL_CONTROLLER_ORG,
-    [ClaimsPersonSchemaorg.hasOccupationalRoleValue]: 'RESPRSN',
+    [ClaimsPersonSchemaorg.hasOccupationalRoleValue]: EXAMPLE_ORGANIZATION_CONTROLLER_ROLE,
   },
 } as const;
 
 export const EXAMPLE_EMPLOYEE_DEVICE_ACTIVATION_INPUT = {
-  activationCode: 'ACT-001',
+  activationCode: EXAMPLE_EMPLOYEE_ACTIVATION_CODE,
   idToken: 'employee-id-token-001',
   dcrPayload: {
     application_type: 'web',
@@ -96,5 +118,5 @@ export const EXAMPLE_EMPLOYEE_DEVICE_EXCHANGE_RESPONSE = {
 
 export const EXAMPLE_EMPLOYEE_DEVICE_DCR_RESPONSE = {
   submit: { status: 202, body: {} },
-  poll: { status: 200, body: { body: { client_id: 'did:web:device-001' } }, attempts: 1 },
+  poll: { status: 200, body: { body: { client_id: EXAMPLE_DEVICE_CLIENT_ID } }, attempts: 1 },
 } as const;

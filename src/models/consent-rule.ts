@@ -4,6 +4,7 @@ export enum ClaimConsent {
     'decision' = 'Consent.decision',
     'action' = 'Consent.action',
     'category' = 'Consent.category',
+    'resourceType' = 'Consent.resourceType',
     'subject' = 'Consent.subject',
     'actorIdentifier' = 'Consent.actor-identifier',
     'actorRole' = 'Consent.actor-role',

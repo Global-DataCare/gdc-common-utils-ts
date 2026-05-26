@@ -18,6 +18,7 @@ import {
   EXAMPLE_CONSENT_ACCESS_RULES,
   EXAMPLE_CONSENT_ACCESS_SUBJECT,
 } from '../src/examples/consent-access';
+import { ClaimConsent } from '../src/models/consent-rule';
 import {
   HealthcareActorRoles,
   HealthcareBasicSections,
@@ -26,6 +27,9 @@ import {
 import { ResourceTypesFhirR4 } from '../src/constants/fhir-resource-types';
 
 describe('consent utilities', () => {
+  // This suite may use synthetic fixtures, but they must come from shared/example imports
+  // or be clearly local to the parser/normalizer behavior under test.
+  // Canonical consent claim keys must be referenced through `ClaimConsent`.
   it('resolves actor identifier with canonical-first precedence', () => {
     expect(resolveActorIdentifier({ identifier: 'did:web:clinic.example.com' })).toBe('did:web:clinic.example.com');
     expect(resolveActorIdentifier({ didWeb: 'did:web:hospital.example.com' })).toBe('did:web:hospital.example.com');
@@ -84,9 +88,9 @@ describe('consent utilities', () => {
 
     expect(built.actorIdentifier).toBe('hospital@example.com,ES');
     expect(built.subjectIdentifier).toBe('urn:person:phone:+34600111222:given:ana-maria');
-    expect(built.consentClaims['Consent.identifier']).toBe('urn:uuid:consent-123');
-    expect(built.consentClaims['Consent.action']).toBe('organization/Composition.rs,organization/Appointment.cruds');
-    expect(built.consentClaims['Consent.actor-identifier']).toBe('hospital@example.com,ES');
+    expect(built.consentClaims[ClaimConsent.identifier]).toBe('urn:uuid:consent-123');
+    expect(built.consentClaims[ClaimConsent.action]).toBe('organization/Composition.rs,organization/Appointment.cruds');
+    expect(built.consentClaims[ClaimConsent.actorIdentifier]).toBe('hospital@example.com,ES');
   });
 
   it('adds deterministic claims CID as @id', () => {

@@ -1,7 +1,12 @@
 // Copyright 2026 Conéctate Soluciones y Aplicaciones SL under the Apache License, Version 2.0.
 // File: src/utils/clinical-resource-converters.ts
+// Always create JSDoc, do not use strings inline in keys nor values, use types instead, and reuse the data test examples.
 
+import { AllergyIntoleranceClaim } from '../models/interoperable-claims/allergy-intolerance-claims';
+import { ConditionClaim } from '../models/interoperable-claims/condition-claims';
+import { DeviceUseStatementClaim } from '../models/interoperable-claims/device-use-statement-claims';
 import { DocumentReferenceClaim } from '../models/interoperable-claims/document-reference-claims';
+import { MedicationStatementClaim } from '../models/interoperable-claims/medication-statement-claims';
 
 export type FlatClaims = Record<string, string | undefined>;
 export type FhirResource = Record<string, unknown> & { resourceType: string };
@@ -50,15 +55,15 @@ function requireDidWeb(value: string, key: string): void {
  * @param claims Flat medication claims map.
  */
 export function medicationStatementFlatToFhir(claims: FlatClaims): FhirResource {
-  const subject = requireClaim(claims, 'MedicationStatement.subject');
-  const status = requireClaim(claims, 'MedicationStatement.status');
-  const effectiveDateTime = claims['MedicationStatement.effective'];
+  const subject = requireClaim(claims, MedicationStatementClaim.Subject);
+  const status = requireClaim(claims, MedicationStatementClaim.Status);
+  const effectiveDateTime = claims[MedicationStatementClaim.Effective];
 
-  const medicationText = claims['MedicationStatement.medication-text'];
+  const medicationText = claims[MedicationStatementClaim.MedicationText];
 
-  const medicationIdentifier = claims['MedicationStatement.medication-identifier'];
-  const medicationSerialNumber = claims['MedicationStatement.medication-serial-number'];
-  const medicationExpirationDate = claims['MedicationStatement.medication-expiration-date'];
+  const medicationIdentifier = claims[MedicationStatementClaim.MedicationIdentifier];
+  const medicationSerialNumber = claims[MedicationStatementClaim.MedicationSerialNumber];
+  const medicationExpirationDate = claims[MedicationStatementClaim.MedicationExpirationDate];
   const hasContainedMedication =
     Boolean(medicationIdentifier)
     || Boolean(medicationSerialNumber)
@@ -81,17 +86,17 @@ export function medicationStatementFlatToFhir(claims: FlatClaims): FhirResource 
     }
     : undefined;
 
-  const dosageInstructionText = claims['MedicationStatement.dosage-instruction'];
-  const noteText = claims['MedicationStatement.note'];
+  const dosageInstructionText = claims[MedicationStatementClaim.DosageInstruction];
+  const noteText = claims[MedicationStatementClaim.Note];
 
   return {
     resourceType: 'MedicationStatement',
-    identifier: claims['MedicationStatement.identifier'] ? [{ value: claims['MedicationStatement.identifier'] }] : undefined,
+    identifier: claims[MedicationStatementClaim.Identifier] ? [{ value: claims[MedicationStatementClaim.Identifier] }] : undefined,
     status,
     subject: { reference: subject },
     effectiveDateTime,
-    medicationCodeableConcept: claims['MedicationStatement.code']
-      ? { coding: codingFromValue(claims['MedicationStatement.code']) }
+    medicationCodeableConcept: claims[MedicationStatementClaim.Code]
+      ? { coding: codingFromValue(claims[MedicationStatementClaim.Code]) }
       : (!hasContainedMedication && medicationText ? { text: medicationText } : undefined),
     medicationReference: hasContainedMedication ? { reference: `#${containedMedicationId}` } : undefined,
     contained: containedMedication ? [containedMedication] : undefined,
@@ -124,17 +129,17 @@ export function medicationStatementFhirToFlat(resource: FhirResource): FlatClaim
     || undefined;
 
   return {
-    'MedicationStatement.identifier': (resource.identifier as Array<{ value?: string }> | undefined)?.[0]?.value,
-    'MedicationStatement.subject': (resource.subject as { reference?: string } | undefined)?.reference,
-    'MedicationStatement.status': resource.status as string | undefined,
-    'MedicationStatement.effective': resource.effectiveDateTime as string | undefined,
-    'MedicationStatement.code': medicationCode,
-    'MedicationStatement.medication-text': medicationText,
-    'MedicationStatement.note': noteText,
-    'MedicationStatement.dosage-instruction': dosageInstructionText,
-    'MedicationStatement.medication-identifier': containedMedicationIdentifier,
-    'MedicationStatement.medication-serial-number': batch?.lotNumber,
-    'MedicationStatement.medication-expiration-date': batch?.expirationDate,
+    [MedicationStatementClaim.Identifier]: (resource.identifier as Array<{ value?: string }> | undefined)?.[0]?.value,
+    [MedicationStatementClaim.Subject]: (resource.subject as { reference?: string } | undefined)?.reference,
+    [MedicationStatementClaim.Status]: resource.status as string | undefined,
+    [MedicationStatementClaim.Effective]: resource.effectiveDateTime as string | undefined,
+    [MedicationStatementClaim.Code]: medicationCode,
+    [MedicationStatementClaim.MedicationText]: medicationText,
+    [MedicationStatementClaim.Note]: noteText,
+    [MedicationStatementClaim.DosageInstruction]: dosageInstructionText,
+    [MedicationStatementClaim.MedicationIdentifier]: containedMedicationIdentifier,
+    [MedicationStatementClaim.MedicationSerialNumber]: batch?.lotNumber,
+    [MedicationStatementClaim.MedicationExpirationDate]: batch?.expirationDate,
   };
 }
 
@@ -144,27 +149,28 @@ export function medicationStatementFhirToFlat(resource: FhirResource): FlatClaim
  * @param claims Flat allergy/intolerance claims map.
  */
 export function allergyIntoleranceFlatToFhir(claims: FlatClaims): FhirResource {
-  const patient = claims['AllergyIntolerance.subject'] ?? claims['AllergyIntolerance.patient'];
+  const patient = claims[AllergyIntoleranceClaim.Subject] ?? claims[AllergyIntoleranceClaim.Patient];
+  const recorder = claims[AllergyIntoleranceClaim.Recorder];
   if (!patient) {
-    throw new Error('Missing required claim: AllergyIntolerance.subject');
+    throw new Error(`Missing required claim: ${AllergyIntoleranceClaim.Subject}`);
   }
-  requireSubjectIdentifier(patient, 'AllergyIntolerance.subject');
-  if (claims['AllergyIntolerance.recorder']) {
-    requireDidWeb(claims['AllergyIntolerance.recorder'], 'AllergyIntolerance.recorder');
+  requireSubjectIdentifier(patient, AllergyIntoleranceClaim.Subject);
+  if (recorder) {
+    requireDidWeb(recorder, AllergyIntoleranceClaim.Recorder);
   }
 
   return {
     resourceType: 'AllergyIntolerance',
-    identifier: claims['AllergyIntolerance.identifier'] ? [{ value: claims['AllergyIntolerance.identifier'] }] : undefined,
+    identifier: claims[AllergyIntoleranceClaim.Identifier] ? [{ value: claims[AllergyIntoleranceClaim.Identifier] }] : undefined,
     patient: { reference: patient },
-    code: claims['AllergyIntolerance.code'] ? { coding: codingFromValue(claims['AllergyIntolerance.code']) } : undefined,
-    clinicalStatus: claims['AllergyIntolerance.clinical-status']
-      ? { coding: [{ code: claims['AllergyIntolerance.clinical-status'] }] }
+    code: claims[AllergyIntoleranceClaim.Code] ? { coding: codingFromValue(claims[AllergyIntoleranceClaim.Code]) } : undefined,
+    clinicalStatus: claims[AllergyIntoleranceClaim.ClinicalStatus]
+      ? { coding: [{ code: claims[AllergyIntoleranceClaim.ClinicalStatus] }] }
       : undefined,
-    verificationStatus: claims['AllergyIntolerance.verification-status']
-      ? { coding: [{ code: claims['AllergyIntolerance.verification-status'] }] }
+    verificationStatus: claims[AllergyIntoleranceClaim.VerificationStatus]
+      ? { coding: [{ code: claims[AllergyIntoleranceClaim.VerificationStatus] }] }
       : undefined,
-    recorder: claims['AllergyIntolerance.recorder'] ? { reference: claims['AllergyIntolerance.recorder'] } : undefined,
+    recorder: recorder ? { reference: recorder } : undefined,
   };
 }
 
@@ -176,13 +182,13 @@ export function allergyIntoleranceFlatToFhir(claims: FlatClaims): FhirResource {
 export function allergyIntoleranceFhirToFlat(resource: FhirResource): FlatClaims {
   const subject = (resource.patient as { reference?: string } | undefined)?.reference;
   return {
-    'AllergyIntolerance.identifier': (resource.identifier as Array<{ value?: string }> | undefined)?.[0]?.value,
-    'AllergyIntolerance.subject': subject,
-    'AllergyIntolerance.patient': subject,
-    'AllergyIntolerance.code': codingToValue((resource.code as { coding?: Array<{ system?: string; code?: string }> } | undefined)?.coding?.[0]),
-    'AllergyIntolerance.clinical-status': (resource.clinicalStatus as { coding?: Array<{ code?: string }> } | undefined)?.coding?.[0]?.code,
-    'AllergyIntolerance.verification-status': (resource.verificationStatus as { coding?: Array<{ code?: string }> } | undefined)?.coding?.[0]?.code,
-    'AllergyIntolerance.recorder': (resource.recorder as { reference?: string } | undefined)?.reference,
+    [AllergyIntoleranceClaim.Identifier]: (resource.identifier as Array<{ value?: string }> | undefined)?.[0]?.value,
+    [AllergyIntoleranceClaim.Subject]: subject,
+    [AllergyIntoleranceClaim.Patient]: subject,
+    [AllergyIntoleranceClaim.Code]: codingToValue((resource.code as { coding?: Array<{ system?: string; code?: string }> } | undefined)?.coding?.[0]),
+    [AllergyIntoleranceClaim.ClinicalStatus]: (resource.clinicalStatus as { coding?: Array<{ code?: string }> } | undefined)?.coding?.[0]?.code,
+    [AllergyIntoleranceClaim.VerificationStatus]: (resource.verificationStatus as { coding?: Array<{ code?: string }> } | undefined)?.coding?.[0]?.code,
+    [AllergyIntoleranceClaim.Recorder]: (resource.recorder as { reference?: string } | undefined)?.reference,
   };
 }
 
@@ -192,15 +198,15 @@ export function allergyIntoleranceFhirToFlat(resource: FhirResource): FlatClaims
  * @param claims Flat condition claims map.
  */
 export function conditionFlatToFhir(claims: FlatClaims): FhirResource {
-  const subject = requireClaim(claims, 'Condition.subject');
+  const subject = requireClaim(claims, ConditionClaim.Subject);
 
   return {
     resourceType: 'Condition',
-    identifier: claims['Condition.identifier'] ? [{ value: claims['Condition.identifier'] }] : undefined,
+    identifier: claims[ConditionClaim.Identifier] ? [{ value: claims[ConditionClaim.Identifier] }] : undefined,
     subject: { reference: subject },
-    code: claims['Condition.code'] ? { coding: codingFromValue(claims['Condition.code']) } : undefined,
-    clinicalStatus: claims['Condition.clinical-status'] ? { coding: [{ code: claims['Condition.clinical-status'] }] } : undefined,
-    verificationStatus: claims['Condition.verification-status'] ? { coding: [{ code: claims['Condition.verification-status'] }] } : undefined,
+    code: claims[ConditionClaim.Code] ? { coding: codingFromValue(claims[ConditionClaim.Code]) } : undefined,
+    clinicalStatus: claims[ConditionClaim.ClinicalStatus] ? { coding: [{ code: claims[ConditionClaim.ClinicalStatus] }] } : undefined,
+    verificationStatus: claims[ConditionClaim.VerificationStatus] ? { coding: [{ code: claims[ConditionClaim.VerificationStatus] }] } : undefined,
   };
 }
 
@@ -211,11 +217,11 @@ export function conditionFlatToFhir(claims: FlatClaims): FhirResource {
  */
 export function conditionFhirToFlat(resource: FhirResource): FlatClaims {
   return {
-    'Condition.identifier': (resource.identifier as Array<{ value?: string }> | undefined)?.[0]?.value,
-    'Condition.subject': (resource.subject as { reference?: string } | undefined)?.reference,
-    'Condition.code': codingToValue((resource.code as { coding?: Array<{ system?: string; code?: string }> } | undefined)?.coding?.[0]),
-    'Condition.clinical-status': (resource.clinicalStatus as { coding?: Array<{ code?: string }> } | undefined)?.coding?.[0]?.code,
-    'Condition.verification-status': (resource.verificationStatus as { coding?: Array<{ code?: string }> } | undefined)?.coding?.[0]?.code,
+    [ConditionClaim.Identifier]: (resource.identifier as Array<{ value?: string }> | undefined)?.[0]?.value,
+    [ConditionClaim.Subject]: (resource.subject as { reference?: string } | undefined)?.reference,
+    [ConditionClaim.Code]: codingToValue((resource.code as { coding?: Array<{ system?: string; code?: string }> } | undefined)?.coding?.[0]),
+    [ConditionClaim.ClinicalStatus]: (resource.clinicalStatus as { coding?: Array<{ code?: string }> } | undefined)?.coding?.[0]?.code,
+    [ConditionClaim.VerificationStatus]: (resource.verificationStatus as { coding?: Array<{ code?: string }> } | undefined)?.coding?.[0]?.code,
   };
 }
 
@@ -225,18 +231,18 @@ export function conditionFhirToFlat(resource: FhirResource): FlatClaims {
  * @param claims Flat device-use claims map.
  */
 export function deviceUseStatementFlatToFhir(claims: FlatClaims): FhirResource {
-  const subject = requireClaim(claims, 'DeviceUseStatement.subject');
-  const device = requireClaim(claims, 'DeviceUseStatement.device');
-  const status = requireClaim(claims, 'DeviceUseStatement.status');
+  const subject = requireClaim(claims, DeviceUseStatementClaim.Subject);
+  const device = requireClaim(claims, DeviceUseStatementClaim.Device);
+  const status = requireClaim(claims, DeviceUseStatementClaim.Status);
 
   return {
     resourceType: 'DeviceUseStatement',
-    identifier: claims['DeviceUseStatement.identifier'] ? [{ value: claims['DeviceUseStatement.identifier'] }] : undefined,
+    identifier: claims[DeviceUseStatementClaim.Identifier] ? [{ value: claims[DeviceUseStatementClaim.Identifier] }] : undefined,
     subject: { reference: subject },
     device: { reference: device },
     status,
-    recordedOn: claims['DeviceUseStatement.recordedon'],
-    timingDateTime: claims['DeviceUseStatement.timing-datetime'],
+    recordedOn: claims[DeviceUseStatementClaim.RecordedOn],
+    timingDateTime: claims[DeviceUseStatementClaim.TimingDateTime],
   };
 }
 
@@ -247,12 +253,12 @@ export function deviceUseStatementFlatToFhir(claims: FlatClaims): FhirResource {
  */
 export function deviceUseStatementFhirToFlat(resource: FhirResource): FlatClaims {
   return {
-    'DeviceUseStatement.identifier': (resource.identifier as Array<{ value?: string }> | undefined)?.[0]?.value,
-    'DeviceUseStatement.subject': (resource.subject as { reference?: string } | undefined)?.reference,
-    'DeviceUseStatement.device': (resource.device as { reference?: string } | undefined)?.reference,
-    'DeviceUseStatement.status': resource.status as string | undefined,
-    'DeviceUseStatement.recordedon': resource.recordedOn as string | undefined,
-    'DeviceUseStatement.timing-datetime': resource.timingDateTime as string | undefined,
+    [DeviceUseStatementClaim.Identifier]: (resource.identifier as Array<{ value?: string }> | undefined)?.[0]?.value,
+    [DeviceUseStatementClaim.Subject]: (resource.subject as { reference?: string } | undefined)?.reference,
+    [DeviceUseStatementClaim.Device]: (resource.device as { reference?: string } | undefined)?.reference,
+    [DeviceUseStatementClaim.Status]: resource.status as string | undefined,
+    [DeviceUseStatementClaim.RecordedOn]: resource.recordedOn as string | undefined,
+    [DeviceUseStatementClaim.TimingDateTime]: resource.timingDateTime as string | undefined,
   };
 }
 

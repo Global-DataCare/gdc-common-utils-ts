@@ -12,7 +12,11 @@ import type {
   RelationshipPinVerifyInput,
 } from '../models/relationship-access';
 import { HealthcareConsentPurposes } from '../constants/healthcare';
-import { EXAMPLE_JURISDICTION, EXAMPLE_SECTOR } from './shared';
+import {
+  EXAMPLE_HEALTHCARE_ACTOR_ROLE_PHYSICIAN,
+  EXAMPLE_JURISDICTION,
+  EXAMPLE_SECTOR,
+} from './shared';
 import {
   EXAMPLE_EMAIL_PROFESSIONAL,
   EXAMPLE_EMAIL_RELATED_PERSON,
@@ -57,7 +61,7 @@ export const EXAMPLE_RELATIONSHIP_PROFESSIONAL_INVITATION_INPUT: RelationshipCha
   subjectKind: 'person',
   actorKind: 'professional',
   actorIdentifier: EXAMPLE_EMAIL_PROFESSIONAL,
-  actorRole: 'ISCO-08|2211',
+  actorRole: EXAMPLE_HEALTHCARE_ACTOR_ROLE_PHYSICIAN,
   deliveryChannel: 'email',
   deliveryTarget: EXAMPLE_EMAIL_PROFESSIONAL,
   purpose: HealthcareConsentPurposes.Treatment,
