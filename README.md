@@ -131,6 +131,8 @@ The canonical API contract should live in JSDoc on exported code. The README act
 ### Communication / document utilities
 
 - [`initializeCommunicationIdentity(...)`](src/utils/communication-identity.ts)
+  - bootstraps the technical communication profile identity for a device/app/channel runtime
+  - do not teach its `entityId` as if it were the legal organization id
   - Derives the technical ML-DSA/ML-KEM communication identity for a device, portal, or app profile and returns JOSE header templates for `meta.jws.protected` and `meta.jwe.header`.
   - Uses explicit `seedMaterial` for deterministic derivation. Without `seedMaterial`, it defaults to random generation. `mode = deterministic` requires `seedMaterial`.
 - [`buildOrganizationDidWeb(...)`, `buildProfessionalDidWeb(...)`, `buildIndividualDidWeb(...)`](src/utils/did.ts)
@@ -208,7 +210,7 @@ The canonical API contract should live in JSDoc on exported code. The README act
   - Shared route contexts, controller binding fragments, and reusable helper builders.
   - `tenantId` is modeled as an identifier-like route token (`acme-id`), not as a friendly alternate name.
 - [`docs/LIFECYCLE_101.md`](docs/LIFECYCLE_101.md)
-  - Copy/paste lifecycle guide "for torpes" with semantic rules and reusable placeholders.
+  - Copy/paste lifecycle `101` guide with semantic rules and reusable placeholders.
 
 ## Documentation Naming Rules
 

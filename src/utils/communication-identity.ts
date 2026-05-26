@@ -21,9 +21,21 @@ export type CommunicationIdentityBootstrapMode = 'deterministic' | 'random';
 
 export interface CommunicationIdentityBootstrapOptions {
   /**
-   * Stable logical identifier of the device/profile/app bootstrap context.
+   * Stable logical identifier of the technical communication profile.
    *
-   * This is metadata for the caller. It is not used as implicit seed material.
+   * This is not the legal organization id, not the tenant id, and not the
+   * human controller identity.
+   *
+   * Treat it as the id of the technical channel/runtime/device profile that
+   * owns the communication keys for this app/service.
+   *
+   * Good examples:
+   * - `portal.acme.org:acme-id:web-channel`
+   * - `portal.acme.org:acme-id:backend-runtime`
+   * - `mobile.acme.app:user-42:device-primary`
+   *
+   * This value is metadata for the caller. It is not used as implicit seed
+   * material.
    */
   entityId: string;
   /**
@@ -126,10 +138,17 @@ export interface CommunicationIdentityBootstrapResult {
  * human/person signing identity used for controller/professional/individual
  * authorization decisions.
  *
+ * Conceptual split:
+ * - `appId` identifies the application towards GW CORE headers/policy
+ * - `entityId` identifies the local technical communication profile that owns
+ *   transport keys
+ * - controller/professional/subject DIDs identify domain actors
+ *
  * The returned JOSE header templates match the current DIDComm metadata contract:
  * `meta.jws.protected` and `meta.jwe.header`.
  *
- * @param options.entityId Stable logical identity of the bootstrap context.
+ * @param options.entityId Stable logical identity of the technical
+ * communication profile or channel runtime.
  * @param options.seedMaterial Explicit seed material for deterministic derivation.
  * @param options.cryptography Stateless crypto engine implementation.
  * @param options.mode Deterministic or random seed derivation mode.
