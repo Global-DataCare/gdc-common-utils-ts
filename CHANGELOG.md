@@ -2,6 +2,26 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [1.7.1] - 2026-05-27
+
+### Added
+- Added `docs/VP_TOKEN_101.md` as the canonical step-by-step guide for building
+  ICA/GW `vp_token` proofs, including separate controller-onboarding and
+  software/runtime proof examples.
+
+### Changed
+- Extended `src/utils/vp-token.ts` so VP builders accept VC inputs as:
+  - compact JWT/JWS strings
+  - raw JSON strings
+  - direct VC JSON objects
+- Clarified JSDoc and examples around presenter-specific signing keys such as
+  `controllerSigningKeyId` and `runtimeSigningKeyId`.
+- Updated README links and VP-token tests to cover mixed compact/JSON VC inputs.
+
+### Testing
+- `npm test`
+- `npm run typecheck`
+
 ## [1.7.0] - 2026-05-26
 
 ### Added

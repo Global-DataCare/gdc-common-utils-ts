@@ -142,6 +142,8 @@ The canonical API contract should live in JSDoc on exported code. The README act
   - This is the preferred first scope to teach when the backend only needs subject-scoped read access.
 - [`getOrganizationCredentialFromVpToken(...)`, `getLegalRepresentativeCredentialFromVpToken(...)`](src/utils/vp-token.ts)
   - Extract typed VC objects from a VP token when GW/SDK flows carry canonical proof only in `vp_token`.
+- [`docs/VP_TOKEN_101.md`](docs/VP_TOKEN_101.md)
+  - Step-by-step guide for building the canonical compact `vp_token` string from organization and representative VCs.
 - [`validateCommunicationResourceFhirR4(...)`](src/utils/communication-fhir-r4.ts)
   - Validates FHIR R4 `Communication` resources.
 - [`transformCommunicationClaimsToResourceFhirR4(...)`](src/utils/communication-fhir-r4.ts)

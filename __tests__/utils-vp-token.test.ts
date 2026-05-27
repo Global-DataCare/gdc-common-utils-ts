@@ -49,6 +49,12 @@ describe('vp token utilities', () => {
     expect(vp.vp.verifiableCredential).toEqual(['eyJ.vc1.sig', 'eyJ.vc2.sig']);
   });
 
+  it('appends VC JSON objects without manual serialization', () => {
+    const vp = createVP({ iss: EXAMPLE_ICA_VP_ISSUER_DID });
+    addVC(vp, EXAMPLE_ICA_ORGANIZATION_CREDENTIAL);
+    expect(vp.vp.verifiableCredential).toEqual([EXAMPLE_ICA_ORGANIZATION_CREDENTIAL]);
+  });
+
   it('prepares base64url header.payload for external signing', () => {
     const header = { alg: 'ES256', typ: 'JWT', kid: 'did:web:example.com#k1' };
     const vp = createVP({ iss: EXAMPLE_ICA_VP_ISSUER_DID });
@@ -97,10 +103,24 @@ describe('vp token utilities', () => {
     expect(vp.vp.verifiableCredential).toHaveLength(2);
   });
 
+  it('adds mixed compact and JSON VC entries via addVCs', () => {
+    const vp = createVP({ iss: EXAMPLE_ICA_VP_ISSUER_DID });
+    addVCs(vp, [
+      vcJwt(ActivationCredentialTypes.OrganizationCredential),
+      EXAMPLE_ICA_LEGAL_REPRESENTATIVE_CREDENTIAL,
+    ]);
+    expect(vp.vp.verifiableCredential).toEqual([
+      expect.any(String),
+      EXAMPLE_ICA_LEGAL_REPRESENTATIVE_CREDENTIAL,
+    ]);
+  });
+
   it('validates organization credential type', () => {
     const vp = createVP({ iss: EXAMPLE_ICA_VP_ISSUER_DID });
     addOrganizationCredential(vp, vcJwt(ActivationCredentialTypes.OrganizationCredential));
     expect(vp.vp.verifiableCredential).toHaveLength(1);
+    addOrganizationCredential(vp, EXAMPLE_ICA_ORGANIZATION_CREDENTIAL);
+    expect(vp.vp.verifiableCredential).toHaveLength(2);
     expect(() => addOrganizationCredential(vp, vcJwt(ActivationCredentialTypes.LegalRepresentativeCredential))).toThrow(
       /Organization VC must include one of types/,
     );
@@ -110,6 +130,8 @@ describe('vp token utilities', () => {
     const vp = createVP({ iss: EXAMPLE_ICA_VP_ISSUER_DID });
     addLegalRepresentativeCredential(vp, vcJwt(ActivationCredentialTypes.LegalRepresentativeCredential));
     expect(vp.vp.verifiableCredential).toHaveLength(1);
+    addLegalRepresentativeCredential(vp, EXAMPLE_ICA_LEGAL_REPRESENTATIVE_CREDENTIAL);
+    expect(vp.vp.verifiableCredential).toHaveLength(2);
     expect(() => addLegalRepresentativeCredential(vp, vcJwt(ActivationCredentialTypes.OrganizationCredential))).toThrow(
       /LegalRepresentative VC must include one of types/,
     );

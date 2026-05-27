@@ -26,13 +26,14 @@ export type VpTokenPayload = {
     '@context'?: unknown;
     type?: unknown;
     holder?: string;
-    verifiableCredential: string[];
+    verifiableCredential: Array<string | Record<string, unknown>>;
     [key: string]: unknown;
   };
   [key: string]: unknown;
 };
 
 export type VpCredential = Record<string, unknown>;
+export type VpCredentialInput = string | Record<string, unknown>;
 
 function fallbackId(): string {
   const rand = Math.random().toString(36).slice(2, 10);
@@ -73,19 +74,52 @@ export function createVP(input?: Partial<VpTokenPayload>): VpTokenPayload {
   return base;
 }
 
-export function addVC(vpPayload: VpTokenPayload, vcJwt: string): VpTokenPayload {
-  const v = String(vcJwt || '').trim();
+/**
+ * Appends one VC entry to the VP payload.
+ *
+ * Accepted input forms:
+ *
+ * - compact VC JWT/JWS string
+ * - raw JSON VC string
+ * - direct VC JSON object
+ *
+ * Storage rule:
+ *
+ * - string inputs are stored as strings
+ * - object inputs are stored as objects
+ *
+ * This keeps the builder compatible with existing compact-token flows while
+ * also supporting app/runtime code that already holds the VC as parsed JSON.
+ */
+export function addVC(vpPayload: VpTokenPayload, vcInput: VpCredentialInput): VpTokenPayload {
+  if (vcInput && typeof vcInput === 'object') {
+    vpPayload.vp.verifiableCredential.push({ ...vcInput });
+    return vpPayload;
+  }
+  const v = String(vcInput || '').trim();
   if (!v) return vpPayload;
   vpPayload.vp.verifiableCredential.push(v);
   return vpPayload;
 }
 
-export function addVCs(vpPayload: VpTokenPayload, vcs: string[]): VpTokenPayload {
+/**
+ * Appends many VC entries to the VP payload.
+ *
+ * Each entry may be:
+ *
+ * - compact VC JWT/JWS string
+ * - raw JSON VC string
+ * - direct VC JSON object
+ */
+export function addVCs(vpPayload: VpTokenPayload, vcs: VpCredentialInput[]): VpTokenPayload {
   for (const vc of vcs || []) addVC(vpPayload, vc);
   return vpPayload;
 }
 
-function decodeVcPayload(vc: string): Record<string, unknown> | undefined {
+function decodeVcPayload(vc: VpCredentialInput): Record<string, unknown> | undefined {
+  if (vc && typeof vc === 'object') {
+    return vc;
+  }
   const raw = String(vc || '').trim();
   if (!raw) return undefined;
   if (raw.startsWith('{')) {
@@ -202,7 +236,7 @@ function vcHasAnyType(vcPayload: Record<string, unknown> | undefined, acceptedTy
 
 function addTypedVC(
   vpPayload: VpTokenPayload,
-  vc: string,
+  vc: VpCredentialInput,
   acceptedTypes: string[],
   label: string,
 ): VpTokenPayload {
@@ -213,11 +247,22 @@ function addTypedVC(
   return addVC(vpPayload, vc);
 }
 
-export function addOrganizationCredential(vpPayload: VpTokenPayload, vc: string): VpTokenPayload {
+/**
+ * Appends an organization activation credential after validating its VC type.
+ *
+ * Accepts compact VC strings, raw JSON VC strings, or VC JSON objects.
+ */
+export function addOrganizationCredential(vpPayload: VpTokenPayload, vc: VpCredentialInput): VpTokenPayload {
   return addTypedVC(vpPayload, vc, [...ORGANIZATION_ACTIVATION_VC_TYPES], 'Organization');
 }
 
-export function addLegalRepresentativeCredential(vpPayload: VpTokenPayload, vc: string): VpTokenPayload {
+/**
+ * Appends a legal-representative activation credential after validating its VC
+ * type.
+ *
+ * Accepts compact VC strings, raw JSON VC strings, or VC JSON objects.
+ */
+export function addLegalRepresentativeCredential(vpPayload: VpTokenPayload, vc: VpCredentialInput): VpTokenPayload {
   return addTypedVC(vpPayload, vc, [...REPRESENTATIVE_ACTIVATION_VC_TYPES], 'LegalRepresentative');
 }
 
