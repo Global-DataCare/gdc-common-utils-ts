@@ -1,6 +1,8 @@
 // Copyright 2026 Antifraud Services Inc. under the Apache License, Version 2.0.
 
-import { ActorKind, DidDocument, DidService, DidResolutionResult, ResolvedServiceEndpoint } from '../models/did';
+import type { ActorKind } from '../models/actor-session';
+import { DidDocument, DidService, DidResolutionResult, ResolvedServiceEndpoint } from '../models/did';
+import { ActorKinds } from '../constants/actor-session';
 import { DiscoveryCapabilities, DidServiceIds } from '../constants/did-services';
 
 /**
@@ -175,15 +177,15 @@ export function getActorKindFromDid(did: string): ActorKind | 'unknown' {
   if (!normalized) return 'unknown';
   if (normalized.includes(':employee:')) {
     return normalized.includes('resprsn') || normalized.includes('controller')
-      ? 'organization_controller'
-      : 'professional';
+      ? ActorKinds.OrganizationController
+      : ActorKinds.Professional;
   }
   if (normalized.includes(':family:') || normalized.includes(':member:')) {
     return normalized.includes('oneself') || normalized.includes('controller')
-      ? 'individual_controller'
-      : 'individual_member';
+      ? ActorKinds.IndividualController
+      : ActorKinds.IndividualMember;
   }
-  if (normalized.includes('host')) return 'host_onboarding';
+  if (normalized.includes('host')) return ActorKinds.HostOnboarding;
   return 'unknown';
 }
 

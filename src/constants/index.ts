@@ -1,3 +1,4 @@
+export * from './actor-session';
 export * from './communication';
 export * from './cryptography';
 export * from './device';

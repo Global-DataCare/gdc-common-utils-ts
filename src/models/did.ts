@@ -4,6 +4,8 @@
 import { PublicJwk } from "../interfaces/Cryptography.types";
 import { RecipientPublicKey } from "./crypto";
 import { JwkSet } from "./jwk";
+import type { ActorKind } from "./actor-session";
+export type { ActorKind } from "./actor-session";
 
 /**
  * The parameters required to construct a service endpoint selector.
@@ -80,14 +82,6 @@ export interface VerificationMethod extends RecipientPublicKey {
   controller: string; // e.g., did:web:example.com
   publicKeyJwk: PublicJwk;
 }
-
-export type ActorKind =
-  | 'host_onboarding'
-  | 'organization_controller'
-  | 'organization_employee'
-  | 'individual_controller'
-  | 'individual_member'
-  | 'professional';
 
 export interface ResolvedServiceEndpoint {
   id: string;

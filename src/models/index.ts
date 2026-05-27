@@ -1,3 +1,4 @@
+export * from './actor-session';
 export * from './aes';
 export * from './auth';
 export * from './bundle';
