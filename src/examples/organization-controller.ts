@@ -46,8 +46,8 @@ export const EXAMPLE_ACTIVATE_ORGANIZATION_FROM_ICA_PROOF_INPUT = {
     [ClaimsServiceSchemaorg.identifier]: EXAMPLE_SERVICE_PUBLIC_DID,
     [ClaimsServiceSchemaorg.url]: `https://operator.example.net/acme/cds-${String(EXAMPLE_JURISDICTION).toLowerCase()}/v1/${EXAMPLE_SECTOR}`,
     [ClaimsServiceSchemaorg.serviceType]: serializeServiceCapabilityTokens([
-      ServiceCapabilityToken.IndexingCruds,
-      ServiceCapabilityToken.DigitalTwinReadSearch,
+      ServiceCapabilityToken.IndexProvider,
+      ServiceCapabilityToken.DigitalTwinReader,
     ]),
   },
 } as const;

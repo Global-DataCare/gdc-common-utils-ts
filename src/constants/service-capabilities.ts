@@ -20,9 +20,25 @@ export type ServiceCapabilityFamilyValue =
  * `.rs` and `.cruds` can evolve independently across runtimes.
  */
 export const ServiceCapabilityToken = {
+  IndexReader: 'indexing.rs',
+  IndexProvider: 'indexing.cruds',
+  DigitalTwinReader: 'digitaltwin.rs',
+  DigitalTwinProvider: 'digitaltwin.cruds',
+  /**
+   * @deprecated Prefer `IndexReader`.
+   */
   IndexingReadSearch: 'indexing.rs',
+  /**
+   * @deprecated Prefer `IndexProvider`.
+   */
   IndexingCruds: 'indexing.cruds',
+  /**
+   * @deprecated Prefer `DigitalTwinReader`.
+   */
   DigitalTwinReadSearch: 'digitaltwin.rs',
+  /**
+   * @deprecated Prefer `DigitalTwinProvider`.
+   */
   DigitalTwinCruds: 'digitaltwin.cruds',
 } as const;
 
@@ -37,10 +53,18 @@ export type ServiceCapabilityTokenValue =
  * - `Reader` maps to read/search capability (`*.rs`)
  */
 export const ServiceCapability = {
-  IndexingProvider: ServiceCapabilityToken.IndexingCruds,
-  IndexingReader: ServiceCapabilityToken.IndexingReadSearch,
-  DigitalTwinProvider: ServiceCapabilityToken.DigitalTwinCruds,
-  DigitalTwinReader: ServiceCapabilityToken.DigitalTwinReadSearch,
+  IndexProvider: ServiceCapabilityToken.IndexProvider,
+  IndexReader: ServiceCapabilityToken.IndexReader,
+  DigitalTwinProvider: ServiceCapabilityToken.DigitalTwinProvider,
+  DigitalTwinReader: ServiceCapabilityToken.DigitalTwinReader,
+  /**
+   * @deprecated Prefer `IndexProvider`.
+   */
+  IndexingProvider: ServiceCapabilityToken.IndexProvider,
+  /**
+   * @deprecated Prefer `IndexReader`.
+   */
+  IndexingReader: ServiceCapabilityToken.IndexReader,
 } as const;
 
 export type ServiceCapabilityValue =

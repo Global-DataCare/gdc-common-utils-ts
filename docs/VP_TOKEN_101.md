@@ -77,6 +77,39 @@ For a software/runtime proof:
   - a raw JSON string
   - a JSON object that your app loaded from storage or an ICA response
 
+Minimal mockable JSON shape for that ICA-issued VC:
+
+```ts
+const softwareRuntimeDid = process.env.SOFTWARE_RUNTIME_DID || '';
+const softwareRuntimeName = process.env.SOFTWARE_RUNTIME_NAME || '';
+const softwareRuntimeUrl = process.env.SOFTWARE_RUNTIME_URL || '';
+const participantDid = process.env.PARTICIPANT_DID || '';
+const icaDid = process.env.ICA_DID || '';
+const didWebPortalCommunicationSigningKeyId =
+  process.env.DID_WEB_PORTAL_COMMUNICATION_SIGNING_KEY_ID || '';
+
+const softwareApplicationCredentialJson = {
+  '@context': [
+    'https://www.w3.org/2018/credentials/v1',
+    'https://schema.org',
+  ],
+  type: ['VerifiableCredential', 'SoftwareApplicationCredential'],
+  issuer: icaDid,
+  credentialSubject: {
+    '@type': 'SoftwareApplication',
+    id: softwareRuntimeDid,
+    name: softwareRuntimeName,
+    url: softwareRuntimeUrl,
+    sameAs: participantDid,
+    material: didWebPortalCommunicationSigningKeyId,
+  },
+};
+```
+
+Use this only as a temporary mock when ICA software/runtime registration is not
+implemented yet. Once ICA issues the real credential, load that VC instead of
+constructing one locally.
+
 Current helper rule:
 
 - `addVC(...)` and the typed helpers accept all three forms above
@@ -91,7 +124,12 @@ Helpers and constants used by the flow live in:
 
 ## 3. Build the VP payload
 
-Start from `createVP(...)`, then add the VCs.
+Do not mix the legal onboarding credentials with the software/runtime
+credential in the same VP.
+
+Use one VP shape per trust flow.
+
+### 3.1 Legal organization activation VP
 
 ```ts
 import {
@@ -112,21 +150,36 @@ addLegalRepresentativeCredential(vpPayload, legalRepresentativeCredentialJwt);
 
 At this point:
 
-- `vpPayload.vp.verifiableCredential[]` contains the appended credentials
+- `vpPayload.vp.verifiableCredential[]` contains the legal onboarding
+  credentials
 - the payload already includes `jti`, `nonce`, `iat`, and `exp` defaults unless
   you override them
 
-If your VC arrives as a JSON object instead of a compact JWT/JWS string:
+### 3.2 Software/runtime proof VP
 
 ```ts
-addVC(vpPayload, softwareApplicationCredentialJson);
+import { addVC, createVP } from 'gdc-common-utils-ts';
+
+const runtimeVpPayload = createVP({
+  iss: runtimeDid,
+  sub: runtimeDid,
+  aud: hostOperatorDid,
+});
+
+addVC(runtimeVpPayload, softwareApplicationCredentialJson);
 ```
 
-If your flow still persists JSON credentials as strings, that remains valid:
+If your flow still persists the software/runtime VC as a JSON string, that
+remains valid:
 
 ```ts
-addVC(vpPayload, JSON.stringify(softwareApplicationCredentialJson));
+addVC(runtimeVpPayload, JSON.stringify(softwareApplicationCredentialJson));
 ```
+
+At this point:
+
+- `runtimeVpPayload.vp.verifiableCredential[]` contains the software/runtime
+  credential only
 
 Downstream VP decoding supports:
 

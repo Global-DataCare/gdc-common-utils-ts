@@ -2,6 +2,30 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [1.10.0] - 2026-05-27
+
+### Added
+- Added clearer service-capability names for tenant activation and discovery:
+  - `ServiceCapabilityToken.IndexReader`
+  - `ServiceCapabilityToken.IndexProvider`
+  - `ServiceCapabilityToken.DigitalTwinReader`
+  - `ServiceCapabilityToken.DigitalTwinProvider`
+- Added backward-compatible deprecated aliases for the previous token names so
+  existing SDK and GW consumers keep working during migration.
+
+### Changed
+- Updated `docs/VP_TOKEN_101.md` so legal-organization and software/runtime VP
+  flows are documented separately and no longer appear mixed in one payload.
+- Added a mockable `SoftwareApplication` VC example with
+  `schema.org/SoftwareApplication` semantics and communication-key binding
+  guidance for current ICA runtime-proof work.
+- Updated shared organization-controller examples to use the clearer capability
+  names.
+
+### Testing
+- `npm test`
+- `npm run typecheck`
+
 ## [1.7.1] - 2026-05-27
 
 ### Added
