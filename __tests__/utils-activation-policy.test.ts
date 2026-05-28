@@ -6,25 +6,25 @@ import {
   validateActivationRepresentativePolicy,
 } from '../src/utils/activation-policy';
 import {
-  EXAMPLE_ICA_LEGAL_REPRESENTATIVE_CREDENTIAL,
-  EXAMPLE_ICA_ORGANIZATION_CREDENTIAL,
-  EXAMPLE_ICA_ORGANIZATION_TAX_ID,
-  EXAMPLE_ICA_REPRESENTATIVE_BINDING_MATERIAL,
-  EXAMPLE_ICA_REPRESENTATIVE_ROLE_CODE,
+  EXAMPLE_ORGANIZATION_TAX_ID,
+  EXAMPLE_ORG_ACTIVATION_LEGAL_REPRESENTATIVE_CREDENTIAL,
+  EXAMPLE_ORG_ACTIVATION_ORGANIZATION_CREDENTIAL,
+  EXAMPLE_REPRESENTATIVE_BINDING_MATERIAL,
+  EXAMPLE_REPRESENTATIVE_ROLE_CODE,
 } from '../src/examples/ica-activation-proof';
 
 describe('Activation Policy Utils', () => {
   // This suite must reuse the shared synthetic ICA activation fixtures unless a
   // test needs a locally-mutated variant to exercise a specific parser/policy branch.
-  const organizationCredential = EXAMPLE_ICA_ORGANIZATION_CREDENTIAL;
+  const organizationCredential = EXAMPLE_ORG_ACTIVATION_ORGANIZATION_CREDENTIAL;
 
   const representativeCredential = {
-    ...EXAMPLE_ICA_LEGAL_REPRESENTATIVE_CREDENTIAL,
+    ...EXAMPLE_ORG_ACTIVATION_LEGAL_REPRESENTATIVE_CREDENTIAL,
     credentialSubject: {
-      ...EXAMPLE_ICA_LEGAL_REPRESENTATIVE_CREDENTIAL.credentialSubject,
+      ...EXAMPLE_ORG_ACTIVATION_LEGAL_REPRESENTATIVE_CREDENTIAL.credentialSubject,
       id: 'did:web:provider.example:organization:taxid:ESB00112233:member:zabc:RESPRSN',
-      memberOf: { taxID: EXAMPLE_ICA_ORGANIZATION_TAX_ID.toLowerCase() },
-      hasCredential: { material: EXAMPLE_ICA_REPRESENTATIVE_BINDING_MATERIAL },
+      memberOf: { taxID: EXAMPLE_ORGANIZATION_TAX_ID.toLowerCase() },
+      hasCredential: { material: EXAMPLE_REPRESENTATIVE_BINDING_MATERIAL },
     },
   };
 
@@ -58,9 +58,9 @@ describe('Activation Policy Utils', () => {
       representativeCredential: {
         credentialSubject: {
           id: 'did:web:provider.example:organization:taxid:ESB00112233:member:zabc:RESPRSN',
-          memberOf: { taxID: EXAMPLE_ICA_ORGANIZATION_TAX_ID },
-          hasOccupation: { identifier: `v3-RoleCode|${EXAMPLE_ICA_REPRESENTATIVE_ROLE_CODE}` },
-          hasCredential: { material: EXAMPLE_ICA_REPRESENTATIVE_BINDING_MATERIAL },
+          memberOf: { taxID: EXAMPLE_ORGANIZATION_TAX_ID },
+          hasOccupation: { identifier: `v3-RoleCode|${EXAMPLE_REPRESENTATIVE_ROLE_CODE}` },
+          hasCredential: { material: EXAMPLE_REPRESENTATIVE_BINDING_MATERIAL },
         },
       },
     });
@@ -73,9 +73,9 @@ describe('Activation Policy Utils', () => {
       representativeCredential: {
         credentialSubject: {
           id: 'did:web:provider.example:organization:taxid:ESB00112233:member:zabc:RESPRSN',
-          memberOf: { taxID: EXAMPLE_ICA_ORGANIZATION_TAX_ID },
-          hasOccupation: { identifier: { value: EXAMPLE_ICA_REPRESENTATIVE_ROLE_CODE } },
-          hasCredential: { identifier: { value: EXAMPLE_ICA_REPRESENTATIVE_BINDING_MATERIAL } },
+          memberOf: { taxID: EXAMPLE_ORGANIZATION_TAX_ID },
+          hasOccupation: { identifier: { value: EXAMPLE_REPRESENTATIVE_ROLE_CODE } },
+          hasCredential: { identifier: { value: EXAMPLE_REPRESENTATIVE_BINDING_MATERIAL } },
         },
       },
     });

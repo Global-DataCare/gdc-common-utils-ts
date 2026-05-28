@@ -17,7 +17,7 @@ Do not mix these planes when reading or documenting the flow:
 
 - transport plane: deployment-specific channel protection such as mTLS,
   gateway policy, or session auth
-- identity/business plane: controller, member, or software/runtime proof
+- identity/business plane: controller, member, or app-service proof
   carried through VC and `vp_token`
 - operator/hosting plane: host onboarding routing, trust-network selection,
   and node/operator lifecycle
@@ -43,7 +43,38 @@ Do not pass:
 
 The runtime wants the final compact VP token string.
 
-## 2. Which VCs go into the VP
+## 2. Choose the proof flow first
+
+Before deciding which VC goes into the VP, decide which trust flow you are
+implementing.
+
+### 2.1 Legal organization onboarding
+
+Use this flow when:
+
+- a legal organization is registering in a hosting operator
+- the proof must identify the organization and its legal representative
+- you are calling legal-organization activation such as `_activate`
+
+This flow is relevant for most tenant onboarding integrations.
+
+### 2.2 Software application communication proof
+
+Use this flow when:
+
+- the portal backend, app, or device software itself must be recognized as an
+  authorized participant application
+- the proof must identify the software/application, not the legal
+  representative
+- you are modeling a `SoftwareApplication` credential bound to a communication
+  signing key
+
+If your current integration only needs legal-organization onboarding, skip this
+software/application flow for now.
+
+## 3. Which VCs go into the VP
+
+### 3.1 Legal organization onboarding VP
 
 For the current ICA activation baseline, the VP normally contains:
 
@@ -58,17 +89,88 @@ This guide assumes the VC artifacts already exist.
 
 It does not create or issue VCs.
 
-Your app/runtime should receive or load existing VC JWTs such as:
+Your app should receive or load existing VC JWTs such as:
 
 - `organizationCredentialJwt`
 - `legalRepresentativeCredentialJwt`
+
+For this legal onboarding VP, the presenter is the controller/legal
+representative side.
+
+Important distinction:
+
+- the current shared fixtures use synthetic wallet-signing and host envelope ids
+- the actual business anchor of the onboarding subject is the organization
+  `taxID` carried inside the organization credential
+- the organization does not necessarily have a DID document published in the
+  hosting operator yet at this stage
+- the controller does not necessarily have a stable organization-bound DID in
+  the hosting operator yet either
+
+So, for legal onboarding, keep these two layers separate:
+
+1. presentation envelope
+   who signed or presented the VP, and who must verify it
+2. business subject
+   which organization is being registered
+
+Current shared fixture values from
+[`src/examples/ica-activation-proof.ts`](../src/examples/ica-activation-proof.ts):
+
+```ts
+const legalOnboardingVpPayload = createVP({
+  iss: EXAMPLE_PRESENTATION_SIGNER_KEY_ID,
+  sub: EXAMPLE_ORGANIZATION_TAX_ID,
+  aud: EXAMPLE_PRESENTATION_AUDIENCE_HOST_ID,
+});
+```
+
+Those fixture values currently mean:
+
+- `iss`
+  synthetic wallet signing key id used as the presentation issuer in the
+  example VP envelope
+- `sub`
+  organization tax ID used as the onboarding business subject in the example
+  fixture
+- `aud`
+  synthetic host/operator verifier id used in the example fixture
+
+Do not over-read those fixture values as business truth. What matters for the
+current onboarding payload is:
+
+- the organization identity is proven by the embedded organization credential
+- the business anchor is the organization `taxID`
+- the representative binding is proven by the embedded representative
+  credential, especially `hasCredential.material`
+
+So the safest current reading is:
+
+- `presentationSignerKeyId`
+  the controller-side wallet key that signs the VP JWS header (`kid`)
+- `presentationSubjectTaxId`
+  the organization tax ID carried by the organization credential
+- `presentationAudienceHostId`
+  the hosting operator / GW verifier identity
+
+If your integration already knows the concrete envelope values expected by your
+ICA/GW profile, use those values there. If not, follow the existing fixture
+shape but do not confuse:
+
+- JWS header `kid`
+- VP envelope fields such as `iss/sub/aud`
+- organization tax ID from the embedded VC
+
+### 3.2 Software application communication VP
+
+Your app should receive or load the already-issued software/application VC such
+as:
+
 - `softwareApplicationCredentialJwt`
 
-depending on the flow being assembled.
+For an app-service proof:
 
-For a software/runtime proof:
-
-- the VP should carry the already-issued software/runtime VC from ICA
+- the VP should carry the already-issued software/application VC from ICA
 - the SDK/app should not fabricate that VC locally
 - the app may still be responsible for assembling the VP and producing the
   compact `vp_token` string from that existing VC
@@ -80,9 +182,9 @@ For a software/runtime proof:
 Minimal mockable JSON shape for that ICA-issued VC:
 
 ```ts
-const softwareRuntimeDid = process.env.SOFTWARE_RUNTIME_DID || '';
-const softwareRuntimeName = process.env.SOFTWARE_RUNTIME_NAME || '';
-const softwareRuntimeUrl = process.env.SOFTWARE_RUNTIME_URL || '';
+const appServiceDid = process.env.APP_SERVICE_DID || '';
+const appServiceName = process.env.APP_SERVICE_NAME || '';
+const appServiceUrl = process.env.APP_SERVICE_URL || '';
 const participantDid = process.env.PARTICIPANT_DID || '';
 const icaDid = process.env.ICA_DID || '';
 const didWebPortalCommunicationSigningKeyId =
@@ -97,16 +199,16 @@ const softwareApplicationCredentialJson = {
   issuer: icaDid,
   credentialSubject: {
     '@type': 'SoftwareApplication',
-    id: softwareRuntimeDid,
-    name: softwareRuntimeName,
-    url: softwareRuntimeUrl,
+    id: appServiceDid,
+    name: appServiceName,
+    url: appServiceUrl,
     sameAs: participantDid,
     material: didWebPortalCommunicationSigningKeyId,
   },
 };
 ```
 
-Use this only as a temporary mock when ICA software/runtime registration is not
+Use this only as a temporary mock when ICA software/application registration is not
 implemented yet. Once ICA issues the real credential, load that VC instead of
 constructing one locally.
 
@@ -122,26 +224,29 @@ Helpers and constants used by the flow live in:
 - [`src/utils/vp-token.ts`](../src/utils/vp-token.ts)
 - [`src/constants/verifiable-credentials.ts`](../src/constants/verifiable-credentials.ts)
 
-## 3. Build the VP payload
+## 4. Build the VP payload
 
-Do not mix the legal onboarding credentials with the software/runtime
+Do not mix the legal onboarding credentials with the software/application
 credential in the same VP.
 
 Use one VP shape per trust flow.
 
-### 3.1 Legal organization activation VP
+### 4.1 Legal organization activation VP
 
 ```ts
 import {
   addLegalRepresentativeCredential,
   addOrganizationCredential,
+  EXAMPLE_ORGANIZATION_TAX_ID,
+  EXAMPLE_PRESENTATION_AUDIENCE_HOST_ID,
+  EXAMPLE_PRESENTATION_SIGNER_KEY_ID,
   createVP,
 } from 'gdc-common-utils-ts';
 
 const vpPayload = createVP({
-  iss: vpIssuerDid,
-  sub: vpSubjectDid,
-  aud: vpAudienceDid,
+  iss: EXAMPLE_PRESENTATION_SIGNER_KEY_ID,
+  sub: EXAMPLE_ORGANIZATION_TAX_ID,
+  aud: EXAMPLE_PRESENTATION_AUDIENCE_HOST_ID,
 });
 
 addOrganizationCredential(vpPayload, organizationCredentialJwt);
@@ -155,30 +260,35 @@ At this point:
 - the payload already includes `jti`, `nonce`, `iat`, and `exp` defaults unless
   you override them
 
-### 3.2 Software/runtime proof VP
+### 4.2 App-service proof VP
 
 ```ts
 import { addVC, createVP } from 'gdc-common-utils-ts';
 
-const runtimeVpPayload = createVP({
-  iss: runtimeDid,
-  sub: runtimeDid,
-  aud: hostOperatorDid,
+const appServiceContext = {
+  appServiceDid,
+  hostOperatorId,
+};
+
+const appServiceVpPayload = createVP({
+  iss: appServiceContext.appServiceDid,
+  sub: appServiceContext.appServiceDid,
+  aud: appServiceContext.hostOperatorId,
 });
 
-addVC(runtimeVpPayload, softwareApplicationCredentialJson);
+addVC(appServiceVpPayload, softwareApplicationCredentialJson);
 ```
 
-If your flow still persists the software/runtime VC as a JSON string, that
+If your flow still persists the software/application VC as a JSON string, that
 remains valid:
 
 ```ts
-addVC(runtimeVpPayload, JSON.stringify(softwareApplicationCredentialJson));
+addVC(appServiceVpPayload, JSON.stringify(softwareApplicationCredentialJson));
 ```
 
 At this point:
 
-- `runtimeVpPayload.vp.verifiableCredential[]` contains the software/runtime
+- `appServiceVpPayload.vp.verifiableCredential[]` contains the software/application
   credential only
 
 Downstream VP decoding supports:
@@ -187,7 +297,7 @@ Downstream VP decoding supports:
 - raw JSON VC strings
 - direct VC objects
 
-## 4. Prepare the bytes that must be signed
+## 5. Prepare the bytes that must be signed
 
 The VP token is a compact JWS/JWT-like string.
 
@@ -200,12 +310,14 @@ Use the helper:
 ```ts
 import { prepareForSignature } from 'gdc-common-utils-ts';
 
-const controllerSigningKeyId = 'did:web:controller.example.org#signing-key-1';
+const presentationSignerKeyId =
+  process.env.PRESENTATION_SIGNER_KEY_ID
+  || 'urn:ietf:params:oauth:jwk-thumbprint:sha-256:Q0ZfM0V4YW1wbGVUaHVtYnByaW50X2Jhc2U2NHVybA';
 
 const header = {
   alg: signatureAlg,
   typ: 'JWT',
-  kid: controllerSigningKeyId,
+  kid: presentationSignerKeyId,
 };
 
 const prepared = prepareForSignature(header, vpPayload);
@@ -225,17 +337,26 @@ const signingBytes = prepareBytesForSignature(header, vpPayload);
 
 The `kid` always identifies the signing key used by the current presenter.
 
+If your key-management layer uses RFC 7638 JWK thumbprints as `kid`, prefer the
+normalized form:
+
+- `urn:ietf:params:oauth:jwk-thumbprint:sha-256:<base64url>`
+
+In `gdc-common-utils-ts`, the exported prefix constant is:
+
+- `UrnPrefixes.JwkThumbprintSha256KeyId`
+
 That presenter changes by flow:
 
 - legal organization onboarding normally uses a controller-side signing key
-- software/runtime trust flows normally use a runtime or device signing key
+- app-service trust flows normally use an app-service or device signing key
 
 Recommended variable names:
 
-- `controllerSigningKeyId` for legal onboarding
-- `runtimeSigningKeyId` for software/runtime trust flows
+- `presentationSignerKeyId` or `controllerWalletSigningKeyId` for legal onboarding
+- `appServiceSigningKeyId` for app-service trust flows
 
-## 5. Sign externally
+## 6. Sign externally
 
 The actual signature step depends on your signer:
 
@@ -264,7 +385,7 @@ Example placeholder:
 const signatureBase64Url = await externalSigner.signBase64Url(prepared.signingInput);
 ```
 
-## 6. Build the final compact token
+## 7. Build the final compact token
 
 Once you have:
 
@@ -290,7 +411,7 @@ Result:
 
 That string is the artifact you persist when you want the final canonical proof.
 
-## 7. Pass it to the SDK
+## 8. Pass it to the SDK
 
 The Node SDK activation call expects exactly that compact string:
 
@@ -316,7 +437,7 @@ The runtime forwards it as:
 }
 ```
 
-## 8. Extract credentials back from a VP token
+## 9. Extract credentials back from a VP token
 
 When the flow only gives you `vp_token`, use the extraction helpers:
 
@@ -332,37 +453,39 @@ const organizationCredential = getOrganizationCredentialFromVpToken(vpToken);
 const legalRepresentativeCredential = getLegalRepresentativeCredentialFromVpToken(vpToken);
 ```
 
-## 9. Minimal end-to-end examples
+## 10. Minimal end-to-end examples
 
-### 9.1 Legal organization activation proof
+### 10.1 Legal organization activation proof
 
 ```ts
 import {
-  EXAMPLE_ICA_VP_AUDIENCE_DID,
-  EXAMPLE_ICA_VP_ISSUER_DID,
+  EXAMPLE_ORGANIZATION_TAX_ID,
+  EXAMPLE_PRESENTATION_AUDIENCE_HOST_ID,
+  EXAMPLE_PRESENTATION_SIGNER_KEY_ID,
   addLegalRepresentativeCredential,
   addOrganizationCredential,
   buildVpTokenCompact,
   createVP,
-  EXAMPLE_ICA_LEGAL_REPRESENTATIVE_CREDENTIAL,
-  EXAMPLE_ICA_ORGANIZATION_CREDENTIAL,
+  EXAMPLE_ORG_ACTIVATION_LEGAL_REPRESENTATIVE_CREDENTIAL,
+  EXAMPLE_ORG_ACTIVATION_ORGANIZATION_CREDENTIAL,
   prepareForSignature,
 } from 'gdc-common-utils-ts';
 
 const sessionContext = {
-  controllerDid: EXAMPLE_ICA_VP_ISSUER_DID,
-  controllerSigningKeyId: `${EXAMPLE_ICA_VP_ISSUER_DID}#controller-sig-kid`,
+  presentationSignerKeyId: EXAMPLE_PRESENTATION_SIGNER_KEY_ID,
+  hostOperatorId: EXAMPLE_PRESENTATION_AUDIENCE_HOST_ID,
+  organizationTaxId: EXAMPLE_ORGANIZATION_TAX_ID,
 };
 
 const onboardingProof = {
-  organizationCredential: EXAMPLE_ICA_ORGANIZATION_CREDENTIAL,
-  legalRepresentativeCredential: EXAMPLE_ICA_LEGAL_REPRESENTATIVE_CREDENTIAL,
+  organizationCredential: EXAMPLE_ORG_ACTIVATION_ORGANIZATION_CREDENTIAL,
+  legalRepresentativeCredential: EXAMPLE_ORG_ACTIVATION_LEGAL_REPRESENTATIVE_CREDENTIAL,
 };
 
 const vpPayload = createVP({
-  iss: sessionContext.controllerDid,
-  sub: sessionContext.controllerDid,
-  aud: EXAMPLE_ICA_VP_AUDIENCE_DID,
+  iss: sessionContext.presentationSignerKeyId,
+  sub: sessionContext.organizationTaxId,
+  aud: sessionContext.hostOperatorId,
 });
 
 addOrganizationCredential(
@@ -377,7 +500,7 @@ addLegalRepresentativeCredential(
 const header = {
   alg: 'ES384',
   typ: 'JWT',
-  kid: sessionContext.controllerSigningKeyId,
+  kid: sessionContext.presentationSignerKeyId,
 };
 
 const prepared = prepareForSignature(header, vpPayload);
@@ -390,7 +513,7 @@ const vpToken = buildVpTokenCompact(
 );
 ```
 
-### 9.2 Software/runtime communication proof
+### 10.2 App-service communication proof
 
 ```ts
 import {
@@ -400,16 +523,16 @@ import {
   prepareForSignature,
 } from 'gdc-common-utils-ts';
 
-const runtimeContext = {
-  runtimeDid,
-  runtimeSigningKeyId: `${runtimeDid}#communication-signing-key`,
-  hostOperatorDid,
+const appServiceContext = {
+  appServiceDid,
+  appServiceSigningKeyId: `${appServiceDid}#communication-signing-key`,
+  hostOperatorId,
 };
 
 const vpPayload = createVP({
-  iss: runtimeContext.runtimeDid,
-  sub: runtimeContext.runtimeDid,
-  aud: runtimeContext.hostOperatorDid,
+  iss: appServiceContext.appServiceDid,
+  sub: appServiceContext.appServiceDid,
+  aud: appServiceContext.hostOperatorId,
 });
 
 addVC(vpPayload, softwareApplicationCredential);
@@ -417,20 +540,20 @@ addVC(vpPayload, softwareApplicationCredential);
 const header = {
   alg: signatureAlg,
   typ: 'JWT',
-  kid: runtimeContext.runtimeSigningKeyId,
+  kid: appServiceContext.appServiceSigningKeyId,
 };
 
 const prepared = prepareForSignature(header, vpPayload);
-const signatureBase64Url = await runtimeSigner.signBase64Url(prepared.signingInput);
+const signatureBase64Url = await appServiceSigner.signBase64Url(prepared.signingInput);
 
-const runtimeVpToken = buildVpTokenCompact(
+const appServiceVpToken = buildVpTokenCompact(
   prepared.encodedHeader,
   prepared.encodedPayload,
   signatureBase64Url,
 );
 ```
 
-## 10. Common mistakes
+## 11. Common mistakes
 
 - Persisting only the organization VC and later trying to pass that VC string
   as `vpToken`
@@ -449,7 +572,7 @@ const runtimeVpToken = buildVpTokenCompact(
 - Reusing controller-oriented variable names for runtime/software trust flows,
   or runtime-oriented names for controller onboarding flows
 
-## 11. Where to link from other docs
+## 12. Where to link from other docs
 
 When another guide needs the proof-building details, link this file instead of
 repeating the whole procedure inline.

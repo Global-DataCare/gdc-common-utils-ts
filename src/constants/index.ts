@@ -14,4 +14,5 @@ export * from './network';
 export * from './sectors';
 export * from './smart';
 export * from './service-capabilities';
+export * from './urn';
 export * from './verifiable-credentials';

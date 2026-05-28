@@ -5,13 +5,13 @@ import {
   W3cCredentialTypes,
 } from '../src/constants/verifiable-credentials.js';
 import {
-  EXAMPLE_ICA_ACTIVATION_VP_PAYLOAD,
-  EXAMPLE_ICA_LEGAL_REPRESENTATIVE_CREDENTIAL,
-  EXAMPLE_ICA_ORGANIZATION_CREDENTIAL,
-  EXAMPLE_ICA_ORGANIZATION_DID,
-  EXAMPLE_ICA_ORGANIZATION_TAX_ID,
-  EXAMPLE_ICA_REPRESENTATIVE_DID,
-  EXAMPLE_ICA_VP_ISSUER_DID,
+  EXAMPLE_ORGANIZATION_ID,
+  EXAMPLE_ORGANIZATION_TAX_ID,
+  EXAMPLE_ORG_ACTIVATION_LEGAL_REPRESENTATIVE_CREDENTIAL,
+  EXAMPLE_ORG_ACTIVATION_ORGANIZATION_CREDENTIAL,
+  EXAMPLE_ORG_ACTIVATION_PROOF_VP_PAYLOAD,
+  EXAMPLE_PRESENTATION_SIGNER_KEY_ID,
+  EXAMPLE_REPRESENTATIVE_KEY_ID,
 } from '../src/examples/ica-activation-proof.js';
 import {
   addVC,
@@ -21,10 +21,10 @@ import {
   buildEpochWindow,
   buildVpTokenCompact,
   createVP,
+  generateUuidLike,
   getLegalRepresentativeCredentialFromVpToken,
   getOrganizationCredentialFromVpToken,
   getVpCredentials,
-  generateUuidLike,
   prepareBytesForSignature,
   prepareForSignature,
 } from '../src/utils/vp-token.js';
@@ -40,24 +40,24 @@ function vcJwt(type: string): string {
 
 describe('vp token utilities', () => {
   // This suite must reuse shared synthetic VP/VC fixtures and credential-type
-  // constants. Do not re-hardcode issuer DIDs or activation VC subtype names
+  // constants. Do not re-hardcode signer ids or activation VC subtype names
   // inline in each test case.
   it('creates vp payload and appends vcs', () => {
-    const vp = createVP({ iss: EXAMPLE_ICA_VP_ISSUER_DID });
+    const vp = createVP({ iss: EXAMPLE_PRESENTATION_SIGNER_KEY_ID });
     addVC(vp, 'eyJ.vc1.sig');
     addVC(vp, 'eyJ.vc2.sig');
     expect(vp.vp.verifiableCredential).toEqual(['eyJ.vc1.sig', 'eyJ.vc2.sig']);
   });
 
   it('appends VC JSON objects without manual serialization', () => {
-    const vp = createVP({ iss: EXAMPLE_ICA_VP_ISSUER_DID });
-    addVC(vp, EXAMPLE_ICA_ORGANIZATION_CREDENTIAL);
-    expect(vp.vp.verifiableCredential).toEqual([EXAMPLE_ICA_ORGANIZATION_CREDENTIAL]);
+    const vp = createVP({ iss: EXAMPLE_PRESENTATION_SIGNER_KEY_ID });
+    addVC(vp, EXAMPLE_ORG_ACTIVATION_ORGANIZATION_CREDENTIAL);
+    expect(vp.vp.verifiableCredential).toEqual([EXAMPLE_ORG_ACTIVATION_ORGANIZATION_CREDENTIAL]);
   });
 
   it('prepares base64url header.payload for external signing', () => {
     const header = { alg: 'ES256', typ: 'JWT', kid: 'did:web:example.com#k1' };
-    const vp = createVP({ iss: EXAMPLE_ICA_VP_ISSUER_DID });
+    const vp = createVP({ iss: EXAMPLE_PRESENTATION_SIGNER_KEY_ID });
     addVC(vp, 'eyJ.vc1.sig');
     const prepared = prepareForSignature(header, vp);
     expect(prepared.encodedHeader.length).toBeGreaterThan(10);
@@ -68,7 +68,7 @@ describe('vp token utilities', () => {
 
   it('returns deterministic bytes for signing input', () => {
     const header = { alg: 'ES256', typ: 'JWT' };
-    const vp = createVP({ iss: EXAMPLE_ICA_VP_ISSUER_DID });
+    const vp = createVP({ iss: EXAMPLE_PRESENTATION_SIGNER_KEY_ID });
     const a = prepareBytesForSignature(header, vp);
     const b = prepareBytesForSignature(header, vp);
     expect(Array.from(a)).toEqual(Array.from(b));
@@ -80,7 +80,7 @@ describe('vp token utilities', () => {
   });
 
   it('creates defaults for jti/nonce/iat/exp', () => {
-    const vp = createVP({ iss: EXAMPLE_ICA_VP_ISSUER_DID });
+    const vp = createVP({ iss: EXAMPLE_PRESENTATION_SIGNER_KEY_ID });
     expect(typeof vp.jti).toBe('string');
     expect(typeof vp.nonce).toBe('string');
     expect(typeof vp.iat).toBe('number');
@@ -95,7 +95,7 @@ describe('vp token utilities', () => {
   });
 
   it('adds one or many vc entries via addVCs', () => {
-    const vp = createVP({ iss: EXAMPLE_ICA_VP_ISSUER_DID });
+    const vp = createVP({ iss: EXAMPLE_PRESENTATION_SIGNER_KEY_ID });
     addVCs(vp, [
       vcJwt(ActivationCredentialTypes.OrganizationCredential),
       vcJwt(ActivationCredentialTypes.LegalRepresentativeCredential),
@@ -104,22 +104,22 @@ describe('vp token utilities', () => {
   });
 
   it('adds mixed compact and JSON VC entries via addVCs', () => {
-    const vp = createVP({ iss: EXAMPLE_ICA_VP_ISSUER_DID });
+    const vp = createVP({ iss: EXAMPLE_PRESENTATION_SIGNER_KEY_ID });
     addVCs(vp, [
       vcJwt(ActivationCredentialTypes.OrganizationCredential),
-      EXAMPLE_ICA_LEGAL_REPRESENTATIVE_CREDENTIAL,
+      EXAMPLE_ORG_ACTIVATION_LEGAL_REPRESENTATIVE_CREDENTIAL,
     ]);
     expect(vp.vp.verifiableCredential).toEqual([
       expect.any(String),
-      EXAMPLE_ICA_LEGAL_REPRESENTATIVE_CREDENTIAL,
+      EXAMPLE_ORG_ACTIVATION_LEGAL_REPRESENTATIVE_CREDENTIAL,
     ]);
   });
 
   it('validates organization credential type', () => {
-    const vp = createVP({ iss: EXAMPLE_ICA_VP_ISSUER_DID });
+    const vp = createVP({ iss: EXAMPLE_PRESENTATION_SIGNER_KEY_ID });
     addOrganizationCredential(vp, vcJwt(ActivationCredentialTypes.OrganizationCredential));
     expect(vp.vp.verifiableCredential).toHaveLength(1);
-    addOrganizationCredential(vp, EXAMPLE_ICA_ORGANIZATION_CREDENTIAL);
+    addOrganizationCredential(vp, EXAMPLE_ORG_ACTIVATION_ORGANIZATION_CREDENTIAL);
     expect(vp.vp.verifiableCredential).toHaveLength(2);
     expect(() => addOrganizationCredential(vp, vcJwt(ActivationCredentialTypes.LegalRepresentativeCredential))).toThrow(
       /Organization VC must include one of types/,
@@ -127,10 +127,10 @@ describe('vp token utilities', () => {
   });
 
   it('validates representative credential type', () => {
-    const vp = createVP({ iss: EXAMPLE_ICA_VP_ISSUER_DID });
+    const vp = createVP({ iss: EXAMPLE_PRESENTATION_SIGNER_KEY_ID });
     addLegalRepresentativeCredential(vp, vcJwt(ActivationCredentialTypes.LegalRepresentativeCredential));
     expect(vp.vp.verifiableCredential).toHaveLength(1);
-    addLegalRepresentativeCredential(vp, EXAMPLE_ICA_LEGAL_REPRESENTATIVE_CREDENTIAL);
+    addLegalRepresentativeCredential(vp, EXAMPLE_ORG_ACTIVATION_LEGAL_REPRESENTATIVE_CREDENTIAL);
     expect(vp.vp.verifiableCredential).toHaveLength(2);
     expect(() => addLegalRepresentativeCredential(vp, vcJwt(ActivationCredentialTypes.OrganizationCredential))).toThrow(
       /LegalRepresentative VC must include one of types/,
@@ -139,11 +139,11 @@ describe('vp token utilities', () => {
 
   it('extracts organization and legal representative credentials from a VP token', () => {
     const vp = createVP({
-      iss: EXAMPLE_ICA_VP_ISSUER_DID,
+      iss: EXAMPLE_PRESENTATION_SIGNER_KEY_ID,
       vp: {
         verifiableCredential: [
-          JSON.stringify(EXAMPLE_ICA_ORGANIZATION_CREDENTIAL),
-          JSON.stringify(EXAMPLE_ICA_LEGAL_REPRESENTATIVE_CREDENTIAL),
+          JSON.stringify(EXAMPLE_ORG_ACTIVATION_ORGANIZATION_CREDENTIAL),
+          JSON.stringify(EXAMPLE_ORG_ACTIVATION_LEGAL_REPRESENTATIVE_CREDENTIAL),
         ],
       },
     });
@@ -155,17 +155,18 @@ describe('vp token utilities', () => {
 
     expect(getVpCredentials(compact)).toHaveLength(2);
     expect(getOrganizationCredentialFromVpToken(compact)?.credentialSubject).toMatchObject({
-      id: EXAMPLE_ICA_ORGANIZATION_DID,
-      taxID: EXAMPLE_ICA_ORGANIZATION_TAX_ID,
+      id: EXAMPLE_ORGANIZATION_ID,
+      taxID: EXAMPLE_ORGANIZATION_TAX_ID,
     });
     expect(getLegalRepresentativeCredentialFromVpToken(compact)?.credentialSubject).toMatchObject({
-      id: EXAMPLE_ICA_REPRESENTATIVE_DID,
+      id: EXAMPLE_REPRESENTATIVE_KEY_ID,
     });
   });
 
-  it('keeps the shared synthetic ICA activation VP example decodable', () => {
-    const vp = createVP(EXAMPLE_ICA_ACTIVATION_VP_PAYLOAD);
-    expect(vp.iss).toBe(EXAMPLE_ICA_VP_ISSUER_DID);
+  it('keeps the shared synthetic org activation VP example decodable', () => {
+    const vp = createVP(EXAMPLE_ORG_ACTIVATION_PROOF_VP_PAYLOAD);
+    expect(vp.iss).toBe(EXAMPLE_PRESENTATION_SIGNER_KEY_ID);
+    expect(vp.sub).toBe(EXAMPLE_ORGANIZATION_TAX_ID);
     expect(vp.vp.verifiableCredential).toHaveLength(2);
   });
 });
