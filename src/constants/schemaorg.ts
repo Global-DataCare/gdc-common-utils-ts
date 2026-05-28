@@ -12,6 +12,30 @@ export enum ClaimsServiceSchemaorg {
 }
 
 /**
+ * Canonical claim names used by the current GDC profile when a VC models a
+ * `schema.org/SoftwareApplication`.
+ *
+ * Contract note:
+ * - `material` is the public cryptographic material of the software
+ *   application in the current GDC profile, typically the communication
+ *   signing key id bound by ICA to the software/application instance
+ * - when that identifier is expressed as a JWK thumbprint, RFC 7638 defines
+ *   the canonical thumbprint calculation over the public signing /
+ *   verification JWK and RFC 9278 defines the canonical URN form
+ *   `urn:ietf:params:oauth:jwk-thumbprint:sha-256:<base64url>`
+ * - the controller-side signature belongs to the prior ICA registration step,
+ *   not to every later app-service operational proof
+ */
+export enum ClaimsSoftwareApplicationSchemaorg {
+    id = "org.schema.SoftwareApplication.id",
+    name = "org.schema.SoftwareApplication.name",
+    url = "org.schema.SoftwareApplication.url",
+    sameAs = "org.schema.SoftwareApplication.sameAs",
+    /** Communication signing key id bound by the ICA-issued SoftwareApplication VC. */
+    material = "org.schema.SoftwareApplication.material",
+}
+
+/**
  * Defines the canonical claim names for the 'org.schema' context,
  * based on Schema.org vocabulary.
  */
@@ -44,6 +68,16 @@ export enum ClaimsOrganizationSchemaorg {
     email = "org.schema.Organization.email",
     /** Public contact phone */
     telephone = "org.schema.Organization.telephone",
+    /**
+     * Public cryptographic material of the organization in VC/profile payloads.
+     *
+     * When represented as a JWK thumbprint identifier:
+     * - RFC 7638 defines the canonical thumbprint calculation over the public
+     *   signing / verification JWK
+     * - RFC 9278 defines the canonical URN form
+     *   `urn:ietf:params:oauth:jwk-thumbprint:sha-256:<base64url>`
+     */
+    hasCredentialMaterial = "org.schema.Organization.hasCredential.material",
     /** Individual/family owner email used by subject-index registration flows. */
     ownerEmail = "org.schema.Organization.owner.email",
     /** Individual/family owner telephone used by subject-index registration flows. */

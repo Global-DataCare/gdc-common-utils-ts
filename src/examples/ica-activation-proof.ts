@@ -12,8 +12,8 @@ import { UrnPrefixes } from '../constants/urn';
  * Shared synthetic ICA activation-proof fixtures reused by docs/tests.
  *
  * Contract note:
- * - presentation signer/audience ids, VC subtype names, and representative
- *   binding fields must be imported from this module instead of re-hardcoded
+ * - controller-signing/audience ids and VC subtype names must be imported from
+ *   this module instead of re-hardcoded
  *   inline
  * - the representative `hasCredential.material` shape below reflects the
  *   current `activation-policy` helper contract; if ICA finalizes a different
@@ -26,15 +26,16 @@ import { UrnPrefixes } from '../constants/urn';
  *   host id, which better matches the initial registration stage than a
  *   synthetic did:web
  */
-export const EXAMPLE_PRESENTATION_SIGNER_KEY_ID =
+/**
+ * Synthetic JWK-thumbprint-based signing key id for the organization
+ * controller who signs the initial legal-onboarding VP.
+ */
+export const EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID =
   `${UrnPrefixes.JwkThumbprintSha256KeyId}Q0ZfM0V4YW1wbGVUaHVtYnByaW50X2Jhc2U2NHVybA` as const;
 export const EXAMPLE_PRESENTATION_AUDIENCE_HOST_ID = 'host:node-operator-es' as const;
 export const EXAMPLE_ORGANIZATION_TAX_ID = 'ESB00112233' as const;
 export const EXAMPLE_REPRESENTATIVE_ROLE_CODE = 'RESPRSN' as const;
-export const EXAMPLE_REPRESENTATIVE_BINDING_MATERIAL =
-  EXAMPLE_PRESENTATION_SIGNER_KEY_ID;
 export const EXAMPLE_ORGANIZATION_ID = EXAMPLE_ORGANIZATION_TAX_ID;
-export const EXAMPLE_REPRESENTATIVE_KEY_ID = EXAMPLE_PRESENTATION_SIGNER_KEY_ID;
 
 export const EXAMPLE_ORG_ACTIVATION_ORGANIZATION_CREDENTIAL = Object.freeze({
   '@context': [W3cCredentialContexts.V2, 'https://schema.org'],
@@ -55,7 +56,7 @@ export const EXAMPLE_ORG_ACTIVATION_LEGAL_REPRESENTATIVE_CREDENTIAL = Object.fre
     ActivationCredentialTypes.LegalRepresentativeCredential,
   ],
   credentialSubject: {
-    id: EXAMPLE_REPRESENTATIVE_KEY_ID,
+    id: EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID,
     memberOf: {
       taxID: EXAMPLE_ORGANIZATION_TAX_ID,
     },
@@ -65,19 +66,19 @@ export const EXAMPLE_ORG_ACTIVATION_LEGAL_REPRESENTATIVE_CREDENTIAL = Object.fre
       },
     },
     hasCredential: {
-      material: EXAMPLE_REPRESENTATIVE_BINDING_MATERIAL,
+      material: EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID,
     },
   },
 });
 
 export const EXAMPLE_ORG_ACTIVATION_PROOF_VP_PAYLOAD = Object.freeze({
-  iss: EXAMPLE_PRESENTATION_SIGNER_KEY_ID,
+  iss: EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID,
   sub: EXAMPLE_ORGANIZATION_TAX_ID,
   aud: EXAMPLE_PRESENTATION_AUDIENCE_HOST_ID,
   vp: {
     '@context': [W3cCredentialContexts.V1],
     type: [W3cCredentialTypes.VerifiablePresentation],
-    holder: EXAMPLE_PRESENTATION_SIGNER_KEY_ID,
+    holder: EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID,
     verifiableCredential: [
       JSON.stringify(EXAMPLE_ORG_ACTIVATION_ORGANIZATION_CREDENTIAL),
       JSON.stringify(EXAMPLE_ORG_ACTIVATION_LEGAL_REPRESENTATIVE_CREDENTIAL),

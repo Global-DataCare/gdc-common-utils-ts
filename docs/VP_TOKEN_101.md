@@ -11,6 +11,32 @@ Use this guide when you need to answer:
 - how to obtain the compact `header.payload.signature` string
 - which SDK field receives that string afterwards
 
+## Quick summary
+
+For legal organization onboarding, the sequence is:
+
+1. Load the already-issued ICA credentials:
+   - organization VC
+   - legal representative VC
+2. Create the VP payload with `createVP(...)` using:
+   - `iss`: organization-controller signing key id
+   - `sub`: organization tax ID
+   - `aud`: target host operator id
+3. Append the two credentials:
+   - `addOrganizationCredential(...)`
+   - `addLegalRepresentativeCredential(...)`
+4. Prepare the exact JWS input that an external KMS must sign:
+   - `prepareForSignature(...)` gives `encodedHeader`, `encodedPayload`, and `signingInput`
+   - `prepareBytesForSignature(...)` gives the UTF-8 bytes of that same `header.payload`
+5. Ask the external KMS to sign that input.
+6. Build the final compact VP JWT with `buildVpTokenCompact(...)`.
+7. Pass the resulting string to the SDK as `vpToken`.
+
+The full Jest sequence lives in:
+
+- [`__tests__/vp-token-101.test.ts`](../__tests__/vp-token-101.test.ts)
+- [`__tests__/101-vp-token.test.ts`](../__tests__/101-vp-token.test.ts)
+
 ## 0. Security planes
 
 Do not mix these planes when reading or documenting the flow:
@@ -119,7 +145,7 @@ Current shared fixture values from
 
 ```ts
 const legalOnboardingVpPayload = createVP({
-  iss: EXAMPLE_PRESENTATION_SIGNER_KEY_ID,
+  iss: EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID,
   sub: EXAMPLE_ORGANIZATION_TAX_ID,
   aud: EXAMPLE_PRESENTATION_AUDIENCE_HOST_ID,
 });
@@ -144,9 +170,25 @@ current onboarding payload is:
 - the representative binding is proven by the embedded representative
   credential, especially `hasCredential.material`
 
+Profile note for public cryptographic material:
+
+- `Organization.hasCredential.material`
+  public cryptographic material of the organization
+- `Person.hasCredential.material`
+  public cryptographic material of the controller/person
+- `SoftwareApplication.material`
+  public cryptographic material of the software application
+
+When those identifiers are expressed as JWK thumbprints:
+
+- RFC 7638 defines the canonical thumbprint calculation over the public
+  signing / verification JWK
+- RFC 9278 defines the canonical URN representation
+  `urn:ietf:params:oauth:jwk-thumbprint:sha-256:<base64url>`
+
 So the safest current reading is:
 
-- `presentationSignerKeyId`
+- `organizationControllerSigningKeyId`
   the controller-side wallet key that signs the VP JWS header (`kid`)
 - `presentationSubjectTaxId`
   the organization tax ID carried by the organization credential
@@ -174,6 +216,12 @@ For an app-service proof:
 - the SDK/app should not fabricate that VC locally
 - the app may still be responsible for assembling the VP and producing the
   compact `vp_token` string from that existing VC
+- the human/controller signature belongs to the earlier ICA registration step
+  that bound the portal/app-service key material into the issued VC; it should
+  not be re-used as the operational signer for every later app-service proof
+- in this profile, `SoftwareApplication.material` carries the public
+  cryptographic material of the software application, typically the
+  communication signing key id
 - the incoming VC may already be:
   - a compact JWT/JWS string
   - a raw JSON string
@@ -212,6 +260,12 @@ Use this only as a temporary mock when ICA software/application registration is 
 implemented yet. Once ICA issues the real credential, load that VC instead of
 constructing one locally.
 
+Important:
+
+- `@type: "SoftwareApplication"` is standard Schema.org typing
+- `material` in this profile is the public cryptographic material of the
+  software application, used for communication-key binding
+
 Current helper rule:
 
 - `addVC(...)` and the typed helpers accept all three forms above
@@ -239,12 +293,12 @@ import {
   addOrganizationCredential,
   EXAMPLE_ORGANIZATION_TAX_ID,
   EXAMPLE_PRESENTATION_AUDIENCE_HOST_ID,
-  EXAMPLE_PRESENTATION_SIGNER_KEY_ID,
+  EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID,
   createVP,
 } from 'gdc-common-utils-ts';
 
 const vpPayload = createVP({
-  iss: EXAMPLE_PRESENTATION_SIGNER_KEY_ID,
+  iss: EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID,
   sub: EXAMPLE_ORGANIZATION_TAX_ID,
   aud: EXAMPLE_PRESENTATION_AUDIENCE_HOST_ID,
 });
@@ -308,16 +362,19 @@ That means you do not sign the raw JSON directly. You sign:
 Use the helper:
 
 ```ts
-import { prepareForSignature } from 'gdc-common-utils-ts';
+import {
+  ClassicalJoseSignatureAlgorithms,
+  prepareForSignature,
+} from 'gdc-common-utils-ts';
 
-const presentationSignerKeyId =
+const organizationControllerSigningKeyId =
   process.env.PRESENTATION_SIGNER_KEY_ID
   || 'urn:ietf:params:oauth:jwk-thumbprint:sha-256:Q0ZfM0V4YW1wbGVUaHVtYnByaW50X2Jhc2U2NHVybA';
 
 const header = {
-  alg: signatureAlg,
+  alg: ClassicalJoseSignatureAlgorithms.Es384,
   typ: 'JWT',
-  kid: presentationSignerKeyId,
+  kid: organizationControllerSigningKeyId,
 };
 
 const prepared = prepareForSignature(header, vpPayload);
@@ -342,6 +399,22 @@ normalized form:
 
 - `urn:ietf:params:oauth:jwk-thumbprint:sha-256:<base64url>`
 
+Meaning:
+
+- RFC 7638 defines the canonical thumbprint calculation over the public JWK
+  members of the signing / verification key
+- in practice, this is the canonical hash-derived identifier of the public
+  signing key material
+- RFC 9278 defines the standardized URN form used to represent that thumbprint
+  as an identifier string
+
+So, when this guide says that a controller, organization, or software
+application key id may be carried in `kid` or `material`, the intended value is:
+
+- the public signing / verification JWK thumbprint as defined by RFC 7638
+- represented canonically as the RFC 9278 URN
+  `urn:ietf:params:oauth:jwk-thumbprint:sha-256:<base64url>`
+
 In `gdc-common-utils-ts`, the exported prefix constant is:
 
 - `UrnPrefixes.JwkThumbprintSha256KeyId`
@@ -353,7 +426,7 @@ That presenter changes by flow:
 
 Recommended variable names:
 
-- `presentationSignerKeyId` or `controllerWalletSigningKeyId` for legal onboarding
+- `organizationControllerSigningKeyId` or `controllerWalletSigningKeyId` for legal onboarding
 - `appServiceSigningKeyId` for app-service trust flows
 
 ## 6. Sign externally
@@ -459,9 +532,10 @@ const legalRepresentativeCredential = getLegalRepresentativeCredentialFromVpToke
 
 ```ts
 import {
+  ClassicalJoseSignatureAlgorithms,
   EXAMPLE_ORGANIZATION_TAX_ID,
   EXAMPLE_PRESENTATION_AUDIENCE_HOST_ID,
-  EXAMPLE_PRESENTATION_SIGNER_KEY_ID,
+  EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID,
   addLegalRepresentativeCredential,
   addOrganizationCredential,
   buildVpTokenCompact,
@@ -472,7 +546,7 @@ import {
 } from 'gdc-common-utils-ts';
 
 const sessionContext = {
-  presentationSignerKeyId: EXAMPLE_PRESENTATION_SIGNER_KEY_ID,
+  organizationControllerSigningKeyId: EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID,
   hostOperatorId: EXAMPLE_PRESENTATION_AUDIENCE_HOST_ID,
   organizationTaxId: EXAMPLE_ORGANIZATION_TAX_ID,
 };
@@ -483,7 +557,7 @@ const onboardingProof = {
 };
 
 const vpPayload = createVP({
-  iss: sessionContext.presentationSignerKeyId,
+  iss: sessionContext.organizationControllerSigningKeyId,
   sub: sessionContext.organizationTaxId,
   aud: sessionContext.hostOperatorId,
 });
@@ -498,9 +572,9 @@ addLegalRepresentativeCredential(
 );
 
 const header = {
-  alg: 'ES384',
+  alg: ClassicalJoseSignatureAlgorithms.Es384,
   typ: 'JWT',
-  kid: sessionContext.presentationSignerKeyId,
+  kid: sessionContext.organizationControllerSigningKeyId,
 };
 
 const prepared = prepareForSignature(header, vpPayload);

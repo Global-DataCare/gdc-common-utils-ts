@@ -6,9 +6,17 @@ import {
   W3cCredentialContexts,
   W3cCredentialTypes,
 } from '../constants/verifiable-credentials';
+import { JoseSignatureAlgorithm } from '../constants/cryptography';
 
+/**
+ * Protected JOSE header used when assembling a compact VP JWT.
+ *
+ * The `alg` field is intentionally typed as a shared JOSE signature algorithm
+ * instead of a free-form string so docs/tests can show the supported values
+ * explicitly, including `ES256K` for secp256k1-based signers.
+ */
 export type VpTokenHeader = {
-  alg: string;
+  alg: JoseSignatureAlgorithm;
   typ?: string;
   kid?: string;
   [key: string]: unknown;
@@ -280,11 +288,26 @@ export function prepareForSignature(header: VpTokenHeader, payload: VpTokenPaylo
   };
 }
 
+/**
+ * Returns the UTF-8 bytes of the canonical `base64url(header).base64url(payload)`
+ * signing input.
+ *
+ * This is the exact byte sequence an external wallet, HSM, or KMS must sign
+ * before the caller assembles the final compact VP JWT with
+ * `buildVpTokenCompact(...)`.
+ */
 export function prepareBytesForSignature(header: VpTokenHeader, payload: VpTokenPayload): Uint8Array {
   const { signingInput } = prepareForSignature(header, payload);
   return new TextEncoder().encode(signingInput);
 }
 
+/**
+ * Assembles the final compact VP JWT once the caller already has:
+ *
+ * - the base64url-encoded protected header
+ * - the base64url-encoded VP payload
+ * - the detached signature returned by the external signer, also base64url-encoded
+ */
 export function buildVpTokenCompact(encodedHeader: string, encodedPayload: string, signatureBase64Url: string): string {
   return `${encodedHeader}.${encodedPayload}.${String(signatureBase64Url || '').trim()}`;
 }

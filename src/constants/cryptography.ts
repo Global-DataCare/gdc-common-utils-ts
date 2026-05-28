@@ -21,6 +21,33 @@ export const CommunicationKeyPurposes = {
 } as const;
 
 /**
+ * Classical JOSE signature algorithms currently recognized across GDC VP/JWT
+ * examples and gateway trust adapters.
+ *
+ * Notes:
+ * - `ES256K` is the JOSE name for ECDSA over `secp256k1`
+ * - `ES384` remains the common P-384 legacy example in current GW fixtures
+ */
+export const ClassicalJoseSignatureAlgorithms = {
+  Es256: 'ES256',
+  Es256K: 'ES256K',
+  Es384: 'ES384',
+} as const;
+
+/**
+ * JOSE signature algorithms accepted by shared VP/JWT helpers.
+ *
+ * This intentionally covers both:
+ * - classical ECDSA JOSE algorithms (`ES256`, `ES256K`, `ES384`)
+ * - post-quantum ML-DSA JOSE algorithm labels already used by GW
+ *
+ * Use this type when a helper builds or documents a JWS/JWT/VP proof header.
+ */
+export type JoseSignatureAlgorithm =
+  | typeof ClassicalJoseSignatureAlgorithms[keyof typeof ClassicalJoseSignatureAlgorithms]
+  | MldsaAlg;
+
+/**
  * Default post-quantum signing algorithms used for communication bootstrap.
  */
 export const DefaultSigningAlgorithms: {

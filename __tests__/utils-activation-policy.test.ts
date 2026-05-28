@@ -7,9 +7,9 @@ import {
 } from '../src/utils/activation-policy';
 import {
   EXAMPLE_ORGANIZATION_TAX_ID,
+  EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID,
   EXAMPLE_ORG_ACTIVATION_LEGAL_REPRESENTATIVE_CREDENTIAL,
   EXAMPLE_ORG_ACTIVATION_ORGANIZATION_CREDENTIAL,
-  EXAMPLE_REPRESENTATIVE_BINDING_MATERIAL,
   EXAMPLE_REPRESENTATIVE_ROLE_CODE,
 } from '../src/examples/ica-activation-proof';
 
@@ -24,7 +24,7 @@ describe('Activation Policy Utils', () => {
       ...EXAMPLE_ORG_ACTIVATION_LEGAL_REPRESENTATIVE_CREDENTIAL.credentialSubject,
       id: 'did:web:provider.example:organization:taxid:ESB00112233:member:zabc:RESPRSN',
       memberOf: { taxID: EXAMPLE_ORGANIZATION_TAX_ID.toLowerCase() },
-      hasCredential: { material: EXAMPLE_REPRESENTATIVE_BINDING_MATERIAL },
+      hasCredential: { material: EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID },
     },
   };
 
@@ -60,7 +60,7 @@ describe('Activation Policy Utils', () => {
           id: 'did:web:provider.example:organization:taxid:ESB00112233:member:zabc:RESPRSN',
           memberOf: { taxID: EXAMPLE_ORGANIZATION_TAX_ID },
           hasOccupation: { identifier: `v3-RoleCode|${EXAMPLE_REPRESENTATIVE_ROLE_CODE}` },
-          hasCredential: { material: EXAMPLE_REPRESENTATIVE_BINDING_MATERIAL },
+          hasCredential: { material: EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID },
         },
       },
     });
@@ -75,7 +75,7 @@ describe('Activation Policy Utils', () => {
           id: 'did:web:provider.example:organization:taxid:ESB00112233:member:zabc:RESPRSN',
           memberOf: { taxID: EXAMPLE_ORGANIZATION_TAX_ID },
           hasOccupation: { identifier: { value: EXAMPLE_REPRESENTATIVE_ROLE_CODE } },
-          hasCredential: { identifier: { value: EXAMPLE_REPRESENTATIVE_BINDING_MATERIAL } },
+          hasCredential: { identifier: { value: EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID } },
         },
       },
     });

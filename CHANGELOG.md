@@ -2,6 +2,41 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [1.11.0] - 2026-05-28
+
+### Added
+- Added explicit JOSE signature algorithm typing for VP/JWT helper headers:
+  - `ClassicalJoseSignatureAlgorithms`
+  - `JoseSignatureAlgorithm`
+- Added canonical organization software/key-binding schema.org claim constant:
+  - `ClaimsOrganizationSchemaorg.hasCredentialMaterial`
+- Added explicit software-application schema.org claim constants:
+  - `ClaimsSoftwareApplicationSchemaorg`
+- Added self-explanatory focused tests for:
+  - JOSE algorithm vocabulary
+  - schema.org key-binding claims
+  - `101-` VP-token walkthrough
+
+### Changed
+- Renamed the VP walkthrough test to `__tests__/101-vp-token.test.ts` so `101`
+  tests stay visually grouped.
+- Clarified `docs/VP_TOKEN_101.md` around:
+  - `Organization.hasCredential.material`
+  - `Person.hasCredential.material`
+  - `SoftwareApplication.material`
+  - RFC 7638 JWK thumbprints and RFC 9278 URN representation
+- Simplified the shared ICA legal-onboarding fixture so the representative
+  credential now shows the controller signing key id directly in:
+  - `credentialSubject.id`
+  - `credentialSubject.hasCredential.material`
+- Tightened `VpTokenHeader.alg` so examples/tests document supported JOSE
+  signing algorithms such as `ES256K`, `ES384`, and `ML-DSA-*`.
+
+### Testing
+- `npm run typecheck`
+- `npm test -- --watchman=false`
+- `npm run build`
+
 ## [1.10.0] - 2026-05-27
 
 ### Added

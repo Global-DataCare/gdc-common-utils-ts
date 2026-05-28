@@ -58,7 +58,15 @@ export interface ClassicPublicJwk {
     x: string;
     y: string;
     kid?: string;
-    alg?: string;
+    /**
+     * JOSE signing algorithm for classical EC keys.
+     *
+     * Examples:
+     * - `ES256` for P-256
+     * - `ES384` for P-384
+     * - `ES256K` for secp256k1
+     */
+    alg?: "ES256" | "ES384" | "ES256K";
     use?: string;
 };
 
