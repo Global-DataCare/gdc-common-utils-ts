@@ -46,11 +46,16 @@ export const EXAMPLE_SUBJECT_DID = 'did:web:api.acme.org:individual:123' as cons
 export const EXAMPLE_PROFESSIONAL_DID = 'did:web:api.acme.org:professional:1' as const;
 export const EXAMPLE_PROVIDER_ORGANIZATION_DID = 'did:web:hospital.acme.org' as const;
 export const EXAMPLE_PROVIDER_ORGANIZATION_URL = 'https://hospital.acme.org' as const;
+export const EXAMPLE_GATEWAY_PUBLIC_ORIGIN = 'https://gateway.example.com' as const;
+export const EXAMPLE_HOST_PUBLIC_HOSTNAME = 'host.example.com' as const;
 export const EXAMPLE_HOSTING_OPERATOR_DID = 'did:web:host.example.org' as const;
 export const EXAMPLE_TENANT_SERVICE_DID = 'did:web:provider.example.org' as const;
 export const EXAMPLE_SECONDARY_TENANT_SERVICE_DID = 'did:web:provider-b.example.org' as const;
 export const EXAMPLE_HOSTING_OPERATOR_CATALOG_URL = 'https://host.example.org/.well-known/dcat3/catalog' as const;
 export const EXAMPLE_PROVIDER_PUBLISHED_ENDPOINT_URL = 'https://host.example.org/catalog/provider-a' as const;
+export const EXAMPLE_PROVIDER_LEGAL_NAME = 'ACME Health Provider' as const;
+export const EXAMPLE_SECONDARY_PROVIDER_LEGAL_NAME = 'Reader Only Provider' as const;
+export const EXAMPLE_SECONDARY_PROVIDER_ALTERNATE_NAME = 'reader-only' as const;
 export const EXAMPLE_COVERAGE_SCOPE_EU = 'EU' as const;
 export const EXAMPLE_NON_EU_COUNTRY = 'US' as const;
 export const EXAMPLE_SECONDARY_EU_COUNTRY = 'PT' as const;
@@ -204,4 +209,15 @@ export function buildExampleDocumentReferenceSearchPayload(subjectDid = EXAMPLE_
 
 export function cloneExample<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
+}
+
+export type ExampleHostedTenantRouteContext = Readonly<{
+  alternateName: string;
+  jurisdiction: string;
+  version: string;
+  sector: string;
+}>;
+
+export function buildExampleHostedTenantBaseUrl(input: ExampleHostedTenantRouteContext): string {
+  return `${EXAMPLE_GATEWAY_PUBLIC_ORIGIN}/${input.alternateName}/cds-${input.jurisdiction.toLowerCase()}/${input.version}/${input.sector}`;
 }

@@ -2,10 +2,14 @@
 
 import { ClaimsOrganizationSchemaorg, ClaimsServiceSchemaorg } from '../constants/schemaorg';
 import { isEuCountryCode, normalizeCountryCode } from '../constants/eu-countries';
+import { isProviderServiceCapability } from '../constants/service-capabilities';
 import {
   DataspaceCoverageScope,
+  type DataspaceDiscoveryFilter,
   type DataspaceServiceSemanticRecord,
   type HostingOperatorSemanticRecord,
+  type HostingOperatorDiscoveryCatalog,
+  type PublishedProviderCatalogRecord,
   type TenantServiceSemanticRecord,
 } from '../models/dataspace-discovery';
 
@@ -312,4 +316,86 @@ export function extractHostingOperatorSemanticRecord(input: unknown): HostingOpe
  */
 export function extractTenantServiceSemanticRecord(input: unknown): TenantServiceSemanticRecord {
   return extractDataspaceServiceSemanticRecord(input);
+}
+
+function matchesCoverageFilter(
+  areaServed: readonly string[] | undefined,
+  jurisdiction: string | undefined,
+  coverageScope: string | undefined,
+): boolean {
+  const normalizedAreaServed = normalizeList([...(areaServed || [])]);
+  if (jurisdiction && !normalizedAreaServed.includes(jurisdiction)) return false;
+  if (coverageScope && !normalizedAreaServed.includes(coverageScope)) return false;
+  return true;
+}
+
+/**
+ * Returns whether a normalized hosting-operator record satisfies a service
+ * autodiscovery filter.
+ */
+export function matchesHostingOperatorDiscoveryFilter(
+  record: HostingOperatorSemanticRecord,
+  filter: DataspaceDiscoveryFilter,
+): boolean {
+  if (!record.categories.includes(filter.sector)) return false;
+  if (!matchesCoverageFilter(record.areaServed, filter.jurisdiction, filter.coverageScope)) return false;
+  if (filter.capability && !record.serviceTypes.includes(filter.capability)) return false;
+  if (filter.requiredCapabilities?.length) {
+    return filter.requiredCapabilities.every((capability) => record.serviceTypes.includes(capability));
+  }
+  return true;
+}
+
+/**
+ * Returns whether a published provider catalog entry satisfies a service
+ * autodiscovery filter.
+ */
+export function matchesPublishedProviderDiscoveryFilter(
+  record: PublishedProviderCatalogRecord,
+  filter: DataspaceDiscoveryFilter,
+): boolean {
+  if (!isProviderServiceCapability(record.serviceType)) return false;
+  if (record.category !== filter.sector) return false;
+  if (filter.capability && record.serviceType !== filter.capability) return false;
+  return matchesCoverageFilter(
+    record.areaServed ? [record.areaServed] : [],
+    filter.jurisdiction,
+    filter.coverageScope,
+  );
+}
+
+/**
+ * Filters hosting-operator records using the shared service-autodiscovery
+ * semantics.
+ */
+export function filterHostingOperatorsByDiscoveryFilter(
+  records: ReadonlyArray<HostingOperatorSemanticRecord>,
+  filter: DataspaceDiscoveryFilter,
+): HostingOperatorSemanticRecord[] {
+  return records.filter((record) => matchesHostingOperatorDiscoveryFilter(record, filter));
+}
+
+/**
+ * Filters published provider entries using the shared service-autodiscovery
+ * semantics.
+ */
+export function filterPublishedProvidersByDiscoveryFilter(
+  records: ReadonlyArray<PublishedProviderCatalogRecord>,
+  filter: DataspaceDiscoveryFilter,
+): PublishedProviderCatalogRecord[] {
+  return records.filter((record) => matchesPublishedProviderDiscoveryFilter(record, filter));
+}
+
+/**
+ * Filters a host/operator discovery catalog down to the providers that satisfy
+ * the requested service-autodiscovery filter.
+ */
+export function filterHostingOperatorDiscoveryCatalog(
+  catalog: HostingOperatorDiscoveryCatalog,
+  filter: DataspaceDiscoveryFilter,
+): HostingOperatorDiscoveryCatalog {
+  return {
+    ...catalog,
+    providers: filterPublishedProvidersByDiscoveryFilter(catalog.providers, filter),
+  };
 }

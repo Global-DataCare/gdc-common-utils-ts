@@ -3,8 +3,10 @@ import { DataspaceSectors } from '../src/constants/sectors.js';
 import { ClaimsOrganizationSchemaorg, ClaimsServiceSchemaorg } from '../src/constants/schemaorg.js';
 import { ServiceCapabilityToken } from '../src/constants/service-capabilities.js';
 import {
+  buildExampleHostingOperatorDiscoveryCatalog,
   buildExampleHostingOperatorCredentialSubject,
   buildExampleHostingOperatorMetaClaims,
+  buildExamplePublishedProviderCatalogRecord,
   buildExampleTenantServiceCredentialSubject,
   buildExampleTenantServiceMetaClaims,
 } from '../src/examples/dataspace-discovery.js';
@@ -14,6 +16,7 @@ import {
   EXAMPLE_JURISDICTION,
   EXAMPLE_NON_EU_COUNTRY,
   EXAMPLE_SECTOR,
+  EXAMPLE_SECONDARY_TENANT_SERVICE_DID,
   EXAMPLE_SECONDARY_EU_COUNTRY,
   EXAMPLE_TENANT_SERVICE_DID,
 } from '../src/examples/shared.js';
@@ -21,7 +24,11 @@ import {
   extractDataspaceServiceSemanticRecord,
   extractHostingOperatorSemanticRecord,
   extractTenantServiceSemanticRecord,
+  filterHostingOperatorDiscoveryCatalog,
+  filterHostingOperatorsByDiscoveryFilter,
+  filterPublishedProvidersByDiscoveryFilter,
   inferCoverageScopeFromCountryCode,
+  matchesPublishedProviderDiscoveryFilter,
   parseAreaServed,
 } from '../src/utils/dataspace-discovery.js';
 
@@ -100,5 +107,72 @@ describe('dataspace discovery helpers', () => {
 
   it('returns the country itself as coverage scope when the country is outside the EU set', () => {
     expect(inferCoverageScopeFromCountryCode(EXAMPLE_NON_EU_COUNTRY)).toBe(EXAMPLE_NON_EU_COUNTRY);
+  });
+
+  it('filters hosting operators by sector, required capabilities, and coverage', () => {
+    const matchingRecord = extractHostingOperatorSemanticRecord({
+      credentialSubject: buildExampleHostingOperatorCredentialSubject(),
+    });
+    const nonMatchingRecord = extractHostingOperatorSemanticRecord({
+      credentialSubject: buildExampleHostingOperatorCredentialSubject({
+        categories: [DataspaceSectors.AnimalCare],
+        areaServed: [EXAMPLE_NON_EU_COUNTRY],
+      }),
+    });
+
+    const filtered = filterHostingOperatorsByDiscoveryFilter(
+      [matchingRecord, nonMatchingRecord],
+      {
+        sector: EXAMPLE_SECTOR,
+        requiredCapabilities: [ServiceCapabilityToken.IndexProvider],
+        coverageScope: EXAMPLE_COVERAGE_SCOPE_EU,
+      },
+    );
+
+    expect(filtered).toEqual([matchingRecord]);
+  });
+
+  it('filters published providers and excludes reader-only service types', () => {
+    const matchingRecord = buildExamplePublishedProviderCatalogRecord();
+    const readerRecord = buildExamplePublishedProviderCatalogRecord({
+      did: EXAMPLE_TENANT_SERVICE_DID,
+      serviceTypes: [ServiceCapabilityToken.DigitalTwinReader],
+    });
+
+    expect(matchesPublishedProviderDiscoveryFilter(matchingRecord, {
+      sector: EXAMPLE_SECTOR,
+      capability: ServiceCapabilityToken.IndexProvider,
+      coverageScope: EXAMPLE_COVERAGE_SCOPE_EU,
+    })).toBe(true);
+
+    const filtered = filterPublishedProvidersByDiscoveryFilter(
+      [matchingRecord, readerRecord],
+      {
+        sector: EXAMPLE_SECTOR,
+        coverageScope: EXAMPLE_COVERAGE_SCOPE_EU,
+      },
+    );
+
+    expect(filtered).toEqual([matchingRecord]);
+  });
+
+  it('filters hosting operator catalogs without mutating their publication shape', () => {
+    const catalog = buildExampleHostingOperatorDiscoveryCatalog([
+      buildExamplePublishedProviderCatalogRecord(),
+      buildExamplePublishedProviderCatalogRecord({
+        did: EXAMPLE_SECONDARY_TENANT_SERVICE_DID,
+        serviceTypes: [ServiceCapabilityToken.DigitalTwinProvider],
+      }),
+    ]);
+
+    const filtered = filterHostingOperatorDiscoveryCatalog(catalog, {
+      sector: EXAMPLE_SECTOR,
+      capability: ServiceCapabilityToken.IndexProvider,
+      coverageScope: EXAMPLE_COVERAGE_SCOPE_EU,
+    });
+
+    expect(filtered.hostingOperatorDid).toBe(catalog.hostingOperatorDid);
+    expect(filtered.providers).toHaveLength(1);
+    expect(filtered.providers[0]?.serviceType).toBe(ServiceCapabilityToken.IndexProvider);
   });
 });
