@@ -1,0 +1,315 @@
+// Copyright 2026 Antifraud Services Inc. under the Apache License, Version 2.0.
+
+import { ClaimsOrganizationSchemaorg, ClaimsServiceSchemaorg } from '../constants/schemaorg';
+import { isEuCountryCode, normalizeCountryCode } from '../constants/eu-countries';
+import {
+  DataspaceCoverageScope,
+  type DataspaceServiceSemanticRecord,
+  type HostingOperatorSemanticRecord,
+  type TenantServiceSemanticRecord,
+} from '../models/dataspace-discovery';
+
+type JsonObject = Record<string, unknown>;
+
+function asObject(value: unknown): JsonObject | undefined {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as JsonObject
+    : undefined;
+}
+
+function asNonEmptyString(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function toStringList(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return Array.from(new Set(
+      value
+        .flatMap((entry) => toStringList(entry))
+        .map((entry) => entry.trim())
+        .filter(Boolean),
+    ));
+  }
+  const raw = asNonEmptyString(value);
+  if (!raw) return [];
+  return Array.from(new Set(
+    raw
+      .split(',')
+      .map((entry) => entry.trim())
+      .filter(Boolean),
+  ));
+}
+
+function normalizeList(values: string[]): string[] {
+  return Array.from(new Set(
+    values
+      .map((value) => value.trim())
+      .filter(Boolean),
+  ));
+}
+
+function sameNormalizedList(left: string[], right: string[]): boolean {
+  if (left.length !== right.length) return false;
+  const normalizedLeft = [...normalizeList(left)].sort();
+  const normalizedRight = [...normalizeList(right)].sort();
+  return normalizedLeft.every((value, index) => value === normalizedRight[index]);
+}
+
+function parseAreaServedValue(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return normalizeList(value.flatMap((entry) => parseAreaServedValue(entry)));
+  }
+  if (typeof value === 'string') {
+    return toStringList(value);
+  }
+  const objectValue = asObject(value);
+  if (!objectValue) return [];
+  return normalizeList([
+    asNonEmptyString(objectValue.name),
+    asNonEmptyString(objectValue['@id']),
+    asNonEmptyString(objectValue.id),
+  ].filter(Boolean));
+}
+
+function getSemanticCredentialSubject(input: unknown): JsonObject | undefined {
+  const objectInput = asObject(input);
+  if (!objectInput) return undefined;
+  const credentialSubject = asObject(objectInput.credentialSubject);
+  if (credentialSubject) return credentialSubject;
+  return objectInput;
+}
+
+function getFlattenedClaims(input: unknown): JsonObject | undefined {
+  const objectInput = asObject(input);
+  if (!objectInput) return undefined;
+  const meta = asObject(objectInput.meta);
+  const claims = asObject(meta?.claims);
+  return claims;
+}
+
+function getSemanticServiceTypes(subject: JsonObject | undefined): string[] {
+  return toStringList(subject?.serviceType);
+}
+
+function getSemanticCategories(subject: JsonObject | undefined): string[] {
+  return toStringList(subject?.category);
+}
+
+function getSemanticAreaServed(subject: JsonObject | undefined): string[] {
+  return parseAreaServedValue(subject?.areaServed);
+}
+
+function getSemanticAddressCountry(subject: JsonObject | undefined): string {
+  const address = asObject(subject?.address);
+  return normalizeCountryCode(asNonEmptyString(address?.addressCountry));
+}
+
+function getFlattenedServiceTypes(claims: JsonObject | undefined): string[] {
+  return toStringList(claims?.[ClaimsServiceSchemaorg.serviceType]);
+}
+
+function getFlattenedCategories(claims: JsonObject | undefined): string[] {
+  return toStringList(claims?.[ClaimsServiceSchemaorg.category]);
+}
+
+function getFlattenedAreaServed(claims: JsonObject | undefined): string[] {
+  return parseAreaServedValue(claims?.[ClaimsServiceSchemaorg.areaServed]);
+}
+
+function getFlattenedAddressCountry(claims: JsonObject | undefined): string {
+  return normalizeCountryCode(asNonEmptyString(claims?.[ClaimsOrganizationSchemaorg.addressCountry]));
+}
+
+function assertNoMismatch(kind: string, semantic: string[], flattened: string[]): void {
+  if (!semantic.length || !flattened.length) return;
+  if (!sameNormalizedList(semantic, flattened)) {
+    throw new Error(`Dataspace discovery mismatch for ${kind}: credentialSubject and meta.claims disagree.`);
+  }
+}
+
+function assertNoScalarMismatch(kind: string, semantic: string, flattened: string): void {
+  if (!semantic || !flattened) return;
+  if (semantic !== flattened) {
+    throw new Error(`Dataspace discovery mismatch for ${kind}: credentialSubject and meta.claims disagree.`);
+  }
+}
+
+/**
+ * Parses the CSV or array representation of `serviceType`.
+ *
+ * @param value Semantic `credentialSubject.serviceType` or flattened
+ * `meta.claims['org.schema.Service.serviceType']`.
+ * @returns Normalized unique service capability tokens.
+ *
+ * @example
+ * ```ts
+ * parseServiceTypeCsv('indexing.cruds,digitaltwin.rs');
+ * // ['indexing.cruds', 'digitaltwin.rs']
+ * ```
+ */
+export function parseServiceTypeCsv(value: unknown): string[] {
+  return toStringList(value);
+}
+
+/**
+ * Parses the Schema.org `category` service dimension used as the dataspace
+ * sector vocabulary in the current profile.
+ *
+ * @param value Semantic `credentialSubject.category` or flattened
+ * `meta.claims['org.schema.Service.category']`.
+ * @returns Normalized unique sector/category values.
+ *
+ * @example
+ * ```ts
+ * parseServiceCategories('animal-care,health-care');
+ * // ['animal-care', 'health-care']
+ * ```
+ */
+export function parseServiceCategories(value: unknown): string[] {
+  return toStringList(value);
+}
+
+/**
+ * Parses Schema.org `areaServed` values.
+ *
+ * Accepts scalar strings, CSV strings, arrays, and simple
+ * `AdministrativeArea`-like objects with `name` or `@id`.
+ *
+ * @param value Semantic `credentialSubject.areaServed` or flattened
+ * `meta.claims['org.schema.Service.areaServed']`.
+ * @returns Normalized unique coverage values.
+ *
+ * @example
+ * ```ts
+ * parseAreaServed([{ '@type': 'AdministrativeArea', name: 'EU' }, 'ES']);
+ * // ['EU', 'ES']
+ * ```
+ */
+export function parseAreaServed(value: unknown): string[] {
+  return parseAreaServedValue(value);
+}
+
+/**
+ * Infers a broader coverage scope from an ISO-2 country code.
+ *
+ * `EU` is returned only as a coverage scope. It must not be treated as a
+ * sector.
+ *
+ * @param countryCode ISO-2 country code, typically from
+ * `credentialSubject.address.addressCountry`.
+ * @returns `EU` for EU member countries, otherwise the normalized country code.
+ *
+ * @example
+ * ```ts
+ * inferCoverageScopeFromCountryCode('ES');
+ * // 'EU'
+ * ```
+ */
+export function inferCoverageScopeFromCountryCode(countryCode: string | undefined | null): string | undefined {
+  const normalized = normalizeCountryCode(countryCode);
+  if (!normalized) return undefined;
+  return isEuCountryCode(normalized)
+    ? DataspaceCoverageScope.EuropeanUnion
+    : normalized;
+}
+
+/**
+ * Infers a coverage scope from the semantic `credentialSubject`.
+ *
+ * @param subject Semantic service object containing `address.addressCountry`.
+ * @returns Broader coverage scope such as `EU`, or the normalized country code
+ * when the country is outside the EU set.
+ */
+export function inferCoverageScopeFromCredentialSubject(subject: unknown): string | undefined {
+  const subjectObject = asObject(subject);
+  const address = asObject(subjectObject?.address);
+  return inferCoverageScopeFromCountryCode(asNonEmptyString(address?.addressCountry));
+}
+
+/**
+ * Extracts the shared dataspace service semantics from a VC-like payload.
+ *
+ * Source-of-truth rule:
+ * - semantic values come from `credentialSubject` first
+ * - flattened `meta.claims` is accepted as a compatibility projection/fallback
+ * - when both exist they must agree
+ *
+ * @param input VC-like payload, direct semantic object, or equivalent DTO.
+ * @returns Runtime-neutral normalized dataspace discovery semantics.
+ *
+ * @example
+ * ```ts
+ * extractDataspaceServiceSemanticRecord({
+ *   credentialSubject: {
+ *     id: 'did:web:provider.example.org',
+ *     serviceType: 'indexing.cruds',
+ *     category: 'animal-care',
+ *     areaServed: { '@type': 'AdministrativeArea', name: 'EU' },
+ *     address: { addressCountry: 'ES' },
+ *   },
+ *   meta: {
+ *     claims: {
+ *       'org.schema.Service.serviceType': 'indexing.cruds',
+ *       'org.schema.Service.category': 'animal-care',
+ *       'org.schema.Service.areaServed': 'EU',
+ *       'org.schema.Organization.address.addressCountry': 'ES',
+ *     },
+ *   },
+ * });
+ * ```
+ */
+export function extractDataspaceServiceSemanticRecord(input: unknown): DataspaceServiceSemanticRecord {
+  const subject = getSemanticCredentialSubject(input);
+  const claims = getFlattenedClaims(input);
+
+  const semanticServiceTypes = getSemanticServiceTypes(subject);
+  const semanticCategories = getSemanticCategories(subject);
+  const semanticAreaServed = getSemanticAreaServed(subject);
+  const semanticAddressCountry = getSemanticAddressCountry(subject);
+
+  const flattenedServiceTypes = getFlattenedServiceTypes(claims);
+  const flattenedCategories = getFlattenedCategories(claims);
+  const flattenedAreaServed = getFlattenedAreaServed(claims);
+  const flattenedAddressCountry = getFlattenedAddressCountry(claims);
+
+  assertNoMismatch('serviceType', semanticServiceTypes, flattenedServiceTypes);
+  assertNoMismatch('category', semanticCategories, flattenedCategories);
+  assertNoMismatch('areaServed', semanticAreaServed, flattenedAreaServed);
+  assertNoScalarMismatch('address.addressCountry', semanticAddressCountry, flattenedAddressCountry);
+
+  const serviceTypes = semanticServiceTypes.length ? semanticServiceTypes : flattenedServiceTypes;
+  const categories = semanticCategories.length ? semanticCategories : flattenedCategories;
+  const areaServed = semanticAreaServed.length ? semanticAreaServed : flattenedAreaServed;
+  const addressCountry = semanticAddressCountry || flattenedAddressCountry || undefined;
+
+  return {
+    subjectId: asNonEmptyString(subject?.id) || undefined,
+    serviceTypes,
+    categories,
+    areaServed,
+    addressCountry,
+    coverageScope: inferCoverageScopeFromCountryCode(addressCountry),
+  };
+}
+
+/**
+ * Extracts a hosting-operator semantic record from a VC-like payload.
+ *
+ * @param input VC-like payload or direct semantic object.
+ * @returns Hosting-operator semantic record normalized with the common
+ * dataspace extraction rules.
+ */
+export function extractHostingOperatorSemanticRecord(input: unknown): HostingOperatorSemanticRecord {
+  return extractDataspaceServiceSemanticRecord(input);
+}
+
+/**
+ * Extracts a tenant-service semantic record from a VC-like payload.
+ *
+ * @param input VC-like payload or direct semantic object.
+ * @returns Tenant-service semantic record normalized with the common dataspace
+ * extraction rules.
+ */
+export function extractTenantServiceSemanticRecord(input: unknown): TenantServiceSemanticRecord {
+  return extractDataspaceServiceSemanticRecord(input);
+}

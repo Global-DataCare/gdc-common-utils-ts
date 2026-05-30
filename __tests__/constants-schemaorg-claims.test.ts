@@ -1,6 +1,7 @@
 import {
   ClaimsOrganizationSchemaorg,
   ClaimsPersonSchemaorg,
+  ClaimsServiceSchemaorg,
   ClaimsSoftwareApplicationSchemaorg,
 } from '../src/constants/schemaorg';
 
@@ -14,6 +15,10 @@ describe('schemaorg claims', () => {
     expect(ClaimsPersonSchemaorg.memberOfOrgTaxId).toBe('org.schema.Person.memberOf.taxID');
     expect(ClaimsPersonSchemaorg.hasOccupationalRoleValue).toBe('org.schema.Person.hasOccupation.identifier.value');
     expect(ClaimsPersonSchemaorg.hasCredentialMaterial).toBe('org.schema.Person.hasCredential.material');
+  });
+
+  it('includes service discovery areaServed claim', () => {
+    expect(ClaimsServiceSchemaorg.areaServed).toBe('org.schema.Service.areaServed');
   });
 
   it('includes software-application cryptographic material claim', () => {

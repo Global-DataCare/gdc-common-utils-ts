@@ -7,6 +7,7 @@ export * from './content';
 export * from './consent';
 export * from './did';
 export * from './did-resolution';
+export * from './dataspace-discovery';
 export * from './didcomm';
 export * from './didcomm-submit';
 export * from './didcomm-submit-policy';

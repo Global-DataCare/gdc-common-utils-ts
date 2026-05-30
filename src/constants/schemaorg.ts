@@ -4,6 +4,7 @@
 import { ParameterData } from "../models/params";
 
 export enum ClaimsServiceSchemaorg {
+    areaServed = "org.schema.Service.areaServed",
     category = "org.schema.Service.category",
     identifier = "org.schema.Service.identifier",
     serviceType = "org.schema.Service.serviceType",
