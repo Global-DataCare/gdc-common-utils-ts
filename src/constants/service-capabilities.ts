@@ -115,3 +115,13 @@ export function hasServiceCapabilityFamily(
   if (!normalizedFamily) return false;
   return parseServiceCapabilityTokens(value).some((item) => getServiceCapabilityFamily(item) === normalizedFamily);
 }
+
+/**
+ * Returns whether a capability token denotes a discoverable provider/service
+ * role rather than a reader-only role.
+ */
+export function isProviderServiceCapability(value: string | undefined | null): boolean {
+  const normalized = String(value || '').trim().toLowerCase();
+  return normalized === ServiceCapabilityToken.IndexProvider
+    || normalized === ServiceCapabilityToken.DigitalTwinProvider;
+}

@@ -48,3 +48,29 @@ export type PublishedProviderCatalogRecord = Readonly<{
   endpointUrl?: string;
   catalogUrl?: string;
 }>;
+
+/**
+ * Shared host-catalog filter for service autodiscovery.
+ *
+ * This shape is runtime-neutral and can be reused by GW, ICA, backend SDKs,
+ * and portal/native-app backends.
+ */
+export type DataspaceDiscoveryFilter = Readonly<{
+  sector: string;
+  capability?: string;
+  requiredCapabilities?: readonly string[];
+  jurisdiction?: string;
+  coverageScope?: string;
+}>;
+
+/**
+ * Public host/operator service-autodiscovery catalog.
+ *
+ * This is distinct from any dataset-specific catalog exposed by an individual
+ * `DigitalTwinProvider`.
+ */
+export type HostingOperatorDiscoveryCatalog = Readonly<{
+  hostingOperatorDid?: string;
+  catalogUrl?: string;
+  providers: PublishedProviderCatalogRecord[];
+}>;
