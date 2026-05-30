@@ -3,6 +3,7 @@ export * from './communication';
 export * from './cryptography';
 export * from './device';
 export * from './did-services';
+export * from './eu-countries';
 export * from './fhir-code-systems';
 export * from './fhir-resource-types';
 export * from './fhir-versions';

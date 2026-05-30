@@ -2,6 +2,50 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [1.12.0] - 2026-05-29
+
+### Added
+- Added shared dataspace discovery coverage helpers:
+  - `EU_COUNTRY_CODES`
+  - `normalizeCountryCode(...)`
+  - `isEuCountryCode(...)`
+- Added canonical service-discovery Schema.org claim constant:
+  - `ClaimsServiceSchemaorg.areaServed`
+- Added runtime-neutral dataspace discovery DTOs:
+  - `DataspaceCoverageScope`
+  - `DataspaceServiceSemanticRecord`
+  - `HostingOperatorSemanticRecord`
+  - `TenantServiceSemanticRecord`
+  - `PublishedProviderCatalogRecord`
+- Added shared dataspace discovery parsing helpers:
+  - `parseServiceTypeCsv(...)`
+  - `parseServiceCategories(...)`
+  - `parseAreaServed(...)`
+  - `extractDataspaceServiceSemanticRecord(...)`
+  - `extractHostingOperatorSemanticRecord(...)`
+  - `extractTenantServiceSemanticRecord(...)`
+  - `inferCoverageScopeFromCountryCode(...)`
+  - `inferCoverageScopeFromCredentialSubject(...)`
+- Added parameterized dataspace discovery examples without hardcoded business deployment identities:
+  - `buildExampleHostingOperatorCredentialSubject(...)`
+  - `buildExampleTenantServiceCredentialSubject(...)`
+  - `buildExampleHostingOperatorMetaClaims(...)`
+  - `buildExampleTenantServiceMetaClaims(...)`
+- Added roadmap documentation for the cross-repo dataspace discovery foundation:
+  - `docs/DATASPACE_DISCOVERY_ROADMAP.md`
+
+### Changed
+- Updated repository TODO documents so the common-utils package is the
+  canonical home for:
+  - shared EU coverage logic
+  - semantic `credentialSubject` parsing
+  - flattened `meta.claims` compatibility projection
+  - parameterized dataspace discovery examples
+
+### Testing
+- `npm run typecheck`
+- `npm test -- --watchman=false __tests__/dataspace-discovery.test.ts __tests__/eu-countries.test.ts __tests__/constants-schemaorg-claims.test.ts`
+
 ## [1.11.0] - 2026-05-28
 
 ### Added

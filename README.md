@@ -86,6 +86,9 @@ import { JweObject, JwtCompactParts } from 'gdc-common-utils-ts/models';
 
 ## Cross-Repo Task Docs
 
+- [docs/DATASPACE_DISCOVERY_ROADMAP.md](docs/DATASPACE_DISCOVERY_ROADMAP.md)
+  - cross-repo contract for dataspace discovery semantics, EU coverage
+    inference, shared DTOs, and parameterized examples
 - [docs/consent-access-matrix-task.md](docs/consent-access-matrix-task.md)
   - next-step design/task document for active consent aggregation, explicit deny precedence, controller views, permission-request communications, and SMART access evaluation
 

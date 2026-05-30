@@ -3,6 +3,7 @@
 Canonical roadmap references:
 - `TODO_ROADMAP.md`
 - `TODO_INTEROPERABLE_CLAIM_CATALOG.md`
+- `docs/DATASPACE_DISCOVERY_ROADMAP.md`
 
 ## NOW
 1. Complete claim catalog parity for resource families used in GW/SDK core flows.
@@ -14,6 +15,11 @@ Canonical roadmap references:
    - active relationship summary DTOs
    - normalized `RelatedPerson` claim access for actor/subject/role/status
    - baseline individual-seat semantics (controller auto-consumed first seat, default free 2-seat bundle)
+6. Start dataspace discovery foundation:
+   - EU coverage helpers
+   - semantic `credentialSubject` parsing
+   - flattened `meta.claims` projection helpers
+   - parameterized examples without hardcoded business identities
 
 ## NEXT
 1. Introduce formal validator adapter examples for strict FHIR profile checks in CI.
