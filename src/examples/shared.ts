@@ -90,6 +90,14 @@ export const EXAMPLE_CLINICAL_CODE_PROBLEM = 'LOINC|11450-4' as const;
 export const EXAMPLE_CONSENT_DATE = '2026-05-20' as const;
 export const EXAMPLE_CONSENT_PERIOD_END = '2026-05-01T00:00:00Z' as const;
 export const EXAMPLE_CONSENT_PURPOSE_TREATMENT = HealthcareConsentPurposes.Treatment;
+export const EXAMPLE_CONSENT_IDENTIFIER = 'urn:uuid:consent-example-001' as const;
+export const EXAMPLE_CONSENT_PERIOD_START = '2026-05-20T00:00:00Z' as const;
+export const EXAMPLE_COMMUNICATION_IDENTIFIER = 'urn:uuid:communication-example-001' as const;
+export const EXAMPLE_IPS_BUNDLE_NOTE_TEXT = 'IPS ingestion request' as const;
+export const EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER = 'urn:uuid:medication-statement-example-001' as const;
+export const EXAMPLE_MEDICATION_STATEMENT_STATUS = 'active' as const;
+export const EXAMPLE_MEDICATION_STATEMENT_CODE = 'http://www.nlm.nih.gov/research/umls/rxnorm|313782' as const;
+export const EXAMPLE_MEDICATION_STATEMENT_TEXT = 'atorvastatin 20 mg oral tablet' as const;
 export const EXAMPLE_EMPLOYEE_ACTIVATION_CODE = 'ACT-001' as const;
 export const EXAMPLE_DEVICE_CLIENT_ID = 'did:web:device-001' as const;
 

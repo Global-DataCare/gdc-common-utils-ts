@@ -11,3 +11,4 @@ export * from './frontend-session';
 export * from './lifecycle';
 export * from './api-flow-examples';
 export * from './contract-examples';
+export * from './communication-bundle-session';

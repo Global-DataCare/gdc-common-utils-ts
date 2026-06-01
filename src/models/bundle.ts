@@ -87,6 +87,7 @@ export interface BundleEntryResource {
  */
 export interface BundleEntryRequest {
   id?: string;
+  fullUrl?: string;
   type: string;
   request: BundleRequest;
   resource?: BundleEntryResource;
@@ -100,6 +101,7 @@ export interface BundleEntryRequest {
  */
 export interface BundleEntryResponse {
   id?: string;
+  fullUrl?: string;
   type: string;
   response: BundleResponse;
   resource?: BundleEntryResource;
@@ -144,6 +146,7 @@ export interface ErrorEntry {
  */
 export type BundleEntry = {
   id?: string;
+  fullUrl?: string;
   type: string;
   /** @deprecated Legacy claims location. Prefer resource.meta.claims. */
   meta?: BundleEntryMeta;
