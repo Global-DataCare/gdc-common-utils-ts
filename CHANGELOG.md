@@ -2,6 +2,23 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [1.14.3] - 2026-06-01
+
+### Added
+- Added convenience builders for default-first discovery seeding from a single
+  domain/IP authority:
+  - `buildDefaultIcaRegistrationFromAuthority(...)`
+  - `buildDefaultHostingOperatorRegistrationFromAuthority(...)`
+
+### Changed
+- Simplified the `default-first` bootstrap docs so integrators can seed ICAs
+  and host defaults from authority values instead of manually assembling
+  `did:web`, discovery URLs, and full registration objects.
+
+### Testing
+- `npm run typecheck`
+- `npm test -- --watchman=false __tests__/dataspace-discovery-defaults.101.test.ts __tests__/dataspace-discovery.test.ts __tests__/dataspace-protocol.test.ts`
+
 ## [1.14.0] - 2026-06-01
 
 ### Added

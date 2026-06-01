@@ -4,6 +4,7 @@ import {
   DataspaceDiscoverySourceMode,
   type DataspaceDiscoverySourceModeValue,
 } from '../constants/dataspace-discovery';
+import { normalizeCountryCode } from '../constants/eu-countries';
 import type {
   DataspaceDiscoveryBootstrapInput,
   DataspaceDiscoveryBootstrapPlan,
@@ -17,6 +18,36 @@ import { matchesHostingOperatorDiscoveryFilter } from './dataspace-discovery';
 
 function normalizeString(value: unknown): string {
   return typeof value === 'string' ? value.trim() : '';
+}
+
+function normalizeAuthority(value: unknown): string {
+  const raw = normalizeString(value).replace(/\/+$/, '');
+  if (!raw) return '';
+  if (/^https?:\/\//i.test(raw)) {
+    try {
+      return new URL(raw).host;
+    } catch {
+      return raw.replace(/^https?:\/\//i, '');
+    }
+  }
+  return raw;
+}
+
+function getProtocolForAuthority(authority: string): string {
+  const normalized = authority.trim().toLowerCase();
+  return normalized.startsWith('localhost')
+    || normalized.startsWith('127.0.0.1')
+    || normalized.startsWith('[::1]')
+    ? 'http'
+    : 'https';
+}
+
+function encodeDidWebAuthority(authority: string): string {
+  return authority.replace(/:/g, '%3A').toLowerCase();
+}
+
+function buildDidWebFromAuthority(authority: string): string {
+  return `did:web:${encodeDidWebAuthority(authority)}`;
 }
 
 function normalizeCapabilities(values: readonly string[] | undefined): string[] {
@@ -65,6 +96,88 @@ function matchesNetworkContext(
   if (right.version && normalizeString(right.version) !== left.version) return false;
   if (right.networkType && normalizeString(right.networkType) !== left.networkType) return false;
   return true;
+}
+
+export type BuildDefaultIcaRegistrationFromAuthorityInput = Readonly<{
+  authority: string;
+  jurisdiction: string;
+  version: string;
+  networkType: string;
+  title?: string;
+}>;
+
+export type BuildDefaultHostingOperatorRegistrationFromAuthorityInput = Readonly<{
+  authority: string;
+  jurisdiction: string;
+  version: string;
+  networkType: string;
+  sector: string;
+  serviceTypes: readonly string[];
+  title?: string;
+  areaServed?: readonly string[];
+  addressCountry?: string;
+  coverageScope?: string;
+}>;
+
+/**
+ * Builds one ICA default seed from a domain/IP authority.
+ *
+ * This helper exists so integrators do not have to handcraft:
+ * - the `did:web`
+ * - the well-known ICA URL
+ * - the repeated host/network context fields
+ */
+export function buildDefaultIcaRegistrationFromAuthority(
+  input: BuildDefaultIcaRegistrationFromAuthorityInput,
+): DefaultIcaRegistration {
+  const authority = normalizeAuthority(input.authority);
+  const protocol = getProtocolForAuthority(authority);
+  return normalizeIcaRegistration({
+    jurisdiction: input.jurisdiction,
+    version: input.version,
+    networkType: input.networkType,
+    title: input.title,
+    icaUrl: `${protocol}://${authority}/.well-known/ica-configuration`,
+    icaDid: buildDidWebFromAuthority(authority),
+  });
+}
+
+/**
+ * Builds one hosting-operator default seed from a domain/IP authority.
+ *
+ * This helper exists so integrators do not have to handcraft:
+ * - the `did:web`
+ * - the host-scoped DSP discovery URL
+ * - the semantic host record shape
+ */
+export function buildDefaultHostingOperatorRegistrationFromAuthority(
+  input: BuildDefaultHostingOperatorRegistrationFromAuthorityInput,
+): DefaultHostingOperatorRegistration {
+  const authority = normalizeAuthority(input.authority);
+  const protocol = getProtocolForAuthority(authority);
+  const addressCountry = normalizeCountryCode(input.addressCountry) || normalizeCountryCode(input.jurisdiction);
+  const coverageScope = normalizeString(input.coverageScope) || undefined;
+  const areaServed = Array.from(new Set(
+    (input.areaServed || [input.jurisdiction])
+      .map((value) => normalizeString(value))
+      .filter(Boolean),
+  ));
+  return normalizeHostingOperatorRegistration({
+    jurisdiction: input.jurisdiction,
+    version: input.version,
+    networkType: input.networkType,
+    title: input.title,
+    operatorDid: buildDidWebFromAuthority(authority),
+    discoveryUrl: `${protocol}://${authority}/host/cds-${input.jurisdiction}/${input.version}/${input.networkType}/.well-known/dspace-version`,
+    record: {
+      subjectId: buildDidWebFromAuthority(authority),
+      serviceTypes: [...input.serviceTypes],
+      categories: [normalizeString(input.sector)],
+      areaServed,
+      addressCountry: addressCountry || undefined,
+      coverageScope,
+    },
+  });
 }
 
 /**

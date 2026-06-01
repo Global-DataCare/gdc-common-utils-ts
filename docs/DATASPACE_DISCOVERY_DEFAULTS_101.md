@@ -38,34 +38,32 @@ import {
   ServiceCapabilityToken,
 } from 'gdc-common-utils-ts/constants';
 import {
+  buildDefaultHostingOperatorRegistrationFromAuthority,
+  buildDefaultIcaRegistrationFromAuthority,
   createDataspaceDiscoveryDefaultsRegistry,
 } from 'gdc-common-utils-ts/utils/dataspace-discovery-defaults';
 
 const defaults = createDataspaceDiscoveryDefaultsRegistry();
 
-defaults.addIca({
+defaults.addIca(buildDefaultIcaRegistrationFromAuthority({
+  authority: 'ica.example.org',
   jurisdiction: 'ES',
   version: 'v1',
   networkType: 'test',
-  icaUrl: 'https://ica.example.org',
-});
+  title: 'ICA ES Test',
+}));
 
-defaults.addHostingOperator({
+defaults.addHostingOperator(buildDefaultHostingOperatorRegistrationFromAuthority({
+  authority: 'host.example.org',
   jurisdiction: 'ES',
   version: 'v1',
   networkType: 'test',
-  operatorDid: 'did:web:host.example.org',
-  discoveryUrl: 'https://host.example.org/host/cds-ES/v1/test/.well-known/dspace-version',
-  catalogUrl: 'https://host.example.org/host/cds-ES/v1/test/dsp/catalog/dcat.json',
-  record: {
-    subjectId: 'did:web:host.example.org',
-    serviceTypes: [ServiceCapabilityToken.IndexProvider],
-    categories: ['health-care'],
-    areaServed: ['EU', 'ES'],
-    addressCountry: 'ES',
-    coverageScope: 'EU',
-  },
-});
+  title: 'Health Care Host ES',
+  sector: 'health-care',
+  serviceTypes: [ServiceCapabilityToken.IndexProvider],
+  areaServed: ['EU', 'ES'],
+  coverageScope: 'EU',
+}));
 
 const plan = defaults.buildBootstrapPlan({
   jurisdiction: 'ES',

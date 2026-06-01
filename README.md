@@ -111,6 +111,8 @@ Main entry points:
 - [`src/utils/dataspace-discovery-defaults.ts`](src/utils/dataspace-discovery-defaults.ts)
   - defaults registry for ICAs and hosting operators plus the backend
     `default-first` bootstrap plan used to unblock portal integration
+  - includes authority-based helpers so integrators can seed from a single
+    domain/IP instead of manually assembling `did:web` and discovery URLs
 - [`src/examples/dataspace-discovery.ts`](src/examples/dataspace-discovery.ts)
   - synthetic provider/operator examples that distinguish discovery URL from
     derived catalog artifact URL

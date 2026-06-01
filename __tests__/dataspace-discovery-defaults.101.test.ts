@@ -24,6 +24,8 @@ import {
   type DefaultHostingOperatorRegistration,
 } from '../src/models/dataspace-discovery-defaults.js';
 import {
+  buildDefaultHostingOperatorRegistrationFromAuthority,
+  buildDefaultIcaRegistrationFromAuthority,
   createDataspaceDiscoveryDefaultsRegistry,
 } from '../src/utils/dataspace-discovery-defaults.js';
 import { extractHostingOperatorSemanticRecord } from '../src/utils/dataspace-discovery.js';
@@ -64,6 +66,53 @@ function buildBootstrapInput(
 }
 
 describe('dataspace discovery defaults 101', () => {
+  it('builds ICA defaults from a single authority value', () => {
+    expect(buildDefaultIcaRegistrationFromAuthority({
+      authority: 'ica.example.org',
+      jurisdiction: EXAMPLE_JURISDICTION,
+      version: EXAMPLE_ROUTE_VERSION,
+      networkType: EXAMPLE_NETWORK_TYPE,
+      title: 'ICA ES Test',
+    })).toEqual({
+      jurisdiction: EXAMPLE_JURISDICTION,
+      version: EXAMPLE_ROUTE_VERSION,
+      networkType: EXAMPLE_NETWORK_TYPE,
+      title: 'ICA ES Test',
+      icaUrl: 'https://ica.example.org/.well-known/ica-configuration',
+      icaDid: 'did:web:ica.example.org',
+    });
+  });
+
+  it('builds host defaults from a single authority value', () => {
+    expect(buildDefaultHostingOperatorRegistrationFromAuthority({
+      authority: 'host-animal-care.example.org',
+      jurisdiction: EXAMPLE_JURISDICTION,
+      version: EXAMPLE_ROUTE_VERSION,
+      networkType: EXAMPLE_NETWORK_TYPE,
+      title: 'Animal Care Host ES',
+      sector: DataspaceSectors.AnimalCare,
+      serviceTypes: [ServiceCapabilityToken.IndexProvider],
+      areaServed: [EXAMPLE_COVERAGE_SCOPE_EU, EXAMPLE_JURISDICTION],
+      coverageScope: EXAMPLE_COVERAGE_SCOPE_EU,
+    })).toEqual({
+      jurisdiction: EXAMPLE_JURISDICTION,
+      version: EXAMPLE_ROUTE_VERSION,
+      networkType: EXAMPLE_NETWORK_TYPE,
+      title: 'Animal Care Host ES',
+      operatorDid: 'did:web:host-animal-care.example.org',
+      discoveryUrl: EXAMPLE_HOSTING_OPERATOR_DSPACE_VERSION_URL.replace('host.example.org', 'host-animal-care.example.org'),
+      catalogUrl: undefined,
+      record: {
+        subjectId: 'did:web:host-animal-care.example.org',
+        serviceTypes: [ServiceCapabilityToken.IndexProvider],
+        categories: [DataspaceSectors.AnimalCare],
+        areaServed: [EXAMPLE_COVERAGE_SCOPE_EU, EXAMPLE_JURISDICTION],
+        addressCountry: EXAMPLE_JURISDICTION,
+        coverageScope: EXAMPLE_COVERAGE_SCOPE_EU,
+      },
+    });
+  });
+
   it('stores ICA defaults by jurisdiction, version, and network type', () => {
     const registry = createDataspaceDiscoveryDefaultsRegistry();
 
