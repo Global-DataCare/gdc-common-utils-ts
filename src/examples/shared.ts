@@ -23,6 +23,8 @@ import { CommunicationClaim } from '../models/interoperable-claims/communication
 
 export const EXAMPLE_TENANT_IDENTIFIER = 'acme-id' as const;
 export const EXAMPLE_JURISDICTION = 'ES' as const;
+export const EXAMPLE_NETWORK_TYPE = HostNetworkTypes.Test;
+export const EXAMPLE_ROUTE_VERSION = 'v1' as const;
 export const EXAMPLE_SECTOR = DataspaceSectors.HealthCare;
 export const EXAMPLE_EMAIL_CONTROLLER_ORG = 'controller@acme.org' as const;
 export const EXAMPLE_EMAIL_CONTROLLER_INDIVIDUAL = 'ana.parent@example.org' as const;
@@ -49,11 +51,13 @@ export const EXAMPLE_PROVIDER_ORGANIZATION_DID = 'did:web:hospital.acme.org' as 
 export const EXAMPLE_PROVIDER_ORGANIZATION_URL = 'https://hospital.acme.org' as const;
 export const EXAMPLE_GATEWAY_PUBLIC_ORIGIN = 'https://gateway.example.com' as const;
 export const EXAMPLE_HOST_PUBLIC_HOSTNAME = 'host.example.com' as const;
+export const EXAMPLE_DEFAULT_ICA_URL = 'https://ica.example.org' as const;
+export const EXAMPLE_DEFAULT_ICA_DID = 'did:web:ica.example.org' as const;
 export const EXAMPLE_HOSTING_OPERATOR_DID = 'did:web:host.example.org' as const;
 export const EXAMPLE_TENANT_SERVICE_DID = 'did:web:provider.example.org' as const;
 export const EXAMPLE_SECONDARY_TENANT_SERVICE_DID = 'did:web:provider-b.example.org' as const;
-export const EXAMPLE_HOSTING_OPERATOR_DSPACE_VERSION_URL = `https://host.example.org/host/cds-ES/v1/${HostNetworkTypes.Test}/.well-known/dspace-version` as const;
-export const EXAMPLE_HOSTING_OPERATOR_CATALOG_ARTIFACT_URL = `https://host.example.org/host/cds-ES/v1/${HostNetworkTypes.Test}/dsp/catalog/dcat.json` as const;
+export const EXAMPLE_HOSTING_OPERATOR_DSPACE_VERSION_URL = `https://host.example.org/host/cds-ES/${EXAMPLE_ROUTE_VERSION}/${EXAMPLE_NETWORK_TYPE}/.well-known/dspace-version` as const;
+export const EXAMPLE_HOSTING_OPERATOR_CATALOG_ARTIFACT_URL = `https://host.example.org/host/cds-ES/${EXAMPLE_ROUTE_VERSION}/${EXAMPLE_NETWORK_TYPE}/dsp/catalog/dcat.json` as const;
 /** @deprecated Use `EXAMPLE_HOSTING_OPERATOR_DSPACE_VERSION_URL`. */
 export const EXAMPLE_HOSTING_OPERATOR_CATALOG_URL = EXAMPLE_HOSTING_OPERATOR_DSPACE_VERSION_URL;
 export const EXAMPLE_PROVIDER_PUBLISHED_ENDPOINT_URL = 'https://host.example.org/catalog/provider-a' as const;

@@ -1,0 +1,118 @@
+# Dataspace Discovery Defaults 101
+
+This guide explains the simplest bootstrap model for portal/backend discovery
+when ICA, CA, and live GW discovery are not fully deployed yet.
+
+Use this document when the immediate goal is:
+
+- unblock frontend/backend integration now
+- preload one or more ICAs by `jurisdiction + version + networkType`
+- preload one or more hosting operators by `jurisdiction + version + networkType`
+- keep provider discovery itself business-scoped by `sector`
+
+## Mental Model
+
+Three dimensions must stay separate:
+
+1. host/network context
+   - `jurisdiction`
+   - `version`
+   - `networkType`
+2. provider/tenant business context
+   - `sector`
+3. discovery source policy
+   - `defaults-only`
+   - `default-first`
+   - `internet-first`
+
+Rule:
+
+- ICA and hosting defaults are selected by host/network context
+- published providers are selected later by business `sector`
+
+## Copy/Paste Example
+
+```ts
+import {
+  DataspaceDiscoverySourceMode,
+  ServiceCapabilityToken,
+} from 'gdc-common-utils-ts/constants';
+import {
+  createDataspaceDiscoveryDefaultsRegistry,
+} from 'gdc-common-utils-ts/utils/dataspace-discovery-defaults';
+
+const defaults = createDataspaceDiscoveryDefaultsRegistry();
+
+defaults.addIca({
+  jurisdiction: 'ES',
+  version: 'v1',
+  networkType: 'test',
+  icaUrl: 'https://ica.example.org',
+});
+
+defaults.addHostingOperator({
+  jurisdiction: 'ES',
+  version: 'v1',
+  networkType: 'test',
+  operatorDid: 'did:web:host.example.org',
+  discoveryUrl: 'https://host.example.org/host/cds-ES/v1/test/.well-known/dspace-version',
+  catalogUrl: 'https://host.example.org/host/cds-ES/v1/test/dsp/catalog/dcat.json',
+  record: {
+    subjectId: 'did:web:host.example.org',
+    serviceTypes: [ServiceCapabilityToken.IndexProvider],
+    categories: ['health-care'],
+    areaServed: ['EU', 'ES'],
+    addressCountry: 'ES',
+    coverageScope: 'EU',
+  },
+});
+
+const plan = defaults.buildBootstrapPlan({
+  jurisdiction: 'ES',
+  version: 'v1',
+  networkType: 'test',
+  sector: 'health-care',
+  coverageScope: 'EU',
+  requiredCapabilities: [ServiceCapabilityToken.IndexProvider],
+  sourceMode: DataspaceDiscoverySourceMode.DefaultFirst,
+});
+```
+
+## Policy Semantics
+
+`defaults-only`
+
+- never tries live ICA/internet discovery
+- always serves configured defaults only
+- best for local frontend/backend development and incomplete deployments
+
+`default-first`
+
+- uses matching hosting defaults immediately when present
+- only tries ICA/internet when no matching host defaults exist for the request
+- best for the current portal phase
+
+`internet-first`
+
+- prefers live ICA/internet discovery first
+- still exposes configured defaults as fallback
+- best for later production deployment once live trust/discovery is ready
+
+## Portal Backend Rule
+
+The frontend should not choose `networkType`.
+
+Recommended backend behavior:
+
+1. frontend sends `sector + jurisdiction + providerCapability`
+2. backend chooses `networkType` from deployment configuration
+3. backend builds a bootstrap plan from configured defaults
+4. backend resolves hosting operators
+5. backend resolves published providers for the requested `sector`
+6. frontend receives only normalized DTOs from the backend
+
+## Executable References
+
+- [`__tests__/dataspace-discovery-defaults.101.test.ts`](../__tests__/dataspace-discovery-defaults.101.test.ts)
+- [`__tests__/dataspace-protocol.test.ts`](../__tests__/dataspace-protocol.test.ts)
+- [`__tests__/dataspace-discovery.test.ts`](../__tests__/dataspace-discovery.test.ts)
