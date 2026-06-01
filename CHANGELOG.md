@@ -2,6 +2,37 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [1.14.0] - 2026-06-01
+
+### Added
+- Added shared defaults/bootstrap contracts for portal/backend discovery:
+  - `DataspaceDiscoverySourceMode`
+  - `DefaultIcaRegistration`
+  - `DefaultHostingOperatorRegistration`
+  - `DataspaceDiscoveryBootstrapInput`
+  - `DataspaceDiscoveryBootstrapPlan`
+- Added the in-memory defaults registry helpers:
+  - `DataspaceDiscoveryDefaultsRegistry`
+  - `createDataspaceDiscoveryDefaultsRegistry(...)`
+- Added executable `101` coverage for:
+  - ICA defaults by `jurisdiction + version + networkType`
+  - hosting defaults by `jurisdiction + version + networkType`
+  - `defaults-only`
+  - `default-first`
+  - `internet-first`
+- Added copy/paste backend bootstrap documentation in:
+  - `docs/DATASPACE_DISCOVERY_DEFAULTS_101.md`
+
+### Changed
+- Updated the shared discovery README/docs so portal/backend integrations teach:
+  - `networkType` on the host/ICA side
+  - `sector` on the tenant/provider side
+  - `default-first` as the current unblock-now bootstrap policy
+
+### Testing
+- `npm run typecheck`
+- `npm test -- --watchman=false __tests__/dataspace-discovery-defaults.101.test.ts __tests__/dataspace-discovery.test.ts __tests__/dataspace-protocol.test.ts`
+
 ## [1.12.0] - 2026-05-29
 
 ### Added

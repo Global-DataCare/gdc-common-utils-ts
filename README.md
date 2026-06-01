@@ -89,6 +89,9 @@ import { JweObject, JwtCompactParts } from 'gdc-common-utils-ts/models';
 - [docs/DATASPACE_DISCOVERY_ROADMAP.md](docs/DATASPACE_DISCOVERY_ROADMAP.md)
   - cross-repo contract for dataspace discovery semantics, EU coverage
     inference, shared DTOs, and parameterized examples
+- [docs/DATASPACE_DISCOVERY_DEFAULTS_101.md](docs/DATASPACE_DISCOVERY_DEFAULTS_101.md)
+  - portal/backend bootstrap guide for `defaults-only`, `default-first`, and
+    `internet-first` discovery seeding by `jurisdiction + version + networkType`
 - [docs/consent-access-matrix-task.md](docs/consent-access-matrix-task.md)
   - next-step design/task document for active consent aggregation, explicit deny precedence, controller views, permission-request communications, and SMART access evaluation
 
@@ -105,9 +108,17 @@ Main entry points:
 - [`src/utils/dataspace-discovery.ts`](src/utils/dataspace-discovery.ts)
   - semantic extraction, provider filtering, default DTO builders, and the
     copy/paste fetcher harness used by docs/tests
+- [`src/utils/dataspace-discovery-defaults.ts`](src/utils/dataspace-discovery-defaults.ts)
+  - defaults registry for ICAs and hosting operators plus the backend
+    `default-first` bootstrap plan used to unblock portal integration
 - [`src/examples/dataspace-discovery.ts`](src/examples/dataspace-discovery.ts)
   - synthetic provider/operator examples that distinguish discovery URL from
     derived catalog artifact URL
+- [`docs/DATASPACE_DISCOVERY_DEFAULTS_101.md`](docs/DATASPACE_DISCOVERY_DEFAULTS_101.md)
+  - copy/paste backend bootstrap guide for portal `default-first` rollout
+- [`__tests__/dataspace-discovery-defaults.101.test.ts`](__tests__/dataspace-discovery-defaults.101.test.ts)
+  - executable defaults-registry examples for ICAs, hosting operators, and
+    source-mode behavior
 - [`__tests__/dataspace-protocol.test.ts`](__tests__/dataspace-protocol.test.ts)
   - executable path and `dspace-version` examples
 - [`__tests__/dataspace-discovery.test.ts`](__tests__/dataspace-discovery.test.ts)
