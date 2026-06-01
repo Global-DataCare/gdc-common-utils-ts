@@ -5,6 +5,7 @@ export * from './baseN';
 export * from './bundle';
 export * from './content';
 export * from './consent';
+export * from './consent-claim-helpers';
 export * from './did';
 export * from './did-resolution';
 export * from './dataspace-discovery';

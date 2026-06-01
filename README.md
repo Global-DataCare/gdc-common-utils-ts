@@ -275,6 +275,8 @@ The canonical API contract should live in JSDoc on exported code. The README act
   - `tenantId` is modeled as an identifier-like route token (`acme-id`), not as a friendly alternate name.
 - [`docs/LIFECYCLE_101.md`](docs/LIFECYCLE_101.md)
   - Copy/paste lifecycle `101` guide with semantic rules and reusable placeholders.
+- [`docs/HEALTHCARE_ROLES_I18N_101.md`](docs/HEALTHCARE_ROLES_I18N_101.md)
+  - Sector-aware healthcare role catalog and i18n `101` (ISCO-08 + HL7) for FE/BE onboarding.
 
 ## Documentation Naming Rules
 
