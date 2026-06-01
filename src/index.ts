@@ -4,6 +4,7 @@ export * from './constants';
 export * from './examples';
 export * from './hmac';
 export * from './i18n/clinical-sections.i18n';
+export * from './i18n/role-codes.i18n';
 export * from './models';
 export * from './storage';
 export * from './utils';
