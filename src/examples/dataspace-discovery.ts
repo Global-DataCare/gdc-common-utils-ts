@@ -2,9 +2,13 @@
 
 import { ClaimsOrganizationSchemaorg, ClaimsServiceSchemaorg } from '../constants/schemaorg';
 import { serializeServiceCapabilityTokens, ServiceCapabilityToken } from '../constants/service-capabilities';
-import type { HostingOperatorDiscoveryCatalog, PublishedProviderCatalogRecord } from '../models/dataspace-discovery';
+import type {
+  HostingOperatorDiscoveryCatalog,
+  PublishedProviderCatalogRecord,
+} from '../models/dataspace-discovery';
 import {
-  EXAMPLE_HOSTING_OPERATOR_CATALOG_URL,
+  EXAMPLE_HOSTING_OPERATOR_CATALOG_ARTIFACT_URL,
+  EXAMPLE_HOSTING_OPERATOR_DSPACE_VERSION_URL,
   EXAMPLE_HOSTING_OPERATOR_DID,
   EXAMPLE_PROVIDER_PUBLISHED_ENDPOINT_URL,
   EXAMPLE_JURISDICTION,
@@ -129,6 +133,11 @@ export function buildExampleTenantServiceMetaClaims(
  * Builds a synthetic published-provider record as it would appear in a host
  * service-autodiscovery catalog.
  *
+ * URL rule:
+ * - `discoveryUrl` is the participant-scoped `/.well-known/dspace-version`
+ *   entrypoint
+ * - `catalogUrl` is the derived `/dsp/catalog/dcat.json` artifact
+ *
  * @param input Optional overrides for the synthetic provider publication.
  * @returns Shared host-catalog provider entry.
  */
@@ -142,14 +151,20 @@ export function buildExamplePublishedProviderCatalogRecord(
     providerDid: input.did || EXAMPLE_TENANT_SERVICE_DID,
     serviceType: serviceTypes[0] || ServiceCapabilityToken.IndexProvider,
     category: categories[0] || EXAMPLE_SECTOR,
-    areaServed: areaServed[0] || 'EU',
+    areaServed: firstOrCsv(areaServed) || 'EU',
     endpointUrl: EXAMPLE_PROVIDER_PUBLISHED_ENDPOINT_URL,
-    catalogUrl: EXAMPLE_HOSTING_OPERATOR_CATALOG_URL,
+    discoveryUrl: EXAMPLE_HOSTING_OPERATOR_DSPACE_VERSION_URL,
+    catalogUrl: EXAMPLE_HOSTING_OPERATOR_CATALOG_ARTIFACT_URL,
   };
 }
 
 /**
  * Builds a synthetic host/operator service-autodiscovery catalog.
+ *
+ * URL rule:
+ * - `discoveryUrl` is the canonical entrypoint clients should fetch first
+ * - `catalogUrl` is the read-only DSP artifact derived from the advertised
+ *   base path
  *
  * @param providers Optional published providers to include.
  * @returns Shared catalog DTO for host-side public service autodiscovery.
@@ -159,7 +174,8 @@ export function buildExampleHostingOperatorDiscoveryCatalog(
 ): HostingOperatorDiscoveryCatalog {
   return {
     hostingOperatorDid: EXAMPLE_HOSTING_OPERATOR_DID,
-    catalogUrl: EXAMPLE_HOSTING_OPERATOR_CATALOG_URL,
+    discoveryUrl: EXAMPLE_HOSTING_OPERATOR_DSPACE_VERSION_URL,
+    catalogUrl: EXAMPLE_HOSTING_OPERATOR_CATALOG_ARTIFACT_URL,
     providers: [...providers],
   };
 }

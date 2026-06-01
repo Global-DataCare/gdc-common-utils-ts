@@ -92,6 +92,54 @@ import { JweObject, JwtCompactParts } from 'gdc-common-utils-ts/models';
 - [docs/consent-access-matrix-task.md](docs/consent-access-matrix-task.md)
   - next-step design/task document for active consent aggregation, explicit deny precedence, controller views, permission-request communications, and SMART access evaluation
 
+## Dataspace Protocol And Discovery
+
+Use `gdc-common-utils-ts` as the shared source of truth for DSP route building,
+`dspace-version` metadata, and normalized discovery DTOs.
+
+Main entry points:
+
+- [`src/utils/dataspace-protocol.ts`](src/utils/dataspace-protocol.ts)
+  - canonical GW CORE path builders for host-scoped and tenant-scoped DSP
+    routes
+- [`src/utils/dataspace-discovery.ts`](src/utils/dataspace-discovery.ts)
+  - semantic extraction, provider filtering, default DTO builders, and the
+    copy/paste fetcher harness used by docs/tests
+- [`src/examples/dataspace-discovery.ts`](src/examples/dataspace-discovery.ts)
+  - synthetic provider/operator examples that distinguish discovery URL from
+    derived catalog artifact URL
+- [`__tests__/dataspace-protocol.test.ts`](__tests__/dataspace-protocol.test.ts)
+  - executable path and `dspace-version` examples
+- [`__tests__/dataspace-discovery.test.ts`](__tests__/dataspace-discovery.test.ts)
+  - executable semantic extraction and filtering examples
+
+Copy/paste example:
+
+```ts
+import {
+  buildDspaceVersionMetadata,
+  buildGwCatalogArtifactPath,
+  buildGwDspaceVersionWellKnownPath,
+  deriveGwCatalogArtifactUrlFromDspaceVersion,
+} from 'gdc-common-utils-ts/utils/dataspace-protocol';
+import { HostNetworkTypes } from 'gdc-common-utils-ts/constants/network';
+
+const hostContext = {
+  participantId: 'host',
+  jurisdiction: 'ES',
+  version: 'v1',
+  hostNetwork: HostNetworkTypes.Test,
+};
+
+const discoveryPath = buildGwDspaceVersionWellKnownPath(hostContext);
+const metadata = buildDspaceVersionMetadata('/host/cds-ES/v1/test/dsp');
+const catalogPath = buildGwCatalogArtifactPath(hostContext);
+const catalogUrl = deriveGwCatalogArtifactUrlFromDspaceVersion(
+  `https://host.example.org${discoveryPath}`,
+  metadata,
+);
+```
+
 ## API Index
 
 The canonical API contract should live in JSDoc on exported code. The README acts as a navigable index.
@@ -116,8 +164,8 @@ The canonical API contract should live in JSDoc on exported code. The README act
   - Reusable professional role/permission examples tying actor role, consent action, SMART scope, and expected FHIR resource types together.
 - [`DeviceUserClasses`, `DeviceAppTypes`](src/constants/device.ts)
   - Shared user-class and app/device-type constants used by licensing and SDK flows.
-- [`NodeOperatorNetworkTypes`](src/constants/network.ts)
-  - Shared network/environment labels for node-operator discovery/bootstrap.
+- [`HostNetworkTypes`](src/constants/network.ts)
+  - Shared network/environment labels for host discovery/bootstrap.
 - [`SmartGatewayScopesFhirR4`](src/constants/smart.ts)
   - Current CORE GW SMART scope literals such as `organization/Consent.cruds`.
   - Treat these as optional elevated scopes. Do not add them to the first read-only tutorial by default.

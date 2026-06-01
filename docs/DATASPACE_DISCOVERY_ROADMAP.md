@@ -12,6 +12,15 @@ Version:
 This document defines the first implementation slice for dataspace discovery
 without inventing private claims or host-to-tenant linkage inside tenant VCs.
 
+This document does not define:
+
+- concrete Fabric network/channel names
+- veterinary network segmentation
+- concrete regional rollout naming
+
+Those decisions are outside common-utils scope and should remain in workspace or
+extension-level repositories.
+
 Canonical discovery model:
 
 1. ICA-issued VCs remain the source of truth for semantic service metadata.
@@ -36,7 +45,7 @@ Canonical discovery model:
 4. `dataspace-ica-ts`
    - extend ICA-issued VC examples and issuance/profile docs
 5. `gwtemplate-node-ts`
-   - publish provider offerings in host `DCAT3` grouped by service type
+   - publish provider offerings in host DSP catalogs grouped by service type
 
 ## Canonical Semantics
 
@@ -218,7 +227,7 @@ Required examples inside JSDoc:
 
 ### gwtemplate-node-ts
 
-- expose host-level `DCAT3` offerings grouped by provider service capability
+- expose host-level DSP catalog offerings grouped by provider service capability
 - publish only provider offerings:
   - `IndexProvider`
   - `DigitalTwinProvider`

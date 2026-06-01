@@ -46,6 +46,7 @@ export type PublishedProviderCatalogRecord = Readonly<{
   category: string;
   areaServed?: string;
   endpointUrl?: string;
+  discoveryUrl?: string;
   catalogUrl?: string;
 }>;
 
@@ -71,6 +72,7 @@ export type DataspaceDiscoveryFilter = Readonly<{
  */
 export type HostingOperatorDiscoveryCatalog = Readonly<{
   hostingOperatorDid?: string;
+  discoveryUrl?: string;
   catalogUrl?: string;
   providers: PublishedProviderCatalogRecord[];
 }>;

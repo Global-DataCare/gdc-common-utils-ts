@@ -13,6 +13,7 @@ export * from './consent-rule';
 export * from './consent-access';
 export * from './crypto';
 export * from './dataspace-discovery';
+export * from './dataspace-protocol';
 export * from './device-license';
 export * from './did';
 export * from './fhir-documents';

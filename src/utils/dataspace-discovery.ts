@@ -25,6 +25,68 @@ function asNonEmptyString(value: unknown): string {
   return typeof value === 'string' ? value.trim() : '';
 }
 
+export type DiscoveryCatalogFetchResponse = Readonly<{
+  ok: boolean;
+  status: number;
+  json(): Promise<unknown>;
+  text(): Promise<string>;
+}>;
+
+export const DiscoveryCatalogSource = Object.freeze({
+  Internet: 'internet',
+  Cache: 'cache',
+  Default: 'default',
+} as const);
+
+export type DiscoveryCatalogSourceValue =
+  typeof DiscoveryCatalogSource[keyof typeof DiscoveryCatalogSource];
+
+export type DiscoveryCatalogFetcherOptions = Readonly<{
+  internetCatalogs?: Record<string, HostingOperatorDiscoveryCatalog>;
+  internetJsonByUrl?: Record<string, unknown>;
+  defaultCatalogs?: Record<string, HostingOperatorDiscoveryCatalog>;
+}>;
+
+export type DiscoveryCatalogFetcherHarness = Readonly<{
+  fetcher(input: string, init?: unknown): Promise<DiscoveryCatalogFetchResponse>;
+  calls: string[];
+  sources: Map<string, DiscoveryCatalogSourceValue>;
+  cache: Map<string, HostingOperatorDiscoveryCatalog>;
+  setInternetCatalog(url: string, catalog: HostingOperatorDiscoveryCatalog): void;
+  setInternetJson(url: string, payload: unknown): void;
+  setInternetFailure(url: string, status?: number, body?: unknown): void;
+  clearInternetRoute(url: string): void;
+}>;
+
+function createDiscoveryCatalogFetchResponse(
+  payload: unknown,
+  init: Readonly<{ ok?: boolean; status?: number }> = {},
+): DiscoveryCatalogFetchResponse {
+  return {
+    ok: init.ok ?? true,
+    status: init.status ?? 200,
+    json: async () => payload,
+    text: async () => JSON.stringify(payload),
+  };
+}
+
+export type DefaultPublishedProviderCatalogRecordInput = Readonly<{
+  providerDid: string;
+  serviceType: string;
+  category: string;
+  areaServed?: string | readonly string[];
+  endpointUrl?: string;
+  discoveryUrl?: string;
+  catalogUrl?: string;
+}>;
+
+export type DefaultHostingOperatorDiscoveryCatalogInput = Readonly<{
+  hostingOperatorDid?: string;
+  discoveryUrl?: string;
+  catalogUrl?: string;
+  providers?: ReadonlyArray<PublishedProviderCatalogRecord>;
+}>;
+
 function toStringList(value: unknown): string[] {
   if (Array.isArray(value)) {
     return Array.from(new Set(
@@ -397,5 +459,152 @@ export function filterHostingOperatorDiscoveryCatalog(
   return {
     ...catalog,
     providers: filterPublishedProvidersByDiscoveryFilter(catalog.providers, filter),
+  };
+}
+
+/**
+ * Builds a normalized published-provider catalog DTO suitable for:
+ *
+ * - backend-owned fallback catalogs
+ * - default discovery data loaded from configuration
+ * - tests that should use the same DTO constructors as production code
+ *
+ * This helper is intentionally neutral:
+ * - no example DIDs
+ * - no example URLs
+ * - no hidden business defaults
+ *
+ * @param input Required provider catalog fields plus optional URLs.
+ * @returns Normalized published-provider catalog record.
+ */
+export function buildDefaultPublishedProviderCatalogRecord(
+  input: DefaultPublishedProviderCatalogRecordInput,
+): PublishedProviderCatalogRecord {
+  const normalizedAreaServed = Array.isArray(input.areaServed)
+    ? normalizeList(input.areaServed.map((value) => asNonEmptyString(value)).filter(Boolean))
+    : toStringList(input.areaServed);
+  return {
+    providerDid: asNonEmptyString(input.providerDid),
+    serviceType: asNonEmptyString(input.serviceType),
+    category: asNonEmptyString(input.category),
+    areaServed: normalizedAreaServed.length ? normalizedAreaServed.join(',') : undefined,
+    endpointUrl: asNonEmptyString(input.endpointUrl) || undefined,
+    discoveryUrl: asNonEmptyString(input.discoveryUrl) || undefined,
+    catalogUrl: asNonEmptyString(input.catalogUrl) || undefined,
+  };
+}
+
+/**
+ * Builds a normalized hosting-operator discovery catalog DTO suitable for:
+ *
+ * - backend-owned fallback catalogs
+ * - default host catalogs assembled from configuration
+ * - tests that should reuse the same constructor as production code
+ *
+ * @param input Optional host identity fields plus the provider list.
+ * @returns Normalized host discovery catalog.
+ */
+export function buildDefaultHostingOperatorDiscoveryCatalog(
+  input: DefaultHostingOperatorDiscoveryCatalogInput = {},
+): HostingOperatorDiscoveryCatalog {
+  return {
+    hostingOperatorDid: asNonEmptyString(input.hostingOperatorDid) || undefined,
+    discoveryUrl: asNonEmptyString(input.discoveryUrl) || undefined,
+    catalogUrl: asNonEmptyString(input.catalogUrl) || undefined,
+    providers: [...(input.providers || [])],
+  };
+}
+
+function isHostingOperatorCatalogPayload(value: unknown): value is HostingOperatorDiscoveryCatalog {
+  const objectValue = asObject(value);
+  return Boolean(objectValue && Array.isArray(objectValue.providers));
+}
+
+/**
+ * Creates a generic host-catalog fetcher with cache and default fallback.
+ *
+ * Intended use:
+ * - docs
+ * - SDK integration examples
+ * - tests that need to demonstrate the transport boundary around discovery
+ *
+ * Behavior:
+ * - successful network catalog refreshes cache
+ * - later network failures reuse cached catalog when available
+ * - when both network and cache are unavailable, configured defaults are used
+ *
+ * Production integrations may follow the same policy while replacing this
+ * in-memory harness with real logging, metrics, and storage.
+ *
+ * @param options Optional initial network and default catalogs keyed by URL.
+ * @returns Fetcher plus observable state and mutation helpers.
+ */
+export function createDiscoveryCatalogFetcher(
+  options: DiscoveryCatalogFetcherOptions = {},
+): DiscoveryCatalogFetcherHarness {
+  const internetResponses = new Map<string, DiscoveryCatalogFetchResponse>([
+    ...Object.entries(options.internetCatalogs || {}).map(([url, catalog]) => (
+      [url, createDiscoveryCatalogFetchResponse(catalog, { ok: true, status: 200 })] as const
+    )),
+    ...Object.entries(options.internetJsonByUrl || {}).map(([url, payload]) => (
+      [url, createDiscoveryCatalogFetchResponse(payload, { ok: true, status: 200 })] as const
+    )),
+  ]);
+  const internetPayloads = new Map<string, unknown>([
+    ...Object.entries(options.internetCatalogs || {}).map(([url, catalog]) => [String(url), catalog] as const),
+    ...Object.entries(options.internetJsonByUrl || {}).map(([url, payload]) => [String(url), payload] as const),
+  ]);
+  const defaultCatalogs = new Map(Object.entries(options.defaultCatalogs || {}));
+  const cache = new Map<string, HostingOperatorDiscoveryCatalog>();
+  const sources = new Map<string, DiscoveryCatalogSourceValue>();
+  const calls: string[] = [];
+
+  return {
+    calls,
+    sources,
+    cache,
+    setInternetCatalog(url: string, catalog: HostingOperatorDiscoveryCatalog) {
+      internetResponses.set(String(url), createDiscoveryCatalogFetchResponse(catalog, { ok: true, status: 200 }));
+      internetPayloads.set(String(url), catalog);
+    },
+    setInternetJson(url: string, payload: unknown) {
+      internetResponses.set(String(url), createDiscoveryCatalogFetchResponse(payload, { ok: true, status: 200 }));
+      internetPayloads.set(String(url), payload);
+    },
+    setInternetFailure(url: string, status = 503, body: unknown = { error: 'temporary failure' }) {
+      internetResponses.set(String(url), createDiscoveryCatalogFetchResponse(body, { ok: false, status }));
+      internetPayloads.delete(String(url));
+    },
+    clearInternetRoute(url: string) {
+      internetResponses.delete(String(url));
+      internetPayloads.delete(String(url));
+    },
+    async fetcher(input: string): Promise<DiscoveryCatalogFetchResponse> {
+      const key = String(input);
+      calls.push(key);
+
+      const internetResponse = internetResponses.get(key);
+      if (internetResponse && internetResponse.ok) {
+        const payload = internetPayloads.get(key);
+        if (isHostingOperatorCatalogPayload(payload)) {
+          cache.set(key, payload);
+        }
+        sources.set(key, DiscoveryCatalogSource.Internet);
+        return internetResponse;
+      }
+
+      if (cache.has(key)) {
+        sources.set(key, DiscoveryCatalogSource.Cache);
+        return createDiscoveryCatalogFetchResponse(cache.get(key), { ok: true, status: 200 });
+      }
+
+      if (defaultCatalogs.has(key)) {
+        sources.set(key, DiscoveryCatalogSource.Default);
+        return createDiscoveryCatalogFetchResponse(defaultCatalogs.get(key), { ok: true, status: 200 });
+      }
+
+      sources.set(key, DiscoveryCatalogSource.Default);
+      return createDiscoveryCatalogFetchResponse({ error: 'not found' }, { ok: false, status: 404 });
+    },
   };
 }

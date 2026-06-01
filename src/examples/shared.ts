@@ -2,6 +2,7 @@
 // Always create JSDoc, do not use strings inline in keys nor values, use types instead, and reuse the data test examples.
 
 import { DataspaceSectors } from '../constants/sectors';
+import { HostNetworkTypes } from '../constants/network';
 import {
   HealthcareActorRoles,
   HealthcareBasicSections,
@@ -34,7 +35,7 @@ export const EXAMPLE_TENANT_ROUTE_CONTEXT = {
 
 export const EXAMPLE_HOST_ROUTE_CONTEXT = {
   jurisdiction: EXAMPLE_JURISDICTION,
-  sector: EXAMPLE_SECTOR,
+  sector: HostNetworkTypes.Test,
 } as const;
 
 export const EXAMPLE_CONTROLLER_DID = 'did:web:people.acme.org:controllers:primary' as const;
@@ -51,7 +52,10 @@ export const EXAMPLE_HOST_PUBLIC_HOSTNAME = 'host.example.com' as const;
 export const EXAMPLE_HOSTING_OPERATOR_DID = 'did:web:host.example.org' as const;
 export const EXAMPLE_TENANT_SERVICE_DID = 'did:web:provider.example.org' as const;
 export const EXAMPLE_SECONDARY_TENANT_SERVICE_DID = 'did:web:provider-b.example.org' as const;
-export const EXAMPLE_HOSTING_OPERATOR_CATALOG_URL = 'https://host.example.org/.well-known/dcat3/catalog' as const;
+export const EXAMPLE_HOSTING_OPERATOR_DSPACE_VERSION_URL = `https://host.example.org/host/cds-ES/v1/${HostNetworkTypes.Test}/.well-known/dspace-version` as const;
+export const EXAMPLE_HOSTING_OPERATOR_CATALOG_ARTIFACT_URL = `https://host.example.org/host/cds-ES/v1/${HostNetworkTypes.Test}/dsp/catalog/dcat.json` as const;
+/** @deprecated Use `EXAMPLE_HOSTING_OPERATOR_DSPACE_VERSION_URL`. */
+export const EXAMPLE_HOSTING_OPERATOR_CATALOG_URL = EXAMPLE_HOSTING_OPERATOR_DSPACE_VERSION_URL;
 export const EXAMPLE_PROVIDER_PUBLISHED_ENDPOINT_URL = 'https://host.example.org/catalog/provider-a' as const;
 export const EXAMPLE_PROVIDER_LEGAL_NAME = 'ACME Health Provider' as const;
 export const EXAMPLE_SECONDARY_PROVIDER_LEGAL_NAME = 'Reader Only Provider' as const;

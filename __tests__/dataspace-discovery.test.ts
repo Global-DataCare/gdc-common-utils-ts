@@ -12,7 +12,9 @@ import {
 } from '../src/examples/dataspace-discovery.js';
 import {
   EXAMPLE_COVERAGE_SCOPE_EU,
+  EXAMPLE_HOSTING_OPERATOR_CATALOG_ARTIFACT_URL,
   EXAMPLE_HOSTING_OPERATOR_DID,
+  EXAMPLE_HOSTING_OPERATOR_DSPACE_VERSION_URL,
   EXAMPLE_JURISDICTION,
   EXAMPLE_NON_EU_COUNTRY,
   EXAMPLE_SECTOR,
@@ -172,7 +174,19 @@ describe('dataspace discovery helpers', () => {
     });
 
     expect(filtered.hostingOperatorDid).toBe(catalog.hostingOperatorDid);
+    expect(filtered.discoveryUrl).toBe(EXAMPLE_HOSTING_OPERATOR_DSPACE_VERSION_URL);
+    expect(filtered.catalogUrl).toBe(EXAMPLE_HOSTING_OPERATOR_CATALOG_ARTIFACT_URL);
     expect(filtered.providers).toHaveLength(1);
     expect(filtered.providers[0]?.serviceType).toBe(ServiceCapabilityToken.IndexProvider);
+  });
+
+  it('publishes discovery entrypoint and derived catalog artifact explicitly in examples', () => {
+    const provider = buildExamplePublishedProviderCatalogRecord();
+    const catalog = buildExampleHostingOperatorDiscoveryCatalog([provider]);
+
+    expect(provider.discoveryUrl).toBe(EXAMPLE_HOSTING_OPERATOR_DSPACE_VERSION_URL);
+    expect(provider.catalogUrl).toBe(EXAMPLE_HOSTING_OPERATOR_CATALOG_ARTIFACT_URL);
+    expect(catalog.discoveryUrl).toBe(EXAMPLE_HOSTING_OPERATOR_DSPACE_VERSION_URL);
+    expect(catalog.catalogUrl).toBe(EXAMPLE_HOSTING_OPERATOR_CATALOG_ARTIFACT_URL);
   });
 });

@@ -12,6 +12,11 @@ Version:
 - [ ] Add parameterized dataspace discovery examples without hardcoded business identities.
 - [ ] Align auth actor terms: service-controller, tenant-controller, tenant-runtime-client.
 - [ ] Link this file updates back to orchestrator chronology.
+- [ ] Keep architectural scope explicit:
+  - no concrete Fabric network/channel naming in this repo
+  - no veterinary segmentation taxonomy in this repo
+  - no regional rollout taxonomy in this repo
+  - those decisions belong to higher-level workspace docs or `uhc-sdk-core-ts`
 
 ## Current roadmap documents
 
