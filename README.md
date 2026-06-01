@@ -378,6 +378,8 @@ when the active runtime variable is really the subject identifier.
 - [`resolveSubjectIdentifier(...)`](src/utils/consent.ts)
 - [`buildConsentClaimsSimple(...)`](src/utils/consent.ts)
 - [`buildConsentClaimsSimpleWithCid(...)`](src/utils/consent.ts)
+- [`getPurposes(...)`, `setPurposes(...)`, `addPurposes(...)` and related claim list helpers](src/utils/consent-claim-helpers.ts)
+- [`__tests__/utils-consent-claim-helpers.test.ts`](__tests__/utils-consent-claim-helpers.test.ts)
 
 These helpers are the shared base for consent claim construction across GW and SDKs.
 
