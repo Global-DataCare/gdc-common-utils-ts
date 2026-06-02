@@ -71,7 +71,7 @@ describe('utils/communication-bundle-document-request', () => {
       sender: EXAMPLE_EMAIL_PROFESSIONAL,
       requesterKind: BundleDocumentRequesterKinds.Employee,
       requesterIdentifier: EXAMPLE_EMAIL_PROFESSIONAL,
-      requesterRole: HealthcareActorRoles.Physician,
+      requesterRole: HealthcareActorRoles.GeneralistMedicalPractitioner,
       recipient: ['did:web:index.example.org', 'did:web:controller.example.org'],
       documentType: DocumentTypeLoincOntology.IPS,
       sections,

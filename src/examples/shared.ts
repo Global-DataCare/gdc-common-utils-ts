@@ -128,7 +128,7 @@ export const EXAMPLE_MEDICATION_PARACETAMOL_IDENTIFIER_PREFIX = 'urn:uuid:med-pa
 export const EXAMPLE_MEDICATION_PARACETAMOL_EFFECTIVE = '2026-06-01T12:00:00Z' as const;
 export const EXAMPLE_MEDICATION_PARACETAMOL_NOTE = 'Take every 8 hours as needed. Keep a 4 hour gap from ibuprofen.' as const;
 export const EXAMPLE_IPS_BUNDLE_REFERENCE_URL =
-  `individual/org.hl7.fhir.r4/Bundle?type=document&composition.subject=${EXAMPLE_SUBJECT_DID}&composition.type=http://loinc.org|60591-5` as const;
+  `individual/org.hl7.fhir.r4/Bundle/_search?type=document&composition.subject=${EXAMPLE_SUBJECT_DID}&composition.type=http://loinc.org|60591-5` as const;
 export const EXAMPLE_IPS_BUNDLE_REFERENCE_ABSOLUTE_URL =
   `https://provider.example.org/acme-id/cds-ES/v1/health-care/${EXAMPLE_IPS_BUNDLE_REFERENCE_URL}` as const;
 

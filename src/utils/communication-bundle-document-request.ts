@@ -367,8 +367,8 @@ export function createSummaryOperationRequestParameters(
 }
 
 /**
- * Flattens semantic summary-operation parameters to the relative search path
- * currently stored in `Communication.content-reference`.
+ * Flattens semantic summary-operation parameters to the relative `Bundle/_search`
+ * path currently stored in `Communication.content-reference`.
  */
 export function createSummaryOperationRequestReferencePath(
   parameters: ReadonlyArray<ParameterData>,
@@ -392,7 +392,7 @@ export function createSummaryOperationRequestReferencePath(
       params.push(`composition.section=${String(parameter.value || '').trim()}`);
     }
   }
-  return `individual/org.hl7.fhir.r4/Bundle?${params.filter(Boolean).join('&')}`;
+  return `individual/org.hl7.fhir.r4/Bundle/_search?${params.filter(Boolean).join('&')}`;
 }
 
 /**
@@ -476,8 +476,10 @@ export const communication = Object.freeze({
    */
   newIpsSummarySearchCommunication: createIpsSummarySearchCommunicationClaims,
   /**
-   * Frontend-facing IPS helper: creates the DIDComm-ready message to request
-   * an IPS summary/search using an already-generated reference path.
+   * Compatibility helper for current DIDComm transport flows.
+   *
+   * Prefer `newIpsSummarySearchCommunication(...)` in `common-utils` 101 docs.
+   * DIDComm/outbox orchestration belongs to the next SDK layer.
    */
   newIpsSummarySearchDidcommMessage: createIpsSummarySearchDidcommMessage,
   /**

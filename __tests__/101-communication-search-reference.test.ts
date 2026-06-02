@@ -33,14 +33,6 @@ describe('101: IPS summary search Communication', () => {
     });
 
     // Step 3.
-    // If the same request must travel through the current DIDComm flow, use the
-    // DIDComm-ready helper. It internally reuses the same Communication builder.
-    const didcommMessage = communication.newIpsSummarySearchDidcommMessage({
-      subjectId,
-      requesterId,
-    });
-
-    // Step 4.
     // Audit/debug layer: the explicit internal steps remain available and must
     // produce the exact same relative search path.
     const summaryOperationRequestParameters =
@@ -49,7 +41,7 @@ describe('101: IPS summary search Communication', () => {
     const summaryOperationRequestReferencePath =
       createSummaryOperationRequestReferencePath(summaryOperationRequestParameters);
 
-    // Step 5.
+    // Step 4.
     // Runtime/backend layer: when the portal backend wants to call the provider
     // GW CORE endpoint directly, it resolves the full absolute URL from the
     // provider sector DID plus the relative content-reference path.
@@ -59,7 +51,7 @@ describe('101: IPS summary search Communication', () => {
         summaryOperationRequestReferencePath,
       });
 
-    // Step 6.
+    // Step 5.
     // Assertions: every layer must agree on the same IPS search target.
     expect(summaryOperationRequestParameters).toEqual([
       {
@@ -78,9 +70,6 @@ describe('101: IPS summary search Communication', () => {
     expect(communicationClaims[CommunicationClaim.ContentReference]).toBe(
       EXAMPLE_IPS_BUNDLE_REFERENCE_URL,
     );
-    expect(
-      didcommMessage.body.data[0]?.meta?.claims?.[CommunicationClaim.ContentReference],
-    ).toBe(EXAMPLE_IPS_BUNDLE_REFERENCE_URL);
     expect(summaryOperationRequestReferenceUrl).toBe(
       EXAMPLE_IPS_BUNDLE_REFERENCE_ABSOLUTE_URL,
     );

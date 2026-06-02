@@ -49,7 +49,7 @@ Current preferred request shape:
 
 - the `Communication` carries the relative index search path in
   `Communication.content-reference`
-- today that URL points to `individual/org.hl7.fhir.r4/Bundle?...`
+- today that URL points to `individual/org.hl7.fhir.r4/Bundle/_search?...`
 - that URL is generated from a semantic parameter array first, then flattened
 
 Future shape kept as `TODO` only:
@@ -85,7 +85,7 @@ Executable step-by-step reference:
 
 Use this first. Frontend code builds the relative IPS search path once, then
 passes that path into the low-level `Communication` helper when needed. The
-IPS-specific short helpers do that work internally.
+IPS-specific short helper does that work internally.
 
 ```ts
 import { communication } from 'gdc-common-utils-ts/utils/communication-bundle-document-request';
@@ -98,12 +98,12 @@ const communicationClaims = communication.newIpsSummarySearchCommunication({
   subjectId: EXAMPLE_SUBJECT_DID,
   requesterId: EXAMPLE_PROFESSIONAL_DID,
 });
-
-const didcommMessage = communication.newIpsSummarySearchDidcommMessage({
-  subjectId: EXAMPLE_SUBJECT_DID,
-  requesterId: EXAMPLE_PROFESSIONAL_DID,
-});
 ```
+
+This is the only helper that the `common-utils` 101 needs to teach.
+
+If a current transport/runtime flow still wraps that `Communication` into
+DIDComm, that belongs to the next SDK layer and is documented there.
 
 Those short helpers already call internally:
 
@@ -132,7 +132,7 @@ const claims = communication.newSearchWithReferenceUrl({
   sender: EXAMPLE_PROFESSIONAL_DID,
   requesterKind: BundleDocumentRequesterKinds.Employee,
   summaryOperationRequestReferencePath:
-    'individual/org.hl7.fhir.r4/Bundle?type=document&composition.subject=<subject>&composition.type=http://loinc.org|60591-5',
+    'individual/org.hl7.fhir.r4/Bundle/_search?type=document&composition.subject=<subject>&composition.type=http://loinc.org|60591-5',
 });
 ```
 
@@ -176,7 +176,7 @@ That `Communication.content-reference` is generated as a relative search URL
 such as:
 
 ```txt
-individual/org.hl7.fhir.r4/Bundle?type=document&composition.subject=<EXAMPLE_SUBJECT_DID>&composition.type=http://loinc.org|60591-5
+individual/org.hl7.fhir.r4/Bundle/_search?type=document&composition.subject=<EXAMPLE_SUBJECT_DID>&composition.type=http://loinc.org|60591-5
 ```
 
 Use lowercase FHIR search parameter names in the URL:
@@ -193,9 +193,9 @@ Do not use:
 Typical auditable request patterns:
 
 - individual controller asks for the full IPS:
-  `createSummaryOperationRequestParameters(...) -> createSummaryOperationRequestReferencePath(...) -> communication.newIpsSummarySearchDidcommMessage(...)`
+  `createSummaryOperationRequestParameters(...) -> createSummaryOperationRequestReferencePath(...) -> communication.newIpsSummarySearchCommunication(...)`
 - doctor/professional asks for specific sections:
-  `createSummaryOperationRequestParameters(..., filterSections) -> createSummaryOperationRequestReferencePath(...) -> communication.newIpsSummarySearchDidcommMessage(...)`
+  `createSummaryOperationRequestParameters(..., filterSections) -> createSummaryOperationRequestReferencePath(...) -> communication.newIpsSummarySearchCommunication(...)`
 
 In the section-scoped case, each requested section becomes one
 `composition.section=...` search parameter in `Communication.content-reference`.
