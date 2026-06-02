@@ -26,6 +26,14 @@ export enum ClaimConsent {
     'attachmentId' = 'Consent.attachment-id',
 }
 
+export const ConsentDecisions = Object.freeze({
+    Permit: 'permit',
+    Deny: 'deny',
+} as const);
+
+export type ConsentDecision =
+    typeof ConsentDecisions[keyof typeof ConsentDecisions];
+
 /**
  * Defines the structured, query-optimized format for storing a single, atomic consent rule
  * in the vault (e.g., Firestore, CouchDB).
@@ -51,7 +59,7 @@ export interface ConsentRule {
      * The decision of the rule: permit or deny.
      * Derived from the `org.hl7.fhir.api.Consent.decision` claim.
      */
-    'Consent.decision': 'permit' | 'deny';
+    'Consent.decision': ConsentDecision;
 
     /**
      * The data sections this rule applies to, as a comma-separated list of coded values.

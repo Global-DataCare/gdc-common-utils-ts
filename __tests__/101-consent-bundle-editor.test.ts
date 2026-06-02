@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 
 import { CommunicationCategoryCodes } from '../src/constants/communication.js';
 import { HealthcareActorRoles, HealthcareBasicSections, HealthcareConsentPurposes } from '../src/constants/healthcare.js';
-import { ClaimConsent } from '../src/models/consent-rule.js';
+import { ClaimConsent, ConsentDecisions } from '../src/models/consent-rule.js';
 import { CommunicationClaim } from '../src/models/interoperable-claims/communication-claims.js';
 import {
   EXAMPLE_COMMUNICATION_IDENTIFIER,
@@ -62,7 +62,7 @@ describe('101: consent bundle editor', () => {
     // Create or upsert one Consent entry in the bundle. This is the consent the
     // user selected or the consent the UI is creating now.
     let consentBaseClaims: Record<string, unknown> = { '@context': 'org.hl7.fhir.api' };
-    consentBaseClaims = setConsentDecision(consentBaseClaims, 'permit');
+    consentBaseClaims = setConsentDecision(consentBaseClaims, ConsentDecisions.Permit);
     consentBaseClaims = setConsentSubject(consentBaseClaims, EXAMPLE_SUBJECT_DID);
     consentBaseClaims = setConsentIdentifier(consentBaseClaims, EXAMPLE_CONSENT_IDENTIFIER);
     consentBaseClaims = setConsentDate(consentBaseClaims, EXAMPLE_CONSENT_DATE);

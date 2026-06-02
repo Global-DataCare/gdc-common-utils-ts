@@ -90,6 +90,7 @@ export const EXAMPLE_CLINICAL_SECTION_HISTORY_MEDICATION = 'LOINC|10160-0' as co
 export const EXAMPLE_CLINICAL_SECTION_ALLERGIES = HealthcareBasicSections.AllergiesAndIntolerances.attributeValue;
 export const EXAMPLE_CLINICAL_CODE_PROBLEM = 'LOINC|11450-4' as const;
 export const EXAMPLE_CONSENT_DATE = '2026-05-20' as const;
+/** @deprecated Use `ConsentDecisions.Permit`. */
 export const EXAMPLE_CONSENT_DECISION_PERMIT = 'permit' as const;
 export const EXAMPLE_CONSENT_PERIOD_END = '2026-05-01T00:00:00Z' as const;
 export const EXAMPLE_CONSENT_PURPOSE_TREATMENT = HealthcareConsentPurposes.Treatment;

@@ -36,12 +36,14 @@ mental model simple:
 Executable step-by-step reference:
 
 - [__tests__/101-consent-bundle-editor.test.ts](../__tests__/101-consent-bundle-editor.test.ts)
+- [HEALTHCARE_ROLES_I18N_101.md](./HEALTHCARE_ROLES_I18N_101.md)
 
 Short path:
 
 ```ts
 import { CommunicationBundleSession } from 'gdc-common-utils-ts/utils/communication-bundle-session';
 import { CommunicationCategoryCodes } from 'gdc-common-utils-ts/constants/communication';
+import { ConsentDecisions } from 'gdc-common-utils-ts/models/consent-rule';
 import {
   addSectionList,
   setConsentDecision,
@@ -93,7 +95,7 @@ consentClaims = setConsentSubject(
 );
 consentClaims = setConsentDecision(
   consentClaims,
-  'permit',
+  ConsentDecisions.Permit,
 );
 
 bundleEditor.upsertActiveConsentEntry({
@@ -126,6 +128,12 @@ This is the preferred 101 flow when:
 
 Only after that, another layer may place the resulting `Communication` in a
 draft/outbox or send it.
+
+Role and section catalogs used in consent editing:
+
+- roles come from `HealthcareActorRoles` and the sector-aware role catalogs
+- sections come from `HealthcareBasicSections`
+- localization should use the catalog `i18nKey`, not the stored claim value
 
 ## Documentation Rules For Consent Examples
 
