@@ -21,6 +21,89 @@ It also does not replace the broader SDK flow documentation for:
 
 But it is one of the core building blocks those flows depend on.
 
+## 0. Editing Consents Inside A Communication Bundle
+
+If frontend/backend is creating or editing real `Consent` resources, keep the
+mental model simple:
+
+- the permission lives as a `Consent` resource with `meta.claims`
+- one or more `Consent` resources live inside a `Bundle`
+- that bundle can be carried inside a `Communication`
+- `bundleEditor` is the in-memory editing unit
+- `get/set/add/remove` claim helpers are the only API needed to edit one
+  selected consent
+
+Executable step-by-step reference:
+
+- [__tests__/101-consent-bundle-editor.test.ts](../__tests__/101-consent-bundle-editor.test.ts)
+
+Short path:
+
+```ts
+import { CommunicationBundleSession } from 'gdc-common-utils-ts/utils/communication-bundle-session';
+import {
+  addSections,
+  setPurposes,
+  setRoles,
+  setSections,
+} from 'gdc-common-utils-ts/utils/consent-claim-helpers';
+import {
+  EXAMPLE_COMMUNICATION_IDENTIFIER,
+  EXAMPLE_CONSENT_IDENTIFIER,
+  EXAMPLE_SUBJECT_DID,
+} from 'gdc-common-utils-ts/examples/shared';
+import {
+  HealthcareActorRoles,
+  HealthcareBasicSections,
+  HealthcareConsentPurposes,
+} from 'gdc-common-utils-ts/constants/healthcare';
+import { ClaimConsent } from 'gdc-common-utils-ts/models/consent-rule';
+import { CommunicationClaim } from 'gdc-common-utils-ts/models/interoperable-claims/communication-claims';
+
+const bundleEditor = new CommunicationBundleSession({
+  communicationClaims: {
+    '@context': 'org.hl7.fhir.r4',
+    [CommunicationClaim.Identifier]: EXAMPLE_COMMUNICATION_IDENTIFIER,
+    [CommunicationClaim.Subject]: EXAMPLE_SUBJECT_DID,
+  },
+});
+
+bundleEditor.upsertActiveConsentEntry({
+  claims: {
+    '@context': 'org.hl7.fhir.api',
+    [ClaimConsent.identifier]: EXAMPLE_CONSENT_IDENTIFIER,
+    [ClaimConsent.subject]: EXAMPLE_SUBJECT_DID,
+    [ClaimConsent.decision]: 'permit',
+  },
+  fullUrl: `urn:uuid:${EXAMPLE_CONSENT_IDENTIFIER}`,
+});
+
+const activeConsentClaims = {
+  ...(bundleEditor.getActiveEntry()?.resource?.meta?.claims || {}),
+};
+
+let nextConsentClaims = setPurposes(activeConsentClaims, [HealthcareConsentPurposes.Treatment]);
+nextConsentClaims = setRoles(nextConsentClaims, [HealthcareActorRoles.Physician]);
+nextConsentClaims = setSections(nextConsentClaims, [
+  HealthcareBasicSections.HistoryOfMedicationUse.attributeValue,
+]);
+nextConsentClaims = addSections(nextConsentClaims, [
+  HealthcareBasicSections.Results.attributeValue,
+]);
+
+bundleEditor.patchActiveEntryClaims(nextConsentClaims);
+bundleEditor.saveAndReleaseActiveEntry();
+```
+
+This is the preferred 101 flow when:
+
+- a `Communication` already arrived with a permissions bundle
+- frontend creates a new permissions bundle to send later
+- the user selects one consent and edits its claims directly
+
+Only after that, another layer may place the resulting `Communication` in a
+draft/outbox or send it.
+
 ## Documentation Rules For Consent Examples
 
 These rules exist so developers and AI agents do not repeat the same mistakes.
