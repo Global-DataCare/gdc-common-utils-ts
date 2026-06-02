@@ -2,6 +2,28 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [1.14.10] - 2026-06-02
+
+### Added
+- Added executable `101` coverage for the IPS bundle editing path in:
+  - `__tests__/101-ips-bundle-editor.test.ts`
+
+### Changed
+- Corrected the canonical IPS request path to use:
+  - `individual/org.hl7.fhir.r4/Bundle/_search?...`
+  instead of the invalid `Bundle?...` form for GW CORE.
+- Clarified the IPS and consent `101` guides so:
+  - `common-utils` is the canonical place for IPS request construction and IPS
+    bundle editing
+  - the consent bundle example explains that the edited claims belong to the
+    same selected `Consent`, not a second object
+- Reduced `common-utils` IPS `101` noise by keeping DIDComm wrapping out of the
+  main short path.
+
+### Testing
+- `npm test -- --watchman=false`
+- `npm run build`
+
 ## [1.14.3] - 2026-06-01
 
 ### Added
