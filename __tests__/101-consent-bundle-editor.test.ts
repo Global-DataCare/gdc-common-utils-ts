@@ -81,19 +81,20 @@ describe('101: consent bundle editor', () => {
     };
 
     // Step 4.
-    // Use the simple get/set/add List helpers to edit the CSV flat claims.
-    let nextConsentClaims = setPurposeList(activeConsentClaims, [HealthcareConsentPurposes.Treatment]);
-    nextConsentClaims = setActorRoleList(nextConsentClaims, [HealthcareActorRoles.GeneralistMedicalPractitioner]);
-    nextConsentClaims = setSectionList(nextConsentClaims, [
+    // Edit the same Consent claim set that we just read from the active entry.
+    // This is not a second Consent. It is the updated version of the same one.
+    let editedConsentClaims = setPurposeList(activeConsentClaims, [HealthcareConsentPurposes.Treatment]);
+    editedConsentClaims = setActorRoleList(editedConsentClaims, [HealthcareActorRoles.GeneralistMedicalPractitioner]);
+    editedConsentClaims = setSectionList(editedConsentClaims, [
       HealthcareBasicSections.HistoryOfMedicationUse.attributeValue,
     ]);
-    nextConsentClaims = addSectionList(nextConsentClaims, [
+    editedConsentClaims = addSectionList(editedConsentClaims, [
       HealthcareBasicSections.Results.attributeValue,
     ]);
 
     // Step 5.
     // Patch the edited claims back into the active bundle entry and save.
-    bundleEditor.patchActiveEntryClaims(nextConsentClaims);
+    bundleEditor.patchActiveEntryClaims(editedConsentClaims);
     bundleEditor.saveAndReleaseActiveEntry();
 
     // Step 6.

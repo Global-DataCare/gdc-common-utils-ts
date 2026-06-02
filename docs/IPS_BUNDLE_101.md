@@ -1,18 +1,40 @@
 # IPS Bundle 101
 
-This guide shows the shortest path for two common developer tasks:
+This is the canonical 101 for IPS work in the shared SDK family.
 
-- build or edit the medication list-style claims that already have helpers
-- add clinical resources to an IPS-like history bundle carried in `Communication.content-attachment-data`
-- read `resource.meta.claims` and build frontend cards grouped by IPS sections
+Use this document when a developer needs to do one of these things:
+
+- request an IPS document from the index service
+- build or edit an IPS-style bundle carried in `Communication.content-attachment-data`
+- read `resource.meta.claims` and group the result by IPS sections in frontend code
 
 Use this together with:
 
 - [src/utils/communication-bundle-session.ts](../src/utils/communication-bundle-session.ts)
 - [src/utils/clinical-resource-view.ts](../src/utils/clinical-resource-view.ts)
 - [src/examples/ips-bundle.ts](../src/examples/ips-bundle.ts)
-- [gdc-sdk-core-ts/src/communication-document-facade.ts](../../gdc-sdk-core-ts/src/communication-document-facade.ts)
 - [__tests__/101-communication-search-reference.test.ts](../__tests__/101-communication-search-reference.test.ts)
+- [__tests__/101-ips-bundle-editor.test.ts](../__tests__/101-ips-bundle-editor.test.ts)
+- [__tests__/101-medication-claim-helpers.test.ts](../__tests__/101-medication-claim-helpers.test.ts)
+- [MEDICATION_STATEMENT_CLAIMS_101.md](./MEDICATION_STATEMENT_CLAIMS_101.md)
+- [gdc-sdk-core-ts/docs/IPS_COMMUNICATION_OUTBOX_101.md](https://github.com/Global-DataCare/gdc-sdk-core-ts/blob/main/docs/IPS_COMMUNICATION_OUTBOX_101.md)
+
+## What Lives Where
+
+Keep the split simple:
+
+- `gdc-common-utils-ts`
+  is the canonical place for:
+  - `Communication.content-reference`
+  - summary operation request parameters
+  - IPS request reference path/url builders
+  - `bundleEditor`
+  - flat `meta.claims`
+- `gdc-sdk-core-ts`
+  takes the already-built `Communication` and moves it into draft/outbox
+
+If a developer first needs to understand the IPS request or IPS bundle shape,
+this is the document to read first.
 
 ## 0. Requesting The IPS Document
 
@@ -192,21 +214,101 @@ Policy note:
 - employee and related-person requests should rely on explicit consent or
   equivalent member policy outside this low-level helper
 
-## 1. First: `get` / `set` / `add` On Claims
+## 1. First: Medication Claims
 
-Start here if you are in frontend code and only want to edit claims.
+If the developer first needs to build one `MedicationStatement` claim set,
+start with the dedicated medication 101:
 
-For `MedicationStatement`, the current documented helpers are the list-valued ones:
+- [MEDICATION_STATEMENT_CLAIMS_101.md](./MEDICATION_STATEMENT_CLAIMS_101.md)
+- [__tests__/101-medication-claim-helpers.test.ts](../__tests__/101-medication-claim-helpers.test.ts)
 
-- `getMedicationCategoryList` / `setMedicationCategoryList` / `addMedicationCategoryList`
-- `getMedicationPartOfList` / `setMedicationPartOfList` / `addMedicationPartOfList`
-- `getMedicationCodeList` / `setMedicationCodeList` / `addMedicationCodeList`
-- `getMedicationSourceList` / `setMedicationSourceList` / `addMedicationSourceList`
-- `getMedicationSubjectList` / `setMedicationSubjectList` / `addMedicationSubjectList`
-- `getMedicationContainedDocumentIdentifierList`
-- `setMedicationContainedDocumentIdentifierList`
-- `addMedicationContainedDocumentIdentifierList`
-- `removeMedicationContainedDocumentIdentifierList`
+That 101 explains the simple `get/set` path for fields such as:
+
+- `identifier`
+- `subject`
+- `status`
+- `effective`
+- `medication-text`
+- dose/timing/PRN fields
+
+This IPS document then picks up from the next step: putting those clinical
+claims into an IPS-style bundle.
+
+## 2. Put IPS Resources Into A Communication Bundle
+
+Once resource claims already exist, `bundleEditor` is the in-memory unit that:
+
+- creates or loads the bundle carried by the `Communication`
+- upserts resources such as `MedicationStatement`, `Condition`, and `AllergyIntolerance`
+- saves the updated bundle back into `Communication.content-attachment-data`
+
+Executable step-by-step reference:
+
+- [__tests__/101-ips-bundle-editor.test.ts](../__tests__/101-ips-bundle-editor.test.ts)
+
+Shortest path:
+
+```ts
+import { CommunicationCategoryCodes } from 'gdc-common-utils-ts/constants/communication';
+import { HealthcareBasicSections } from 'gdc-common-utils-ts/constants/healthcare';
+import {
+  EXAMPLE_COMMUNICATION_UUID,
+  EXAMPLE_MEDICATION_STATEMENT_UUID,
+  EXAMPLE_SUBJECT_DID,
+} from 'gdc-common-utils-ts/examples/shared';
+import {
+  setCommunicationCategory,
+  setCommunicationIdentifier,
+  setCommunicationSubject,
+} from 'gdc-common-utils-ts/utils/communication-claim-helpers';
+import { CommunicationBundleSession } from 'gdc-common-utils-ts/utils/communication-bundle-session';
+import {
+  setMedicationCategoryList,
+  setMedicationIdentifier,
+  setMedicationSubject,
+} from 'gdc-common-utils-ts/utils/medication-claim-helpers';
+
+let communicationClaims = { '@context': 'org.hl7.fhir.r4' };
+communicationClaims = setCommunicationIdentifier(
+  communicationClaims,
+  EXAMPLE_COMMUNICATION_UUID,
+);
+communicationClaims = setCommunicationSubject(
+  communicationClaims,
+  EXAMPLE_SUBJECT_DID,
+);
+communicationClaims = setCommunicationCategory(
+  communicationClaims,
+  CommunicationCategoryCodes.Notification.attributeValue,
+);
+
+const bundleEditor = new CommunicationBundleSession({ communicationClaims });
+
+let medicationClaims = { '@context': 'org.hl7.fhir.api' };
+medicationClaims = setMedicationIdentifier(
+  medicationClaims,
+  EXAMPLE_MEDICATION_STATEMENT_UUID,
+);
+medicationClaims = setMedicationSubject(
+  medicationClaims,
+  EXAMPLE_SUBJECT_DID,
+);
+medicationClaims = setMedicationCategoryList(medicationClaims, [
+  HealthcareBasicSections.HistoryOfMedicationUse.attributeValue,
+]);
+
+bundleEditor.upsertActiveMedicationStatementEntry({
+  claims: medicationClaims,
+  fullUrl: `urn:uuid:${EXAMPLE_MEDICATION_STATEMENT_UUID}`,
+});
+bundleEditor.saveAndReleaseActiveEntry();
+```
+
+Mental model:
+
+- `MedicationStatement` still lives as `resource.meta.claims`
+- `bundleEditor` stores that resource in the bundle
+- the bundle is serialized back into `Communication.content-attachment-data`
 
 Simple example with medication linked documents:
 

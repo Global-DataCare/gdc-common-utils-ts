@@ -107,16 +107,18 @@ const activeConsentClaims = {
   ...(bundleEditor.getActiveEntry()?.resource?.meta?.claims || {}),
 };
 
-let nextConsentClaims = setPurposeList(activeConsentClaims, [HealthcareConsentPurposes.Treatment]);
-nextConsentClaims = setActorRoleList(nextConsentClaims, [HealthcareActorRoles.GeneralistMedicalPractitioner]);
-nextConsentClaims = setSectionList(nextConsentClaims, [
+// Edit the same Consent claim set that came from the selected bundle entry.
+// This is not a second Consent object.
+let editedConsentClaims = setPurposeList(activeConsentClaims, [HealthcareConsentPurposes.Treatment]);
+editedConsentClaims = setActorRoleList(editedConsentClaims, [HealthcareActorRoles.GeneralistMedicalPractitioner]);
+editedConsentClaims = setSectionList(editedConsentClaims, [
   HealthcareBasicSections.HistoryOfMedicationUse.attributeValue,
 ]);
-nextConsentClaims = addSectionList(nextConsentClaims, [
+editedConsentClaims = addSectionList(editedConsentClaims, [
   HealthcareBasicSections.Results.attributeValue,
 ]);
 
-bundleEditor.patchActiveEntryClaims(nextConsentClaims);
+bundleEditor.patchActiveEntryClaims(editedConsentClaims);
 bundleEditor.saveAndReleaseActiveEntry();
 ```
 
@@ -128,6 +130,13 @@ This is the preferred 101 flow when:
 
 Only after that, another layer may place the resulting `Communication` in a
 draft/outbox or send it.
+
+Mental model:
+
+- `activeConsentClaims` = the currently selected consent claims as read from the bundle
+- `editedConsentClaims` = the same consent after applying setters/adders
+- `bundleEditor.patchActiveEntryClaims(...)` writes that edited version back into
+  the same active `Consent` entry
 
 Role and section catalogs used in consent editing:
 
