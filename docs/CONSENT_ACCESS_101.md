@@ -41,12 +41,18 @@ Short path:
 
 ```ts
 import { CommunicationBundleSession } from 'gdc-common-utils-ts/utils/communication-bundle-session';
+import { CommunicationCategoryCodes } from 'gdc-common-utils-ts/constants/communication';
 import {
   addSections,
   setPurposes,
   setRoles,
   setSections,
 } from 'gdc-common-utils-ts/utils/consent-claim-helpers';
+import {
+  setCommunicationCategory,
+  setCommunicationIdentifier,
+  setCommunicationSubject,
+} from 'gdc-common-utils-ts/utils/communication-claim-helpers';
 import {
   EXAMPLE_COMMUNICATION_IDENTIFIER,
   EXAMPLE_CONSENT_IDENTIFIER,
@@ -58,15 +64,21 @@ import {
   HealthcareConsentPurposes,
 } from 'gdc-common-utils-ts/constants/healthcare';
 import { ClaimConsent } from 'gdc-common-utils-ts/models/consent-rule';
-import { CommunicationClaim } from 'gdc-common-utils-ts/models/interoperable-claims/communication-claims';
+let communicationClaims = { '@context': 'org.hl7.fhir.r4' };
+communicationClaims = setCommunicationIdentifier(
+  communicationClaims,
+  EXAMPLE_COMMUNICATION_IDENTIFIER,
+);
+communicationClaims = setCommunicationSubject(
+  communicationClaims,
+  EXAMPLE_SUBJECT_DID,
+);
+communicationClaims = setCommunicationCategory(
+  communicationClaims,
+  CommunicationCategoryCodes.Notification.claim,
+);
 
-const bundleEditor = new CommunicationBundleSession({
-  communicationClaims: {
-    '@context': 'org.hl7.fhir.r4',
-    [CommunicationClaim.Identifier]: EXAMPLE_COMMUNICATION_IDENTIFIER,
-    [CommunicationClaim.Subject]: EXAMPLE_SUBJECT_DID,
-  },
-});
+const bundleEditor = new CommunicationBundleSession({ communicationClaims });
 
 bundleEditor.upsertActiveConsentEntry({
   claims: {

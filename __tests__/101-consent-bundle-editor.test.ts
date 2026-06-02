@@ -14,6 +14,11 @@ import {
   EXAMPLE_SUBJECT_DID,
 } from '../src/examples/shared.js';
 import {
+  setCommunicationCategory,
+  setCommunicationIdentifier,
+  setCommunicationSubject,
+} from '../src/utils/communication-claim-helpers.js';
+import {
   addSections,
   getPurposes,
   setPurposes,
@@ -28,13 +33,22 @@ describe('101: consent bundle editor', () => {
     // Frontend/runtime already has the Communication wrapper or creates one.
     // The in-memory bundle editor is the canonical unit for editing the
     // permissions bundle carried in Communication.content-attachment-data.
+    let communicationBaseClaims: Record<string, unknown> = { '@context': 'org.hl7.fhir.r4' };
+    communicationBaseClaims = setCommunicationIdentifier(
+      communicationBaseClaims,
+      EXAMPLE_COMMUNICATION_IDENTIFIER,
+    );
+    communicationBaseClaims = setCommunicationSubject(
+      communicationBaseClaims,
+      EXAMPLE_SUBJECT_DID,
+    );
+    communicationBaseClaims = setCommunicationCategory(
+      communicationBaseClaims,
+      CommunicationCategoryCodes.Notification.claim,
+    );
+
     const bundleEditor = new CommunicationBundleSession({
-      communicationClaims: {
-        '@context': 'org.hl7.fhir.r4',
-        [CommunicationClaim.Identifier]: EXAMPLE_COMMUNICATION_IDENTIFIER,
-        [CommunicationClaim.Subject]: EXAMPLE_SUBJECT_DID,
-        [CommunicationClaim.Category]: CommunicationCategoryCodes.Notification.claim,
-      },
+      communicationClaims: communicationBaseClaims,
     });
 
     // Step 2.
