@@ -36,7 +36,9 @@ Main helpers:
 
 - `HealthcareProfessionalRoleCodesBySector`
 - `HealthcareProfessionalRolesBySector`
+- `HealthcareProfessionalRolesBySectorAndClaim`
 - `getHealthcareProfessionalRolesBySector(sector)`
+- `getHealthcareProfessionalRolesBySectorAndClaim(sector)`
 - `getHealthcareRolesBySector(sector, family)`
 
 Examples:
@@ -67,6 +69,12 @@ HL7 role claim formats:
 For ISCO role labels, use:
 
 - `org.ilo.isco-08.<code>`
+
+This is better than using `ISCO-08|<code>` as an i18n key:
+
+- `org.ilo.isco-08.<code>` is stable and JSON-friendly
+- `ISCO-08|<code>` is still the right value for persistence/claims
+- `claim` and `i18nKey` should stay separate
 
 For HL7 personal relationship labels, use:
 
@@ -100,6 +108,25 @@ import {
 
 const allowed = getHealthcareProfessionalRolesBySector(DataspaceSectors.AnimalCare);
 const veterinarianClaim = allowed['2250']?.claim; // ISCO-08|2250
+```
+
+### Frontend map by sector and claim
+
+If the UI wants a direct `roles[sector][claim]` lookup, use the claim-indexed
+helper instead of rebuilding that map locally.
+
+```ts
+import {
+  DataspaceSectors,
+  HealthcareActorRoles,
+  getHealthcareProfessionalRolesBySectorAndClaim,
+} from 'gdc-common-utils-ts';
+
+const roles = getHealthcareProfessionalRolesBySectorAndClaim(DataspaceSectors.HealthCare);
+
+const generalistDoctor = roles[HealthcareActorRoles.GeneralistMedicalPractitioner];
+// generalistDoctor.code === '2211'
+// generalistDoctor.i18nKey === 'org.ilo.isco-08.2211'
 ```
 
 ### Frontend role dropdown + translation

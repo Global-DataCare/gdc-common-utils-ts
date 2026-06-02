@@ -83,7 +83,7 @@ describe('101: consent bundle editor', () => {
     // Step 4.
     // Use the simple get/set/add List helpers to edit the CSV flat claims.
     let nextConsentClaims = setPurposeList(activeConsentClaims, [HealthcareConsentPurposes.Treatment]);
-    nextConsentClaims = setActorRoleList(nextConsentClaims, [HealthcareActorRoles.Physician]);
+    nextConsentClaims = setActorRoleList(nextConsentClaims, [HealthcareActorRoles.GeneralistMedicalPractitioner]);
     nextConsentClaims = setSectionList(nextConsentClaims, [
       HealthcareBasicSections.HistoryOfMedicationUse.attributeValue,
     ]);
@@ -106,7 +106,7 @@ describe('101: consent bundle editor', () => {
     const savedConsentClaims = decodedBundle.data[0].resource.meta.claims;
 
     expect(getPurposeList(savedConsentClaims)).toEqual([HealthcareConsentPurposes.Treatment]);
-    expect(getActorRoleList(savedConsentClaims)).toEqual([HealthcareActorRoles.Physician]);
+    expect(getActorRoleList(savedConsentClaims)).toEqual([HealthcareActorRoles.GeneralistMedicalPractitioner]);
     expect(getSectionList(savedConsentClaims)).toEqual([
       HealthcareBasicSections.HistoryOfMedicationUse.attributeValue,
       HealthcareBasicSections.Results.attributeValue,

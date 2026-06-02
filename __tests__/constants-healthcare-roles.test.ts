@@ -8,6 +8,7 @@ import {
   getHealthcareRolesBySector,
   getHealthcareRolesByFamily,
   getHealthcareProfessionalRolesBySector,
+  getHealthcareProfessionalRolesBySectorAndClaim,
 } from '../src/constants/healthcare.js';
 import { DataspaceSectors } from '../src/constants/sectors.js';
 import { roleCodeI18nEn } from '../src/i18n/role-codes.i18n.js';
@@ -24,12 +25,12 @@ describe('healthcare role catalogs', () => {
   });
 
   it('resolves role descriptors by claim with i18n keys and labels', () => {
-    const physician = getHealthcareRoleByClaim(HealthcareActorRoles.Physician);
+    const generalistDoctor = getHealthcareRoleByClaim(HealthcareActorRoles.GeneralistMedicalPractitioner);
     const responsibleParty = getHealthcareRoleByClaim('v3-RoleCode|RESPRSN');
 
-    expect(physician).toBeDefined();
-    expect(physician?.code).toBe('2211');
-    expect(physician?.i18nKey).toBe('org.ilo.isco-08.2211');
+    expect(generalistDoctor).toBeDefined();
+    expect(generalistDoctor?.code).toBe('2211');
+    expect(generalistDoctor?.i18nKey).toBe('org.ilo.isco-08.2211');
 
     expect(responsibleParty).toBeDefined();
     expect(responsibleParty?.i18nKey).toBe('org.hl7.v3.roleCode.RESPRSN');
@@ -38,9 +39,19 @@ describe('healthcare role catalogs', () => {
   it('returns professional ISCO roles by health and animal sectors', () => {
     const healthRoles = getHealthcareProfessionalRolesBySector(DataspaceSectors.HealthCare);
     const animalRoles = getHealthcareProfessionalRolesBySector(DataspaceSectors.AnimalCare);
+    const healthRolesByClaim = getHealthcareProfessionalRolesBySectorAndClaim(DataspaceSectors.HealthCare);
 
     expect(Object.keys(healthRoles).length).toBeGreaterThan(0);
-    expect(healthRoles['2211']?.claim).toBe(HealthcareActorRoles.Physician);
+    expect(healthRoles['221']?.claim).toBe(HealthcareActorRoles.MedicalDoctors);
+    expect(healthRoles['2211']?.claim).toBe(HealthcareActorRoles.GeneralistMedicalPractitioner);
+    expect(healthRoles['2212']?.claim).toBe(HealthcareActorRoles.SpecialistMedicalPractitioner);
+    expect(healthRoles['2222']?.claim).toBe(HealthcareActorRoles.MidwiferyProfessional);
+    expect(
+      healthRolesByClaim[HealthcareActorRoles.GeneralistMedicalPractitioner]?.code,
+    ).toBe('2211');
+    expect(
+      healthRolesByClaim[HealthcareActorRoles.GeneralistMedicalPractitioner]?.i18nKey,
+    ).toBe('org.ilo.isco-08.2211');
     expect(Object.keys(animalRoles).length).toBeGreaterThan(0);
     expect(animalRoles['2250']?.claim).toBe(HealthcareActorRoles.Veterinarian);
     expect(animalRoles['2211']).toBeUndefined();
@@ -63,9 +74,12 @@ describe('healthcare role catalogs', () => {
   });
 
   it('builds role i18n map entries for ISCO and HL7 relationship/role codes', () => {
-    expect(roleCodeI18nEn['org.ilo.isco-08.2211']).toBe('Physician');
+    expect(roleCodeI18nEn['org.ilo.isco-08.221']).toBe('Medical doctors');
+    expect(roleCodeI18nEn['org.ilo.isco-08.2211']).toBe('Generalist medical practitioner');
+    expect(roleCodeI18nEn['org.ilo.isco-08.2212']).toBe('Specialist medical practitioner');
+    expect(roleCodeI18nEn['org.ilo.isco-08.2222']).toBe('Midwifery professional');
     expect(roleCodeI18nEn['org.ilo.isco-08.2250']).toBe('Veterinarian');
-    expect(roleCodeI18nEn['org.isco08.2211']).toBe('Physician');
+    expect(roleCodeI18nEn['org.isco08.2211']).toBe('Generalist medical practitioner');
     expect(roleCodeI18nEn['org.hl7.v3.personalRelationship.ONESELF']).toBeDefined();
     expect(roleCodeI18nEn['org.hl7.v3.roleCode.RESPRSN']).toBeDefined();
   });

@@ -188,17 +188,37 @@ export const HealthcareConsentPurposes = Object.freeze({
 
 export const HealthcareActorRoles = Object.freeze({
   Controller: 'ISCO-08|1120',
+  MedicalDoctors: 'ISCO-08|221',
+  GeneralistMedicalPractitioner: 'ISCO-08|2211',
+  SpecialistMedicalPractitioner: 'ISCO-08|2212',
+  /**
+   * @deprecated Use `GeneralistMedicalPractitioner`.
+   * Kept as compatibility alias for the historical SDK name.
+   */
   Physician: 'ISCO-08|2211',
   NursingProfessional: 'ISCO-08|2221',
+  MidwiferyProfessional: 'ISCO-08|2222',
   Paramedic: 'ISCO-08|2240',
   Veterinarian: 'ISCO-08|2250',
 } as const);
 
 export const HealthcareActorRoleCodes = Object.freeze({
   Controller: '1120',
+  MedicalDoctors: '221',
+  GeneralistMedicalPractitioner: '2211',
+  SpecialistMedicalPractitioner: '2212',
+  /**
+   * @deprecated Use `GeneralistMedicalPractitioner`.
+   * Kept as compatibility alias for the historical SDK name.
+   */
   Physician: '2211',
+  /**
+   * @deprecated Use `MedicalDoctors`.
+   * Kept as compatibility alias for the historical SDK name.
+   */
   PhysicianBroad: '221',
   NursingProfessional: '2221',
+  MidwiferyProfessional: '2222',
   Paramedic: '2240',
   Veterinarian: '2250',
 } as const);
@@ -217,14 +237,36 @@ function buildProfessionalIscoRoles(): Readonly<Record<string, HealthcareActorRo
       }),
     ],
     [
-      HealthcareActorRoleCodes.Physician,
+      HealthcareActorRoleCodes.MedicalDoctors,
       Object.freeze({
         family: HealthcareRoleFamilies.ProfessionalOccupationIsco08,
         codingSystem: ISCO08_CODING_SYSTEM,
-        code: HealthcareActorRoleCodes.Physician,
-        claim: HealthcareActorRoles.Physician,
-        i18nKey: `${ISCO08_I18N_NAMESPACE}.${HealthcareActorRoleCodes.Physician}`,
-        titleEn: 'Physician',
+        code: HealthcareActorRoleCodes.MedicalDoctors,
+        claim: HealthcareActorRoles.MedicalDoctors,
+        i18nKey: `${ISCO08_I18N_NAMESPACE}.${HealthcareActorRoleCodes.MedicalDoctors}`,
+        titleEn: 'Medical doctors',
+      }),
+    ],
+    [
+      HealthcareActorRoleCodes.GeneralistMedicalPractitioner,
+      Object.freeze({
+        family: HealthcareRoleFamilies.ProfessionalOccupationIsco08,
+        codingSystem: ISCO08_CODING_SYSTEM,
+        code: HealthcareActorRoleCodes.GeneralistMedicalPractitioner,
+        claim: HealthcareActorRoles.GeneralistMedicalPractitioner,
+        i18nKey: `${ISCO08_I18N_NAMESPACE}.${HealthcareActorRoleCodes.GeneralistMedicalPractitioner}`,
+        titleEn: 'Generalist medical practitioner',
+      }),
+    ],
+    [
+      HealthcareActorRoleCodes.SpecialistMedicalPractitioner,
+      Object.freeze({
+        family: HealthcareRoleFamilies.ProfessionalOccupationIsco08,
+        codingSystem: ISCO08_CODING_SYSTEM,
+        code: HealthcareActorRoleCodes.SpecialistMedicalPractitioner,
+        claim: HealthcareActorRoles.SpecialistMedicalPractitioner,
+        i18nKey: `${ISCO08_I18N_NAMESPACE}.${HealthcareActorRoleCodes.SpecialistMedicalPractitioner}`,
+        titleEn: 'Specialist medical practitioner',
       }),
     ],
     [
@@ -236,6 +278,17 @@ function buildProfessionalIscoRoles(): Readonly<Record<string, HealthcareActorRo
         claim: HealthcareActorRoles.NursingProfessional,
         i18nKey: `${ISCO08_I18N_NAMESPACE}.${HealthcareActorRoleCodes.NursingProfessional}`,
         titleEn: 'Nursing professional',
+      }),
+    ],
+    [
+      HealthcareActorRoleCodes.MidwiferyProfessional,
+      Object.freeze({
+        family: HealthcareRoleFamilies.ProfessionalOccupationIsco08,
+        codingSystem: ISCO08_CODING_SYSTEM,
+        code: HealthcareActorRoleCodes.MidwiferyProfessional,
+        claim: HealthcareActorRoles.MidwiferyProfessional,
+        i18nKey: `${ISCO08_I18N_NAMESPACE}.${HealthcareActorRoleCodes.MidwiferyProfessional}`,
+        titleEn: 'Midwifery professional',
       }),
     ],
     [
@@ -330,16 +383,31 @@ function pickRoleCatalogByCodes(
   );
 }
 
+function reindexRoleCatalogByClaim(
+  catalog: Readonly<Record<string, HealthcareActorRoleDescriptor>>,
+): Readonly<Record<string, HealthcareActorRoleDescriptor>> {
+  return Object.freeze(
+    Object.fromEntries(
+      Object.values(catalog).map((descriptor) => [descriptor.claim, descriptor] as const),
+    ),
+  );
+}
+
 export const HealthcareProfessionalRoleCodesBySector = Object.freeze({
   [DataspaceSectors.HealthCare]: Object.freeze([
     HealthcareActorRoleCodes.Controller,
-    HealthcareActorRoleCodes.Physician,
+    HealthcareActorRoleCodes.MedicalDoctors,
+    HealthcareActorRoleCodes.GeneralistMedicalPractitioner,
+    HealthcareActorRoleCodes.SpecialistMedicalPractitioner,
     HealthcareActorRoleCodes.NursingProfessional,
+    HealthcareActorRoleCodes.MidwiferyProfessional,
     HealthcareActorRoleCodes.Paramedic,
   ]),
   [DataspaceSectors.HealthResearch]: Object.freeze([
     HealthcareActorRoleCodes.Controller,
-    HealthcareActorRoleCodes.Physician,
+    HealthcareActorRoleCodes.MedicalDoctors,
+    HealthcareActorRoleCodes.GeneralistMedicalPractitioner,
+    HealthcareActorRoleCodes.SpecialistMedicalPractitioner,
   ]),
   [DataspaceSectors.HealthTech]: Object.freeze([HealthcareActorRoleCodes.Controller]),
   [DataspaceSectors.HealthInsurance]: Object.freeze([HealthcareActorRoleCodes.Controller]),
@@ -355,7 +423,9 @@ export const HealthcareProfessionalRoleCodesBySector = Object.freeze({
   [DataspaceSectors.AnimalTech]: Object.freeze([HealthcareActorRoleCodes.Controller]),
   [DataspaceSectors.OneHealthResearch]: Object.freeze([
     HealthcareActorRoleCodes.Controller,
-    HealthcareActorRoleCodes.Physician,
+    HealthcareActorRoleCodes.MedicalDoctors,
+    HealthcareActorRoleCodes.GeneralistMedicalPractitioner,
+    HealthcareActorRoleCodes.SpecialistMedicalPractitioner,
     HealthcareActorRoleCodes.Veterinarian,
   ]),
   [DataspaceSectors.OneHealthTech]: Object.freeze([HealthcareActorRoleCodes.Controller]),
@@ -404,6 +474,19 @@ export const HealthcareProfessionalRolesBySector = Object.freeze({
   ),
 } as const);
 
+export const HealthcareProfessionalRolesBySectorAndClaim = Object.freeze(
+  Object.fromEntries(
+    Object.values(DataspaceSectors).map((sector) => [
+      sector,
+      reindexRoleCatalogByClaim(
+        HealthcareProfessionalRolesBySector[sector as DataspaceSector] || {},
+      ),
+    ]),
+  ),
+) as Readonly<
+  Record<DataspaceSector, Readonly<Record<string, HealthcareActorRoleDescriptor>>>
+>;
+
 export const HealthcareRolesBySector = Object.freeze(
   Object.fromEntries(
     Object.values(DataspaceSectors).map((sector) => [
@@ -439,6 +522,12 @@ export function getHealthcareProfessionalRolesBySector(
   sector: DataspaceSector,
 ): Readonly<Record<string, HealthcareActorRoleDescriptor>> {
   return HealthcareProfessionalRolesBySector[sector] || {};
+}
+
+export function getHealthcareProfessionalRolesBySectorAndClaim(
+  sector: DataspaceSector,
+): Readonly<Record<string, HealthcareActorRoleDescriptor>> {
+  return HealthcareProfessionalRolesBySectorAndClaim[sector] || {};
 }
 
 export function getHealthcareRolesBySector(

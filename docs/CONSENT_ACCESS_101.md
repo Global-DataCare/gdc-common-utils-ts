@@ -106,7 +106,7 @@ const activeConsentClaims = {
 };
 
 let nextConsentClaims = setPurposeList(activeConsentClaims, [HealthcareConsentPurposes.Treatment]);
-nextConsentClaims = setActorRoleList(nextConsentClaims, [HealthcareActorRoles.Physician]);
+nextConsentClaims = setActorRoleList(nextConsentClaims, [HealthcareActorRoles.GeneralistMedicalPractitioner]);
 nextConsentClaims = setSectionList(nextConsentClaims, [
   HealthcareBasicSections.HistoryOfMedicationUse.attributeValue,
 ]);
