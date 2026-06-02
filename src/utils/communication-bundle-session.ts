@@ -3,9 +3,13 @@
 
 import { ResourceTypesFhirR4 } from '../constants/fhir-resource-types';
 import { ClaimConsent } from '../models/consent-rule';
+import { AllergyIntoleranceClaim } from '../models/interoperable-claims/allergy-intolerance-claims';
 import { BundleEntry, BundleEntryResource, BundleJsonApi, BundleRequest } from '../models/bundle';
 import { CommunicationClaim } from '../models/interoperable-claims/communication-claims';
+import { ConditionClaim } from '../models/interoperable-claims/condition-claims';
+import { DocumentReferenceClaim } from '../models/interoperable-claims/document-reference-claims';
 import { BundleQuery, type BundleResourceIdFilters } from './bundle-query';
+import { addClaimValues } from './claim-list-helpers';
 import {
   MedicationStatementClaim,
   type MedicationStatementClaimsFlat,
@@ -30,6 +34,18 @@ export type UpsertEntryInput = Readonly<{
   type?: string;
   fullUrl?: string;
   request?: BundleRequest;
+}>;
+
+export type AddContainedDocumentToActiveEntryInput = Readonly<{
+  identifier?: string;
+  fullUrl?: string;
+  claims?: Record<string, unknown>;
+  attachmentContentType?: string;
+  attachmentDataBase64?: string;
+  attachmentUrl?: string;
+  description?: string;
+  date?: string;
+  language?: string;
 }>;
 
 /**
@@ -174,6 +190,151 @@ export class CommunicationBundleSession {
   }
 
   /**
+   * DocumentReference helper for bundle-contained attachments linked from
+   * other clinical resources through `*.contained-documents`.
+   */
+  upsertActiveDocumentReferenceEntry(input: Readonly<{
+    claims: Record<string, unknown>;
+    fullUrl?: string;
+    type?: string;
+    request?: BundleRequest;
+  }>): this {
+    return this.upsertActiveEntry({
+      resourceType: ResourceTypesFhirR4.DocumentReference,
+      claims: {
+        ...input.claims,
+      },
+      fullUrl: input.fullUrl,
+      type: input.type,
+      request: input.request,
+    });
+  }
+
+  /**
+   * Condition helper for IPS-in-Communication use cases.
+   *
+   * Expected keys should come from Condition claims constants.
+   */
+  upsertActiveConditionEntry(input: Readonly<{
+    claims: Record<string, unknown>;
+    fullUrl?: string;
+    type?: string;
+    request?: BundleRequest;
+  }>): this {
+    return this.upsertActiveEntry({
+      resourceType: ResourceTypesFhirR4.Condition,
+      claims: {
+        ...input.claims,
+      },
+      fullUrl: input.fullUrl,
+      type: input.type,
+      request: input.request,
+    });
+  }
+
+  /**
+   * AllergyIntolerance helper for IPS-in-Communication use cases.
+   *
+   * Expected keys should come from AllergyIntolerance claims constants.
+   */
+  upsertActiveAllergyIntoleranceEntry(input: Readonly<{
+    claims: Record<string, unknown>;
+    fullUrl?: string;
+    type?: string;
+    request?: BundleRequest;
+  }>): this {
+    return this.upsertActiveEntry({
+      resourceType: ResourceTypesFhirR4.AllergyIntolerance,
+      claims: {
+        ...input.claims,
+      },
+      fullUrl: input.fullUrl,
+      type: input.type,
+      request: input.request,
+    });
+  }
+
+  /**
+   * TODO(ips-next):
+   * Add `upsertActiveDiagnosticReportEntry(...)` once the shared claim helpers
+   * for `DiagnosticReport` are in place.
+   *
+   * Expected shape should mirror the existing resource helpers:
+   * - `claims` authored with `@context = org.hl7.fhir.api`
+   * - matching priority by `DiagnosticReport.identifier`
+   * - support for linked `DocumentReference` ids through
+   *   `DiagnosticReport.contained-documents`
+   *
+   * Intentionally not implemented in this pass:
+   * - IPS authoring already works for the currently documented resources
+   * - GW Core can already consume bundle-contained `DocumentReference` rows
+   * - adding the DiagnosticReport editing surface now would expand the IPS
+   *   contract further than intended for this release slice
+   */
+
+  /**
+   * Creates or updates a linked `DocumentReference` entry and stores its
+   * identifier under the active resource `*.contained-documents` claim.
+   */
+  addContainedDocumentToActiveEntry(input: AddContainedDocumentToActiveEntryInput): this {
+    if (this.activeEntryIndex === null) {
+      throw new Error('No active entry selected.');
+    }
+
+    const parentIndex = this.activeEntryIndex;
+    const parentEntry = cloneEntry(this.bundleInMemory.data[parentIndex]);
+    const parentResource = ensureEntryResource(parentEntry, this.mode);
+    const parentClaims = {
+      ...(parentResource.meta?.claims || {}),
+    };
+    const parentResourceType = asTrimmedString(parentResource.resourceType);
+    const containedDocumentsClaimKey = resolveContainedDocumentsClaimKey(parentResourceType);
+    if (!containedDocumentsClaimKey) {
+      throw new Error(`Contained documents are not supported for resourceType: ${parentResourceType || 'unknown'}`);
+    }
+
+    const documentIdentifier = asTrimmedString(input.identifier)
+      || asTrimmedString(input.claims?.[DocumentReferenceClaim.Identifier])
+      || runtimeUuid('docref');
+    const documentSubject = asTrimmedString(input.claims?.[DocumentReferenceClaim.Subject])
+      || resolveSubjectFromClaims(parentClaims)
+      || asTrimmedString(this.communicationClaims[CommunicationClaim.Subject]);
+
+    const documentClaims: Record<string, unknown> = {
+      '@context': 'org.hl7.fhir.api',
+      ...(input.claims || {}),
+      [DocumentReferenceClaim.Identifier]: documentIdentifier,
+    };
+
+    if (documentSubject) {
+      documentClaims[DocumentReferenceClaim.Subject] = documentSubject;
+    }
+    setIfMissing(documentClaims, DocumentReferenceClaim.ContentType, input.attachmentContentType);
+    setIfMissing(documentClaims, DocumentReferenceClaim.ContentData, input.attachmentDataBase64);
+    setIfMissing(documentClaims, DocumentReferenceClaim.Location, input.attachmentUrl);
+    setIfMissing(documentClaims, DocumentReferenceClaim.Description, input.description);
+    setIfMissing(documentClaims, DocumentReferenceClaim.Date, input.date);
+    setIfMissing(documentClaims, DocumentReferenceClaim.Language, input.language);
+
+    this.upsertActiveDocumentReferenceEntry({
+      claims: documentClaims,
+      fullUrl: input.fullUrl || `urn:uuid:${documentIdentifier}`,
+    });
+
+    parentResource.meta = parentResource.meta || {};
+    parentResource.meta.claims = addClaimValues(
+      parentClaims,
+      containedDocumentsClaimKey,
+      [documentIdentifier],
+    );
+    parentEntry.resource = parentResource;
+    this.bundleInMemory.data[parentIndex] = parentEntry;
+    this.activeEntryIndex = parentIndex;
+    this.syncAttachmentFromBundle();
+    return this;
+  }
+
+  /**
    * Patches active entry `resource.meta.claims` and synchronizes attachment data.
    */
   patchActiveEntryClaims(claimPatch: Record<string, unknown>): this {
@@ -272,9 +433,21 @@ export class CommunicationBundleSession {
       if (consentSubject) {
         return consentSubject;
       }
-      const medicationSubject = asTrimmedString(claims[MedicationStatementClaim.Subject]);
-      if (medicationSubject) {
-        return medicationSubject;
+    const medicationSubject = asTrimmedString(claims[MedicationStatementClaim.Subject]);
+    if (medicationSubject) {
+      return medicationSubject;
+    }
+      const conditionSubject = asTrimmedString(claims[ConditionClaim.Subject]);
+      if (conditionSubject) {
+        return conditionSubject;
+      }
+      const allergySubject = asTrimmedString(claims[AllergyIntoleranceClaim.Subject] || claims[AllergyIntoleranceClaim.Patient]);
+      if (allergySubject) {
+        return allergySubject;
+      }
+      const documentReferenceSubject = asTrimmedString(claims[DocumentReferenceClaim.Subject]);
+      if (documentReferenceSubject) {
+        return documentReferenceSubject;
       }
     }
 
@@ -313,6 +486,21 @@ export class CommunicationBundleSession {
       return `${ResourceTypesFhirR4.MedicationStatement}:${medicationIdentifier}`;
     }
 
+    const conditionIdentifier = asTrimmedString(claims[ConditionClaim.Identifier]);
+    if (conditionIdentifier) {
+      return `${ResourceTypesFhirR4.Condition}:${conditionIdentifier}`;
+    }
+
+    const allergyIdentifier = asTrimmedString(claims[AllergyIntoleranceClaim.Identifier]);
+    if (allergyIdentifier) {
+      return `${ResourceTypesFhirR4.AllergyIntolerance}:${allergyIdentifier}`;
+    }
+
+    const documentReferenceIdentifier = asTrimmedString(claims[DocumentReferenceClaim.Identifier]);
+    if (documentReferenceIdentifier) {
+      return `${ResourceTypesFhirR4.DocumentReference}:${documentReferenceIdentifier}`;
+    }
+
     return '';
   }
 
@@ -345,6 +533,21 @@ export class CommunicationBundleSession {
     const medicationIdentifier = asTrimmedString(claims[MedicationStatementClaim.Identifier]);
     if (medicationIdentifier) {
       return medicationIdentifier;
+    }
+
+    const conditionIdentifier = asTrimmedString(claims[ConditionClaim.Identifier]);
+    if (conditionIdentifier) {
+      return conditionIdentifier;
+    }
+
+    const allergyIdentifier = asTrimmedString(claims[AllergyIntoleranceClaim.Identifier]);
+    if (allergyIdentifier) {
+      return allergyIdentifier;
+    }
+
+    const documentReferenceIdentifier = asTrimmedString(claims[DocumentReferenceClaim.Identifier]);
+    if (documentReferenceIdentifier) {
+      return documentReferenceIdentifier;
     }
 
     const communicationIdentifier = asTrimmedString(claims[CommunicationClaim.Identifier]);
@@ -409,4 +612,51 @@ function asTrimmedString(value: unknown): string {
     return '';
   }
   return String(value).trim();
+}
+
+function resolveContainedDocumentsClaimKey(resourceType: string): string {
+  if (resourceType === ResourceTypesFhirR4.Consent) {
+    return ClaimConsent.containedDocuments;
+  }
+  if (resourceType === ResourceTypesFhirR4.MedicationStatement) {
+    return MedicationStatementClaim.ContainedDocuments;
+  }
+  if (resourceType === ResourceTypesFhirR4.Condition) {
+    return ConditionClaim.ContainedDocuments;
+  }
+  if (resourceType === ResourceTypesFhirR4.AllergyIntolerance) {
+    return AllergyIntoleranceClaim.ContainedDocuments;
+  }
+  return '';
+}
+
+function resolveSubjectFromClaims(claims: Record<string, unknown>): string {
+  return asTrimmedString(
+    claims[ClaimConsent.subject]
+    || claims[MedicationStatementClaim.Subject]
+    || claims[ConditionClaim.Subject]
+    || claims[AllergyIntoleranceClaim.Subject]
+    || claims[AllergyIntoleranceClaim.Patient]
+    || claims[DocumentReferenceClaim.Subject],
+  );
+}
+
+function setIfMissing(target: Record<string, unknown>, key: string, value: unknown): void {
+  if (target[key] !== undefined) {
+    return;
+  }
+  if (value === undefined || value === null || String(value).trim() === '') {
+    return;
+  }
+  target[key] = value;
+}
+
+function runtimeUuid(prefix: string): string {
+  const cryptoLike = globalThis as typeof globalThis & {
+    crypto?: { randomUUID?: () => string };
+  };
+  if (typeof cryptoLike.crypto?.randomUUID === 'function') {
+    return cryptoLike.crypto.randomUUID();
+  }
+  return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }

@@ -1,10 +1,13 @@
 import { describe, expect, it } from '@jest/globals';
 import { ResourceTypesFhirR4 } from '../src/constants/fhir-resource-types.js';
 import { ClaimConsent } from '../src/models/consent-rule.js';
+import { AllergyIntoleranceClaim } from '../src/models/interoperable-claims/allergy-intolerance-claims.js';
 import { CommunicationClaim } from '../src/models/interoperable-claims/communication-claims.js';
+import { ConditionClaim } from '../src/models/interoperable-claims/condition-claims.js';
 import { MedicationStatementClaim } from '../src/models/interoperable-claims/medication-statement-claims.js';
 import {
   toClinicalResourceCardView,
+  toClinicalResourceCardViews,
   toClinicalResourceCommonView,
   toClinicalResourceCommonViews,
   toClinicalResourceExpandedView,
@@ -208,5 +211,101 @@ describe('clinical resource common view', () => {
       'Observe side effects',
     ]);
     expect(expanded.common.resourceType).toBe(ResourceTypesFhirR4.MedicationStatement);
+  });
+
+  it('maps condition and allergy titles, dates, and actors from meta.claims', () => {
+    const bundle = {
+      resourceType: 'Bundle',
+      type: 'document',
+      data: [
+        {
+          fullUrl: 'urn:uuid:condition-1',
+          type: 'Condition-edit-request-v1.0',
+          resource: {
+            resourceType: ResourceTypesFhirR4.Condition,
+            meta: {
+              claims: {
+                [ConditionClaim.Identifier]: 'condition-1',
+                [ConditionClaim.Code]: 'http://snomed.info/sct|44054006',
+                [ConditionClaim.Category]: 'LOINC|11450-4',
+                [ConditionClaim.OnsetDateTime]: '2026-05-03T09:00:00Z',
+                [ConditionClaim.Subject]: 'did:web:patient.example.org',
+                [ConditionClaim.Recorder]: 'did:web:doctor.example.org',
+              },
+            },
+          },
+        },
+        {
+          fullUrl: 'urn:uuid:allergy-1',
+          type: 'AllergyIntolerance-edit-request-v1.0',
+          resource: {
+            resourceType: ResourceTypesFhirR4.AllergyIntolerance,
+            meta: {
+              claims: {
+                [AllergyIntoleranceClaim.Identifier]: 'allergy-1',
+                [AllergyIntoleranceClaim.Code]: 'http://snomed.info/sct|227493005',
+                [AllergyIntoleranceClaim.OnsetDateTime]: '2026-05-01T08:30:00Z',
+                [AllergyIntoleranceClaim.Subject]: 'did:web:patient.example.org',
+                [AllergyIntoleranceClaim.Recorder]: 'did:web:allergist.example.org',
+              },
+            },
+          },
+        },
+      ],
+    };
+
+    const views = toClinicalResourceCommonViews(bundle);
+
+    expect(views[0]).toEqual(expect.objectContaining({
+      title: 'http://snomed.info/sct|44054006',
+      resourceType: ResourceTypesFhirR4.Condition,
+      identifier: 'condition-1',
+      date: '2026-05-03T09:00:00Z',
+    }));
+    expect(views[0].actors).toEqual(expect.arrayContaining([
+      { identifier: 'did:web:patient.example.org', role: undefined, type: 'subject' },
+      { identifier: 'did:web:doctor.example.org', role: undefined, type: 'asserter' },
+    ]));
+
+    expect(views[1]).toEqual(expect.objectContaining({
+      title: 'http://snomed.info/sct|227493005',
+      resourceType: ResourceTypesFhirR4.AllergyIntolerance,
+      identifier: 'allergy-1',
+      date: '2026-05-01T08:30:00Z',
+    }));
+  });
+
+  it('accepts FHIR bundle entry[] shape directly for card views', () => {
+    const bundle = {
+      resourceType: 'Bundle',
+      type: 'document',
+      entry: [
+        {
+          fullUrl: 'urn:uuid:med-3',
+          resource: {
+            resourceType: ResourceTypesFhirR4.MedicationStatement,
+            meta: {
+              claims: {
+                [MedicationStatementClaim.MedicationText]: 'Ibuprofen 400mg',
+                [MedicationStatementClaim.Effective]: '2026-06-01',
+                [MedicationStatementClaim.Subject]: 'did:web:patient.example.org',
+              },
+            },
+          },
+        },
+      ],
+    };
+
+    const cards = toClinicalResourceCardViews(bundle);
+
+    expect(cards).toEqual([
+      {
+        title: 'Ibuprofen 400mg',
+        resourceType: ResourceTypesFhirR4.MedicationStatement,
+        date: '2026-06-01',
+        fullUrl: 'urn:uuid:med-3',
+        actorsCount: 1,
+      },
+    ]);
   });
 });

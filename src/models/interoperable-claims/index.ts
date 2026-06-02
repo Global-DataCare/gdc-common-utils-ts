@@ -5,6 +5,7 @@ export * from './types';
 export * from './composition-claims';
 export * from './communication-claims';
 export * from './document-reference-claims';
+export * from './diagnostic-report-claims';
 export * from './medication-statement-claims';
 export * from './allergy-intolerance-claims';
 export * from './condition-claims';

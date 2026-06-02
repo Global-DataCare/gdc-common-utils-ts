@@ -17,7 +17,30 @@ export const MedicationStatementClaim = {
   PartOf: 'MedicationStatement.part-of',
   Source: 'MedicationStatement.source',
   MedicationText: 'MedicationStatement.medication-text',
+  /**
+   * Free-text clinical note.
+   *
+   * Use this for human-readable instructions or remarks that may be authored
+   * in any language, for example "take after meals" or "take as needed".
+   *
+   * For a dosage sentence such as "1 tablet every 8 hours", prefer
+   * `DosageInstruction`. For structured timing/PRN semantics, prefer the
+   * contextualized FHIR-style fields in `MedicationStatementClaimsFhirApiExtended`
+   * such as `DosageAsNeeded`, `TimingFrequency`, `TimingPeriod`,
+   * `TimingPeriodUnit`, and `DosagePatientInstructionText`.
+   */
   Note: 'MedicationStatement.note',
+  ContainedDocuments: 'MedicationStatement.contained-documents',
+  /**
+   * @deprecated Use `ContainedDocuments`.
+   */
+  AttachmentContentIds: 'MedicationStatement.attachment-content-ids',
+  /**
+   * Human-readable dosage text, for example "1 tablet every 8 hours".
+   *
+   * This is the short flat claim to use when frontend or ingestion code needs
+   * one sentence without expanding the full timing model.
+   */
   DosageInstruction: 'MedicationStatement.dosage-instruction',
   MedicationIdentifier: 'MedicationStatement.medication-identifier',
   MedicationSerialNumber: 'MedicationStatement.medication-serial-number',
@@ -132,6 +155,163 @@ export enum MedicationStatementClaimsFhirApiExtended {
   TimingBoundsRangeHighValue = 'org.hl7.fhir.api.MedicationStatement.timing-bounds-range-high-value',
   TimingBoundsRangeHighUnit = 'org.hl7.fhir.api.MedicationStatement.timing-bounds-range-high-unit',
 }
+
+/**
+ * Canonical FHIR-style search parameter names for MedicationStatement.
+ * These names are intentionally not contextualized so they can be reused
+ * by query builders and frontend filters.
+ */
+export const MedicationStatementSearchParamNames = {
+  Category: 'category',
+  Code: 'code',
+  Effective: 'effective',
+  Identifier: 'identifier',
+  Medication: 'medication',
+  PartOf: 'part-of',
+  Patient: 'patient',
+  Source: 'source',
+  Status: 'status',
+  Subject: 'subject',
+  DoseQuantity: 'dose-quantity',
+  DoseQuantityValue: 'dose-quantity-value',
+  DoseQuantityUnit: 'dose-quantity-unit',
+  RateQuantity: 'rate-quantity',
+  RateQuantityValue: 'rate-quantity-value',
+  RateQuantityUnit: 'rate-quantity-unit',
+  RateRangeLowQuantity: 'rate-range-low-quantity',
+  RateRangeLowQuantityValue: 'rate-range-low-quantity-value',
+  RateRangeLowQuantityUnit: 'rate-range-low-quantity-unit',
+  RateRangeHighQuantity: 'rate-range-high-quantity',
+  RateRangeHighQuantityValue: 'rate-range-high-quantity-value',
+  RateRangeHighQuantityUnit: 'rate-range-high-quantity-unit',
+  RateRatioNumeratorQuantity: 'rate-ratio-numerator-quantity',
+  RateRatioNumeratorQuantityValue: 'rate-ratio-numerator-quantity-value',
+  RateRatioNumeratorQuantityUnit: 'rate-ratio-numerator-quantity-unit',
+  RateDenominatorQuantity: 'rate-denominator-quantity',
+  RateDenominatorQuantityValue: 'rate-denominator-quantity-value',
+  RateDenominatorQuantityUnit: 'rate-denominator-quantity-unit',
+  DoseType: 'dose-type',
+  DosageMethod: 'dosage-method',
+  DosageMethodText: 'dosage-method-text',
+  DosageRoute: 'dosage-route',
+  DosageRouteText: 'dosage-route-text',
+  DosageSite: 'dosage-site',
+  DosageSiteText: 'dosage-site-text',
+  DosageCondition: 'dosage-condition',
+  DosageAsNeeded: 'dosage-asneeded',
+  DosagePatientInstructionText: 'dosage-patientinstruction-text',
+  DoseMaxPerPeriod: 'dose-maxperperiod',
+  DoseMaxPerAdministration: 'dose-maxperadministration',
+  DoseMaxPerLifetime: 'dose-maxperlifetime',
+  TimingDescription: 'timing-description',
+  TimingCount: 'timing-count',
+  TimingCountMax: 'timing-countmax',
+  TimingDuration: 'timing-duration',
+  TimingDurationMax: 'timing-durationmax',
+  TimingDurationUnit: 'timing-duration-unit',
+  TimingFrequency: 'timing-frequency',
+  TimingFrequencyMax: 'timing-frequencymax',
+  TimingPeriod: 'timing-period',
+  TimingPeriodMax: 'timing-periodmax',
+  TimingPeriodUnit: 'timing-period-unit',
+  TimingDayOfWeek: 'timing-dayofweek',
+  TimingTimeOfDay: 'timing-timeofday',
+  TimingWhen: 'timing-when',
+  TimingOffset: 'timing-offset',
+  TimingStartOffset: 'timing-startoffset',
+  TimingEndOffset: 'timing-endoffset',
+  TimingBoundsType: 'timing-bounds-type',
+  TimingBoundsPeriodStart: 'timing-bounds-period-start',
+  TimingBoundsPeriodEnd: 'timing-bounds-period-end',
+  TimingBoundsDuration: 'timing-bounds-duration',
+  TimingBoundsDurationValue: 'timing-bounds-duration-value',
+  TimingBoundsDurationUnit: 'timing-bounds-duration-unit',
+  TimingBoundsRangeLow: 'timing-bounds-range-low',
+  TimingBoundsRangeLowValue: 'timing-bounds-range-low-value',
+  TimingBoundsRangeLowUnit: 'timing-bounds-range-low-unit',
+  TimingBoundsRangeHigh: 'timing-bounds-range-high',
+  TimingBoundsRangeHighValue: 'timing-bounds-range-high-value',
+  TimingBoundsRangeHighUnit: 'timing-bounds-range-high-unit',
+} as const;
+
+export type MedicationStatementSearchParamName =
+  typeof MedicationStatementSearchParamNames[keyof typeof MedicationStatementSearchParamNames];
+
+export const MedicationStatementSearchParamToClaimKey: Record<
+MedicationStatementSearchParamName,
+MedicationStatementClaimsFhirApi | MedicationStatementClaimsFhirApiExtended
+> = {
+  [MedicationStatementSearchParamNames.Category]: MedicationStatementClaimsFhirApi.Category,
+  [MedicationStatementSearchParamNames.Code]: MedicationStatementClaimsFhirApi.Code,
+  [MedicationStatementSearchParamNames.Effective]: MedicationStatementClaimsFhirApi.Effective,
+  [MedicationStatementSearchParamNames.Identifier]: MedicationStatementClaimsFhirApi.Identifier,
+  [MedicationStatementSearchParamNames.Medication]: MedicationStatementClaimsFhirApi.Medication,
+  [MedicationStatementSearchParamNames.PartOf]: MedicationStatementClaimsFhirApi.PartOf,
+  [MedicationStatementSearchParamNames.Patient]: MedicationStatementClaimsFhirApi.Patient,
+  [MedicationStatementSearchParamNames.Source]: MedicationStatementClaimsFhirApi.Source,
+  [MedicationStatementSearchParamNames.Status]: MedicationStatementClaimsFhirApi.Status,
+  [MedicationStatementSearchParamNames.Subject]: MedicationStatementClaimsFhirApi.Subject,
+  [MedicationStatementSearchParamNames.DoseQuantity]: MedicationStatementClaimsFhirApiExtended.DoseQuantity,
+  [MedicationStatementSearchParamNames.DoseQuantityValue]: MedicationStatementClaimsFhirApiExtended.DoseQuantityValue,
+  [MedicationStatementSearchParamNames.DoseQuantityUnit]: MedicationStatementClaimsFhirApiExtended.DoseQuantityUnit,
+  [MedicationStatementSearchParamNames.RateQuantity]: MedicationStatementClaimsFhirApiExtended.RateQuantity,
+  [MedicationStatementSearchParamNames.RateQuantityValue]: MedicationStatementClaimsFhirApiExtended.RateQuantityValue,
+  [MedicationStatementSearchParamNames.RateQuantityUnit]: MedicationStatementClaimsFhirApiExtended.RateQuantityUnit,
+  [MedicationStatementSearchParamNames.RateRangeLowQuantity]: MedicationStatementClaimsFhirApiExtended.RateRangeLowQuantity,
+  [MedicationStatementSearchParamNames.RateRangeLowQuantityValue]: MedicationStatementClaimsFhirApiExtended.RateRangeLowQuantityValue,
+  [MedicationStatementSearchParamNames.RateRangeLowQuantityUnit]: MedicationStatementClaimsFhirApiExtended.RateRangeLowQuantityUnit,
+  [MedicationStatementSearchParamNames.RateRangeHighQuantity]: MedicationStatementClaimsFhirApiExtended.RateRangeHighQuantity,
+  [MedicationStatementSearchParamNames.RateRangeHighQuantityValue]: MedicationStatementClaimsFhirApiExtended.RateRangeHighQuantityValue,
+  [MedicationStatementSearchParamNames.RateRangeHighQuantityUnit]: MedicationStatementClaimsFhirApiExtended.RateRangeHighQuantityUnit,
+  [MedicationStatementSearchParamNames.RateRatioNumeratorQuantity]: MedicationStatementClaimsFhirApiExtended.RateRatioNumeratorQuantity,
+  [MedicationStatementSearchParamNames.RateRatioNumeratorQuantityValue]: MedicationStatementClaimsFhirApiExtended.RateRatioNumeratorQuantityValue,
+  [MedicationStatementSearchParamNames.RateRatioNumeratorQuantityUnit]: MedicationStatementClaimsFhirApiExtended.RateRatioNumeratorQuantityUnit,
+  [MedicationStatementSearchParamNames.RateDenominatorQuantity]: MedicationStatementClaimsFhirApiExtended.RateDenominatorQuantity,
+  [MedicationStatementSearchParamNames.RateDenominatorQuantityValue]: MedicationStatementClaimsFhirApiExtended.RateDenominatorQuantityValue,
+  [MedicationStatementSearchParamNames.RateDenominatorQuantityUnit]: MedicationStatementClaimsFhirApiExtended.RateDenominatorQuantityUnit,
+  [MedicationStatementSearchParamNames.DoseType]: MedicationStatementClaimsFhirApiExtended.DoseType,
+  [MedicationStatementSearchParamNames.DosageMethod]: MedicationStatementClaimsFhirApiExtended.DosageMethod,
+  [MedicationStatementSearchParamNames.DosageMethodText]: MedicationStatementClaimsFhirApiExtended.DosageMethodText,
+  [MedicationStatementSearchParamNames.DosageRoute]: MedicationStatementClaimsFhirApiExtended.DosageRoute,
+  [MedicationStatementSearchParamNames.DosageRouteText]: MedicationStatementClaimsFhirApiExtended.DosageRouteText,
+  [MedicationStatementSearchParamNames.DosageSite]: MedicationStatementClaimsFhirApiExtended.DosageSite,
+  [MedicationStatementSearchParamNames.DosageSiteText]: MedicationStatementClaimsFhirApiExtended.DosageSiteText,
+  [MedicationStatementSearchParamNames.DosageCondition]: MedicationStatementClaimsFhirApiExtended.DosageCondition,
+  [MedicationStatementSearchParamNames.DosageAsNeeded]: MedicationStatementClaimsFhirApiExtended.DosageAsNeeded,
+  [MedicationStatementSearchParamNames.DosagePatientInstructionText]: MedicationStatementClaimsFhirApiExtended.DosagePatientInstructionText,
+  [MedicationStatementSearchParamNames.DoseMaxPerPeriod]: MedicationStatementClaimsFhirApiExtended.DoseMaxPerPeriod,
+  [MedicationStatementSearchParamNames.DoseMaxPerAdministration]: MedicationStatementClaimsFhirApiExtended.DoseMaxPerAdministration,
+  [MedicationStatementSearchParamNames.DoseMaxPerLifetime]: MedicationStatementClaimsFhirApiExtended.DoseMaxPerLifetime,
+  [MedicationStatementSearchParamNames.TimingDescription]: MedicationStatementClaimsFhirApiExtended.TimingDescription,
+  [MedicationStatementSearchParamNames.TimingCount]: MedicationStatementClaimsFhirApiExtended.TimingCount,
+  [MedicationStatementSearchParamNames.TimingCountMax]: MedicationStatementClaimsFhirApiExtended.TimingCountMax,
+  [MedicationStatementSearchParamNames.TimingDuration]: MedicationStatementClaimsFhirApiExtended.TimingDuration,
+  [MedicationStatementSearchParamNames.TimingDurationMax]: MedicationStatementClaimsFhirApiExtended.TimingDurationMax,
+  [MedicationStatementSearchParamNames.TimingDurationUnit]: MedicationStatementClaimsFhirApiExtended.TimingDurationUnit,
+  [MedicationStatementSearchParamNames.TimingFrequency]: MedicationStatementClaimsFhirApiExtended.TimingFrequency,
+  [MedicationStatementSearchParamNames.TimingFrequencyMax]: MedicationStatementClaimsFhirApiExtended.TimingFrequencyMax,
+  [MedicationStatementSearchParamNames.TimingPeriod]: MedicationStatementClaimsFhirApiExtended.TimingPeriod,
+  [MedicationStatementSearchParamNames.TimingPeriodMax]: MedicationStatementClaimsFhirApiExtended.TimingPeriodMax,
+  [MedicationStatementSearchParamNames.TimingPeriodUnit]: MedicationStatementClaimsFhirApiExtended.TimingPeriodUnit,
+  [MedicationStatementSearchParamNames.TimingDayOfWeek]: MedicationStatementClaimsFhirApiExtended.TimingDayOfWeek,
+  [MedicationStatementSearchParamNames.TimingTimeOfDay]: MedicationStatementClaimsFhirApiExtended.TimingTimeOfDay,
+  [MedicationStatementSearchParamNames.TimingWhen]: MedicationStatementClaimsFhirApiExtended.TimingWhen,
+  [MedicationStatementSearchParamNames.TimingOffset]: MedicationStatementClaimsFhirApiExtended.TimingOffset,
+  [MedicationStatementSearchParamNames.TimingStartOffset]: MedicationStatementClaimsFhirApiExtended.TimingStartOffset,
+  [MedicationStatementSearchParamNames.TimingEndOffset]: MedicationStatementClaimsFhirApiExtended.TimingEndOffset,
+  [MedicationStatementSearchParamNames.TimingBoundsType]: MedicationStatementClaimsFhirApiExtended.TimingBoundsType,
+  [MedicationStatementSearchParamNames.TimingBoundsPeriodStart]: MedicationStatementClaimsFhirApiExtended.TimingBoundsPeriodStart,
+  [MedicationStatementSearchParamNames.TimingBoundsPeriodEnd]: MedicationStatementClaimsFhirApiExtended.TimingBoundsPeriodEnd,
+  [MedicationStatementSearchParamNames.TimingBoundsDuration]: MedicationStatementClaimsFhirApiExtended.TimingBoundsDuration,
+  [MedicationStatementSearchParamNames.TimingBoundsDurationValue]: MedicationStatementClaimsFhirApiExtended.TimingBoundsDurationValue,
+  [MedicationStatementSearchParamNames.TimingBoundsDurationUnit]: MedicationStatementClaimsFhirApiExtended.TimingBoundsDurationUnit,
+  [MedicationStatementSearchParamNames.TimingBoundsRangeLow]: MedicationStatementClaimsFhirApiExtended.TimingBoundsRangeLow,
+  [MedicationStatementSearchParamNames.TimingBoundsRangeLowValue]: MedicationStatementClaimsFhirApiExtended.TimingBoundsRangeLowValue,
+  [MedicationStatementSearchParamNames.TimingBoundsRangeLowUnit]: MedicationStatementClaimsFhirApiExtended.TimingBoundsRangeLowUnit,
+  [MedicationStatementSearchParamNames.TimingBoundsRangeHigh]: MedicationStatementClaimsFhirApiExtended.TimingBoundsRangeHigh,
+  [MedicationStatementSearchParamNames.TimingBoundsRangeHighValue]: MedicationStatementClaimsFhirApiExtended.TimingBoundsRangeHighValue,
+  [MedicationStatementSearchParamNames.TimingBoundsRangeHighUnit]: MedicationStatementClaimsFhirApiExtended.TimingBoundsRangeHighUnit,
+};
 
 export const MedicationStatementClaimsFhirApiMap = {
   [MedicationStatementClaimsFhirApi.Category]: String,

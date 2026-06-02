@@ -94,6 +94,8 @@ import { JweObject, JwtCompactParts } from 'gdc-common-utils-ts/models';
     `internet-first` discovery seeding by `jurisdiction + version + networkType`
 - [docs/consent-access-matrix-task.md](docs/consent-access-matrix-task.md)
   - next-step design/task document for active consent aggregation, explicit deny precedence, controller views, permission-request communications, and SMART access evaluation
+- [docs/IPS_BUNDLE_101.md](docs/IPS_BUNDLE_101.md)
+  - quick guide for editing IPS-like bundle history in `Communication.content-attachment-data`, reading `resource.meta.claims`, and building frontend cards by section
 
 ## Dataspace Protocol And Discovery
 

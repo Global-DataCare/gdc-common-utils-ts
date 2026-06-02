@@ -12,12 +12,71 @@ export const ConditionClaim = {
   VerificationStatus: 'Condition.verification-status',
   Category: 'Condition.category',
   Code: 'Condition.code',
+  ContainedDocuments: 'Condition.contained-documents',
+  /**
+   * @deprecated Use `ContainedDocuments`.
+   */
+  AttachmentContentIds: 'Condition.attachment-content-ids',
   Severity: 'Condition.severity',
   OnsetDateTime: 'Condition.onset-datetime',
   Recorder: 'Condition.recorder',
 } as const;
 
 export type ConditionClaimKey = typeof ConditionClaim[keyof typeof ConditionClaim];
+
+export enum ConditionClaimsFhirApi {
+  Identifier = 'org.hl7.fhir.api.Condition.identifier',
+  Subject = 'org.hl7.fhir.api.Condition.subject',
+  ClinicalStatus = 'org.hl7.fhir.api.Condition.clinical-status',
+  VerificationStatus = 'org.hl7.fhir.api.Condition.verification-status',
+  Category = 'org.hl7.fhir.api.Condition.category',
+  Code = 'org.hl7.fhir.api.Condition.code',
+  Severity = 'org.hl7.fhir.api.Condition.severity',
+  OnsetDateTime = 'org.hl7.fhir.api.Condition.onset-datetime',
+  Recorder = 'org.hl7.fhir.api.Condition.recorder',
+}
+
+export const ConditionSearchParamNames = {
+  Identifier: 'identifier',
+  Subject: 'subject',
+  ClinicalStatus: 'clinical-status',
+  VerificationStatus: 'verification-status',
+  Category: 'category',
+  Code: 'code',
+  Severity: 'severity',
+  OnsetDateTime: 'onset-datetime',
+  Recorder: 'recorder',
+} as const;
+
+export type ConditionSearchParamName =
+  typeof ConditionSearchParamNames[keyof typeof ConditionSearchParamNames];
+
+export const ConditionSearchParamToClaimKey: Record<
+ConditionSearchParamName,
+ConditionClaimsFhirApi
+> = {
+  [ConditionSearchParamNames.Identifier]: ConditionClaimsFhirApi.Identifier,
+  [ConditionSearchParamNames.Subject]: ConditionClaimsFhirApi.Subject,
+  [ConditionSearchParamNames.ClinicalStatus]: ConditionClaimsFhirApi.ClinicalStatus,
+  [ConditionSearchParamNames.VerificationStatus]: ConditionClaimsFhirApi.VerificationStatus,
+  [ConditionSearchParamNames.Category]: ConditionClaimsFhirApi.Category,
+  [ConditionSearchParamNames.Code]: ConditionClaimsFhirApi.Code,
+  [ConditionSearchParamNames.Severity]: ConditionClaimsFhirApi.Severity,
+  [ConditionSearchParamNames.OnsetDateTime]: ConditionClaimsFhirApi.OnsetDateTime,
+  [ConditionSearchParamNames.Recorder]: ConditionClaimsFhirApi.Recorder,
+};
+
+export const ConditionClaimsFhirApiMap = {
+  [ConditionClaimsFhirApi.Identifier]: String,
+  [ConditionClaimsFhirApi.Subject]: String,
+  [ConditionClaimsFhirApi.ClinicalStatus]: String,
+  [ConditionClaimsFhirApi.VerificationStatus]: String,
+  [ConditionClaimsFhirApi.Category]: String,
+  [ConditionClaimsFhirApi.Code]: String,
+  [ConditionClaimsFhirApi.Severity]: String,
+  [ConditionClaimsFhirApi.OnsetDateTime]: String,
+  [ConditionClaimsFhirApi.Recorder]: String,
+};
 
 export const ConditionClaimSpecs: ClaimSpec[] = [
   { key: ConditionClaim.Identifier, meaning: 'Business identifier for condition record.', example: 'COND-0001' },

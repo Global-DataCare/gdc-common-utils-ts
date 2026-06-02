@@ -16,6 +16,11 @@ export enum ClaimConsent {
     'verifiedDate' = 'Consent.verified-date',
     'purpose' = 'Consent.purpose',
     'identifier' = 'Consent.identifier',
+    'containedDocuments' = 'Consent.contained-documents',
+    /**
+     * @deprecated Use `containedDocuments`.
+     */
+    'attachmentContentIds' = 'Consent.attachment-content-ids',
     'attachmentContentType' = 'Consent.attachment-contentType',
     'attachmentData' = 'Consent.attachment-data',
     'attachmentId' = 'Consent.attachment-id',
@@ -135,6 +140,9 @@ export interface ConsentRule {
      * Derived from the `org.hl7.fhir.api.Consent.identifier` claim.
      */
     'Consent.identifier': string;
+
+    'Consent.contained-documents'?: string;
+    'Consent.attachment-content-ids'?: string;
 
     'Consent.attachment-contentType'?: string
     'Consent.attachment-data'?: string

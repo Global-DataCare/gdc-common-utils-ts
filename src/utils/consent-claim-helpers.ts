@@ -1,64 +1,22 @@
 // Copyright 2026 Antifraud Services Inc. under the Apache License, Version 2.0.
 
 import { ClaimConsent } from '../models/consent-rule.js';
+export {
+  addClaimValues,
+  getClaimValues,
+  removeClaimValues,
+  setClaimValues,
+} from './claim-list-helpers.js';
+import {
+  addClaimValues,
+  getClaimValues,
+  normalizeClaimScalar,
+  removeClaimValues,
+  setClaimValues,
+  type GenericInteroperableClaims,
+} from './claim-list-helpers.js';
 
-export type InteroperableClaims = Record<string, unknown>;
-
-function splitCsv(value: unknown): string[] {
-  return String(value || '')
-    .split(',')
-    .map((item) => item.trim())
-    .filter(Boolean);
-}
-
-function normalizeTokens(values: readonly string[]): string[] {
-  return [...new Set(values.map((value) => String(value || '').trim()).filter(Boolean))];
-}
-
-function normalizeInput(values: string | readonly string[]): string[] {
-  return Array.isArray(values)
-    ? normalizeTokens(values)
-    : normalizeTokens(splitCsv(values));
-}
-
-function normalizeScalar(value: unknown): string {
-  return String(value || '').trim();
-}
-
-/**
- * Returns the tokenized values for a claims field stored as CSV.
- */
-export function getClaimValues(claims: InteroperableClaims, claimKey: string): string[] {
-  return normalizeTokens(splitCsv(claims[claimKey]));
-}
-
-/**
- * Replaces a claims CSV field with the provided values.
- */
-export function setClaimValues(
-  claims: InteroperableClaims,
-  claimKey: string,
-  values: string | readonly string[],
-): InteroperableClaims {
-  const nextValues = normalizeInput(values);
-  return {
-    ...claims,
-    [claimKey]: nextValues.join(','),
-  };
-}
-
-/**
- * Adds one or many values into a claims CSV field while preserving uniqueness.
- */
-export function addClaimValues(
-  claims: InteroperableClaims,
-  claimKey: string,
-  values: string | readonly string[],
-): InteroperableClaims {
-  const current = getClaimValues(claims, claimKey);
-  const additions = normalizeInput(values);
-  return setClaimValues(claims, claimKey, [...current, ...additions]);
-}
+export type InteroperableClaims = GenericInteroperableClaims;
 
 export function getActors(claims: InteroperableClaims): string[] {
   return getClaimValues(claims, ClaimConsent.actorIdentifier);
@@ -95,11 +53,25 @@ export function addActors(
   return addClaimValues(claims, ClaimConsent.actorIdentifier, values);
 }
 
+export function removeActors(
+  claims: InteroperableClaims,
+  values: string | readonly string[],
+): InteroperableClaims {
+  return removeClaimValues(claims, ClaimConsent.actorIdentifier, values);
+}
+
 export function addActorIdentifierList(
   claims: InteroperableClaims,
   values: string | readonly string[],
 ): InteroperableClaims {
   return addActors(claims, values);
+}
+
+export function removeActorIdentifierList(
+  claims: InteroperableClaims,
+  values: string | readonly string[],
+): InteroperableClaims {
+  return removeActors(claims, values);
 }
 
 export function getRoles(claims: InteroperableClaims): string[] {
@@ -134,11 +106,25 @@ export function addRoles(
   return addClaimValues(claims, ClaimConsent.actorRole, values);
 }
 
+export function removeRoles(
+  claims: InteroperableClaims,
+  values: string | readonly string[],
+): InteroperableClaims {
+  return removeClaimValues(claims, ClaimConsent.actorRole, values);
+}
+
 export function addActorRoleList(
   claims: InteroperableClaims,
   values: string | readonly string[],
 ): InteroperableClaims {
   return addRoles(claims, values);
+}
+
+export function removeActorRoleList(
+  claims: InteroperableClaims,
+  values: string | readonly string[],
+): InteroperableClaims {
+  return removeRoles(claims, values);
 }
 
 export function getPurposes(claims: InteroperableClaims): string[] {
@@ -170,11 +156,25 @@ export function addPurposes(
   return addClaimValues(claims, ClaimConsent.purpose, values);
 }
 
+export function removePurposes(
+  claims: InteroperableClaims,
+  values: string | readonly string[],
+): InteroperableClaims {
+  return removeClaimValues(claims, ClaimConsent.purpose, values);
+}
+
 export function addPurposeList(
   claims: InteroperableClaims,
   values: string | readonly string[],
 ): InteroperableClaims {
   return addPurposes(claims, values);
+}
+
+export function removePurposeList(
+  claims: InteroperableClaims,
+  values: string | readonly string[],
+): InteroperableClaims {
+  return removePurposes(claims, values);
 }
 
 /**
@@ -209,11 +209,25 @@ export function addCategories(
   return addClaimValues(claims, ClaimConsent.category, values);
 }
 
+export function removeCategories(
+  claims: InteroperableClaims,
+  values: string | readonly string[],
+): InteroperableClaims {
+  return removeClaimValues(claims, ClaimConsent.category, values);
+}
+
 export function addCategoryList(
   claims: InteroperableClaims,
   values: string | readonly string[],
 ): InteroperableClaims {
   return addCategories(claims, values);
+}
+
+export function removeCategoryList(
+  claims: InteroperableClaims,
+  values: string | readonly string[],
+): InteroperableClaims {
+  return removeCategories(claims, values);
 }
 
 export function getSections(claims: InteroperableClaims): string[] {
@@ -234,11 +248,79 @@ export function addSections(
   return addClaimValues(claims, ClaimConsent.action, values);
 }
 
+export function removeSections(
+  claims: InteroperableClaims,
+  values: string | readonly string[],
+): InteroperableClaims {
+  return removeClaimValues(claims, ClaimConsent.action, values);
+}
+
+/**
+ * Returns linked DocumentReference identifiers carried by the consent.
+ */
+export function getContainedDocumentIdentifierList(claims: InteroperableClaims): string[] {
+  return uniqueCsvLists([
+    getClaimValues(claims, ClaimConsent.containedDocuments),
+    getClaimValues(claims, ClaimConsent.attachmentContentIds),
+  ]);
+}
+
+export function setContainedDocumentIdentifierList(
+  claims: InteroperableClaims,
+  values: string | readonly string[],
+): InteroperableClaims {
+  return setContainedDocuments(claims, values);
+}
+
+export function addContainedDocumentIdentifierList(
+  claims: InteroperableClaims,
+  values: string | readonly string[],
+): InteroperableClaims {
+  return setContainedDocuments(
+    claims,
+    uniqueCsvLists([
+      getContainedDocumentIdentifierList(claims),
+      Array.isArray(values) ? [...values] : getClaimValues({ [ClaimConsent.containedDocuments]: values }, ClaimConsent.containedDocuments),
+    ]),
+  );
+}
+
+export function removeContainedDocumentIdentifierList(
+  claims: InteroperableClaims,
+  values: string | readonly string[],
+): InteroperableClaims {
+  const toRemove = new Set(
+    (Array.isArray(values) ? values : getClaimValues({ [ClaimConsent.containedDocuments]: values }, ClaimConsent.containedDocuments))
+      .map((item) => String(item || '').trim())
+      .filter(Boolean),
+  );
+  return setContainedDocuments(
+    claims,
+    getContainedDocumentIdentifierList(claims).filter((item) => !toRemove.has(item)),
+  );
+}
+
+function setContainedDocuments(
+  claims: InteroperableClaims,
+  values: string | readonly string[],
+): InteroperableClaims {
+  const next = setClaimValues(claims, ClaimConsent.containedDocuments, values);
+  const cleaned = {
+    ...next,
+  };
+  delete cleaned[ClaimConsent.attachmentContentIds];
+  return cleaned;
+}
+
+function uniqueCsvLists(lists: readonly (readonly string[])[]): string[] {
+  return [...new Set(lists.flatMap((list) => list.map((item) => String(item || '').trim()).filter(Boolean)))];
+}
+
 /**
  * Reads the canonical consent date claim.
  */
 export function getConsentDate(claims: InteroperableClaims): string {
-  return normalizeScalar(claims[ClaimConsent.date]);
+  return normalizeClaimScalar(claims[ClaimConsent.date]);
 }
 
 /**
@@ -250,12 +332,12 @@ export function setConsentDate(
 ): InteroperableClaims {
   return {
     ...claims,
-    [ClaimConsent.date]: normalizeScalar(value),
+    [ClaimConsent.date]: normalizeClaimScalar(value),
   };
 }
 
 export function getConsentPeriodStart(claims: InteroperableClaims): string {
-  return normalizeScalar(claims[ClaimConsent.periodStart]);
+  return normalizeClaimScalar(claims[ClaimConsent.periodStart]);
 }
 
 export function setConsentPeriodStart(
@@ -264,12 +346,12 @@ export function setConsentPeriodStart(
 ): InteroperableClaims {
   return {
     ...claims,
-    [ClaimConsent.periodStart]: normalizeScalar(value),
+    [ClaimConsent.periodStart]: normalizeClaimScalar(value),
   };
 }
 
 export function getConsentPeriodEnd(claims: InteroperableClaims): string {
-  return normalizeScalar(claims[ClaimConsent.periodEnd]);
+  return normalizeClaimScalar(claims[ClaimConsent.periodEnd]);
 }
 
 export function setConsentPeriodEnd(
@@ -278,12 +360,12 @@ export function setConsentPeriodEnd(
 ): InteroperableClaims {
   return {
     ...claims,
-    [ClaimConsent.periodEnd]: normalizeScalar(value),
+    [ClaimConsent.periodEnd]: normalizeClaimScalar(value),
   };
 }
 
 export function getConsentIdentifier(claims: InteroperableClaims): string {
-  return normalizeScalar(claims[ClaimConsent.identifier]);
+  return normalizeClaimScalar(claims[ClaimConsent.identifier]);
 }
 
 export function setConsentIdentifier(
@@ -292,6 +374,6 @@ export function setConsentIdentifier(
 ): InteroperableClaims {
   return {
     ...claims,
-    [ClaimConsent.identifier]: normalizeScalar(value),
+    [ClaimConsent.identifier]: normalizeClaimScalar(value),
   };
 }

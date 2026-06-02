@@ -3,6 +3,7 @@ import {
   addActorIdentifierList,
   addActorRoleList,
   addCategoryList,
+  addContainedDocumentIdentifierList,
   addActors,
   addPurposeList,
   addPurposes,
@@ -11,6 +12,7 @@ import {
   getActorIdentifierList,
   getActorRoleList,
   getCategoryList,
+  getContainedDocumentIdentifierList,
   getConsentDate,
   getConsentIdentifier,
   getConsentPeriodEnd,
@@ -21,9 +23,20 @@ import {
   getRoles,
   getSections,
   getPurposeList,
+  removeActorIdentifierList,
+  removeActorRoleList,
+  removeCategoryList,
+  removeContainedDocumentIdentifierList,
+  removeActors,
+  removeClaimValues,
+  removePurposeList,
+  removePurposes,
+  removeRoles,
+  removeSections,
   setActorIdentifierList,
   setActorRoleList,
   setCategoryList,
+  setContainedDocumentIdentifierList,
   setConsentDate,
   setConsentIdentifier,
   setConsentPeriodEnd,
@@ -41,6 +54,10 @@ import {
   HealthcareBasicSections,
   HealthcareConsentPurposes,
 } from '../src/constants/healthcare.js';
+import {
+  EXAMPLE_DOCUMENT_REFERENCE_IDENTIFIER,
+  EXAMPLE_DOCUMENT_REFERENCE_IDENTIFIER_SECONDARY,
+} from '../src/examples/shared.js';
 
 describe('consent claim collection helpers', () => {
   it('list aliases return arrays and persist canonical CSV values', () => {
@@ -103,6 +120,19 @@ describe('consent claim collection helpers', () => {
       HealthcareBasicSections.ProblemList.claim,
       HealthcareBasicSections.PatientSummaryDocument.claim,
     ]);
+
+    const removed = removeSections(added, [HealthcareBasicSections.Results.claim]);
+    expect(getSections(removed)).toEqual([
+      HealthcareBasicSections.ProblemList.claim,
+      HealthcareBasicSections.PatientSummaryDocument.claim,
+    ]);
+
+    const removedGeneric = removeClaimValues(removed, ClaimConsent.action, [
+      HealthcareBasicSections.ProblemList.claim,
+    ]);
+    expect(getSections(removedGeneric)).toEqual([
+      HealthcareBasicSections.PatientSummaryDocument.claim,
+    ]);
   });
 
   it('actors/roles/purposes helpers operate over canonical consent claim keys', () => {
@@ -133,6 +163,35 @@ describe('consent claim collection helpers', () => {
       HealthcareBasicSections.PatientSummaryDocument.claim,
       HealthcareBasicSections.HistoryOfMedicationUse.claim,
     ]);
+
+    claims = removeActors(claims, ['doctor@example.org']);
+    claims = removeRoles(claims, [HealthcareActorRoles.NursingProfessional]);
+    claims = removePurposes(claims, [HealthcareConsentPurposes.CareManagement]);
+    claims = removeSections(claims, [HealthcareBasicSections.HistoryOfMedicationUse.claim]);
+
+    expect(getActors(claims)).toEqual(['did:web:hospital.example.org']);
+    expect(getRoles(claims)).toEqual([HealthcareActorRoles.Physician]);
+    expect(getPurposes(claims)).toEqual([HealthcareConsentPurposes.Treatment]);
+    expect(getSections(claims)).toEqual([HealthcareBasicSections.PatientSummaryDocument.claim]);
+  });
+
+  it('list aliases also support removing CSV tokens cleanly', () => {
+    let claims: Record<string, unknown> = {};
+
+    claims = setActorIdentifierList(claims, ['did:web:hospital.example.org', 'doctor@example.org']);
+    claims = setActorRoleList(claims, [HealthcareActorRoles.Physician, HealthcareActorRoles.NursingProfessional]);
+    claims = setPurposeList(claims, [HealthcareConsentPurposes.Treatment, HealthcareConsentPurposes.CareManagement]);
+    claims = setCategoryList(claims, ['LOINC|64292-6', 'LOINC|57016-8']);
+
+    claims = removeActorIdentifierList(claims, ['doctor@example.org']);
+    claims = removeActorRoleList(claims, [HealthcareActorRoles.NursingProfessional]);
+    claims = removePurposeList(claims, [HealthcareConsentPurposes.CareManagement]);
+    claims = removeCategoryList(claims, ['LOINC|57016-8']);
+
+    expect(getActorIdentifierList(claims)).toEqual(['did:web:hospital.example.org']);
+    expect(getActorRoleList(claims)).toEqual([HealthcareActorRoles.Physician]);
+    expect(getPurposeList(claims)).toEqual([HealthcareConsentPurposes.Treatment]);
+    expect(getCategoryList(claims)).toEqual(['LOINC|64292-6']);
   });
 
   it('updates resource.meta.claims incrementally (claims-first) with actor/purpose/date/sections', () => {
@@ -198,5 +257,19 @@ describe('consent claim collection helpers', () => {
       ClaimConsent.purpose,
       ClaimConsent.action,
     ]));
+  });
+
+  it('tracks linked document reference identifiers for consent', () => {
+    let claims: Record<string, unknown> = {};
+
+    claims = setContainedDocumentIdentifierList(claims, [EXAMPLE_DOCUMENT_REFERENCE_IDENTIFIER]);
+    claims = addContainedDocumentIdentifierList(claims, [EXAMPLE_DOCUMENT_REFERENCE_IDENTIFIER_SECONDARY]);
+    expect(getContainedDocumentIdentifierList(claims)).toEqual([
+      EXAMPLE_DOCUMENT_REFERENCE_IDENTIFIER,
+      EXAMPLE_DOCUMENT_REFERENCE_IDENTIFIER_SECONDARY,
+    ]);
+
+    claims = removeContainedDocumentIdentifierList(claims, [EXAMPLE_DOCUMENT_REFERENCE_IDENTIFIER]);
+    expect(getContainedDocumentIdentifierList(claims)).toEqual([EXAMPLE_DOCUMENT_REFERENCE_IDENTIFIER_SECONDARY]);
   });
 });

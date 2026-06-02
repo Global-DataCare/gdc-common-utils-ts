@@ -17,7 +17,6 @@ import {
   EXAMPLE_EMAIL_PROFESSIONAL,
   EXAMPLE_HEALTHCARE_ACTOR_ROLE_PHYSICIAN,
   EXAMPLE_IPS_BUNDLE_NOTE_TEXT,
-  EXAMPLE_MEDICATION_STATEMENT_CODE,
   EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER,
   EXAMPLE_MEDICATION_STATEMENT_STATUS,
   EXAMPLE_MEDICATION_STATEMENT_TEXT,
@@ -36,7 +35,7 @@ export function buildConsentEditingCommunicationSessionExample(): {
   communicationClaims: Record<string, unknown>;
   bundleInMemory: BundleJsonApi<BundleEntry>;
 } {
-  const session = new CommunicationBundleSession({
+  const bundleEditor = new CommunicationBundleSession({
     communicationClaims: {
       '@context': 'org.hl7.fhir.r4',
       [CommunicationClaim.Identifier]: EXAMPLE_COMMUNICATION_IDENTIFIER,
@@ -46,7 +45,7 @@ export function buildConsentEditingCommunicationSessionExample(): {
     },
   });
 
-  session.upsertActiveConsentEntry({
+  bundleEditor.upsertActiveConsentEntry({
     claims: {
       '@context': 'org.hl7.fhir.api',
       [ClaimConsent.decision]: 'permit',
@@ -56,18 +55,18 @@ export function buildConsentEditingCommunicationSessionExample(): {
       [ClaimConsent.periodStart]: EXAMPLE_CONSENT_PERIOD_START,
       [ClaimConsent.periodEnd]: EXAMPLE_CONSENT_PERIOD_END,
       [ClaimConsent.purpose]: EXAMPLE_CONSENT_PURPOSE_TREATMENT,
-      [ClaimConsent.action]: HealthcareBasicSections.AllergiesAndIntolerances.claim,
+      [ClaimConsent.action]: HealthcareBasicSections.AllergiesAndIntolerances.attributeValue,
       [ClaimConsent.actorIdentifier]: EXAMPLE_EMAIL_PROFESSIONAL,
       [ClaimConsent.actorRole]: EXAMPLE_HEALTHCARE_ACTOR_ROLE_PHYSICIAN,
     },
     fullUrl: `urn:uuid:${EXAMPLE_CONSENT_IDENTIFIER}`,
   });
 
-  session.saveAndReleaseActiveEntry();
+  bundleEditor.saveAndReleaseActiveEntry();
 
   return {
-    communicationClaims: session.getCommunicationClaims(),
-    bundleInMemory: session.getBundleInMemory(),
+    communicationClaims: bundleEditor.getCommunicationClaims(),
+    bundleInMemory: bundleEditor.getBundleInMemory(),
   };
 }
 
@@ -81,7 +80,7 @@ export function buildMedicationEditingCommunicationSessionExample(): {
   communicationClaims: Record<string, unknown>;
   bundleInMemory: BundleJsonApi<BundleEntry>;
 } {
-  const session = new CommunicationBundleSession({
+  const bundleEditor = new CommunicationBundleSession({
     communicationClaims: {
       '@context': 'org.hl7.fhir.r4',
       [CommunicationClaim.Identifier]: EXAMPLE_COMMUNICATION_IDENTIFIER,
@@ -91,22 +90,21 @@ export function buildMedicationEditingCommunicationSessionExample(): {
     },
   });
 
-  session.upsertActiveMedicationStatementEntry({
+  bundleEditor.upsertActiveMedicationStatementEntry({
     claims: {
       '@context': 'org.hl7.fhir.api',
       [MedicationStatementClaim.Identifier]: EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER,
       [MedicationStatementClaim.Subject]: EXAMPLE_SUBJECT_DID,
       [MedicationStatementClaim.Status]: EXAMPLE_MEDICATION_STATEMENT_STATUS,
-      [MedicationStatementClaim.Code]: EXAMPLE_MEDICATION_STATEMENT_CODE,
       [MedicationStatementClaim.MedicationText]: EXAMPLE_MEDICATION_STATEMENT_TEXT,
     },
     fullUrl: `urn:uuid:${EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER}`,
   });
 
-  session.saveAndReleaseActiveEntry();
+  bundleEditor.saveAndReleaseActiveEntry();
 
   return {
-    communicationClaims: session.getCommunicationClaims(),
-    bundleInMemory: session.getBundleInMemory(),
+    communicationClaims: bundleEditor.getCommunicationClaims(),
+    bundleInMemory: bundleEditor.getBundleInMemory(),
   };
 }

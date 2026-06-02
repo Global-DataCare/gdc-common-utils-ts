@@ -40,6 +40,7 @@ import {
 import {
   buildDefaultHostingOperatorRegistrationFromAuthority,
   buildDefaultIcaRegistrationFromAuthority,
+  buildDefaultPublishedProviderRecordFromTenant,
   createDataspaceDiscoveryDefaultsRegistry,
 } from 'gdc-common-utils-ts/utils/dataspace-discovery-defaults';
 
@@ -64,6 +65,36 @@ defaults.addHostingOperator(buildDefaultHostingOperatorRegistrationFromAuthority
   areaServed: ['EU', 'ES'],
   coverageScope: 'EU',
 }));
+
+// Optional: seed one published provider directly under that host.
+// This is useful during early portal development, before you want to depend on
+// the host public catalog.
+defaults.addHostingOperator({
+  ...buildDefaultHostingOperatorRegistrationFromAuthority({
+    authority: 'host-health.example.org',
+    jurisdiction: 'ES',
+    version: 'v1',
+    networkType: 'test',
+    title: 'Health Host ES',
+    sector: 'health-care',
+    serviceTypes: [ServiceCapabilityToken.IndexProvider],
+    areaServed: ['EU', 'ES'],
+    coverageScope: 'EU',
+  }),
+  publishedProviders: [
+    buildDefaultPublishedProviderRecordFromTenant({
+      hostAuthority: 'host-health.example.org',
+      tenantId: 'acme-id',
+      jurisdiction: 'ES',
+      version: 'v1',
+      sector: 'health-care',
+      providerCapability: ServiceCapabilityToken.IndexProvider,
+      areaServed: ['EU', 'ES'],
+      // Future optional public domain:
+      // externalDomain: 'acme-health.example.org',
+    }),
+  ],
+});
 
 const plan = defaults.buildBootstrapPlan({
   jurisdiction: 'ES',

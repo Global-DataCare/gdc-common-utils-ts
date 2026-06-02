@@ -1,7 +1,10 @@
 // Copyright 2026 Antifraud Services Inc. under the Apache License, Version 2.0.
 
 import type { DataspaceDiscoverySourceModeValue } from '../constants/dataspace-discovery';
-import type { HostingOperatorSemanticRecord } from './dataspace-discovery';
+import type {
+  HostingOperatorSemanticRecord,
+  PublishedProviderCatalogRecord,
+} from './dataspace-discovery';
 
 /**
  * Shared host/ICA context used to select dataspace discovery defaults.
@@ -34,6 +37,7 @@ export type DefaultHostingOperatorRegistration = DataspaceDiscoveryNetworkContex
   discoveryUrl?: string;
   catalogUrl?: string;
   record: HostingOperatorSemanticRecord;
+  publishedProviders?: readonly PublishedProviderCatalogRecord[];
   title?: string;
 }>;
 

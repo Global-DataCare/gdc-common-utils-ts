@@ -3,8 +3,19 @@
 import { ResourceTypesFhirR4 } from '../constants/fhir-resource-types.js';
 import type { BundleEntry, BundleJsonApi } from '../models/bundle.js';
 import { ClaimConsent } from '../models/consent-rule.js';
+import {
+  AllergyIntoleranceClaim,
+  AllergyIntoleranceClaimsFhirApi,
+} from '../models/interoperable-claims/allergy-intolerance-claims.js';
 import { CommunicationClaim } from '../models/interoperable-claims/communication-claims.js';
-import { MedicationStatementClaim } from '../models/interoperable-claims/medication-statement-claims.js';
+import {
+  ConditionClaim,
+  ConditionClaimsFhirApi,
+} from '../models/interoperable-claims/condition-claims.js';
+import {
+  MedicationStatementClaim,
+  MedicationStatementClaimsFhirApi,
+} from '../models/interoperable-claims/medication-statement-claims.js';
 
 const CONSENT_ACTOR_REFERENCE_CLAIM = 'Consent.actor-reference';
 const GENERIC_CREATOR_CLAIM_SUFFIX = '.creator';
@@ -57,10 +68,24 @@ export type ClinicalResourceExpandedView = Readonly<{
   notes: string[];
 }>;
 
+export type ClinicalResourceEntryLike = Readonly<{
+  fullUrl?: string;
+  type?: string;
+  meta?: BundleEntry['meta'];
+  resource?: BundleEntry['resource'];
+}>;
+
+export type ClinicalResourceBundleLike = Readonly<{
+  resourceType?: string;
+  type?: string;
+  data?: readonly ClinicalResourceEntryLike[];
+  entry?: readonly ClinicalResourceEntryLike[];
+}>;
+
 /**
  * Maps one bundle entry to a UI-friendly common clinical view contract.
  */
-export function toClinicalResourceCommonView(entry: BundleEntry): ClinicalResourceCommonView {
+export function toClinicalResourceCommonView(entry: ClinicalResourceEntryLike): ClinicalResourceCommonView {
   const claims = readClaims(entry);
   const resourceType = resolveResourceType(entry, claims);
   const title = resolveTitle(resourceType, claims);
@@ -81,16 +106,14 @@ export function toClinicalResourceCommonView(entry: BundleEntry): ClinicalResour
 /**
  * Maps all entries from a Bundle into common clinical views.
  */
-export function toClinicalResourceCommonViews(bundle: BundleJsonApi<BundleEntry>): ClinicalResourceCommonView[] {
-  return Array.isArray(bundle?.data)
-    ? bundle.data.map((entry) => toClinicalResourceCommonView(entry))
-    : [];
+export function toClinicalResourceCommonViews(bundle: ClinicalResourceBundleLike): ClinicalResourceCommonView[] {
+  return readBundleEntries(bundle).map((entry) => toClinicalResourceCommonView(entry));
 }
 
 /**
  * Maps one bundle entry to a minimal card view for section counters/list cards.
  */
-export function toClinicalResourceCardView(entry: BundleEntry): ClinicalResourceCardView {
+export function toClinicalResourceCardView(entry: ClinicalResourceEntryLike): ClinicalResourceCardView {
   const common = toClinicalResourceCommonView(entry);
   return {
     title: common.title,
@@ -104,16 +127,14 @@ export function toClinicalResourceCardView(entry: BundleEntry): ClinicalResource
 /**
  * Maps all entries from a Bundle into minimal card views.
  */
-export function toClinicalResourceCardViews(bundle: BundleJsonApi<BundleEntry>): ClinicalResourceCardView[] {
-  return Array.isArray(bundle?.data)
-    ? bundle.data.map((entry) => toClinicalResourceCardView(entry))
-    : [];
+export function toClinicalResourceCardViews(bundle: ClinicalResourceBundleLike): ClinicalResourceCardView[] {
+  return readBundleEntries(bundle).map((entry) => toClinicalResourceCardView(entry));
 }
 
 /**
  * Maps one bundle entry to an expanded view that includes XHTML and notes array.
  */
-export function toClinicalResourceExpandedView(entry: BundleEntry): ClinicalResourceExpandedView {
+export function toClinicalResourceExpandedView(entry: ClinicalResourceEntryLike): ClinicalResourceExpandedView {
   const common = toClinicalResourceCommonView(entry);
   return {
     common,
@@ -125,13 +146,11 @@ export function toClinicalResourceExpandedView(entry: BundleEntry): ClinicalReso
 /**
  * Maps all entries from a Bundle into expanded views.
  */
-export function toClinicalResourceExpandedViews(bundle: BundleJsonApi<BundleEntry>): ClinicalResourceExpandedView[] {
-  return Array.isArray(bundle?.data)
-    ? bundle.data.map((entry) => toClinicalResourceExpandedView(entry))
-    : [];
+export function toClinicalResourceExpandedViews(bundle: ClinicalResourceBundleLike): ClinicalResourceExpandedView[] {
+  return readBundleEntries(bundle).map((entry) => toClinicalResourceExpandedView(entry));
 }
 
-function readClaims(entry: BundleEntry): ClinicalViewClaims {
+function readClaims(entry: ClinicalResourceEntryLike): ClinicalViewClaims {
   const resourceClaims = asRecord(entry?.resource?.meta?.claims);
   const legacyClaims = asRecord(entry?.meta?.claims);
   return {
@@ -140,7 +159,7 @@ function readClaims(entry: BundleEntry): ClinicalViewClaims {
   };
 }
 
-function resolveResourceType(entry: BundleEntry, claims: ClinicalViewClaims): string {
+function resolveResourceType(entry: ClinicalResourceEntryLike, claims: ClinicalViewClaims): string {
   const fromClaim = trimValue(claims[ClaimConsent.resourceType]);
   if (fromClaim) {
     return fromClaim;
@@ -172,9 +191,39 @@ function resolveTitle(resourceType: string, claims: ClinicalViewClaims): string 
   }
 
   if (resourceType === ResourceTypesFhirR4.MedicationStatement) {
-    const text = trimValue(claims[MedicationStatementClaim.MedicationText]);
-    const firstCode = splitCsv(claims[MedicationStatementClaim.Code])[0];
+    const text = firstClaimValue(claims, [
+      MedicationStatementClaim.MedicationText,
+      MedicationStatementClaimsFhirApi.Medication,
+    ]);
+    const firstCode = firstClaimCsvValue(claims, [
+      MedicationStatementClaim.Code,
+      MedicationStatementClaimsFhirApi.Code,
+    ]);
     return text || firstCode || resourceType;
+  }
+
+  if (resourceType === ResourceTypesFhirR4.Condition) {
+    const firstCode = firstClaimCsvValue(claims, [
+      ConditionClaim.Code,
+      ConditionClaimsFhirApi.Code,
+    ]);
+    const firstCategory = firstClaimCsvValue(claims, [
+      ConditionClaim.Category,
+      ConditionClaimsFhirApi.Category,
+    ]);
+    return firstCode || firstCategory || resourceType;
+  }
+
+  if (resourceType === ResourceTypesFhirR4.AllergyIntolerance) {
+    const firstCode = firstClaimCsvValue(claims, [
+      AllergyIntoleranceClaim.Code,
+      AllergyIntoleranceClaimsFhirApi.Code,
+    ]);
+    const firstCategory = firstClaimCsvValue(claims, [
+      AllergyIntoleranceClaim.Category,
+      AllergyIntoleranceClaimsFhirApi.Category,
+    ]);
+    return firstCode || firstCategory || resourceType;
   }
 
   return resourceType;
@@ -188,7 +237,22 @@ function resolveIdentifier(resourceType: string, claims: ClinicalViewClaims): st
     return trimValue(claims[ClaimConsent.identifier]);
   }
   if (resourceType === ResourceTypesFhirR4.MedicationStatement) {
-    return trimValue(claims[MedicationStatementClaim.Identifier]);
+    return firstClaimValue(claims, [
+      MedicationStatementClaim.Identifier,
+      MedicationStatementClaimsFhirApi.Identifier,
+    ]);
+  }
+  if (resourceType === ResourceTypesFhirR4.Condition) {
+    return firstClaimValue(claims, [
+      ConditionClaim.Identifier,
+      ConditionClaimsFhirApi.Identifier,
+    ]);
+  }
+  if (resourceType === ResourceTypesFhirR4.AllergyIntolerance) {
+    return firstClaimValue(claims, [
+      AllergyIntoleranceClaim.Identifier,
+      AllergyIntoleranceClaimsFhirApi.Identifier,
+    ]);
   }
   return undefined;
 }
@@ -201,7 +265,22 @@ function resolveDate(resourceType: string, claims: ClinicalViewClaims): string |
     return trimValue(claims[ClaimConsent.date]);
   }
   if (resourceType === ResourceTypesFhirR4.MedicationStatement) {
-    return trimValue(claims[MedicationStatementClaim.Effective]);
+    return firstClaimValue(claims, [
+      MedicationStatementClaim.Effective,
+      MedicationStatementClaimsFhirApi.Effective,
+    ]);
+  }
+  if (resourceType === ResourceTypesFhirR4.Condition) {
+    return firstClaimValue(claims, [
+      ConditionClaim.OnsetDateTime,
+      ConditionClaimsFhirApi.OnsetDateTime,
+    ]);
+  }
+  if (resourceType === ResourceTypesFhirR4.AllergyIntolerance) {
+    return firstClaimValue(claims, [
+      AllergyIntoleranceClaim.OnsetDateTime,
+      AllergyIntoleranceClaimsFhirApi.OnsetDateTime,
+    ]);
   }
 
   const genericDate = findBySuffix(claims, '.date');
@@ -258,12 +337,53 @@ function resolveActors(resourceType: string, claims: ClinicalViewClaims): Clinic
   }
 
   if (resourceType === ResourceTypesFhirR4.MedicationStatement) {
-    splitCsv(claims[MedicationStatementClaim.Source]).forEach((identifier) => {
+    splitClaimCsv(claims, [
+      MedicationStatementClaim.Source,
+      MedicationStatementClaimsFhirApi.Source,
+    ]).forEach((identifier) => {
       pushActor(out, { identifier, type: 'source' });
     });
 
-    splitCsv(claims[MedicationStatementClaim.Subject]).forEach((identifier) => {
+    splitClaimCsv(claims, [
+      MedicationStatementClaim.Subject,
+      MedicationStatementClaimsFhirApi.Subject,
+      MedicationStatementClaimsFhirApi.Patient,
+    ]).forEach((identifier) => {
       pushActor(out, { identifier, type: 'subject' });
+    });
+  }
+
+  if (resourceType === ResourceTypesFhirR4.Condition) {
+    splitClaimCsv(claims, [
+      ConditionClaim.Subject,
+      ConditionClaimsFhirApi.Subject,
+    ]).forEach((identifier) => {
+      pushActor(out, { identifier, type: 'subject' });
+    });
+
+    splitClaimCsv(claims, [
+      ConditionClaim.Recorder,
+      ConditionClaimsFhirApi.Recorder,
+    ]).forEach((identifier) => {
+      pushActor(out, { identifier, type: 'asserter' });
+    });
+  }
+
+  if (resourceType === ResourceTypesFhirR4.AllergyIntolerance) {
+    splitClaimCsv(claims, [
+      AllergyIntoleranceClaim.Subject,
+      AllergyIntoleranceClaim.Patient,
+      AllergyIntoleranceClaimsFhirApi.Subject,
+      AllergyIntoleranceClaimsFhirApi.Patient,
+    ]).forEach((identifier) => {
+      pushActor(out, { identifier, type: 'subject' });
+    });
+
+    splitClaimCsv(claims, [
+      AllergyIntoleranceClaim.Recorder,
+      AllergyIntoleranceClaimsFhirApi.Recorder,
+    ]).forEach((identifier) => {
+      pushActor(out, { identifier, type: 'asserter' });
     });
   }
 
@@ -274,7 +394,7 @@ function resolveActors(resourceType: string, claims: ClinicalViewClaims): Clinic
   return out;
 }
 
-function resolveXhtml(entry: BundleEntry, claims: ClinicalViewClaims): string | undefined {
+function resolveXhtml(entry: ClinicalResourceEntryLike, claims: ClinicalViewClaims): string | undefined {
   const fromFhirNarrative = trimValue(asRecord(entry?.resource?.text).div);
   if (fromFhirNarrative) {
     return fromFhirNarrative;
@@ -285,13 +405,13 @@ function resolveXhtml(entry: BundleEntry, claims: ClinicalViewClaims): string | 
   return fromSpecificClaim || undefined;
 }
 
-function resolveNotes(entry: BundleEntry, resourceType: string, claims: ClinicalViewClaims): string[] {
+function resolveNotes(entry: ClinicalResourceEntryLike, resourceType: string, claims: ClinicalViewClaims): string[] {
   const notesFromResource = readFhirNoteArray(entry);
   const notesFromClaims = readNotesFromClaims(resourceType, claims);
   return uniqueTokens([...notesFromResource, ...notesFromClaims]);
 }
 
-function readFhirNoteArray(entry: BundleEntry): string[] {
+function readFhirNoteArray(entry: ClinicalResourceEntryLike): string[] {
   const rawNotes = entry?.resource?.note;
   if (!Array.isArray(rawNotes)) {
     return [];
@@ -311,7 +431,7 @@ function readNotesFromClaims(resourceType: string, claims: ClinicalViewClaims): 
     out.push(...splitCsv(claims[CommunicationClaim.NoteText]));
   }
   if (resourceType === ResourceTypesFhirR4.MedicationStatement) {
-    out.push(...splitCsv(claims[MedicationStatementClaim.Note]));
+    out.push(...splitClaimCsv(claims, [MedicationStatementClaim.Note]));
   }
 
   for (const [key, value] of Object.entries(claims)) {
@@ -340,6 +460,44 @@ function appendGenericActorType(
       });
     });
   }
+}
+
+function readBundleEntries(bundle: ClinicalResourceBundleLike | undefined): ClinicalResourceEntryLike[] {
+  if (Array.isArray(bundle?.data)) {
+    return [...bundle.data];
+  }
+  if (Array.isArray(bundle?.entry)) {
+    return [...bundle.entry];
+  }
+  return [];
+}
+
+function firstClaimValue(claims: ClinicalViewClaims, keys: readonly string[]): string | undefined {
+  for (const key of keys) {
+    const value = trimValue(claims[key]);
+    if (value) {
+      return value;
+    }
+  }
+  return undefined;
+}
+
+function firstClaimCsvValue(claims: ClinicalViewClaims, keys: readonly string[]): string | undefined {
+  for (const key of keys) {
+    const first = splitCsv(claims[key])[0];
+    if (first) {
+      return first;
+    }
+  }
+  return undefined;
+}
+
+function splitClaimCsv(claims: ClinicalViewClaims, keys: readonly string[]): string[] {
+  const out: string[] = [];
+  for (const key of keys) {
+    out.push(...splitCsv(claims[key]));
+  }
+  return out;
 }
 
 function findBySuffix(claims: ClinicalViewClaims, keySuffix: string): string | undefined {

@@ -12,3 +12,4 @@ export * from './lifecycle';
 export * from './api-flow-examples';
 export * from './contract-examples';
 export * from './communication-bundle-session';
+export * from './ips-bundle';

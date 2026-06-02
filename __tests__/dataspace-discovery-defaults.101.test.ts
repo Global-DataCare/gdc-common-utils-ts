@@ -26,6 +26,7 @@ import {
 import {
   buildDefaultHostingOperatorRegistrationFromAuthority,
   buildDefaultIcaRegistrationFromAuthority,
+  buildDefaultPublishedProviderRecordFromTenant,
   createDataspaceDiscoveryDefaultsRegistry,
 } from '../src/utils/dataspace-discovery-defaults.js';
 import { extractHostingOperatorSemanticRecord } from '../src/utils/dataspace-discovery.js';
@@ -102,6 +103,7 @@ describe('dataspace discovery defaults 101', () => {
       operatorDid: 'did:web:host-animal-care.example.org',
       discoveryUrl: EXAMPLE_HOSTING_OPERATOR_DSPACE_VERSION_URL.replace('host.example.org', 'host-animal-care.example.org'),
       catalogUrl: undefined,
+      publishedProviders: [],
       record: {
         subjectId: 'did:web:host-animal-care.example.org',
         serviceTypes: [ServiceCapabilityToken.IndexProvider],
@@ -110,6 +112,26 @@ describe('dataspace discovery defaults 101', () => {
         addressCountry: EXAMPLE_JURISDICTION,
         coverageScope: EXAMPLE_COVERAGE_SCOPE_EU,
       },
+    });
+  });
+
+  it('builds published provider defaults from tenantId under one host', () => {
+    expect(buildDefaultPublishedProviderRecordFromTenant({
+      hostAuthority: 'host-health.example.org',
+      tenantId: 'acme-id',
+      jurisdiction: EXAMPLE_JURISDICTION,
+      version: EXAMPLE_ROUTE_VERSION,
+      sector: DataspaceSectors.HealthCare,
+      providerCapability: ServiceCapabilityToken.IndexProvider,
+      areaServed: [EXAMPLE_COVERAGE_SCOPE_EU, EXAMPLE_JURISDICTION],
+    })).toEqual({
+      providerDid: 'did:web:host-health.example.org:acme-id:cds-ES:v1:health-care',
+      serviceType: ServiceCapabilityToken.IndexProvider,
+      category: DataspaceSectors.HealthCare,
+      areaServed: `${EXAMPLE_COVERAGE_SCOPE_EU},${EXAMPLE_JURISDICTION}`,
+      endpointUrl: 'https://host-health.example.org/acme-id/cds-ES/v1/health-care/',
+      discoveryUrl: 'https://host-health.example.org/acme-id/cds-ES/v1/health-care/.well-known/dspace-version',
+      catalogUrl: 'https://host-health.example.org/acme-id/cds-ES/v1/health-care/dsp/catalog/dcat.json',
     });
   });
 

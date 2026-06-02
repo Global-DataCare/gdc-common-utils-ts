@@ -14,6 +14,8 @@ import type {
   DefaultHostingOperatorRegistration,
   DefaultIcaRegistration,
 } from '../models/dataspace-discovery-defaults';
+import type { PublishedProviderCatalogRecord } from '../models/dataspace-discovery';
+import { buildOrganizationDidWeb, getBaseUrlFromDidWeb } from './did';
 import { matchesHostingOperatorDiscoveryFilter } from './dataspace-discovery';
 
 function normalizeString(value: unknown): string {
@@ -54,6 +56,26 @@ function normalizeCapabilities(values: readonly string[] | undefined): string[] 
   return Array.from(new Set((values || []).map((value) => normalizeString(value)).filter(Boolean)));
 }
 
+function normalizePublishedProvider(
+  input: PublishedProviderCatalogRecord,
+): PublishedProviderCatalogRecord {
+  return {
+    providerDid: normalizeString(input.providerDid),
+    serviceType: normalizeString(input.serviceType),
+    category: normalizeString(input.category),
+    areaServed: normalizeCapabilities(
+      Array.isArray(input.areaServed)
+        ? input.areaServed
+        : normalizeString(input.areaServed)
+          ? normalizeString(input.areaServed).split(',')
+          : undefined,
+    ).join(',') || undefined,
+    endpointUrl: normalizeString(input.endpointUrl) || undefined,
+    discoveryUrl: normalizeString(input.discoveryUrl) || undefined,
+    catalogUrl: normalizeString(input.catalogUrl) || undefined,
+  };
+}
+
 function normalizeIcaRegistration(input: DefaultIcaRegistration): DefaultIcaRegistration {
   return {
     jurisdiction: normalizeString(input.jurisdiction),
@@ -84,6 +106,7 @@ function normalizeHostingOperatorRegistration(
       addressCountry: normalizeString(input.record.addressCountry) || undefined,
       coverageScope: normalizeString(input.record.coverageScope) || undefined,
     },
+    publishedProviders: (input.publishedProviders || []).map((provider) => normalizePublishedProvider(provider)),
     title: normalizeString(input.title) || undefined,
   };
 }
@@ -117,6 +140,23 @@ export type BuildDefaultHostingOperatorRegistrationFromAuthorityInput = Readonly
   areaServed?: readonly string[];
   addressCountry?: string;
   coverageScope?: string;
+}>;
+
+export type BuildDefaultPublishedProviderRecordFromTenantInput = Readonly<{
+  hostAuthority: string;
+  tenantId: string;
+  jurisdiction: string;
+  version: string;
+  sector: string;
+  providerCapability: string;
+  areaServed?: readonly string[];
+  /**
+   * Optional public domain for a future externally visible provider surface.
+   *
+   * For now most deployments will not use it, so the helper falls back to the
+   * hosted/internal tenant route under the hosting operator domain.
+   */
+  externalDomain?: string;
 }>;
 
 /**
@@ -177,6 +217,45 @@ export function buildDefaultHostingOperatorRegistrationFromAuthority(
       addressCountry: addressCountry || undefined,
       coverageScope,
     },
+  });
+}
+
+/**
+ * Builds one published-provider default entry from a tenant id under a given
+ * hosting operator authority.
+ *
+ * Integrator-friendly rule:
+ * - the backend usually knows `tenantId`
+ * - it usually does not want to handcraft the hosted/internal `did:web`
+ * - this helper derives the hosted provider DID and tenant-scoped DSP URLs
+ */
+export function buildDefaultPublishedProviderRecordFromTenant(
+  input: BuildDefaultPublishedProviderRecordFromTenantInput,
+): PublishedProviderCatalogRecord {
+  const hostAuthority = normalizeAuthority(input.hostAuthority);
+  const hostDidWeb = buildDidWebFromAuthority(hostAuthority);
+  const providerDid = buildOrganizationDidWeb({
+    hostDidWeb,
+    tenantId: input.tenantId,
+    jurisdiction: input.jurisdiction,
+    version: input.version,
+    sector: input.sector,
+  });
+  const providerBaseUrl = normalizeAuthority(input.externalDomain)
+    ? `${getProtocolForAuthority(normalizeAuthority(input.externalDomain))}://${normalizeAuthority(input.externalDomain)}/`
+    : getBaseUrlFromDidWeb(providerDid);
+  const areaServed = normalizeCapabilities(
+    (input.areaServed || [input.jurisdiction]).map((value) => normalizeString(value)),
+  ).join(',') || undefined;
+
+  return normalizePublishedProvider({
+    providerDid,
+    serviceType: input.providerCapability,
+    category: input.sector,
+    areaServed,
+    endpointUrl: providerBaseUrl,
+    discoveryUrl: new URL('.well-known/dspace-version', providerBaseUrl).toString(),
+    catalogUrl: new URL('dsp/catalog/dcat.json', providerBaseUrl).toString(),
   });
 }
 
@@ -273,6 +352,9 @@ export class DataspaceDiscoveryDefaultsRegistry {
           categories: [...registration.record.categories],
           areaServed: [...registration.record.areaServed],
         },
+        publishedProviders: (registration.publishedProviders || []).map((provider) => ({
+          ...provider,
+        })),
       }));
   }
 

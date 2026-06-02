@@ -15,6 +15,12 @@ import { DataspaceSectors, type DataspaceSector } from './sectors';
 export type HealthcareSectionDescriptor = Readonly<{
   system: typeof LOINC_SYSTEM_URL;
   code: string;
+  attributeValue: string;
+  /**
+   * @deprecated Use `attributeValue`.
+   * Kept as compatibility alias because this token is a reusable claim value,
+   * not a claim key/attribute name.
+   */
   claim: string;
   i18nKey: `org.loinc.${string}`;
   titleEn?: string;
@@ -43,10 +49,12 @@ export type HealthcareActorRoleDescriptor = Readonly<{
 }>;
 
 function defineSection(code: string, titleEn?: string): HealthcareSectionDescriptor {
+  const attributeValue = `LOINC|${code}`;
   return Object.freeze({
     system: LOINC_SYSTEM_URL,
     code,
-    claim: `LOINC|${code}`,
+    attributeValue,
+    claim: attributeValue,
     i18nKey: loincI18nKey(code) as `org.loinc.${string}`,
     titleEn,
   });
@@ -403,11 +411,11 @@ export function getHealthcareRolesBySector(
 }
 
 export const HealthcareConsentActions = Object.freeze({
-  PatientSummaryDocument: HealthcareBasicSections.PatientSummaryDocument.claim,
-  AllergiesAndIntolerances: HealthcareBasicSections.AllergiesAndIntolerances.claim,
-  HistoryOfMedicationUse: HealthcareBasicSections.HistoryOfMedicationUse.claim,
-  ProblemList: HealthcareBasicSections.ProblemList.claim,
-  Results: HealthcareBasicSections.Results.claim,
-  Procedures: HealthcareBasicSections.Procedures.claim,
-  Immunizations: HealthcareBasicSections.Immunizations.claim,
+  PatientSummaryDocument: HealthcareBasicSections.PatientSummaryDocument.attributeValue,
+  AllergiesAndIntolerances: HealthcareBasicSections.AllergiesAndIntolerances.attributeValue,
+  HistoryOfMedicationUse: HealthcareBasicSections.HistoryOfMedicationUse.attributeValue,
+  ProblemList: HealthcareBasicSections.ProblemList.attributeValue,
+  Results: HealthcareBasicSections.Results.attributeValue,
+  Procedures: HealthcareBasicSections.Procedures.attributeValue,
+  Immunizations: HealthcareBasicSections.Immunizations.attributeValue,
 } as const);

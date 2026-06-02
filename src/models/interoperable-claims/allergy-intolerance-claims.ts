@@ -17,12 +17,75 @@ export const AllergyIntoleranceClaim = {
   ClinicalStatus: 'AllergyIntolerance.clinical-status',
   VerificationStatus: 'AllergyIntolerance.verification-status',
   Category: 'AllergyIntolerance.category',
+  ContainedDocuments: 'AllergyIntolerance.contained-documents',
+  /**
+   * @deprecated Use `ContainedDocuments`.
+   */
+  AttachmentContentIds: 'AllergyIntolerance.attachment-content-ids',
   Criticality: 'AllergyIntolerance.criticality',
   OnsetDateTime: 'AllergyIntolerance.onset-datetime',
   Recorder: 'AllergyIntolerance.recorder',
 } as const;
 
 export type AllergyIntoleranceClaimKey = typeof AllergyIntoleranceClaim[keyof typeof AllergyIntoleranceClaim];
+
+export enum AllergyIntoleranceClaimsFhirApi {
+  Identifier = 'org.hl7.fhir.api.AllergyIntolerance.identifier',
+  Subject = 'org.hl7.fhir.api.AllergyIntolerance.subject',
+  Patient = 'org.hl7.fhir.api.AllergyIntolerance.patient',
+  Code = 'org.hl7.fhir.api.AllergyIntolerance.code',
+  ClinicalStatus = 'org.hl7.fhir.api.AllergyIntolerance.clinical-status',
+  VerificationStatus = 'org.hl7.fhir.api.AllergyIntolerance.verification-status',
+  Category = 'org.hl7.fhir.api.AllergyIntolerance.category',
+  Criticality = 'org.hl7.fhir.api.AllergyIntolerance.criticality',
+  OnsetDateTime = 'org.hl7.fhir.api.AllergyIntolerance.onset-datetime',
+  Recorder = 'org.hl7.fhir.api.AllergyIntolerance.recorder',
+}
+
+export const AllergyIntoleranceSearchParamNames = {
+  Identifier: 'identifier',
+  Subject: 'subject',
+  Patient: 'patient',
+  Code: 'code',
+  ClinicalStatus: 'clinical-status',
+  VerificationStatus: 'verification-status',
+  Category: 'category',
+  Criticality: 'criticality',
+  OnsetDateTime: 'onset-datetime',
+  Recorder: 'recorder',
+} as const;
+
+export type AllergyIntoleranceSearchParamName =
+  typeof AllergyIntoleranceSearchParamNames[keyof typeof AllergyIntoleranceSearchParamNames];
+
+export const AllergyIntoleranceSearchParamToClaimKey: Record<
+AllergyIntoleranceSearchParamName,
+AllergyIntoleranceClaimsFhirApi
+> = {
+  [AllergyIntoleranceSearchParamNames.Identifier]: AllergyIntoleranceClaimsFhirApi.Identifier,
+  [AllergyIntoleranceSearchParamNames.Subject]: AllergyIntoleranceClaimsFhirApi.Subject,
+  [AllergyIntoleranceSearchParamNames.Patient]: AllergyIntoleranceClaimsFhirApi.Patient,
+  [AllergyIntoleranceSearchParamNames.Code]: AllergyIntoleranceClaimsFhirApi.Code,
+  [AllergyIntoleranceSearchParamNames.ClinicalStatus]: AllergyIntoleranceClaimsFhirApi.ClinicalStatus,
+  [AllergyIntoleranceSearchParamNames.VerificationStatus]: AllergyIntoleranceClaimsFhirApi.VerificationStatus,
+  [AllergyIntoleranceSearchParamNames.Category]: AllergyIntoleranceClaimsFhirApi.Category,
+  [AllergyIntoleranceSearchParamNames.Criticality]: AllergyIntoleranceClaimsFhirApi.Criticality,
+  [AllergyIntoleranceSearchParamNames.OnsetDateTime]: AllergyIntoleranceClaimsFhirApi.OnsetDateTime,
+  [AllergyIntoleranceSearchParamNames.Recorder]: AllergyIntoleranceClaimsFhirApi.Recorder,
+};
+
+export const AllergyIntoleranceClaimsFhirApiMap = {
+  [AllergyIntoleranceClaimsFhirApi.Identifier]: String,
+  [AllergyIntoleranceClaimsFhirApi.Subject]: String,
+  [AllergyIntoleranceClaimsFhirApi.Patient]: String,
+  [AllergyIntoleranceClaimsFhirApi.Code]: String,
+  [AllergyIntoleranceClaimsFhirApi.ClinicalStatus]: String,
+  [AllergyIntoleranceClaimsFhirApi.VerificationStatus]: String,
+  [AllergyIntoleranceClaimsFhirApi.Category]: String,
+  [AllergyIntoleranceClaimsFhirApi.Criticality]: String,
+  [AllergyIntoleranceClaimsFhirApi.OnsetDateTime]: String,
+  [AllergyIntoleranceClaimsFhirApi.Recorder]: String,
+};
 
 /**
  * http://hl7.org/fhir/uv/ips/ValueSet/allergies-intolerances-uv-ips
