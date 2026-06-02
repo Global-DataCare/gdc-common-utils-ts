@@ -3,8 +3,6 @@
 
 import { HealthcareBasicSections } from '../constants/healthcare';
 import { CommunicationCategoryCodes } from '../constants/communication';
-import { ClaimConsent } from '../models/consent-rule';
-import { CommunicationClaim } from '../models/interoperable-claims/communication-claims';
 import { MedicationStatementClaim } from '../models/interoperable-claims/medication-statement-claims';
 import { BundleEntry, BundleJsonApi } from '../models/bundle';
 import {
@@ -23,6 +21,24 @@ import {
   EXAMPLE_SUBJECT_DID,
 } from './shared';
 import { CommunicationBundleSession } from '../utils/communication-bundle-session';
+import {
+  setCommunicationCategory,
+  setCommunicationIdentifier,
+  setCommunicationSubject,
+  setCommunicationText,
+} from '../utils/communication-claim-helpers';
+import {
+  setActorIdentifierList,
+  setActorRoleList,
+  setConsentDate,
+  setConsentDecision,
+  setConsentIdentifier,
+  setConsentPeriodEnd,
+  setConsentPeriodStart,
+  setConsentSubject,
+  setPurposeList,
+  setSectionList,
+} from '../utils/consent-claim-helpers';
 
 /**
  * First developer use case:
@@ -35,30 +51,44 @@ export function buildConsentEditingCommunicationSessionExample(): {
   communicationClaims: Record<string, unknown>;
   bundleInMemory: BundleJsonApi<BundleEntry>;
 } {
+  let communicationClaims: Record<string, unknown> = { '@context': 'org.hl7.fhir.r4' };
+  communicationClaims = setCommunicationIdentifier(
+    communicationClaims,
+    EXAMPLE_COMMUNICATION_IDENTIFIER,
+  );
+  communicationClaims = setCommunicationSubject(
+    communicationClaims,
+    EXAMPLE_SUBJECT_DID,
+  );
+  communicationClaims = setCommunicationCategory(
+    communicationClaims,
+    CommunicationCategoryCodes.Notification.attributeValue,
+  );
+  communicationClaims = setCommunicationText(
+    communicationClaims,
+    EXAMPLE_IPS_BUNDLE_NOTE_TEXT,
+  );
+
   const bundleEditor = new CommunicationBundleSession({
-    communicationClaims: {
-      '@context': 'org.hl7.fhir.r4',
-      [CommunicationClaim.Identifier]: EXAMPLE_COMMUNICATION_IDENTIFIER,
-      [CommunicationClaim.Subject]: EXAMPLE_SUBJECT_DID,
-      [CommunicationClaim.Category]: CommunicationCategoryCodes.Notification.claim,
-      [CommunicationClaim.Text]: EXAMPLE_IPS_BUNDLE_NOTE_TEXT,
-    },
+    communicationClaims,
   });
 
+  let consentClaims: Record<string, unknown> = { '@context': 'org.hl7.fhir.api' };
+  consentClaims = setConsentDecision(consentClaims, 'permit');
+  consentClaims = setConsentSubject(consentClaims, EXAMPLE_SUBJECT_DID);
+  consentClaims = setConsentIdentifier(consentClaims, EXAMPLE_CONSENT_IDENTIFIER);
+  consentClaims = setConsentDate(consentClaims, EXAMPLE_CONSENT_DATE);
+  consentClaims = setConsentPeriodStart(consentClaims, EXAMPLE_CONSENT_PERIOD_START);
+  consentClaims = setConsentPeriodEnd(consentClaims, EXAMPLE_CONSENT_PERIOD_END);
+  consentClaims = setPurposeList(consentClaims, [EXAMPLE_CONSENT_PURPOSE_TREATMENT]);
+  consentClaims = setSectionList(consentClaims, [
+    HealthcareBasicSections.AllergiesAndIntolerances.attributeValue,
+  ]);
+  consentClaims = setActorIdentifierList(consentClaims, [EXAMPLE_EMAIL_PROFESSIONAL]);
+  consentClaims = setActorRoleList(consentClaims, [EXAMPLE_HEALTHCARE_ACTOR_ROLE_PHYSICIAN]);
+
   bundleEditor.upsertActiveConsentEntry({
-    claims: {
-      '@context': 'org.hl7.fhir.api',
-      [ClaimConsent.decision]: 'permit',
-      [ClaimConsent.subject]: EXAMPLE_SUBJECT_DID,
-      [ClaimConsent.identifier]: EXAMPLE_CONSENT_IDENTIFIER,
-      [ClaimConsent.date]: EXAMPLE_CONSENT_DATE,
-      [ClaimConsent.periodStart]: EXAMPLE_CONSENT_PERIOD_START,
-      [ClaimConsent.periodEnd]: EXAMPLE_CONSENT_PERIOD_END,
-      [ClaimConsent.purpose]: EXAMPLE_CONSENT_PURPOSE_TREATMENT,
-      [ClaimConsent.action]: HealthcareBasicSections.AllergiesAndIntolerances.attributeValue,
-      [ClaimConsent.actorIdentifier]: EXAMPLE_EMAIL_PROFESSIONAL,
-      [ClaimConsent.actorRole]: EXAMPLE_HEALTHCARE_ACTOR_ROLE_PHYSICIAN,
-    },
+    claims: consentClaims,
     fullUrl: `urn:uuid:${EXAMPLE_CONSENT_IDENTIFIER}`,
   });
 
@@ -80,14 +110,26 @@ export function buildMedicationEditingCommunicationSessionExample(): {
   communicationClaims: Record<string, unknown>;
   bundleInMemory: BundleJsonApi<BundleEntry>;
 } {
+  let communicationClaims: Record<string, unknown> = { '@context': 'org.hl7.fhir.r4' };
+  communicationClaims = setCommunicationIdentifier(
+    communicationClaims,
+    EXAMPLE_COMMUNICATION_IDENTIFIER,
+  );
+  communicationClaims = setCommunicationSubject(
+    communicationClaims,
+    EXAMPLE_SUBJECT_DID,
+  );
+  communicationClaims = setCommunicationCategory(
+    communicationClaims,
+    CommunicationCategoryCodes.Reminder.attributeValue,
+  );
+  communicationClaims = setCommunicationText(
+    communicationClaims,
+    EXAMPLE_IPS_BUNDLE_NOTE_TEXT,
+  );
+
   const bundleEditor = new CommunicationBundleSession({
-    communicationClaims: {
-      '@context': 'org.hl7.fhir.r4',
-      [CommunicationClaim.Identifier]: EXAMPLE_COMMUNICATION_IDENTIFIER,
-      [CommunicationClaim.Subject]: EXAMPLE_SUBJECT_DID,
-      [CommunicationClaim.Category]: CommunicationCategoryCodes.Reminder.claim,
-      [CommunicationClaim.Text]: EXAMPLE_IPS_BUNDLE_NOTE_TEXT,
-    },
+    communicationClaims,
   });
 
   bundleEditor.upsertActiveMedicationStatementEntry({

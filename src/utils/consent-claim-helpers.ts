@@ -234,11 +234,41 @@ export function getSections(claims: InteroperableClaims): string[] {
   return getClaimValues(claims, ClaimConsent.action);
 }
 
+export function getSectionList(claims: InteroperableClaims): string[] {
+  return getSections(claims);
+}
+
+/**
+ * Alias for teams that describe Consent.action values as sector-scoped access
+ * tokens. This maps to the same canonical Consent.action claim as sections.
+ */
+export function getSectors(claims: InteroperableClaims): string[] {
+  return getSections(claims);
+}
+
 export function setSections(
   claims: InteroperableClaims,
   values: string | readonly string[],
 ): InteroperableClaims {
   return setClaimValues(claims, ClaimConsent.action, values);
+}
+
+export function setSectionList(
+  claims: InteroperableClaims,
+  values: string | readonly string[],
+): InteroperableClaims {
+  return setSections(claims, values);
+}
+
+/**
+ * Alias for teams that describe Consent.action values as sector-scoped access
+ * tokens. This maps to the same canonical Consent.action claim as sections.
+ */
+export function setSectors(
+  claims: InteroperableClaims,
+  values: string | readonly string[],
+): InteroperableClaims {
+  return setSections(claims, values);
 }
 
 export function addSections(
@@ -248,11 +278,47 @@ export function addSections(
   return addClaimValues(claims, ClaimConsent.action, values);
 }
 
+export function addSectionList(
+  claims: InteroperableClaims,
+  values: string | readonly string[],
+): InteroperableClaims {
+  return addSections(claims, values);
+}
+
+/**
+ * Alias for teams that describe Consent.action values as sector-scoped access
+ * tokens. This maps to the same canonical Consent.action claim as sections.
+ */
+export function addSectors(
+  claims: InteroperableClaims,
+  values: string | readonly string[],
+): InteroperableClaims {
+  return addSections(claims, values);
+}
+
 export function removeSections(
   claims: InteroperableClaims,
   values: string | readonly string[],
 ): InteroperableClaims {
   return removeClaimValues(claims, ClaimConsent.action, values);
+}
+
+export function removeSectionList(
+  claims: InteroperableClaims,
+  values: string | readonly string[],
+): InteroperableClaims {
+  return removeSections(claims, values);
+}
+
+/**
+ * Alias for teams that describe Consent.action values as sector-scoped access
+ * tokens. This maps to the same canonical Consent.action claim as sections.
+ */
+export function removeSectors(
+  claims: InteroperableClaims,
+  values: string | readonly string[],
+): InteroperableClaims {
+  return removeSections(claims, values);
 }
 
 /**
@@ -321,6 +387,46 @@ function uniqueCsvLists(lists: readonly (readonly string[])[]): string[] {
  */
 export function getConsentDate(claims: InteroperableClaims): string {
   return normalizeClaimScalar(claims[ClaimConsent.date]);
+}
+
+/**
+ * Reads the canonical consent subject claim.
+ */
+export function getConsentSubject(claims: InteroperableClaims): string {
+  return normalizeClaimScalar(claims[ClaimConsent.subject]);
+}
+
+/**
+ * Sets the canonical consent subject claim.
+ */
+export function setConsentSubject(
+  claims: InteroperableClaims,
+  value: string,
+): InteroperableClaims {
+  return {
+    ...claims,
+    [ClaimConsent.subject]: normalizeClaimScalar(value),
+  };
+}
+
+/**
+ * Reads the canonical consent decision claim.
+ */
+export function getConsentDecision(claims: InteroperableClaims): string {
+  return normalizeClaimScalar(claims[ClaimConsent.decision]);
+}
+
+/**
+ * Sets the canonical consent decision claim.
+ */
+export function setConsentDecision(
+  claims: InteroperableClaims,
+  value: string,
+): InteroperableClaims {
+  return {
+    ...claims,
+    [ClaimConsent.decision]: normalizeClaimScalar(value),
+  };
 }
 
 /**

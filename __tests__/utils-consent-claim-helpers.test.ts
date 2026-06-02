@@ -13,15 +13,19 @@ import {
   getActorRoleList,
   getCategoryList,
   getContainedDocumentIdentifierList,
+  getConsentDecision,
   getConsentDate,
   getConsentIdentifier,
   getConsentPeriodEnd,
   getConsentPeriodStart,
+  getConsentSubject,
   getActors,
   getClaimValues,
   getPurposes,
   getRoles,
   getSections,
+  getSectionList,
+  getSectors,
   getPurposeList,
   removeActorIdentifierList,
   removeActorRoleList,
@@ -37,16 +41,24 @@ import {
   setActorRoleList,
   setCategoryList,
   setContainedDocumentIdentifierList,
+  setConsentDecision,
   setConsentDate,
   setConsentIdentifier,
   setConsentPeriodEnd,
   setConsentPeriodStart,
+  setConsentSubject,
   setPurposeList,
   setActors,
   setClaimValues,
   setPurposes,
   setRoles,
   setSections,
+  setSectionList,
+  setSectors,
+  addSectionList,
+  addSectors,
+  removeSectionList,
+  removeSectors,
 } from '../src/utils/consent-claim-helpers.js';
 import { ClaimConsent } from '../src/models/consent-rule.js';
 import {
@@ -194,6 +206,44 @@ describe('consent claim collection helpers', () => {
     expect(getCategoryList(claims)).toEqual(['LOINC|64292-6']);
   });
 
+  it('section list aliases behave like the canonical section helpers', () => {
+    let claims: Record<string, unknown> = {};
+
+    claims = setSectionList(claims, [HealthcareBasicSections.PatientSummaryDocument.attributeValue]);
+    claims = addSectionList(claims, [HealthcareBasicSections.Results.attributeValue]);
+
+    expect(getSectionList(claims)).toEqual([
+      HealthcareBasicSections.PatientSummaryDocument.attributeValue,
+      HealthcareBasicSections.Results.attributeValue,
+    ]);
+
+    claims = removeSectionList(claims, [HealthcareBasicSections.PatientSummaryDocument.attributeValue]);
+    expect(getSectionList(claims)).toEqual([
+      HealthcareBasicSections.Results.attributeValue,
+    ]);
+  });
+
+  it('sector aliases map to the same canonical Consent.action claim', () => {
+    let claims: Record<string, unknown> = {};
+
+    claims = setSectors(claims, [HealthcareBasicSections.PatientSummaryDocument.attributeValue]);
+    claims = addSectors(claims, [HealthcareBasicSections.Results.attributeValue]);
+
+    expect(getSectors(claims)).toEqual([
+      HealthcareBasicSections.PatientSummaryDocument.attributeValue,
+      HealthcareBasicSections.Results.attributeValue,
+    ]);
+    expect(getSections(claims)).toEqual([
+      HealthcareBasicSections.PatientSummaryDocument.attributeValue,
+      HealthcareBasicSections.Results.attributeValue,
+    ]);
+
+    claims = removeSectors(claims, [HealthcareBasicSections.PatientSummaryDocument.attributeValue]);
+    expect(getSectors(claims)).toEqual([
+      HealthcareBasicSections.Results.attributeValue,
+    ]);
+  });
+
   it('updates resource.meta.claims incrementally (claims-first) with actor/purpose/date/sections', () => {
     const entry: {
       resource: {
@@ -213,6 +263,8 @@ describe('consent claim collection helpers', () => {
 
     let claims = entry.resource.meta.claims;
     claims = setConsentIdentifier(claims, 'consent-uuid-001');
+    claims = setConsentSubject(claims, 'did:web:subject.example');
+    claims = setConsentDecision(claims, 'permit');
     claims = setConsentDate(claims, '2026-06-01');
     claims = setConsentPeriodStart(claims, '2026-06-01T00:00:00Z');
     claims = setConsentPeriodEnd(claims, '2026-12-31T23:59:59Z');
@@ -220,15 +272,17 @@ describe('consent claim collection helpers', () => {
     claims = addActors(claims, ['did:web:hospital.example.org', 'doctor@example.org']);
     claims = addRoles(claims, [HealthcareActorRoles.Physician]);
     claims = addPurposes(claims, [HealthcareConsentPurposes.Treatment]);
-    claims = addSections(claims, [HealthcareBasicSections.AllergiesAndIntolerances.claim]);
+    claims = addSections(claims, [HealthcareBasicSections.AllergiesAndIntolerances.attributeValue]);
 
     // Incremental edit on same claim keys.
     claims = addPurposes(claims, [HealthcareConsentPurposes.CareManagement]);
-    claims = addSections(claims, [HealthcareBasicSections.Results.claim]);
+    claims = addSections(claims, [HealthcareBasicSections.Results.attributeValue]);
 
     entry.resource.meta.claims = claims;
 
     expect(getConsentIdentifier(entry.resource.meta.claims)).toBe('consent-uuid-001');
+    expect(getConsentSubject(entry.resource.meta.claims)).toBe('did:web:subject.example');
+    expect(getConsentDecision(entry.resource.meta.claims)).toBe('permit');
     expect(getConsentDate(entry.resource.meta.claims)).toBe('2026-06-01');
     expect(getConsentPeriodStart(entry.resource.meta.claims)).toBe('2026-06-01T00:00:00Z');
     expect(getConsentPeriodEnd(entry.resource.meta.claims)).toBe('2026-12-31T23:59:59Z');
@@ -242,8 +296,8 @@ describe('consent claim collection helpers', () => {
       HealthcareConsentPurposes.CareManagement,
     ]);
     expect(getSections(entry.resource.meta.claims)).toEqual([
-      HealthcareBasicSections.AllergiesAndIntolerances.claim,
-      HealthcareBasicSections.Results.claim,
+      HealthcareBasicSections.AllergiesAndIntolerances.attributeValue,
+      HealthcareBasicSections.Results.attributeValue,
     ]);
 
     // Abstraction check: helpers write the canonical claim keys.

@@ -10,7 +10,6 @@ import {
   EXAMPLE_CONSENT_IDENTIFIER,
   EXAMPLE_CONSENT_PERIOD_END,
   EXAMPLE_CONSENT_PERIOD_START,
-  EXAMPLE_EMAIL_PROFESSIONAL,
   EXAMPLE_SUBJECT_DID,
 } from '../src/examples/shared.js';
 import {
@@ -19,11 +18,19 @@ import {
   setCommunicationSubject,
 } from '../src/utils/communication-claim-helpers.js';
 import {
-  addSections,
-  getPurposes,
-  setPurposes,
-  setRoles,
-  setSections,
+  addSectionList,
+  getActorRoleList,
+  getPurposeList,
+  getSectionList,
+  setConsentDate,
+  setConsentDecision,
+  setConsentIdentifier,
+  setConsentPeriodEnd,
+  setConsentPeriodStart,
+  setConsentSubject,
+  setPurposeList,
+  setActorRoleList,
+  setSectionList,
 } from '../src/utils/consent-claim-helpers.js';
 import { CommunicationBundleSession } from '../src/utils/communication-bundle-session.js';
 
@@ -44,7 +51,7 @@ describe('101: consent bundle editor', () => {
     );
     communicationBaseClaims = setCommunicationCategory(
       communicationBaseClaims,
-      CommunicationCategoryCodes.Notification.claim,
+      CommunicationCategoryCodes.Notification.attributeValue,
     );
 
     const bundleEditor = new CommunicationBundleSession({
@@ -54,16 +61,16 @@ describe('101: consent bundle editor', () => {
     // Step 2.
     // Create or upsert one Consent entry in the bundle. This is the consent the
     // user selected or the consent the UI is creating now.
+    let consentBaseClaims: Record<string, unknown> = { '@context': 'org.hl7.fhir.api' };
+    consentBaseClaims = setConsentDecision(consentBaseClaims, 'permit');
+    consentBaseClaims = setConsentSubject(consentBaseClaims, EXAMPLE_SUBJECT_DID);
+    consentBaseClaims = setConsentIdentifier(consentBaseClaims, EXAMPLE_CONSENT_IDENTIFIER);
+    consentBaseClaims = setConsentDate(consentBaseClaims, EXAMPLE_CONSENT_DATE);
+    consentBaseClaims = setConsentPeriodStart(consentBaseClaims, EXAMPLE_CONSENT_PERIOD_START);
+    consentBaseClaims = setConsentPeriodEnd(consentBaseClaims, EXAMPLE_CONSENT_PERIOD_END);
+
     bundleEditor.upsertActiveConsentEntry({
-      claims: {
-        '@context': 'org.hl7.fhir.api',
-        [ClaimConsent.decision]: 'permit',
-        [ClaimConsent.subject]: EXAMPLE_SUBJECT_DID,
-        [ClaimConsent.identifier]: EXAMPLE_CONSENT_IDENTIFIER,
-        [ClaimConsent.date]: EXAMPLE_CONSENT_DATE,
-        [ClaimConsent.periodStart]: EXAMPLE_CONSENT_PERIOD_START,
-        [ClaimConsent.periodEnd]: EXAMPLE_CONSENT_PERIOD_END,
-      },
+      claims: consentBaseClaims,
       fullUrl: `urn:uuid:${EXAMPLE_CONSENT_IDENTIFIER}`,
     });
 
@@ -74,13 +81,13 @@ describe('101: consent bundle editor', () => {
     };
 
     // Step 4.
-    // Use the simple get/set/add claim helpers to edit that Consent.
-    let nextConsentClaims = setPurposes(activeConsentClaims, [HealthcareConsentPurposes.Treatment]);
-    nextConsentClaims = setRoles(nextConsentClaims, [HealthcareActorRoles.Physician]);
-    nextConsentClaims = setSections(nextConsentClaims, [
+    // Use the simple get/set/add List helpers to edit the CSV flat claims.
+    let nextConsentClaims = setPurposeList(activeConsentClaims, [HealthcareConsentPurposes.Treatment]);
+    nextConsentClaims = setActorRoleList(nextConsentClaims, [HealthcareActorRoles.Physician]);
+    nextConsentClaims = setSectionList(nextConsentClaims, [
       HealthcareBasicSections.HistoryOfMedicationUse.attributeValue,
     ]);
-    nextConsentClaims = addSections(nextConsentClaims, [
+    nextConsentClaims = addSectionList(nextConsentClaims, [
       HealthcareBasicSections.Results.attributeValue,
     ]);
 
@@ -98,12 +105,12 @@ describe('101: consent bundle editor', () => {
     );
     const savedConsentClaims = decodedBundle.data[0].resource.meta.claims;
 
-    expect(getPurposes(savedConsentClaims)).toEqual([HealthcareConsentPurposes.Treatment]);
-    expect(savedConsentClaims[ClaimConsent.actorRole]).toBe(HealthcareActorRoles.Physician);
-    expect(savedConsentClaims[ClaimConsent.action]).toBe([
+    expect(getPurposeList(savedConsentClaims)).toEqual([HealthcareConsentPurposes.Treatment]);
+    expect(getActorRoleList(savedConsentClaims)).toEqual([HealthcareActorRoles.Physician]);
+    expect(getSectionList(savedConsentClaims)).toEqual([
       HealthcareBasicSections.HistoryOfMedicationUse.attributeValue,
       HealthcareBasicSections.Results.attributeValue,
-    ].join(','));
+    ]);
     expect(savedConsentClaims[ClaimConsent.identifier]).toBe(EXAMPLE_CONSENT_IDENTIFIER);
   });
 });

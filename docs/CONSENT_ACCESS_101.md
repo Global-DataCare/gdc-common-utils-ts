@@ -43,10 +43,13 @@ Short path:
 import { CommunicationBundleSession } from 'gdc-common-utils-ts/utils/communication-bundle-session';
 import { CommunicationCategoryCodes } from 'gdc-common-utils-ts/constants/communication';
 import {
-  addSections,
-  setPurposes,
-  setRoles,
-  setSections,
+  addSectionList,
+  setConsentDecision,
+  setConsentIdentifier,
+  setConsentSubject,
+  setPurposeList,
+  setActorRoleList,
+  setSectionList,
 } from 'gdc-common-utils-ts/utils/consent-claim-helpers';
 import {
   setCommunicationCategory,
@@ -63,7 +66,6 @@ import {
   HealthcareBasicSections,
   HealthcareConsentPurposes,
 } from 'gdc-common-utils-ts/constants/healthcare';
-import { ClaimConsent } from 'gdc-common-utils-ts/models/consent-rule';
 let communicationClaims = { '@context': 'org.hl7.fhir.r4' };
 communicationClaims = setCommunicationIdentifier(
   communicationClaims,
@@ -75,18 +77,27 @@ communicationClaims = setCommunicationSubject(
 );
 communicationClaims = setCommunicationCategory(
   communicationClaims,
-  CommunicationCategoryCodes.Notification.claim,
+  CommunicationCategoryCodes.Notification.attributeValue,
 );
 
 const bundleEditor = new CommunicationBundleSession({ communicationClaims });
 
+let consentClaims = { '@context': 'org.hl7.fhir.api' };
+consentClaims = setConsentIdentifier(
+  consentClaims,
+  EXAMPLE_CONSENT_IDENTIFIER,
+);
+consentClaims = setConsentSubject(
+  consentClaims,
+  EXAMPLE_SUBJECT_DID,
+);
+consentClaims = setConsentDecision(
+  consentClaims,
+  'permit',
+);
+
 bundleEditor.upsertActiveConsentEntry({
-  claims: {
-    '@context': 'org.hl7.fhir.api',
-    [ClaimConsent.identifier]: EXAMPLE_CONSENT_IDENTIFIER,
-    [ClaimConsent.subject]: EXAMPLE_SUBJECT_DID,
-    [ClaimConsent.decision]: 'permit',
-  },
+  claims: consentClaims,
   fullUrl: `urn:uuid:${EXAMPLE_CONSENT_IDENTIFIER}`,
 });
 
@@ -94,12 +105,12 @@ const activeConsentClaims = {
   ...(bundleEditor.getActiveEntry()?.resource?.meta?.claims || {}),
 };
 
-let nextConsentClaims = setPurposes(activeConsentClaims, [HealthcareConsentPurposes.Treatment]);
-nextConsentClaims = setRoles(nextConsentClaims, [HealthcareActorRoles.Physician]);
-nextConsentClaims = setSections(nextConsentClaims, [
+let nextConsentClaims = setPurposeList(activeConsentClaims, [HealthcareConsentPurposes.Treatment]);
+nextConsentClaims = setActorRoleList(nextConsentClaims, [HealthcareActorRoles.Physician]);
+nextConsentClaims = setSectionList(nextConsentClaims, [
   HealthcareBasicSections.HistoryOfMedicationUse.attributeValue,
 ]);
-nextConsentClaims = addSections(nextConsentClaims, [
+nextConsentClaims = addSectionList(nextConsentClaims, [
   HealthcareBasicSections.Results.attributeValue,
 ]);
 

@@ -2,7 +2,11 @@
 
 import { CommunicationClaim } from '../models/interoperable-claims/communication-claims.js';
 import {
+  addClaimValues,
+  getClaimValues,
   normalizeClaimScalar,
+  removeClaimValues,
+  setClaimValues,
   type GenericInteroperableClaims,
 } from './claim-list-helpers.js';
 
@@ -52,11 +56,31 @@ export function getCommunicationCategory(claims: CommunicationInteroperableClaim
   return getCommunicationScalar(claims, CommunicationClaim.Category);
 }
 
+export function getCommunicationCategoryList(
+  claims: CommunicationInteroperableClaims,
+): string[] {
+  return getClaimValues(claims, CommunicationClaim.Category);
+}
+
 export function setCommunicationCategory(
   claims: CommunicationInteroperableClaims,
-  value: unknown,
+  value: string | readonly string[],
 ): CommunicationInteroperableClaims {
-  return setCommunicationScalar(claims, CommunicationClaim.Category, value);
+  return setClaimValues(claims, CommunicationClaim.Category, value);
+}
+
+export function addCommunicationCategoryList(
+  claims: CommunicationInteroperableClaims,
+  value: string | readonly string[],
+): CommunicationInteroperableClaims {
+  return addClaimValues(claims, CommunicationClaim.Category, value);
+}
+
+export function removeCommunicationCategoryList(
+  claims: CommunicationInteroperableClaims,
+  value: string | readonly string[],
+): CommunicationInteroperableClaims {
+  return removeClaimValues(claims, CommunicationClaim.Category, value);
 }
 
 export function getCommunicationText(claims: CommunicationInteroperableClaims): string {
