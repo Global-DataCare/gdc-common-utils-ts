@@ -354,6 +354,23 @@ function normalizeConsentRoleValue(value: string): string {
     : trimmed.toLowerCase();
 }
 
+function parseNormalizedConsentRole(value: string): {
+  system: string;
+  code: string;
+  baseCode: string;
+  qualifier: string;
+} {
+  const normalized = normalizeConsentRoleValue(value);
+  const [system, codePart] = normalized.includes('|') ? normalized.split('|', 2) : ['', normalized];
+  const [baseCode, ...qualifierParts] = String(codePart || '').split(':');
+  return {
+    system,
+    code: String(codePart || ''),
+    baseCode: String(baseCode || ''),
+    qualifier: qualifierParts.join(':'),
+  };
+}
+
 function splitCsv(value: unknown): string[] {
   return String(value || '')
     .split(',')
@@ -671,7 +688,23 @@ function ruleMatchesRole(rule: ConsentRule, actorRole?: string): boolean {
   const ruleRoles = splitCsv(rule[ClaimConsent.actorRole]).map(normalizeConsentRoleValue).filter(Boolean);
   if (ruleRoles.length === 0 || ruleRoles.includes('*')) return true;
   const requestedRole = normalizeConsentRoleValue(String(actorRole || ''));
-  return !!requestedRole && ruleRoles.includes(requestedRole);
+  if (!requestedRole) return false;
+  if (ruleRoles.includes(requestedRole)) return true;
+
+  const requested = parseNormalizedConsentRole(requestedRole);
+  return ruleRoles.some((ruleRole) => {
+    const allowed = parseNormalizedConsentRole(ruleRole);
+    if (!allowed.system || !requested.system || allowed.system !== requested.system) return false;
+
+    // A base role matches its specialized suffix, e.g. 2211 -> 2211:obstetrician.
+    if (!allowed.qualifier && allowed.baseCode === requested.baseCode) return true;
+
+    // A broad ISCO group matches the defined concrete roles below it,
+    // e.g. 221 -> 2211 / 2212.
+    return !allowed.qualifier
+      && allowed.baseCode.length < requested.baseCode.length
+      && requested.baseCode.startsWith(allowed.baseCode);
+  });
 }
 
 function ruleMatchesPurpose(rule: ConsentRule, purpose?: string): boolean {

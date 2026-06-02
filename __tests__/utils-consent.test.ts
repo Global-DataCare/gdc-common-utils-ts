@@ -287,6 +287,44 @@ describe('consent utilities', () => {
     expect(evaluation.missing.pairs[0].reason).toBe('default-deny-no-active-consent');
   });
 
+  it('allows generalist and specialist doctors when consent uses the broad 221 medical doctors role', () => {
+    const broadDoctorRule = {
+      ...EXAMPLE_CONSENT_ACCESS_RULES.physicianByOrganizationContinuousCare,
+      [ClaimConsent.actorRole]: HealthcareActorRoles.MedicalDoctors,
+    } as any;
+
+    const generalistEvaluation = evaluateConsentCoverage([broadDoctorRule], {
+      subject: EXAMPLE_CONSENT_ACCESS_SUBJECT,
+      actor: {
+        actorKind: 'professional',
+        email: EXAMPLE_CONSENT_ACCESS_PROVIDER_EMAIL,
+        organizationDid: EXAMPLE_CONSENT_ACCESS_PROVIDER_DID,
+      },
+      actorRole: HealthcareActorRoles.GeneralistMedicalPractitioner,
+      purpose: HealthcareConsentPurposes.Treatment,
+      sections: [HealthcareBasicSections.Results.claim],
+      resourceTypes: [ResourceTypesFhirR4.DiagnosticReport],
+      now: '2026-05-23T10:00:00Z',
+    });
+
+    const specialistEvaluation = evaluateConsentCoverage([broadDoctorRule], {
+      subject: EXAMPLE_CONSENT_ACCESS_SUBJECT,
+      actor: {
+        actorKind: 'professional',
+        email: EXAMPLE_CONSENT_ACCESS_PROVIDER_EMAIL,
+        organizationDid: EXAMPLE_CONSENT_ACCESS_PROVIDER_DID,
+      },
+      actorRole: HealthcareActorRoles.SpecialistMedicalPractitioner,
+      purpose: HealthcareConsentPurposes.Treatment,
+      sections: [HealthcareBasicSections.Results.claim],
+      resourceTypes: [ResourceTypesFhirR4.DiagnosticReport],
+      now: '2026-05-23T10:00:00Z',
+    });
+
+    expect(generalistEvaluation.allowed).toBe(true);
+    expect(specialistEvaluation.allowed).toBe(true);
+  });
+
   it('allows related person by direct email target', () => {
     const evaluation = evaluateConsentCoverage(Object.values(EXAMPLE_CONSENT_ACCESS_RULES) as any, {
       subject: EXAMPLE_CONSENT_ACCESS_SUBJECT,
