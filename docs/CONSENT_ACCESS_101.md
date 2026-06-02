@@ -235,6 +235,13 @@ Canonical retrieval identifiers:
 Push/email/SMS are notification channels around this canonical
 `Communication`, not the main contract.
 
+Important policy note:
+
+- do not auto-create a synthetic default consent during individual creation
+- subject-controller self-access should be handled by runtime/business policy
+- employee and related-person access should rely on explicit consent or an
+  equivalent member policy
+
 ## What This 101 Does Not Yet Cover By Itself
 
 This document does not by itself define:

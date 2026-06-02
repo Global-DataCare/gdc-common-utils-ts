@@ -1,15 +1,140 @@
 // Copyright 2026 Antifraud Services Inc. under the Apache License, Version 2.0.
 
-import { MedicationStatementClaim } from '../models/interoperable-claims/medication-statement-claims.js';
+import {
+  MedicationStatementClaim,
+  MedicationStatementClaimsFhirApiExtended,
+} from '../models/interoperable-claims/medication-statement-claims.js';
 import {
   addClaimValues,
   getClaimValues,
+  normalizeClaimScalar,
   removeClaimValues,
   setClaimValues,
   type GenericInteroperableClaims,
 } from './claim-list-helpers.js';
 
 export type MedicationInteroperableClaims = GenericInteroperableClaims;
+
+export function getMedicationIdentifier(claims: MedicationInteroperableClaims): string {
+  return getMedicationScalar(claims, MedicationStatementClaim.Identifier);
+}
+
+export function setMedicationIdentifier(
+  claims: MedicationInteroperableClaims,
+  value: string,
+): MedicationInteroperableClaims {
+  return setMedicationScalar(claims, MedicationStatementClaim.Identifier, value);
+}
+
+export function getMedicationSubject(claims: MedicationInteroperableClaims): string {
+  return getMedicationScalar(claims, MedicationStatementClaim.Subject);
+}
+
+export function setMedicationSubject(
+  claims: MedicationInteroperableClaims,
+  value: string,
+): MedicationInteroperableClaims {
+  return setMedicationScalar(claims, MedicationStatementClaim.Subject, value);
+}
+
+export function getMedicationStatus(claims: MedicationInteroperableClaims): string {
+  return getMedicationScalar(claims, MedicationStatementClaim.Status);
+}
+
+export function setMedicationStatus(
+  claims: MedicationInteroperableClaims,
+  value: string,
+): MedicationInteroperableClaims {
+  return setMedicationScalar(claims, MedicationStatementClaim.Status, value);
+}
+
+export function getMedicationEffective(claims: MedicationInteroperableClaims): string {
+  return getMedicationScalar(claims, MedicationStatementClaim.Effective);
+}
+
+export function setMedicationEffective(
+  claims: MedicationInteroperableClaims,
+  value: string,
+): MedicationInteroperableClaims {
+  return setMedicationScalar(claims, MedicationStatementClaim.Effective, value);
+}
+
+export function getMedicationText(claims: MedicationInteroperableClaims): string {
+  return getMedicationScalar(claims, MedicationStatementClaim.MedicationText);
+}
+
+export function setMedicationText(
+  claims: MedicationInteroperableClaims,
+  value: string,
+): MedicationInteroperableClaims {
+  return setMedicationScalar(claims, MedicationStatementClaim.MedicationText, value);
+}
+
+export function getMedicationDoseQuantityValue(claims: MedicationInteroperableClaims): number | undefined {
+  return getMedicationNumber(claims, MedicationStatementClaimsFhirApiExtended.DoseQuantityValue);
+}
+
+export function setMedicationDoseQuantityValue(
+  claims: MedicationInteroperableClaims,
+  value: number,
+): MedicationInteroperableClaims {
+  return setMedicationNumber(claims, MedicationStatementClaimsFhirApiExtended.DoseQuantityValue, value);
+}
+
+export function getMedicationDoseQuantityUnit(claims: MedicationInteroperableClaims): string {
+  return getMedicationScalar(claims, MedicationStatementClaimsFhirApiExtended.DoseQuantityUnit);
+}
+
+export function setMedicationDoseQuantityUnit(
+  claims: MedicationInteroperableClaims,
+  value: string,
+): MedicationInteroperableClaims {
+  return setMedicationScalar(claims, MedicationStatementClaimsFhirApiExtended.DoseQuantityUnit, value);
+}
+
+export function getMedicationTimingFrequency(claims: MedicationInteroperableClaims): number | undefined {
+  return getMedicationNumber(claims, MedicationStatementClaimsFhirApiExtended.TimingFrequency);
+}
+
+export function setMedicationTimingFrequency(
+  claims: MedicationInteroperableClaims,
+  value: number,
+): MedicationInteroperableClaims {
+  return setMedicationNumber(claims, MedicationStatementClaimsFhirApiExtended.TimingFrequency, value);
+}
+
+export function getMedicationTimingPeriod(claims: MedicationInteroperableClaims): number | undefined {
+  return getMedicationNumber(claims, MedicationStatementClaimsFhirApiExtended.TimingPeriod);
+}
+
+export function setMedicationTimingPeriod(
+  claims: MedicationInteroperableClaims,
+  value: number,
+): MedicationInteroperableClaims {
+  return setMedicationNumber(claims, MedicationStatementClaimsFhirApiExtended.TimingPeriod, value);
+}
+
+export function getMedicationTimingPeriodUnit(claims: MedicationInteroperableClaims): string {
+  return getMedicationScalar(claims, MedicationStatementClaimsFhirApiExtended.TimingPeriodUnit);
+}
+
+export function setMedicationTimingPeriodUnit(
+  claims: MedicationInteroperableClaims,
+  value: string,
+): MedicationInteroperableClaims {
+  return setMedicationScalar(claims, MedicationStatementClaimsFhirApiExtended.TimingPeriodUnit, value);
+}
+
+export function getMedicationDosageAsNeeded(claims: MedicationInteroperableClaims): boolean | undefined {
+  return getMedicationBoolean(claims, MedicationStatementClaimsFhirApiExtended.DosageAsNeeded);
+}
+
+export function setMedicationDosageAsNeeded(
+  claims: MedicationInteroperableClaims,
+  value: boolean,
+): MedicationInteroperableClaims {
+  return setMedicationBoolean(claims, MedicationStatementClaimsFhirApiExtended.DosageAsNeeded, value);
+}
 
 /**
  * Returns tokenized values from a medication claim key stored as CSV.
@@ -256,4 +381,72 @@ function setContainedDocuments(
 
 function uniqueCsvLists(lists: readonly (readonly string[])[]): string[] {
   return [...new Set(lists.flatMap((list) => list.map((item) => String(item || '').trim()).filter(Boolean)))];
+}
+
+function getMedicationScalar(claims: MedicationInteroperableClaims, claimKey: string): string {
+  return normalizeClaimScalar(claims[claimKey]);
+}
+
+function setMedicationScalar(
+  claims: MedicationInteroperableClaims,
+  claimKey: string,
+  value: string,
+): MedicationInteroperableClaims {
+  return {
+    ...claims,
+    [claimKey]: normalizeClaimScalar(value),
+  };
+}
+
+function getMedicationNumber(claims: MedicationInteroperableClaims, claimKey: string): number | undefined {
+  const raw = claims[claimKey];
+  if (typeof raw === 'number' && Number.isFinite(raw)) {
+    return raw;
+  }
+  const normalized = normalizeClaimScalar(raw);
+  if (!normalized) {
+    return undefined;
+  }
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function setMedicationNumber(
+  claims: MedicationInteroperableClaims,
+  claimKey: string,
+  value: number,
+): MedicationInteroperableClaims {
+  return {
+    ...claims,
+    [claimKey]: value,
+  };
+}
+
+function getMedicationBoolean(claims: MedicationInteroperableClaims, claimKey: string): boolean | undefined {
+  const raw = claims[claimKey];
+  if (typeof raw === 'boolean') {
+    return raw;
+  }
+  const normalized = normalizeClaimScalar(raw).toLowerCase();
+  if (!normalized) {
+    return undefined;
+  }
+  if (normalized === 'true') {
+    return true;
+  }
+  if (normalized === 'false') {
+    return false;
+  }
+  return undefined;
+}
+
+function setMedicationBoolean(
+  claims: MedicationInteroperableClaims,
+  claimKey: string,
+  value: boolean,
+): MedicationInteroperableClaims {
+  return {
+    ...claims,
+    [claimKey]: value,
+  };
 }

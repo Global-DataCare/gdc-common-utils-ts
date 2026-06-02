@@ -26,6 +26,26 @@ export type HealthcareSectionDescriptor = Readonly<{
   titleEn?: string;
 }>;
 
+export type HealthcareDocumentTypeDescriptor = Readonly<{
+  id: string;
+  system: typeof LOINC_SYSTEM_URL;
+  code: string;
+  attributeValue: string;
+  titleEn?: string;
+}>;
+
+/**
+ * Canonical logical identifiers for document types backed by the LOINC
+ * ontology. These keys are stable SDK-facing names; the concrete LOINC token
+ * lives in `HealthcareDocumentTypes`.
+ */
+export const DocumentTypeLoincOntology = Object.freeze({
+  IPS: 'IPS',
+} as const);
+
+export type DocumentTypeLoincOntologyKey =
+  typeof DocumentTypeLoincOntology[keyof typeof DocumentTypeLoincOntology];
+
 export const ISCO08_CODING_SYSTEM = 'org.ilo.isco' as const;
 export const ISCO08_I18N_NAMESPACE = 'org.ilo.isco-08' as const;
 
@@ -56,6 +76,16 @@ function defineSection(code: string, titleEn?: string): HealthcareSectionDescrip
     attributeValue,
     claim: attributeValue,
     i18nKey: loincI18nKey(code) as `org.loinc.${string}`,
+    titleEn,
+  });
+}
+
+function defineDocumentType(id: string, code: string, titleEn?: string): HealthcareDocumentTypeDescriptor {
+  return Object.freeze({
+    id,
+    system: LOINC_SYSTEM_URL,
+    code,
+    attributeValue: `${LOINC_SYSTEM_URL}|${code}`,
     titleEn,
   });
 }
@@ -93,6 +123,14 @@ export const HealthcareBasicSections = Object.freeze({
   SocialHistory: defineSection('29762-2'),
   VitalSigns: defineSection('8716-3'),
 });
+
+export const HealthcareDocumentTypes = Object.freeze({
+  [DocumentTypeLoincOntology.IPS]: defineDocumentType(
+    DocumentTypeLoincOntology.IPS,
+    '60591-5',
+    'International Patient Summary',
+  ),
+} as const);
 
 export const HealthcareAdditionalSections = Object.freeze({
   AdvanceDirectives: defineSection('42348-3'),

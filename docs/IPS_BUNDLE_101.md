@@ -2,6 +2,7 @@
 
 This guide shows the shortest path for two common developer tasks:
 
+- build or edit the medication list-style claims that already have helpers
 - add clinical resources to an IPS-like history bundle carried in `Communication.content-attachment-data`
 - read `resource.meta.claims` and build frontend cards grouped by IPS sections
 
@@ -11,8 +12,243 @@ Use this together with:
 - [src/utils/clinical-resource-view.ts](../src/utils/clinical-resource-view.ts)
 - [src/examples/ips-bundle.ts](../src/examples/ips-bundle.ts)
 - [gdc-sdk-core-ts/src/communication-document-facade.ts](../../gdc-sdk-core-ts/src/communication-document-facade.ts)
+- [__tests__/101-communication-search-reference.test.ts](../__tests__/101-communication-search-reference.test.ts)
 
-## 1. Add Data To An IPS Bundle In Memory
+## 0. Requesting The IPS Document
+
+In this architecture, requests to the index service are not sent as direct REST
+calls from the app contract.
+
+They travel inside a `Communication` so the request remains auditable as a
+clinical/operational interaction, regardless of whether the original channel
+was web, app, call center, assistant, or messaging.
+
+Current preferred request shape:
+
+- the `Communication` carries the relative index search path in
+  `Communication.content-reference`
+- today that URL points to `individual/org.hl7.fhir.r4/Bundle?...`
+- that URL is generated from a semantic parameter array first, then flattened
+
+Future shape kept as `TODO` only:
+
+- `CommunicationRequestOperationWithAttachedParameters`
+- intended for a future `individual/org.hl7.fhir.r4/Patient/$summary`
+- reference:
+  https://hl7.org.au/fhir/ps/1.0.0-preview/generation-and-access.html
+
+When the frontend wants the IPS document for an individual, the request should
+be anchored to the document type first.
+
+Canonical IPS discriminator:
+
+- `Composition.type = http://loinc.org|60591-5`
+
+Official HL7 IPS profile:
+
+- https://build.fhir.org/ig/HL7/fhir-ips/StructureDefinition-Composition-uv-ips.html
+
+Practical rule for the current `Bundle` search flow:
+
+- if no sections are specified, request the full IPS document
+- if sections are specified, request the IPS document constrained to those sections
+- `filterSections` is optional in
+  `createSummaryOperationRequestParameters(subjectId, filterSections?)`
+
+### Short Path
+
+Executable step-by-step reference:
+
+- [__tests__/101-communication-search-reference.test.ts](../__tests__/101-communication-search-reference.test.ts)
+
+Use this first. Frontend code builds the relative IPS search path once, then
+passes that path into the low-level `Communication` helper when needed. The
+IPS-specific short helpers do that work internally.
+
+```ts
+import { communication } from 'gdc-common-utils-ts/utils/communication-bundle-document-request';
+import {
+  EXAMPLE_PROFESSIONAL_DID,
+  EXAMPLE_SUBJECT_DID,
+} from 'gdc-common-utils-ts/examples/shared';
+
+const communicationClaims = communication.newIpsSummarySearchCommunication({
+  subjectId: EXAMPLE_SUBJECT_DID,
+  requesterId: EXAMPLE_PROFESSIONAL_DID,
+});
+
+const didcommMessage = communication.newIpsSummarySearchDidcommMessage({
+  subjectId: EXAMPLE_SUBJECT_DID,
+  requesterId: EXAMPLE_PROFESSIONAL_DID,
+});
+```
+
+Those short helpers already call internally:
+
+- `createSummaryOperationRequestParameters(...)`
+- `createSummaryOperationRequestReferencePath(...)`
+
+If frontend/runtime should not request the full IPS, pass `filterSections`.
+That is the normal path when:
+
+- the UI only needs a few sections
+- the actor is not allowed to read the whole IPS
+- consent/policy evaluation returned only a subset of allowed sections
+
+If you already built the relative search path yourself and only need to wrap it
+into `Communication` claims, use:
+
+```ts
+import {
+  BundleDocumentRequesterKinds,
+  communication,
+} from 'gdc-common-utils-ts/utils/communication-bundle-document-request';
+import { EXAMPLE_PROFESSIONAL_DID, EXAMPLE_SUBJECT_DID } from 'gdc-common-utils-ts/examples/shared';
+
+const claims = communication.newSearchWithReferenceUrl({
+  subjectDid: EXAMPLE_SUBJECT_DID,
+  sender: EXAMPLE_PROFESSIONAL_DID,
+  requesterKind: BundleDocumentRequesterKinds.Employee,
+  summaryOperationRequestReferencePath:
+    'individual/org.hl7.fhir.r4/Bundle?type=document&composition.subject=<subject>&composition.type=http://loinc.org|60591-5',
+});
+```
+
+### Audit Layer
+
+These are the internal explicit steps behind the short path:
+
+```ts
+import {
+  createSummaryOperationRequestParameters,
+  createSummaryOperationRequestReferencePath,
+  createSummaryOperationRequestReferenceUrl,
+} from 'gdc-common-utils-ts/utils/communication-bundle-document-request';
+import { EXAMPLE_INDEX_PROVIDER_SECTOR_DID_WEB, EXAMPLE_SUBJECT_DID } from 'gdc-common-utils-ts/examples/shared';
+
+const summaryOperationRequestParameters =
+  createSummaryOperationRequestParameters(EXAMPLE_SUBJECT_DID);
+
+const summaryOperationRequestReferencePath =
+  createSummaryOperationRequestReferencePath(summaryOperationRequestParameters);
+
+const summaryOperationRequestReferenceUrl =
+  createSummaryOperationRequestReferenceUrl({
+    providerSectorDidWeb: EXAMPLE_INDEX_PROVIDER_SECTOR_DID_WEB,
+    summaryOperationRequestReferencePath,
+  });
+```
+
+The semantic parameter layer looks like this:
+
+```json
+{
+  "parameter": [
+    { "name": "subject", "type": "string", "value": "EXAMPLE_SUBJECT_DID" },
+    { "name": "document-type", "type": "token", "system": "http://loinc.org", "value": "60591-5" }
+  ]
+}
+```
+
+That `Communication.content-reference` is generated as a relative search URL
+such as:
+
+```txt
+individual/org.hl7.fhir.r4/Bundle?type=document&composition.subject=<EXAMPLE_SUBJECT_DID>&composition.type=http://loinc.org|60591-5
+```
+
+Use lowercase FHIR search parameter names in the URL:
+
+- `composition.subject`
+- `composition.type`
+- `composition.section`
+
+Do not use:
+
+- `Composition.subject`
+- `Composition.type`
+
+Typical auditable request patterns:
+
+- individual controller asks for the full IPS:
+  `createSummaryOperationRequestParameters(...) -> createSummaryOperationRequestReferencePath(...) -> communication.newIpsSummarySearchDidcommMessage(...)`
+- doctor/professional asks for specific sections:
+  `createSummaryOperationRequestParameters(..., filterSections) -> createSummaryOperationRequestReferencePath(...) -> communication.newIpsSummarySearchDidcommMessage(...)`
+
+In the section-scoped case, each requested section becomes one
+`composition.section=...` search parameter in `Communication.content-reference`.
+That is the mechanism to align the request with section-scoped permissions.
+
+Those section-scoped requests are what later allow the runtime to return the
+document grouped by `Composition.section`, including future linked
+`DocumentReference` entries referenced from `MedicationStatement.contained-documents`
+or other resources.
+
+Policy note:
+
+- do not auto-create a default consent when the individual is created just to
+  make this helper work
+- controller self-access should be handled by runtime/business policy
+- employee and related-person requests should rely on explicit consent or
+  equivalent member policy outside this low-level helper
+
+## 1. First: `get` / `set` / `add` On Claims
+
+Start here if you are in frontend code and only want to edit claims.
+
+For `MedicationStatement`, the current documented helpers are the list-valued ones:
+
+- `getMedicationCategoryList` / `setMedicationCategoryList` / `addMedicationCategoryList`
+- `getMedicationPartOfList` / `setMedicationPartOfList` / `addMedicationPartOfList`
+- `getMedicationCodeList` / `setMedicationCodeList` / `addMedicationCodeList`
+- `getMedicationSourceList` / `setMedicationSourceList` / `addMedicationSourceList`
+- `getMedicationSubjectList` / `setMedicationSubjectList` / `addMedicationSubjectList`
+- `getMedicationContainedDocumentIdentifierList`
+- `setMedicationContainedDocumentIdentifierList`
+- `addMedicationContainedDocumentIdentifierList`
+- `removeMedicationContainedDocumentIdentifierList`
+
+Simple example with medication linked documents:
+
+```ts
+import { MedicationStatementClaim } from 'gdc-common-utils-ts/models/interoperable-claims/medication-statement-claims';
+import {
+  addMedicationContainedDocumentIdentifierList,
+  getMedicationContainedDocumentIdentifierList,
+  setMedicationContainedDocumentIdentifierList,
+} from 'gdc-common-utils-ts/utils/medication-claim-helpers';
+import {
+  EXAMPLE_DOCUMENT_REFERENCE_IDENTIFIER,
+  EXAMPLE_DOCUMENT_REFERENCE_IDENTIFIER_SECONDARY,
+  EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER,
+  EXAMPLE_MEDICATION_STATEMENT_STATUS,
+  EXAMPLE_MEDICATION_STATEMENT_TEXT,
+  EXAMPLE_SUBJECT_DID,
+} from 'gdc-common-utils-ts/examples/shared';
+
+let claims = {
+  '@context': 'org.hl7.fhir.api',
+  [MedicationStatementClaim.Identifier]: EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER,
+  [MedicationStatementClaim.Subject]: EXAMPLE_SUBJECT_DID,
+  [MedicationStatementClaim.Status]: EXAMPLE_MEDICATION_STATEMENT_STATUS,
+  [MedicationStatementClaim.MedicationText]: EXAMPLE_MEDICATION_STATEMENT_TEXT,
+};
+
+claims = setMedicationContainedDocumentIdentifierList(claims, [EXAMPLE_DOCUMENT_REFERENCE_IDENTIFIER]);
+claims = addMedicationContainedDocumentIdentifierList(claims, [EXAMPLE_DOCUMENT_REFERENCE_IDENTIFIER_SECONDARY]);
+
+const documentIds = getMedicationContainedDocumentIdentifierList(claims);
+// ['docref-001', 'docref-002']
+```
+
+Important:
+
+- these helpers mutate claim values
+- they do not insert anything into a bundle by themselves
+- today, `MedicationStatement` scalar fields such as `identifier`, `status`, `medication-text`, or `effective`
+  are still assigned directly in the claims object
+
+## 2. Then: Add Data To An IPS Bundle In Memory
 
 `CommunicationBundleSession` is the current API type, but in developer docs the better mental model is `bundleEditor`: an in-memory editor for the Bundle carried by a `Communication`.
 
@@ -25,17 +261,23 @@ import { AllergyIntoleranceClaim } from 'gdc-common-utils-ts/models/interoperabl
 import { CommunicationCategoryCodes } from 'gdc-common-utils-ts/constants/communication';
 import { HealthcareBasicSections } from 'gdc-common-utils-ts/constants/healthcare';
 import {
+  EXAMPLE_COMMUNICATION_IDENTIFIER,
   EXAMPLE_DOCUMENT_REFERENCE_CONTENT_TYPE_PDF,
   EXAMPLE_DOCUMENT_REFERENCE_DESCRIPTION,
   EXAMPLE_DOCUMENT_REFERENCE_IDENTIFIER,
   EXAMPLE_DOCUMENT_REFERENCE_URL,
+  EXAMPLE_MEDICATION_IBUPROFEN_EFFECTIVE,
+  EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER,
+  EXAMPLE_MEDICATION_STATEMENT_STATUS,
+  EXAMPLE_MEDICATION_STATEMENT_TEXT,
+  EXAMPLE_SUBJECT_DID,
 } from 'gdc-common-utils-ts/examples/shared';
 
 const bundleEditor = new CommunicationBundleSession({
   communicationClaims: {
     '@context': 'org.hl7.fhir.r4',
-    [CommunicationClaim.Identifier]: 'comm-ips-001',
-    [CommunicationClaim.Subject]: 'did:web:patient.example.org',
+    [CommunicationClaim.Identifier]: EXAMPLE_COMMUNICATION_IDENTIFIER,
+    [CommunicationClaim.Subject]: EXAMPLE_SUBJECT_DID,
     [CommunicationClaim.Category]: CommunicationCategoryCodes.Notification.claim,
   },
 });
@@ -43,20 +285,20 @@ const bundleEditor = new CommunicationBundleSession({
 bundleEditor.upsertActiveMedicationStatementEntry({
   claims: {
     '@context': 'org.hl7.fhir.api',
-    [MedicationStatementClaim.Identifier]: 'med-001',
-    [MedicationStatementClaim.Subject]: 'did:web:patient.example.org',
-    [MedicationStatementClaim.Status]: 'active',
-    [MedicationStatementClaim.MedicationText]: 'Ibuprofen 400mg',
-    [MedicationStatementClaim.Effective]: '2026-06-01',
+    [MedicationStatementClaim.Identifier]: EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER,
+    [MedicationStatementClaim.Subject]: EXAMPLE_SUBJECT_DID,
+    [MedicationStatementClaim.Status]: EXAMPLE_MEDICATION_STATEMENT_STATUS,
+    [MedicationStatementClaim.MedicationText]: EXAMPLE_MEDICATION_STATEMENT_TEXT,
+    [MedicationStatementClaim.Effective]: EXAMPLE_MEDICATION_IBUPROFEN_EFFECTIVE,
   },
-  fullUrl: 'urn:uuid:med-001',
+  fullUrl: EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER,
 });
 
 bundleEditor.upsertActiveConditionEntry({
   claims: {
     '@context': 'org.hl7.fhir.api',
     [ConditionClaim.Identifier]: 'cond-001',
-    [ConditionClaim.Subject]: 'did:web:patient.example.org',
+    [ConditionClaim.Subject]: EXAMPLE_SUBJECT_DID,
     [ConditionClaim.Code]: 'http://snomed.info/sct|44054006',
     [ConditionClaim.Category]: HealthcareBasicSections.ProblemList.attributeValue,
     [ConditionClaim.OnsetDateTime]: '2026-05-20T09:00:00Z',
@@ -68,7 +310,7 @@ bundleEditor.upsertActiveAllergyIntoleranceEntry({
   claims: {
     '@context': 'org.hl7.fhir.api',
     [AllergyIntoleranceClaim.Identifier]: 'alg-001',
-    [AllergyIntoleranceClaim.Subject]: 'did:web:patient.example.org',
+    [AllergyIntoleranceClaim.Subject]: EXAMPLE_SUBJECT_DID,
     [AllergyIntoleranceClaim.Code]: 'http://snomed.info/sct|227493005',
     [AllergyIntoleranceClaim.Category]: HealthcareBasicSections.AllergiesAndIntolerances.attributeValue,
     [AllergyIntoleranceClaim.OnsetDateTime]: '2026-05-10T08:00:00Z',
@@ -88,15 +330,17 @@ Result:
 - every resource is stored under `entry.resource.meta.claims`
 - `bundleInMemory.data[]` is the frontend-friendly editing source of truth
 
-Better developer pattern:
+Current practical pattern:
 
-1. build claims with `set/get/add/remove` helpers for the resource
+1. use claim helpers only where they already exist
 2. call `bundleEditor.upsertActive...Entry({ claims, fullUrl })`
 
 `bundleEditor` is document-level editing.
-`set/get/add/remove` is resource-claims-level editing.
+For `MedicationStatement`, those helpers are currently list-oriented only.
+Scalar fields such as `identifier`, `status`, `medication-text`, and `effective`
+are still authored inline in the claims object.
 
-## 1.1 Linked Attachments Inside The Same Bundle
+## 2.1 Linked Attachments Inside The Same Bundle
 
 When a clinical resource needs one or more attached files, the recommended bundle pattern is:
 
@@ -122,12 +366,12 @@ Example:
 bundleEditor.upsertActiveMedicationStatementEntry({
   claims: {
     '@context': 'org.hl7.fhir.api',
-    [MedicationStatementClaim.Identifier]: 'med-001',
-    [MedicationStatementClaim.Subject]: 'did:web:patient.example.org',
-    [MedicationStatementClaim.Status]: 'active',
-    [MedicationStatementClaim.MedicationText]: 'Ibuprofen 400mg',
+    [MedicationStatementClaim.Identifier]: EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER,
+    [MedicationStatementClaim.Subject]: EXAMPLE_SUBJECT_DID,
+    [MedicationStatementClaim.Status]: EXAMPLE_MEDICATION_STATEMENT_STATUS,
+    [MedicationStatementClaim.MedicationText]: EXAMPLE_MEDICATION_STATEMENT_TEXT,
   },
-  fullUrl: 'urn:uuid:med-001',
+  fullUrl: EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER,
 });
 
 bundleEditor.addContainedDocumentToActiveEntry({
@@ -164,7 +408,7 @@ const linkedDocumentClaims = getDocumentReferenceClaimsByIdentifiersFromCommunic
 );
 ```
 
-## 2. Read `meta.claims` For Frontend Cards
+## 3. Read `meta.claims` For Frontend Cards
 
 `clinical-resource-view.ts` reads `resource.meta.claims` and returns minimal or expanded UI views.
 
@@ -192,7 +436,7 @@ Each common view contains:
 
 That `claims` object is the original `resource.meta.claims`, ready for frontend details panels.
 
-## 3. Filter Resources By IPS Section
+## 4. Filter Resources By IPS Section
 
 For section cards, reuse `bundleEditor.getResourceIds(...)`.
 
@@ -217,7 +461,7 @@ This works because the bundle query matches section-like claims such as:
 - `*.purpose`
 - `*.section`
 
-## 4. Read A Real FHIR R4 IPS Bundle
+## 5. Read A Real FHIR R4 IPS Bundle
 
 If you already have a FHIR R4 `Bundle document`, use the SDK core facade for sections/resources:
 
@@ -240,7 +484,7 @@ const cards = toClinicalResourceCardViews(fhirBundle);
 - `BundleJsonApi.data[]`
 - FHIR `Bundle.entry[]`
 
-## 5. Search Param Names vs Claim Keys
+## 6. Search Param Names vs Claim Keys
 
 Keep these layers separate:
 

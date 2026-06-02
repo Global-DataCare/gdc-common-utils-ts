@@ -56,6 +56,8 @@ export const EXAMPLE_DEFAULT_ICA_DID = 'did:web:ica.example.org' as const;
 export const EXAMPLE_HOSTING_OPERATOR_DID = 'did:web:host.example.org' as const;
 export const EXAMPLE_TENANT_SERVICE_DID = 'did:web:provider.example.org' as const;
 export const EXAMPLE_SECONDARY_TENANT_SERVICE_DID = 'did:web:provider-b.example.org' as const;
+export const EXAMPLE_INDEX_PROVIDER_SECTOR_DID_WEB =
+  'did:web:provider.example.org:acme-id:cds-es:v1:health-care' as const;
 export const EXAMPLE_HOSTING_OPERATOR_DSPACE_VERSION_URL = `https://host.example.org/host/cds-ES/${EXAMPLE_ROUTE_VERSION}/${EXAMPLE_NETWORK_TYPE}/.well-known/dspace-version` as const;
 export const EXAMPLE_HOSTING_OPERATOR_CATALOG_ARTIFACT_URL = `https://host.example.org/host/cds-ES/${EXAMPLE_ROUTE_VERSION}/${EXAMPLE_NETWORK_TYPE}/dsp/catalog/dcat.json` as const;
 /** @deprecated Use `EXAMPLE_HOSTING_OPERATOR_DSPACE_VERSION_URL`. */
@@ -91,6 +93,8 @@ export const EXAMPLE_CONSENT_DATE = '2026-05-20' as const;
 export const EXAMPLE_CONSENT_PERIOD_END = '2026-05-01T00:00:00Z' as const;
 export const EXAMPLE_CONSENT_PURPOSE_TREATMENT = HealthcareConsentPurposes.Treatment;
 export const EXAMPLE_CONSENT_IDENTIFIER = 'urn:uuid:consent-example-001' as const;
+export const EXAMPLE_CONSENT_OPERATION_IDENTIFIER = 'consent-operation-example-001' as const;
+export const EXAMPLE_CONSENT_OPERATION_THREAD_ID = 'thread-consent-example-001' as const;
 export const EXAMPLE_CONSENT_PERIOD_START = '2026-05-20T00:00:00Z' as const;
 export const EXAMPLE_COMMUNICATION_IDENTIFIER = 'urn:uuid:communication-example-001' as const;
 export const EXAMPLE_IPS_BUNDLE_NOTE_TEXT = 'IPS ingestion request' as const;
@@ -106,6 +110,22 @@ export const EXAMPLE_DOCUMENT_REFERENCE_DESCRIPTION = 'Prescription PDF' as cons
 export const EXAMPLE_DOCUMENT_REFERENCE_DATE = '2026-06-12T10:00:00Z' as const;
 export const EXAMPLE_EMPLOYEE_ACTIVATION_CODE = 'ACT-001' as const;
 export const EXAMPLE_DEVICE_CLIENT_ID = 'did:web:device-001' as const;
+export const EXAMPLE_LIVE_GW_BASE_URL_LOCAL = 'http://127.0.0.1:3000' as const;
+export const EXAMPLE_LIVE_GW_BASE_URL_DOCKER = 'http://127.0.0.1:8000' as const;
+export const EXAMPLE_MEDICATION_DOSE_UNIT_MG = 'mg' as const;
+export const EXAMPLE_MEDICATION_TIMING_PERIOD_UNIT_HOURS = 'h' as const;
+export const EXAMPLE_MEDICATION_IBUPROFEN_TEXT = 'Ibuprofen 400 mg' as const;
+export const EXAMPLE_MEDICATION_IBUPROFEN_IDENTIFIER_PREFIX = 'urn:uuid:med-ibuprofen' as const;
+export const EXAMPLE_MEDICATION_IBUPROFEN_EFFECTIVE = '2026-06-01T08:00:00Z' as const;
+export const EXAMPLE_MEDICATION_IBUPROFEN_NOTE = 'Take every 8 hours as needed. Keep a 4 hour gap from paracetamol.' as const;
+export const EXAMPLE_MEDICATION_PARACETAMOL_TEXT = 'Paracetamol 600 mg' as const;
+export const EXAMPLE_MEDICATION_PARACETAMOL_IDENTIFIER_PREFIX = 'urn:uuid:med-paracetamol' as const;
+export const EXAMPLE_MEDICATION_PARACETAMOL_EFFECTIVE = '2026-06-01T12:00:00Z' as const;
+export const EXAMPLE_MEDICATION_PARACETAMOL_NOTE = 'Take every 8 hours as needed. Keep a 4 hour gap from ibuprofen.' as const;
+export const EXAMPLE_IPS_BUNDLE_REFERENCE_URL =
+  `individual/org.hl7.fhir.r4/Bundle?type=document&composition.subject=${EXAMPLE_SUBJECT_DID}&composition.type=http://loinc.org|60591-5` as const;
+export const EXAMPLE_IPS_BUNDLE_REFERENCE_ABSOLUTE_URL =
+  `https://provider.example.org/acme-id/cds-ES/v1/health-care/${EXAMPLE_IPS_BUNDLE_REFERENCE_URL}` as const;
 
 export type ExampleDateRange = Readonly<{
   start: string;
@@ -128,6 +148,20 @@ export type ExampleClinicalBundleSearchInput = Readonly<{
 
 export type ExampleLatestIpsSearchInput = Readonly<{
   subject: string;
+}>;
+
+export type ExampleLiveMedicationCase = Readonly<{
+  identifier: string;
+  effectiveDateTime: string;
+  text: string;
+  note: string;
+  doseQuantityValue: number;
+  doseQuantityUnit: string;
+  timingFrequency: number;
+  timingPeriod: number;
+  timingPeriodUnit: string;
+  dosageAsNeeded: boolean;
+  section: string;
 }>;
 
 export const EXAMPLE_CONTROLLER_SIGN_KEY = {
@@ -231,6 +265,37 @@ export function buildExampleDocumentReferenceSearchPayload(subjectDid = EXAMPLE_
 
 export function cloneExample<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
+}
+
+export function buildExampleLiveMedicationCases(seed = Date.now()): ExampleLiveMedicationCase[] {
+  return [
+    {
+      identifier: `${EXAMPLE_MEDICATION_IBUPROFEN_IDENTIFIER_PREFIX}-${seed}`,
+      effectiveDateTime: EXAMPLE_MEDICATION_IBUPROFEN_EFFECTIVE,
+      text: EXAMPLE_MEDICATION_IBUPROFEN_TEXT,
+      note: EXAMPLE_MEDICATION_IBUPROFEN_NOTE,
+      doseQuantityValue: 400,
+      doseQuantityUnit: EXAMPLE_MEDICATION_DOSE_UNIT_MG,
+      timingFrequency: 1,
+      timingPeriod: 8,
+      timingPeriodUnit: EXAMPLE_MEDICATION_TIMING_PERIOD_UNIT_HOURS,
+      dosageAsNeeded: true,
+      section: EXAMPLE_CLINICAL_SECTION_HISTORY_MEDICATION,
+    },
+    {
+      identifier: `${EXAMPLE_MEDICATION_PARACETAMOL_IDENTIFIER_PREFIX}-${seed}`,
+      effectiveDateTime: EXAMPLE_MEDICATION_PARACETAMOL_EFFECTIVE,
+      text: EXAMPLE_MEDICATION_PARACETAMOL_TEXT,
+      note: EXAMPLE_MEDICATION_PARACETAMOL_NOTE,
+      doseQuantityValue: 600,
+      doseQuantityUnit: EXAMPLE_MEDICATION_DOSE_UNIT_MG,
+      timingFrequency: 1,
+      timingPeriod: 8,
+      timingPeriodUnit: EXAMPLE_MEDICATION_TIMING_PERIOD_UNIT_HOURS,
+      dosageAsNeeded: true,
+      section: EXAMPLE_CLINICAL_SECTION_HISTORY_MEDICATION,
+    },
+  ];
 }
 
 export type ExampleHostedTenantRouteContext = Readonly<{

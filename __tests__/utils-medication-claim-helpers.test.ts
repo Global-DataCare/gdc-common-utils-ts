@@ -10,13 +10,24 @@ import {
   addMedicationContainedDocumentIdentifierList,
   addMedicationPartOfList,
   addMedicationSourceList,
+  getMedicationDosageAsNeeded,
+  getMedicationDoseQuantityUnit,
+  getMedicationDoseQuantityValue,
   getMedicationCategoryList,
   getMedicationClaimList,
   getMedicationCodeList,
   getMedicationContainedDocumentIdentifierList,
+  getMedicationEffective,
+  getMedicationIdentifier,
   getMedicationPartOfList,
   getMedicationSourceList,
+  getMedicationStatus,
+  getMedicationSubject,
   getMedicationSubjectList,
+  getMedicationText,
+  getMedicationTimingFrequency,
+  getMedicationTimingPeriod,
+  getMedicationTimingPeriodUnit,
   removeMedicationCategoryList,
   removeMedicationClaimList,
   removeMedicationCodeList,
@@ -28,10 +39,22 @@ import {
   setMedicationClaimList,
   setMedicationCodeList,
   setMedicationContainedDocumentIdentifierList,
+  setMedicationDosageAsNeeded,
+  setMedicationDoseQuantityUnit,
+  setMedicationDoseQuantityValue,
+  setMedicationEffective,
+  setMedicationIdentifier,
   setMedicationPartOfList,
   setMedicationSourceList,
+  setMedicationStatus,
+  setMedicationSubject,
   setMedicationSubjectList,
+  setMedicationText,
+  setMedicationTimingFrequency,
+  setMedicationTimingPeriod,
+  setMedicationTimingPeriodUnit,
 } from '../src/utils/medication-claim-helpers.js';
+import { MedicationStatementClaimsFhirApiExtended } from '../src/models/interoperable-claims/medication-statement-claims.js';
 
 describe('medication claim list helpers', () => {
   it('returns arrays for preview and persists canonical csv for category/code/part-of/source', () => {
@@ -122,5 +145,52 @@ describe('medication claim list helpers', () => {
 
     claims = removeMedicationContainedDocumentIdentifierList(claims, [EXAMPLE_DOCUMENT_REFERENCE_IDENTIFIER]);
     expect(getMedicationContainedDocumentIdentifierList(claims)).toEqual([EXAMPLE_DOCUMENT_REFERENCE_IDENTIFIER_SECONDARY]);
+  });
+
+  it('supports scalar get/set helpers for core medication statement fields', () => {
+    let claims: Record<string, unknown> = {};
+
+    claims = setMedicationIdentifier(claims, 'med-001');
+    claims = setMedicationSubject(claims, 'did:web:patient.example.org');
+    claims = setMedicationStatus(claims, 'active');
+    claims = setMedicationEffective(claims, '2026-06-01');
+    claims = setMedicationText(claims, 'Ibuprofen 400mg');
+
+    expect(getMedicationIdentifier(claims)).toBe('med-001');
+    expect(getMedicationSubject(claims)).toBe('did:web:patient.example.org');
+    expect(getMedicationStatus(claims)).toBe('active');
+    expect(getMedicationEffective(claims)).toBe('2026-06-01');
+    expect(getMedicationText(claims)).toBe('Ibuprofen 400mg');
+
+    expect(claims[MedicationStatementClaim.Identifier]).toBe('med-001');
+    expect(claims[MedicationStatementClaim.Subject]).toBe('did:web:patient.example.org');
+    expect(claims[MedicationStatementClaim.Status]).toBe('active');
+    expect(claims[MedicationStatementClaim.Effective]).toBe('2026-06-01');
+    expect(claims[MedicationStatementClaim.MedicationText]).toBe('Ibuprofen 400mg');
+  });
+
+  it('supports scalar get/set helpers for dose, timing, and PRN medication fields', () => {
+    let claims: Record<string, unknown> = {};
+
+    claims = setMedicationDoseQuantityValue(claims, 400);
+    claims = setMedicationDoseQuantityUnit(claims, 'mg');
+    claims = setMedicationTimingFrequency(claims, 1);
+    claims = setMedicationTimingPeriod(claims, 8);
+    claims = setMedicationTimingPeriodUnit(claims, 'h');
+    claims = setMedicationDosageAsNeeded(claims, true);
+
+    expect(getMedicationDoseQuantityValue(claims)).toBe(400);
+    expect(getMedicationDoseQuantityUnit(claims)).toBe('mg');
+    expect(getMedicationTimingFrequency(claims)).toBe(1);
+    expect(getMedicationTimingPeriod(claims)).toBe(8);
+    expect(getMedicationTimingPeriodUnit(claims)).toBe('h');
+    expect(getMedicationDosageAsNeeded(claims)).toBe(true);
+
+    expect(claims[MedicationStatementClaimsFhirApiExtended.DoseQuantityValue]).toBe(400);
+    expect(claims[MedicationStatementClaimsFhirApiExtended.DoseQuantityUnit]).toBe('mg');
+    expect(claims[MedicationStatementClaimsFhirApiExtended.TimingFrequency]).toBe(1);
+    expect(claims[MedicationStatementClaimsFhirApiExtended.TimingPeriod]).toBe(8);
+    expect(claims[MedicationStatementClaimsFhirApiExtended.TimingPeriodUnit]).toBe('h');
+    expect(claims[MedicationStatementClaimsFhirApiExtended.DosageAsNeeded]).toBe(true);
   });
 });
