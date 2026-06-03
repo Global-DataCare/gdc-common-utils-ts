@@ -20,6 +20,7 @@ export * from './didcomm-submit-policy';
 export * from './discovery-normalization';
 export * from './format-converter';
 export * from './fhir-cid';
+export * from './fhir-search';
 export * from './communication-fhir-r4';
 export * from './communication-document-reference';
 export * from './communication-bundle-document-request';

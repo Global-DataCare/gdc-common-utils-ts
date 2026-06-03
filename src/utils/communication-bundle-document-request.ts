@@ -5,6 +5,7 @@ import { DocumentTypeLoincOntology, HealthcareDocumentTypes } from '../constants
 import type { ParameterData, TokenSearchParameter } from '../models/params';
 import { parseActorFromSub } from './actor';
 import { getBaseUrlFromDidWeb } from './did';
+import { buildFhirParametersResourceFromParameterData, FhirParametersResource } from './fhir-search';
 import { CommunicationClaim } from '../models/interoperable-claims/communication-claims';
 import { transformCommunicationClaimsToResourceFhirR4 } from './communication-fhir-r4';
 
@@ -393,6 +394,16 @@ export function createSummaryOperationRequestReferencePath(
     }
   }
   return `individual/org.hl7.fhir.r4/Bundle/_search?${params.filter(Boolean).join('&')}`;
+}
+
+/**
+ * Builds the preferred FHIR `Parameters` body for the same semantic summary
+ * search represented by `createSummaryOperationRequestReferencePath(...)`.
+ */
+export function createSummaryOperationRequestParametersResource(
+  parameters: ReadonlyArray<ParameterData>,
+): FhirParametersResource {
+  return buildFhirParametersResourceFromParameterData(parameters);
 }
 
 /**
