@@ -20,7 +20,7 @@ import {
   EXAMPLE_MEDICATION_STATEMENT_TEXT,
   EXAMPLE_SUBJECT_DID,
 } from './shared';
-import { CommunicationBundleSession } from '../utils/communication-bundle-session';
+import { CommunicationAttachedBundleSession } from '../utils/communication-attached-bundle-session';
 import {
   setCommunicationCategory,
   setCommunicationIdentifier,
@@ -69,7 +69,7 @@ export function buildConsentEditingCommunicationSessionExample(): {
     EXAMPLE_IPS_BUNDLE_NOTE_TEXT,
   );
 
-  const bundleEditor = new CommunicationBundleSession({
+  const bundleEditor = new CommunicationAttachedBundleSession({
     communicationClaims,
   });
 
@@ -128,7 +128,7 @@ export function buildMedicationEditingCommunicationSessionExample(): {
     EXAMPLE_IPS_BUNDLE_NOTE_TEXT,
   );
 
-  const bundleEditor = new CommunicationBundleSession({
+  const bundleEditor = new CommunicationAttachedBundleSession({
     communicationClaims,
   });
 

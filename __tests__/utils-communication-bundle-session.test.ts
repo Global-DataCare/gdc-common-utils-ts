@@ -29,11 +29,11 @@ import {
   EXAMPLE_MEDICATION_STATEMENT_TEXT,
   EXAMPLE_SUBJECT_DID,
 } from '../src/examples/shared.js';
-import { CommunicationBundleSession } from '../src/utils/communication-bundle-session.js';
+import { CommunicationAttachedBundleSession } from '../src/utils/communication-attached-bundle-session.js';
 
-describe('utils/communication-bundle-session', () => {
+describe('utils/communication-attached-bundle-session', () => {
   it('keeps consent as activeEntry, syncs attachment base64, and releases memory on save', () => {
-    const session = new CommunicationBundleSession({
+    const session = new CommunicationAttachedBundleSession({
       communicationClaims: {
         '@context': 'org.hl7.fhir.r4',
         [CommunicationClaim.Identifier]: EXAMPLE_COMMUNICATION_IDENTIFIER,
@@ -82,7 +82,7 @@ describe('utils/communication-bundle-session', () => {
   });
 
   it('updates medication claim entry and keeps IPS bundle synced in communication attachment', () => {
-    const session = new CommunicationBundleSession({
+    const session = new CommunicationAttachedBundleSession({
       communicationClaims: {
         '@context': 'org.hl7.fhir.r4',
         [CommunicationClaim.Identifier]: EXAMPLE_COMMUNICATION_IDENTIFIER,
@@ -120,7 +120,7 @@ describe('utils/communication-bundle-session', () => {
   });
 
   it('returns resource IDs filtered by section, resourceType and date range, and resolves entries by IDs', () => {
-    const session = new CommunicationBundleSession({
+    const session = new CommunicationAttachedBundleSession({
       communicationClaims: {
         '@context': 'org.hl7.fhir.r4',
         [CommunicationClaim.Identifier]: EXAMPLE_COMMUNICATION_IDENTIFIER,
@@ -170,7 +170,7 @@ describe('utils/communication-bundle-session', () => {
   });
 
   it('supports condition and allergy helpers for IPS bundle authoring', () => {
-    const session = new CommunicationBundleSession({
+    const session = new CommunicationAttachedBundleSession({
       communicationClaims: {
         '@context': 'org.hl7.fhir.r4',
         [CommunicationClaim.Identifier]: EXAMPLE_COMMUNICATION_IDENTIFIER,
@@ -219,7 +219,7 @@ describe('utils/communication-bundle-session', () => {
   });
 
   it('adds a linked DocumentReference to the active resource and updates contained-documents', () => {
-    const session = new CommunicationBundleSession({
+    const session = new CommunicationAttachedBundleSession({
       communicationClaims: {
         '@context': 'org.hl7.fhir.r4',
         [CommunicationClaim.Identifier]: EXAMPLE_COMMUNICATION_IDENTIFIER,

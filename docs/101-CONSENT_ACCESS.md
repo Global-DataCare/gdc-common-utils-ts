@@ -41,7 +41,7 @@ Executable step-by-step reference:
 Short path:
 
 ```ts
-import { createConsentAccessEditor } from 'gdc-common-utils-ts/utils/communication-bundle-session';
+import { createConsentAccessEditor } from 'gdc-common-utils-ts/utils/communication-attached-bundle-session';
 import { CommunicationCategoryCodes } from 'gdc-common-utils-ts/constants/communication';
 import { ConsentDecisions } from 'gdc-common-utils-ts/models/consent-rule';
 import {
@@ -135,7 +135,7 @@ Mental model:
 
 - `createConsentAccessEditor(...)`
   is the onboarding name for this use case
-- `CommunicationBundleSession`
+- `CommunicationAttachedBundleSession`
   remains the lower-level generic session type behind that editor
 
 - `activeConsentClaims` = the currently selected consent claims as read from the bundle

@@ -19,7 +19,7 @@ import {
   setCommunicationIdentifier,
   setCommunicationSubject,
 } from '../src/utils/claims-helpers-communication.js';
-import { CommunicationBundleSession } from '../src/utils/communication-bundle-session.js';
+import { CommunicationAttachedBundleSession } from '../src/utils/communication-attached-bundle-session.js';
 import {
   getMedicationCategoryList,
   setMedicationCategoryList,
@@ -55,7 +55,7 @@ describe('101: IPS bundle editor', () => {
       CommunicationCategoryCodes.Notification.attributeValue,
     );
 
-    const bundleEditor = new CommunicationBundleSession({
+    const bundleEditor = new CommunicationAttachedBundleSession({
       communicationClaims,
     });
 

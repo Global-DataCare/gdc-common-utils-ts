@@ -26,7 +26,7 @@ export * from './communication-fhir-r4';
 export * from './communication-document-reference';
 export * from './communication-bundle-document-request';
 export * from './communication-identity';
-export * from './communication-bundle-session';
+export * from './communication-attached-bundle-session';
 export * from './clinical-resource-converters';
 export * from './clinical-resource-view';
 export * from './fhir-validator';

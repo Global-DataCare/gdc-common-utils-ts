@@ -15,12 +15,12 @@ import {
   type MedicationStatementClaimsFlat,
 } from '../models/interoperable-claims/medication-statement-claims';
 
-export type CommunicationBundleSessionMode = 'strict' | 'normalize';
+export type CommunicationAttachedBundleSessionMode = 'strict' | 'normalize';
 
-export type CommunicationBundleSessionOptions = Readonly<{
+export type CommunicationAttachedBundleSessionOptions = Readonly<{
   communicationClaims?: Record<string, unknown>;
   initialBundle?: BundleJsonApi<BundleEntry>;
-  mode?: CommunicationBundleSessionMode;
+  mode?: CommunicationAttachedBundleSessionMode;
 }>;
 
 export type ActiveEntrySelection = Readonly<{
@@ -58,13 +58,13 @@ export type AddContainedDocumentToActiveEntryInput = Readonly<{
  *   in-memory bundle after each committed update.
  * - saving can release active entry memory via `saveAndReleaseActiveEntry()`.
  */
-export class CommunicationBundleSession {
+export class CommunicationAttachedBundleSession {
   private communicationClaims: Record<string, unknown>;
   private bundleInMemory: BundleJsonApi<BundleEntry>;
   private activeEntryIndex: number | null;
-  private mode: CommunicationBundleSessionMode;
+  private mode: CommunicationAttachedBundleSessionMode;
 
-  constructor(options: CommunicationBundleSessionOptions = {}) {
+  constructor(options: CommunicationAttachedBundleSessionOptions = {}) {
     this.mode = options.mode || 'strict';
     this.communicationClaims = {
       ...options.communicationClaims,
@@ -572,7 +572,7 @@ export class CommunicationBundleSession {
  * Consent access rules inside a Communication-carried bundle and should not
  * need to start from the lower-level generic session name.
  */
-export class ConsentAccessEditor extends CommunicationBundleSession {}
+export class ConsentAccessEditor extends CommunicationAttachedBundleSession {}
 
 /**
  * High-level factory for consent-access editing.
@@ -581,12 +581,12 @@ export class ConsentAccessEditor extends CommunicationBundleSession {}
  * "edit a Consent access bundle carried by a Communication".
  */
 export function createConsentAccessEditor(
-  options: CommunicationBundleSessionOptions = {},
+  options: CommunicationAttachedBundleSessionOptions = {},
 ): ConsentAccessEditor {
   return new ConsentAccessEditor(options);
 }
 
-function ensureEntryResource(entry: BundleEntry, mode: CommunicationBundleSessionMode): BundleEntryResource {
+function ensureEntryResource(entry: BundleEntry, mode: CommunicationAttachedBundleSessionMode): BundleEntryResource {
   const resource = entry.resource as BundleEntryResource | undefined;
   if (resource && typeof resource === 'object') {
     return resource;
@@ -597,7 +597,7 @@ function ensureEntryResource(entry: BundleEntry, mode: CommunicationBundleSessio
   throw new Error('Active entry does not contain a valid resource object.');
 }
 
-function validateBundleLike(bundle: BundleJsonApi<BundleEntry>, mode: CommunicationBundleSessionMode): void {
+function validateBundleLike(bundle: BundleJsonApi<BundleEntry>, mode: CommunicationAttachedBundleSessionMode): void {
   const looksLikeBundle = bundle && bundle.resourceType === ResourceTypesFhirR4.Bundle && Array.isArray(bundle.data);
   if (looksLikeBundle) {
     return;

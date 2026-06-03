@@ -14,7 +14,7 @@ describe('TODO diagnostic report integration', () => {
   );
 
   test.todo(
-    'add CommunicationBundleSession.upsertActiveDiagnosticReportEntry(...) with identifier-based upsert semantics',
+    'add CommunicationAttachedBundleSession.upsertActiveDiagnosticReportEntry(...) with identifier-based upsert semantics',
   );
 
   test.todo(

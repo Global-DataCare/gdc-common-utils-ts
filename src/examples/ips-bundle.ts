@@ -25,7 +25,7 @@ import {
   toClinicalResourceCardViews,
   toClinicalResourceCommonViews,
 } from '../utils/clinical-resource-view';
-import { CommunicationBundleSession } from '../utils/communication-bundle-session';
+import { CommunicationAttachedBundleSession } from '../utils/communication-attached-bundle-session';
 
 export type IpsClinicalHistoryBundleExample = Readonly<{
   communicationClaims: Record<string, unknown>;
@@ -47,7 +47,7 @@ export type IpsBundleFrontCardsExample = Readonly<{
  * authored as `resource.meta.claims`.
  */
 export function buildIpsClinicalHistoryBundleExample(): IpsClinicalHistoryBundleExample {
-  const bundleEditor = new CommunicationBundleSession({
+  const bundleEditor = new CommunicationAttachedBundleSession({
     communicationClaims: {
       '@context': 'org.hl7.fhir.r4',
       [CommunicationClaim.Identifier]: EXAMPLE_COMMUNICATION_IDENTIFIER,
@@ -121,7 +121,7 @@ export function buildIpsClinicalHistoryBundleExample(): IpsClinicalHistoryBundle
  */
 export function buildIpsBundleFrontCardsExample(): IpsBundleFrontCardsExample {
   const { communicationClaims, bundleInMemory } = buildIpsClinicalHistoryBundleExample();
-  const bundleEditor = new CommunicationBundleSession({
+  const bundleEditor = new CommunicationAttachedBundleSession({
     communicationClaims,
     initialBundle: bundleInMemory,
   });

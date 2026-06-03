@@ -32,7 +32,7 @@ import {
   setActorRoleList,
   setSectionList,
 } from '../src/utils/claims-helpers-consent.js';
-import { createConsentAccessEditor } from '../src/utils/communication-bundle-session.js';
+import { createConsentAccessEditor } from '../src/utils/communication-attached-bundle-session.js';
 
 describe('101: consent bundle editor', () => {
   it('creates or edits one Consent inside a Communication bundle step by step', () => {

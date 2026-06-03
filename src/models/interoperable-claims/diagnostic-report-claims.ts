@@ -141,6 +141,6 @@ DiagnosticReportClaimsFhirApi
  *
  * Keep `DiagnosticReport` paused at the typing/mapping layer until:
  * 1. `claims-helpers-diagnostic-report.ts` exists
- * 2. `CommunicationBundleSession.upsertActiveDiagnosticReportEntry(...)` exists
+ * 2. `CommunicationAttachedBundleSession.upsertActiveDiagnosticReportEntry(...)` exists
  * 3. GW Core readers/tests consume the same shared claim keys
  */
