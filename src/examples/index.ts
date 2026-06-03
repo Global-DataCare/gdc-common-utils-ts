@@ -4,6 +4,7 @@ export * from './dataspace-discovery';
 export * from './organization-controller';
 export * from './individual-controller';
 export * from './professional';
+export * from './employee';
 export * from './related-person';
 export * from './consent-access';
 export * from './relationship-access';

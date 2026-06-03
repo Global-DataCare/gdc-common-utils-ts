@@ -1,5 +1,10 @@
 # gdc-common-utils-ts
 
+Employee shared examples live in `src/examples/employee.ts`.
+
+The canonical employee contract note lives in
+`gdc-sdk-core-ts/docs/EMPLOYEES_101.md`.
+
 Shared TypeScript utilities for GDC client and connector code. This package provides low-level primitives for cryptography, DID/DIDComm-related helpers, and the shared models and interfaces used across SDKs.
 
 It is intentionally not a full backend orchestration layer.
