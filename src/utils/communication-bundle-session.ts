@@ -565,6 +565,27 @@ export class CommunicationBundleSession {
   }
 }
 
+/**
+ * High-level consent-access editor alias for onboarding and app-facing code.
+ *
+ * This keeps the business intent explicit for developers who are editing
+ * Consent access rules inside a Communication-carried bundle and should not
+ * need to start from the lower-level generic session name.
+ */
+export class ConsentAccessEditor extends CommunicationBundleSession {}
+
+/**
+ * High-level factory for consent-access editing.
+ *
+ * Prefer this name in onboarding docs when the developer intent is:
+ * "edit a Consent access bundle carried by a Communication".
+ */
+export function createConsentAccessEditor(
+  options: CommunicationBundleSessionOptions = {},
+): ConsentAccessEditor {
+  return new ConsentAccessEditor(options);
+}
+
 function ensureEntryResource(entry: BundleEntry, mode: CommunicationBundleSessionMode): BundleEntryResource {
   const resource = entry.resource as BundleEntryResource | undefined;
   if (resource && typeof resource === 'object') {
