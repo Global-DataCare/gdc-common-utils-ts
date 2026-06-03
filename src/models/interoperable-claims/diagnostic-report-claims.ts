@@ -26,7 +26,7 @@ export const DiagnosticReportClaim = {
 
 /**
  * TODO(ips-next):
- * Add resource-level claim helpers in `src/utils/diagnostic-report-claim-helpers.ts`
+ * Add resource-level claim helpers in `src/utils/claims-helpers-diagnostic-report.ts`
  * following the same contract already used by Consent/Medication/Condition/Allergy:
  * - `getDiagnosticReportClaimList(...)`
  * - `setDiagnosticReportClaimList(...)`
@@ -140,7 +140,7 @@ DiagnosticReportClaimsFhirApi
  * `contained-documents`.
  *
  * Keep `DiagnosticReport` paused at the typing/mapping layer until:
- * 1. `diagnostic-report-claim-helpers.ts` exists
+ * 1. `claims-helpers-diagnostic-report.ts` exists
  * 2. `CommunicationBundleSession.upsertActiveDiagnosticReportEntry(...)` exists
  * 3. GW Core readers/tests consume the same shared claim keys
  */

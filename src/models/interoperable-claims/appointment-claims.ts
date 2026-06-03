@@ -7,7 +7,7 @@
  * This model aligns with FHIR R5 conventions (using `note.text` instead of `comment`)
  * for forward compatibility and consistency with other resources like Communication.
  * 
- * @basedon https://github.com/Universal-Health-Chain/uhc-fhir-utils-typescript/blob/main/src/models/templates/Appointment.template.model.ts
+ * @basedon https://github.com/Universal-Health-Chain/uhc-fhir-utils-ts/blob/main/src/models/templates/Appointment.template.model.ts
  */
 
 /**
@@ -159,6 +159,30 @@ export const AppointmentClaimsFhirApiExtendedMap = {
   [AppointmentClaimsFhirApiExtended.Description]: String,
   [AppointmentClaimsFhirApiExtended.NoteText]: String,
 };
+
+export const AppointmentClaim = {
+  Identifier: 'Appointment.identifier',
+  Status: 'Appointment.status',
+  ServiceCategory: 'Appointment.service-category',
+  ServiceType: 'Appointment.service-type',
+  Specialty: 'Appointment.specialty',
+  AppointmentType: 'Appointment.appointment-type',
+  ReasonCode: 'Appointment.reason-code',
+  ReasonReference: 'Appointment.reason-reference',
+  Description: 'Appointment.description',
+  Start: 'Appointment.start',
+  End: 'Appointment.end',
+  MinutesDuration: 'Appointment.minutes-duration',
+  Created: 'Appointment.created',
+  NoteText: 'Appointment.note-text',
+  PatientInstruction: 'Appointment.patient-instruction',
+  BasedOn: 'Appointment.based-on',
+  ParticipantActor: 'Appointment.participant.actor',
+  ParticipantStatus: 'Appointment.participant.status',
+  ParticipantType: 'Appointment.participant.type',
+} as const;
+
+export type AppointmentClaimKey = typeof AppointmentClaim[keyof typeof AppointmentClaim];
 
 // src/models/fhir/Appointment.values.ts
 

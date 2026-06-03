@@ -4,6 +4,18 @@ Shared TypeScript utilities for GDC client and connector code. This package prov
 
 It is intentionally not a full backend orchestration layer.
 
+## Prior Work
+
+Part of the FHIR conversion layer in this repository builds on earlier work
+from the Universal Health Chain repository:
+
+- `uhc-fhir-utils-ts`
+- https://github.com/Universal-Health-Chain/uhc-fhir-utils-ts
+
+The current `src/convert` and `src/claims` layers adapt and extend that prior
+work to the claims-first contracts, IPS bundle workflows, and package
+boundaries used in `gdc-common-utils-ts`.
+
 ## Non-Negotiable Conventions
 
 - FHIR SearchParameter names must use canonical FHIR naming (lowercase, with `-` when defined by FHIR).
@@ -27,11 +39,14 @@ The published package exposes these entry points through `package.json`:
 - `gdc-common-utils-ts/hmac`
 - `gdc-common-utils-ts/examples`
 - `gdc-common-utils-ts/examples/*`
+- `gdc-common-utils-ts/claims`
 - `gdc-common-utils-ts/constants`
+- `gdc-common-utils-ts/convert`
 - `gdc-common-utils-ts/models`
 - `gdc-common-utils-ts/utils`
 - `gdc-common-utils-ts/interfaces`
-- File-level subpaths under `constants/*`, `models/*`, `utils/*`, and `interfaces/*`
+- File-level subpaths under `claims/*`, `constants/*`, `models/*`, `utils/*`,
+  and `interfaces/*` plus `convert/*`
 
 ### Root crypto exports
 
@@ -67,6 +82,44 @@ Example:
 ```ts
 import { normalizeDidWeb, generateServiceId } from 'gdc-common-utils-ts/utils/did';
 import { fhirResourceToCid, assignCidToFhirResourceVersionId } from 'gdc-common-utils-ts/utils/fhir-cid';
+```
+
+### Convert
+
+The `convert` export exposes resource-specific FHIR R4 conversion helpers such as:
+
+- `medicationStatementFlatToFhirR4`
+- `medicationStatementFhirR4ToFlat`
+- `observationFlatToFhirR4`
+- `documentReferenceFlatToFhirR4`
+- `compositionFlatToFhirR4`
+
+Example:
+
+```ts
+import {
+  medicationStatementFlatToFhirR4,
+  observationFhirR4ToFlat,
+} from 'gdc-common-utils-ts/convert';
+```
+
+### Claims
+
+The `claims` export exposes resource-specific flat claim helpers such as:
+
+- `setMedicationIdentifier`
+- `getMedicationCategoryList`
+- `setCommunicationCategory`
+- `setActorRoleList`
+- `addSectionList`
+
+Example:
+
+```ts
+import {
+  setMedicationIdentifier,
+  setMedicationCategoryList,
+} from 'gdc-common-utils-ts/claims/claims-helpers-medication-statement';
 ```
 
 ### Models

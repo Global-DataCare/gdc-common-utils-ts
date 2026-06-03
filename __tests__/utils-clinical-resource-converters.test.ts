@@ -4,18 +4,24 @@ import { AllergyIntoleranceClaim } from '../src/models/interoperable-claims/alle
 import { ConditionClaim } from '../src/models/interoperable-claims/condition-claims';
 import { DeviceUseStatementClaim } from '../src/models/interoperable-claims/device-use-statement-claims';
 import { DocumentReferenceClaim } from '../src/models/interoperable-claims/document-reference-claims';
+import { LocationClaim } from '../src/models/interoperable-claims/location-claims';
 import { MedicationStatementClaim } from '../src/models/interoperable-claims/medication-statement-claims';
+import { OrganizationClaim } from '../src/models/interoperable-claims/organization-claims';
 import {
-  allergyIntoleranceFhirToFlat,
-  allergyIntoleranceFlatToFhir,
-  conditionFhirToFlat,
-  conditionFlatToFhir,
-  deviceUseStatementFhirToFlat,
-  deviceUseStatementFlatToFhir,
-  documentReferenceFhirToFlat,
-  documentReferenceFlatToFhir,
-  medicationStatementFhirToFlat,
-  medicationStatementFlatToFhir,
+  allergyIntoleranceFhirR4ToFlat,
+  allergyIntoleranceFlatToFhirR4,
+  conditionFhirR4ToFlat,
+  conditionFlatToFhirR4,
+  deviceUseStatementFhirR4ToFlat,
+  deviceUseStatementFlatToFhirR4,
+  documentReferenceFhirR4ToFlat,
+  documentReferenceFlatToFhirR4,
+  locationFhirR4ToFlat,
+  locationFlatToFhirR4,
+  medicationStatementFhirR4ToFlat,
+  medicationStatementFlatToFhirR4,
+  organizationFhirR4ToFlat,
+  organizationFlatToFhirR4,
 } from '../src/utils/clinical-resource-converters';
 
 describe('clinical-resource-converters', () => {
@@ -35,7 +41,7 @@ describe('clinical-resource-converters', () => {
       [MedicationStatementClaim.MedicationExpirationDate]: '2027-12-31',
     };
 
-    expect(medicationStatementFhirToFlat(medicationStatementFlatToFhir(flat))).toEqual(flat);
+    expect(medicationStatementFhirR4ToFlat(medicationStatementFlatToFhirR4(flat))).toEqual(flat);
   });
 
   it('maps MedicationStatement.medication-* claims to contained Medication in FHIR R4', () => {
@@ -48,7 +54,7 @@ describe('clinical-resource-converters', () => {
       [MedicationStatementClaim.MedicationExpirationDate]: '2028-01-01',
     };
 
-    const fhir = medicationStatementFlatToFhir(flat);
+    const fhir = medicationStatementFlatToFhirR4(flat);
     expect((fhir.medicationReference as { reference?: string } | undefined)?.reference).toBe('#medication-contained-1');
     expect(Array.isArray(fhir.contained)).toBe(true);
     const medication = (fhir.contained as Array<Record<string, unknown>>)[0];
@@ -68,7 +74,7 @@ describe('clinical-resource-converters', () => {
       [AllergyIntoleranceClaim.Recorder]: 'did:web:example.com:organization:taxid:123456789:member:987:MD',
     };
 
-    expect(allergyIntoleranceFhirToFlat(allergyIntoleranceFlatToFhir(flat))).toEqual({
+    expect(allergyIntoleranceFhirR4ToFlat(allergyIntoleranceFlatToFhirR4(flat))).toEqual({
       ...flat,
       [AllergyIntoleranceClaim.Patient]: 'urn:uuid:11111111-1111-4111-8111-111111111111',
     });
@@ -81,7 +87,7 @@ describe('clinical-resource-converters', () => {
       [AllergyIntoleranceClaim.Code]: 'http://snomed.info/sct|91936005',
     };
 
-    expect(allergyIntoleranceFhirToFlat(allergyIntoleranceFlatToFhir(flat))).toEqual({
+    expect(allergyIntoleranceFhirR4ToFlat(allergyIntoleranceFlatToFhirR4(flat))).toEqual({
       [AllergyIntoleranceClaim.Identifier]: 'ALG-2',
       [AllergyIntoleranceClaim.Subject]: 'did:web:example.com:individual:22b8d5d5-52f6-44a0-b047-feb5fdbbe1a0',
       [AllergyIntoleranceClaim.Patient]: 'did:web:example.com:individual:22b8d5d5-52f6-44a0-b047-feb5fdbbe1a0',
@@ -101,7 +107,7 @@ describe('clinical-resource-converters', () => {
       [ConditionClaim.VerificationStatus]: 'confirmed',
     };
 
-    expect(conditionFhirToFlat(conditionFlatToFhir(flat))).toEqual(flat);
+    expect(conditionFhirR4ToFlat(conditionFlatToFhirR4(flat))).toEqual(flat);
   });
 
   it('roundtrips DeviceUseStatement flat -> FHIR -> flat', () => {
@@ -114,7 +120,7 @@ describe('clinical-resource-converters', () => {
       [DeviceUseStatementClaim.TimingDateTime]: '2026-05-16T08:00:00Z',
     };
 
-    expect(deviceUseStatementFhirToFlat(deviceUseStatementFlatToFhir(flat))).toEqual(flat);
+    expect(deviceUseStatementFhirR4ToFlat(deviceUseStatementFlatToFhirR4(flat))).toEqual(flat);
   });
 
   it('roundtrips DocumentReference flat -> FHIR -> flat', () => {
@@ -130,25 +136,58 @@ describe('clinical-resource-converters', () => {
       [DocumentReferenceClaim.Language]: 'en',
     };
 
-    expect(documentReferenceFhirToFlat(documentReferenceFlatToFhir(flat))).toEqual(flat);
+    expect(documentReferenceFhirR4ToFlat(documentReferenceFlatToFhirR4(flat))).toEqual(flat);
+  });
+
+  it('roundtrips Organization flat -> FHIR -> flat', () => {
+    const flat = {
+      [OrganizationClaim.Identifier]: 'dept-cardiology-001',
+      [OrganizationClaim.Active]: 'true',
+      [OrganizationClaim.Type]: 'http://terminology.hl7.org/CodeSystem/organization-type|dept',
+      [OrganizationClaim.Name]: 'Cardiology Department',
+      [OrganizationClaim.Alias]: 'Cardiology,Heart Clinic',
+      [OrganizationClaim.PartOf]: 'Organization/hospital-1',
+      [OrganizationClaim.Telecom]: 'tel:+16045550101,mailto:cardiology@example.org',
+      [OrganizationClaim.Address]: '123 Main St, Vancouver',
+    };
+
+    expect(organizationFhirR4ToFlat(organizationFlatToFhirR4(flat))).toEqual(flat);
+  });
+
+  it('roundtrips Location flat -> FHIR -> flat', () => {
+    const flat = {
+      [LocationClaim.Identifier]: 'room-201',
+      [LocationClaim.Status]: 'active',
+      [LocationClaim.Name]: 'Consultation Room 201',
+      [LocationClaim.Description]: 'Second floor consultation room',
+      [LocationClaim.Type]: 'http://terminology.hl7.org/CodeSystem/v3-RoleCode|OF',
+      [LocationClaim.Mode]: 'instance',
+      [LocationClaim.Telecom]: 'tel:+16045550102',
+      [LocationClaim.Address]: '123 Main St, Vancouver',
+      [LocationClaim.PhysicalType]: 'http://terminology.hl7.org/CodeSystem/location-physical-type|ro',
+      [LocationClaim.ManagingOrganization]: 'Organization/dept-cardiology-001',
+      [LocationClaim.PartOf]: 'Location/building-a',
+    };
+
+    expect(locationFhirR4ToFlat(locationFlatToFhirR4(flat))).toEqual(flat);
   });
 
   it('fails when required claims are missing', () => {
-    expect(() => medicationStatementFlatToFhir({})).toThrow(`Missing required claim: ${MedicationStatementClaim.Subject}`);
-    expect(() => allergyIntoleranceFlatToFhir({})).toThrow(`Missing required claim: ${AllergyIntoleranceClaim.Subject}`);
-    expect(() => conditionFlatToFhir({})).toThrow(`Missing required claim: ${ConditionClaim.Subject}`);
-    expect(() => documentReferenceFlatToFhir({})).toThrow(`Missing required claim: ${DocumentReferenceClaim.Subject}`);
+    expect(() => medicationStatementFlatToFhirR4({})).toThrow(`Missing required claim: ${MedicationStatementClaim.Subject}`);
+    expect(() => allergyIntoleranceFlatToFhirR4({})).toThrow(`Missing required claim: ${AllergyIntoleranceClaim.Subject}`);
+    expect(() => conditionFlatToFhirR4({})).toThrow(`Missing required claim: ${ConditionClaim.Subject}`);
+    expect(() => documentReferenceFlatToFhirR4({})).toThrow(`Missing required claim: ${DocumentReferenceClaim.Subject}`);
   });
 
   it('rejects invalid subject/recorder formats in AllergyIntolerance', () => {
     expect(() =>
-      allergyIntoleranceFlatToFhir({
+      allergyIntoleranceFlatToFhirR4({
         [AllergyIntoleranceClaim.Subject]: 'Patient/p1',
       }),
     ).toThrow(`Invalid ${AllergyIntoleranceClaim.Subject}: expected urn:* or did:web:*`);
 
     expect(() =>
-      allergyIntoleranceFlatToFhir({
+      allergyIntoleranceFlatToFhirR4({
         [AllergyIntoleranceClaim.Subject]: 'urn:uuid:11111111-1111-4111-8111-111111111111',
         [AllergyIntoleranceClaim.Recorder]: 'urn:uuid:22222222-2222-4222-8222-222222222222',
       }),

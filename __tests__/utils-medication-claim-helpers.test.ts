@@ -53,7 +53,7 @@ import {
   setMedicationTimingFrequency,
   setMedicationTimingPeriod,
   setMedicationTimingPeriodUnit,
-} from '../src/utils/medication-claim-helpers.js';
+} from '../src/claims/claims-helpers-medication-statement.js';
 import { MedicationStatementClaimsFhirApiExtended } from '../src/models/interoperable-claims/medication-statement-claims.js';
 
 describe('medication claim list helpers', () => {

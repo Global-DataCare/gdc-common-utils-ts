@@ -8,7 +8,7 @@ import {
   getConditionContainedDocumentIdentifierList,
   removeConditionContainedDocumentIdentifierList,
   setConditionContainedDocumentIdentifierList,
-} from '../src/utils/condition-claim-helpers.js';
+} from '../src/utils/claims-helpers-condition.js';
 
 describe('condition claim helpers', () => {
   it('stores linked document reference identifiers as canonical csv', () => {

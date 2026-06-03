@@ -26,7 +26,7 @@ import {
   setCommunicationIdentifier,
   setCommunicationSubject,
   setCommunicationText,
-} from '../utils/communication-claim-helpers';
+} from '../claims/claims-helpers-communication';
 import {
   setActorIdentifierList,
   setActorRoleList,
@@ -38,7 +38,7 @@ import {
   setConsentSubject,
   setPurposeList,
   setSectionList,
-} from '../utils/consent-claim-helpers';
+} from '../claims/claims-helpers-consent';
 
 /**
  * First developer use case:

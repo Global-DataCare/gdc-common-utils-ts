@@ -9,7 +9,7 @@ import { CommunicationClaim } from '../models/interoperable-claims/communication
 import { ConditionClaim } from '../models/interoperable-claims/condition-claims';
 import { DocumentReferenceClaim } from '../models/interoperable-claims/document-reference-claims';
 import { BundleQuery, type BundleResourceIdFilters } from './bundle-query';
-import { addClaimValues } from './claim-list-helpers';
+import { addClaimValues } from '../claims/claim-list-helpers';
 import {
   MedicationStatementClaim,
   type MedicationStatementClaimsFlat,

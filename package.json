@@ -1,6 +1,6 @@
 {
   "name": "gdc-common-utils-ts",
-  "version": "1.14.10",
+  "version": "1.14.11",
   "publishConfig": {
     "access": "public"
   },
@@ -46,6 +46,14 @@
       "types": "./dist/examples/*.d.ts",
       "default": "./dist/examples/*.js"
     },
+    "./claims": {
+      "types": "./dist/claims/index.d.ts",
+      "default": "./dist/claims/index.js"
+    },
+    "./claims/*": {
+      "types": "./dist/claims/*.d.ts",
+      "default": "./dist/claims/*.js"
+    },
     "./constants/*": {
       "types": "./dist/constants/*.d.ts",
       "default": "./dist/constants/*.js"
@@ -65,6 +73,14 @@
     "./constants": {
       "types": "./dist/constants/index.d.ts",
       "default": "./dist/constants/index.js"
+    },
+    "./convert": {
+      "types": "./dist/convert/index.d.ts",
+      "default": "./dist/convert/index.js"
+    },
+    "./convert/*": {
+      "types": "./dist/convert/*.d.ts",
+      "default": "./dist/convert/*.js"
     },
     "./models": {
       "types": "./dist/models/index.d.ts",

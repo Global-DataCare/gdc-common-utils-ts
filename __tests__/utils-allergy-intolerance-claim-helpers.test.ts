@@ -8,7 +8,7 @@ import {
   getAllergyIntoleranceContainedDocumentIdentifierList,
   removeAllergyIntoleranceContainedDocumentIdentifierList,
   setAllergyIntoleranceContainedDocumentIdentifierList,
-} from '../src/utils/allergy-intolerance-claim-helpers.js';
+} from '../src/utils/claims-helpers-allergy-intolerance.js';
 
 describe('allergy intolerance claim helpers', () => {
   it('stores linked document reference identifiers as canonical csv', () => {

@@ -163,3 +163,32 @@ export async function compactJWT(header: object, payload: object, signatureBytes
 
   return `${encodedHeader}.${encodedPayload}.${encodedSignature}`;
 }
+
+/**
+ * Builds an unsigned compact JWT with `alg=none`.
+ *
+ * Useful for local demos, fixtures, and live tests where the transport/runtime
+ * only needs a syntactically valid JWT shell.
+ */
+export function buildUnsignedJwt(
+  payload: Record<string, unknown>,
+  options: Readonly<{ nowSeconds?: number; ttlSeconds?: number; nonce?: string }> = {},
+): string {
+  const now = options.nowSeconds ?? Math.floor(Date.now() / 1000);
+  const ttl = options.ttlSeconds ?? 600;
+  const header = { alg: 'none', typ: 'JWT' };
+  const claims = {
+    iat: now,
+    exp: now + ttl,
+    nonce: options.nonce ?? `nonce-${now}`,
+    ...payload,
+  };
+  return `${Content.objectToRawBase64UrlSafe(header)}.${Content.objectToRawBase64UrlSafe(claims)}.`;
+}
+
+export function buildUnsignedVpJwt(
+  payload: Record<string, unknown>,
+  options: Readonly<{ nowSeconds?: number; ttlSeconds?: number; nonce?: string }> = {},
+): string {
+  return buildUnsignedJwt(payload, options);
+}

@@ -7,7 +7,7 @@ import {
   getCommunicationCategoryList,
   removeCommunicationCategoryList,
   setCommunicationCategory,
-} from '../src/utils/communication-claim-helpers.js';
+} from '../src/utils/claims-helpers-communication.js';
 import { CommunicationClaim } from '../src/models/interoperable-claims/communication-claims.js';
 
 describe('communication claim helpers', () => {

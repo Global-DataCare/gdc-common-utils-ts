@@ -36,7 +36,7 @@ import {
   setMedicationTimingFrequency,
   setMedicationTimingPeriod,
   setMedicationTimingPeriodUnit,
-} from '../src/utils/medication-claim-helpers.js';
+} from '../src/utils/claims-helpers-medication-statement.js';
 
 it('101: build medication statement claims step by step with simple setters', () => {
   // Step 1.

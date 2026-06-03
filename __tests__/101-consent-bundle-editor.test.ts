@@ -16,7 +16,7 @@ import {
   setCommunicationCategory,
   setCommunicationIdentifier,
   setCommunicationSubject,
-} from '../src/utils/communication-claim-helpers.js';
+} from '../src/utils/claims-helpers-communication.js';
 import {
   addSectionList,
   getActorRoleList,
@@ -31,7 +31,7 @@ import {
   setPurposeList,
   setActorRoleList,
   setSectionList,
-} from '../src/utils/consent-claim-helpers.js';
+} from '../src/utils/claims-helpers-consent.js';
 import { CommunicationBundleSession } from '../src/utils/communication-bundle-session.js';
 
 describe('101: consent bundle editor', () => {

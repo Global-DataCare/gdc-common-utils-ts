@@ -18,7 +18,7 @@ import {
   setCommunicationCategory,
   setCommunicationIdentifier,
   setCommunicationSubject,
-} from '../src/utils/communication-claim-helpers.js';
+} from '../src/utils/claims-helpers-communication.js';
 import { CommunicationBundleSession } from '../src/utils/communication-bundle-session.js';
 import {
   getMedicationCategoryList,
@@ -34,7 +34,7 @@ import {
   setMedicationTimingFrequency,
   setMedicationTimingPeriod,
   setMedicationTimingPeriodUnit,
-} from '../src/utils/medication-claim-helpers.js';
+} from '../src/utils/claims-helpers-medication-statement.js';
 
 describe('101: IPS bundle editor', () => {
   it('creates one IPS-style Communication bundle with one MedicationStatement step by step', () => {

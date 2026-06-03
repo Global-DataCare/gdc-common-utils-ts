@@ -1,4 +1,6 @@
 import {
+  buildUnsignedJwt,
+  buildUnsignedVpJwt,
   compactJWT,
   decodeHeader,
   decodePayload,
@@ -53,5 +55,28 @@ describe('jwt utilities', () => {
     expect(data?.protected).toEqual(header);
     expect(data?.payload).toEqual(payload);
     expect(Array.from(data?.signature || [])).toEqual(Array.from(signatureBytes));
+  });
+
+  it('builds unsigned JWTs with default timing claims', async () => {
+    const token = await buildUnsignedJwt({ sub: '123' }, { nowSeconds: 1000, nonce: 'nonce-1000' });
+    const data = await getDataJWT(token);
+    expect(data?.protected).toEqual({ alg: 'none', typ: 'JWT' });
+    expect(data?.payload).toEqual({
+      sub: '123',
+      iat: 1000,
+      exp: 1600,
+      nonce: 'nonce-1000',
+    });
+  });
+
+  it('builds unsigned VP JWTs as aliases of unsigned JWT builder', async () => {
+    const token = await buildUnsignedVpJwt({ vp: { holder: 'did:web:holder' } }, { nowSeconds: 2000, nonce: 'nonce-2000' });
+    const data = await getDataJWT(token);
+    expect(data?.payload).toEqual({
+      vp: { holder: 'did:web:holder' },
+      iat: 2000,
+      exp: 2600,
+      nonce: 'nonce-2000',
+    });
   });
 });

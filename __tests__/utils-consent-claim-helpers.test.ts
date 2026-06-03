@@ -59,7 +59,7 @@ import {
   addSectors,
   removeSectionList,
   removeSectors,
-} from '../src/utils/consent-claim-helpers.js';
+} from '../src/claims/claims-helpers-consent.js';
 import { ClaimConsent } from '../src/models/consent-rule.js';
 import {
   HealthcareActorRoles,

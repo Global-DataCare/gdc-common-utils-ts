@@ -5,7 +5,9 @@ import {
   assignCidToClaimsId,
   assignCidToFhirBundleEntries,
   assignCidToFhirResourceVersionId,
+  canonicalizeClaimsForContentHash,
   claimsToCid,
+  claimsToContentCid,
   canonicalizeFhirResource,
   fhirResourceToCid,
 } from '../src/utils/fhir-cid.js';
@@ -105,5 +107,53 @@ describe('fhir-cid utilities', () => {
     const assigned = assignCidToClaimsId(claimsA);
     expect(assigned.claims['@id']).toBe(assigned.cid);
     expect(String(assigned.cid).startsWith('z')).toBe(true);
+  });
+
+  it('canonicalizes content-hash claims without envelope, id, identifier, or version keys', () => {
+    const canonicalJson = canonicalizeClaimsForContentHash({
+      '@context': 'org.hl7.fhir.r4',
+      '@type': 'Composition',
+      '@id': 'old-jsonld-id',
+      'Composition.id': 'composition-resource-id',
+      'Composition.identifier': 'urn:uuid:composition-logical-id',
+      'Composition.identifier.value': 'urn:uuid:composition-logical-id',
+      'Composition.subject': 'did:web:subject.example.com',
+      'Composition.section': 'http://loinc.org|10160-0',
+      'Composition.type': 'http://loinc.org|60591-5',
+      'Composition.meta.versionId': 'zold',
+    });
+
+    expect(canonicalJson).not.toContain('@context');
+    expect(canonicalJson).not.toContain('@type');
+    expect(canonicalJson).not.toContain('@id');
+    expect(canonicalJson).not.toContain('Composition.id');
+    expect(canonicalJson).not.toContain('Composition.identifier');
+    expect(canonicalJson).not.toContain('versionId');
+    expect(canonicalJson).toContain('Composition.subject');
+    expect(canonicalJson).toContain('Composition.section');
+  });
+
+  it('generates the same content CID when only id and identifier differ', () => {
+    const claimsA = {
+      '@context': 'org.hl7.fhir.r4',
+      'Composition.id': 'composition-a',
+      'Composition.identifier': 'urn:uuid:composition-a',
+      'Composition.subject': 'did:web:subject.example.com',
+      'Composition.section': 'http://loinc.org|10160-0',
+      'Composition.type': 'http://loinc.org|60591-5',
+    };
+    const claimsB = {
+      '@context': 'org.hl7.fhir.r4',
+      'Composition.id': 'composition-b',
+      'Composition.identifier': 'urn:uuid:composition-b',
+      'Composition.subject': 'did:web:subject.example.com',
+      'Composition.section': 'http://loinc.org|10160-0',
+      'Composition.type': 'http://loinc.org|60591-5',
+    };
+
+    const cidA = claimsToContentCid(claimsA);
+    const cidB = claimsToContentCid(claimsB);
+    expect(cidA.cid).toBe(cidB.cid);
+    expect(cidA.digestHex).toBe(cidB.digestHex);
   });
 });

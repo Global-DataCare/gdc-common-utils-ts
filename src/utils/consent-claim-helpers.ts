@@ -6,7 +6,7 @@ export {
   getClaimValues,
   removeClaimValues,
   setClaimValues,
-} from './claim-list-helpers.js';
+} from '../claims/claim-list-helpers.js';
 import {
   addClaimValues,
   getClaimValues,
@@ -14,7 +14,7 @@ import {
   removeClaimValues,
   setClaimValues,
   type GenericInteroperableClaims,
-} from './claim-list-helpers.js';
+} from '../claims/claim-list-helpers.js';
 
 export type InteroperableClaims = GenericInteroperableClaims;
 

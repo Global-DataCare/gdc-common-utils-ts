@@ -47,3 +47,20 @@ export const AppointmentResponseClaimsFhirApiExtended = {
   ...AppointmentResponseClaimsFhirApi,
   // No additional extended claims for AppointmentResponse at this time.
 };
+
+export const AppointmentResponseClaim = {
+  Actor: 'AppointmentResponse.actor',
+  Appointment: 'AppointmentResponse.appointment',
+  Comment: 'AppointmentResponse.comment',
+  Identifier: 'AppointmentResponse.identifier',
+  Start: 'AppointmentResponse.start',
+  End: 'AppointmentResponse.end',
+  ParticipantType: 'AppointmentResponse.participant-type',
+  ParticipantStatus: 'AppointmentResponse.participant-status',
+  Patient: 'AppointmentResponse.patient',
+  Practitioner: 'AppointmentResponse.practitioner',
+  Location: 'AppointmentResponse.location',
+} as const;
+
+export type AppointmentResponseClaimKey =
+  typeof AppointmentResponseClaim[keyof typeof AppointmentResponseClaim];

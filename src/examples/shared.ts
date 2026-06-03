@@ -9,6 +9,11 @@ import {
   HealthcareConsentPurposes,
 } from '../constants/healthcare';
 import { CommunicationClaim } from '../models/interoperable-claims/communication-claims';
+import {
+  MedicationStatementClaim,
+  MedicationStatementClaimsFhirApiExtended,
+} from '../models/interoperable-claims/medication-statement-claims';
+import { medicationStatementFlatToFhirR4 } from '../utils/clinical-resource-converters';
 
 /**
  * Shared low-level example fragments reused by multiple flow-specific example modules.
@@ -169,6 +174,19 @@ export type ExampleLiveMedicationCase = Readonly<{
   section: string;
 }>;
 
+export type ExampleMedicationIpsDocumentBundleInput = Readonly<{
+  subjectDid?: string;
+  medication: ExampleLiveMedicationCase;
+}>;
+
+export type ExampleMedicationIpsDocumentBundle = Readonly<{
+  resourceType: 'Bundle';
+  type: 'document';
+  entry: ReadonlyArray<{
+    resource: Record<string, unknown>;
+  }>;
+}>;
+
 export const EXAMPLE_CONTROLLER_SIGN_KEY = {
   kid: 'controller-es384-001',
   kty: 'EC',
@@ -301,6 +319,82 @@ export function buildExampleLiveMedicationCases(seed = Date.now()): ExampleLiveM
       section: EXAMPLE_CLINICAL_SECTION_HISTORY_MEDICATION,
     },
   ];
+}
+
+/**
+ * Builds a minimal IPS `Bundle.type=document` containing one
+ * `MedicationStatement` under the `History of medication use` section.
+ *
+ * This helper exists so live GW tests and demos do not handcraft one-off
+ * bundle structures inline.
+ */
+export function buildExampleMedicationIpsDocumentBundle(
+  input: ExampleMedicationIpsDocumentBundleInput,
+): ExampleMedicationIpsDocumentBundle {
+  const subjectDid = input.subjectDid || EXAMPLE_SUBJECT_DID;
+  const medicationClaims: Record<string, unknown> = {
+    '@context': 'org.hl7.fhir.api',
+    [MedicationStatementClaim.Identifier]: input.medication.identifier,
+    [MedicationStatementClaim.Subject]: subjectDid,
+    [MedicationStatementClaim.Status]: EXAMPLE_MEDICATION_STATEMENT_STATUS,
+    [MedicationStatementClaim.MedicationText]: input.medication.text,
+    [MedicationStatementClaim.Effective]: input.medication.effectiveDateTime,
+    [MedicationStatementClaim.Note]: input.medication.note,
+    [MedicationStatementClaim.Category]: input.medication.section || HealthcareBasicSections.HistoryOfMedicationUse.attributeValue,
+    [MedicationStatementClaimsFhirApiExtended.DoseQuantityValue]: input.medication.doseQuantityValue,
+    [MedicationStatementClaimsFhirApiExtended.DoseQuantityUnit]: input.medication.doseQuantityUnit,
+    [MedicationStatementClaimsFhirApiExtended.TimingFrequency]: input.medication.timingFrequency,
+    [MedicationStatementClaimsFhirApiExtended.TimingPeriod]: input.medication.timingPeriod,
+    [MedicationStatementClaimsFhirApiExtended.TimingPeriodUnit]: input.medication.timingPeriodUnit,
+    [MedicationStatementClaimsFhirApiExtended.DosageAsNeeded]: input.medication.dosageAsNeeded,
+  };
+
+  const medicationResource = medicationStatementFlatToFhirR4(medicationClaims as Record<string, string | undefined>);
+  medicationResource.id = input.medication.identifier;
+  medicationResource.meta = {
+    ...(typeof medicationResource.meta === 'object' && medicationResource.meta ? medicationResource.meta : {}),
+    claims: medicationClaims,
+  };
+
+  return {
+    resourceType: 'Bundle',
+    type: 'document',
+    entry: [
+      {
+        resource: {
+          resourceType: 'Composition',
+          id: `composition-${input.medication.identifier}`,
+          status: 'final',
+          subject: { reference: subjectDid },
+          type: { coding: [{ system: 'http://loinc.org', code: '60591-5' }] },
+          section: [
+            {
+              code: {
+                coding: [{
+                  system: 'http://loinc.org',
+                  code: '10160-0',
+                }],
+              },
+              entry: [
+                {
+                  reference: `MedicationStatement/${input.medication.identifier}`,
+                },
+              ],
+            },
+          ],
+        },
+      },
+      {
+        resource: {
+          resourceType: 'Patient',
+          id: `patient-${input.medication.identifier}`,
+        },
+      },
+      {
+        resource: medicationResource,
+      },
+    ],
+  };
 }
 
 export type ExampleHostedTenantRouteContext = Readonly<{

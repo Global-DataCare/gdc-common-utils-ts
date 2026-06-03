@@ -44,6 +44,32 @@ export type ClaimsCidResult = {
   digestHex: string;
 };
 
+export type ClaimsContentHashOptions = {
+  /**
+   * Excludes JSON-LD envelope keys such as `@context`, `@type`, and `@id`.
+   * Default: true.
+   */
+  stripJsonLdEnvelope?: boolean;
+  /**
+   * Excludes transport/storage identifiers such as `id`, `*.id`,
+   * `identifier`, `*.identifier`, and `*.identifier.value`.
+   *
+   * This is the recommended default for clinical document/resource dedupe
+   * because those identifiers often reflect transport or logical identity,
+   * not semantic content.
+   *
+   * Default: true.
+   */
+  stripIdentifiers?: boolean;
+  /**
+   * Excludes claim keys that already carry a derived content version such as
+   * `*.meta.versionId`.
+   *
+   * Default: true.
+   */
+  stripVersionClaims?: boolean;
+};
+
 export type FhirCidVersionMapping = {
   resourceType?: string;
   resourceId?: string;
@@ -180,10 +206,110 @@ export function canonicalizeClaimsForCid(
   return JSON.stringify(normalized);
 }
 
+function shouldStripClaimKeyForContentHash(
+  key: string,
+  options: Required<ClaimsContentHashOptions>,
+): boolean {
+  const normalizedKey = String(key || '').trim();
+  if (!normalizedKey) return false;
+
+  if (options.stripJsonLdEnvelope && (
+    normalizedKey === '@context'
+    || normalizedKey === '@type'
+    || normalizedKey === '@id'
+  )) {
+    return true;
+  }
+
+  const lowerKey = normalizedKey.toLowerCase();
+  if (options.stripVersionClaims && lowerKey.endsWith('.meta.versionid')) {
+    return true;
+  }
+
+  if (!options.stripIdentifiers) return false;
+
+  if (
+    lowerKey === 'id'
+    || lowerKey.endsWith('.id')
+    || lowerKey === 'identifier'
+    || lowerKey.endsWith('.identifier')
+    || lowerKey.endsWith('.identifier.value')
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Canonicalizes flat claims into deterministic JSON suitable for semantic
+ * content hashing.
+ *
+ * This differs from `canonicalizeClaimsForCid(...)` because it is designed for
+ * deduplication/versioning of clinical content, not for preserving logical
+ * identifiers. By default it removes:
+ *
+ * - JSON-LD envelope keys such as `@context`
+ * - transport/storage identifiers such as `id` and `identifier`
+ * - derived version keys such as `*.meta.versionId`
+ *
+ * The resulting object is sorted alphanumerically and serialized with stable
+ * key ordering so the same semantic content always yields the same hash.
+ */
+export function canonicalizeClaimsForContentHash(
+  claims: Record<string, unknown>,
+  options: ClaimsContentHashOptions = {},
+): string {
+  const normalizedOptions: Required<ClaimsContentHashOptions> = {
+    stripJsonLdEnvelope: options.stripJsonLdEnvelope ?? true,
+    stripIdentifiers: options.stripIdentifiers ?? true,
+    stripVersionClaims: options.stripVersionClaims ?? true,
+  };
+
+  const stripped: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(claims || {})) {
+    if (shouldStripClaimKeyForContentHash(key, normalizedOptions)) {
+      continue;
+    }
+    stripped[key] = value;
+  }
+
+  const normalized = canonicalizeValue(
+    stripped,
+    {
+      stripMetaVersionId: false,
+      stripNarrativeText: false,
+      stripNestedElementIds: false,
+    },
+    0,
+  );
+  return JSON.stringify(normalized);
+}
+
 export function claimsToCid(
   claims: Record<string, unknown>,
 ): ClaimsCidResult {
   const canonicalJson = canonicalizeClaimsForCid(claims);
+  const cidData = buildCidV1FromCanonicalJson(canonicalJson, DEFAULT_MULTICODEC_DAG_JSON);
+  return {
+    cid: cidData.cid,
+    canonicalJson,
+    digestHex: cidData.digestHex,
+  };
+}
+
+/**
+ * Builds a content-addressed CID from flat claims after removing envelope,
+ * identifier, and version fields that should not affect semantic equality.
+ *
+ * Use this helper when the question is "does this document/resource content
+ * already exist?" rather than "what is the logical identifier of this object?".
+ */
+export function claimsToContentCid(
+  claims: Record<string, unknown>,
+  options: ClaimsContentHashOptions = {},
+): ClaimsCidResult {
+  const canonicalJson = canonicalizeClaimsForContentHash(claims, options);
   const cidData = buildCidV1FromCanonicalJson(canonicalJson, DEFAULT_MULTICODEC_DAG_JSON);
   return {
     cid: cidData.cid,
