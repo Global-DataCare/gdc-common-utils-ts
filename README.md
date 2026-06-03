@@ -1,6 +1,7 @@
 # gdc-common-utils-ts
 
 Employee shared examples live in `src/examples/employee.ts`.
+Employee pure helper functions live in `src/utils/employee.ts`.
 
 The canonical employee contract note lives in
 `gdc-sdk-core-ts/docs/EMPLOYEES_101.md`.

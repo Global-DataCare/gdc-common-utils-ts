@@ -14,6 +14,7 @@ export * from './did-resolution';
 export * from './dataspace-discovery';
 export * from './dataspace-discovery-defaults';
 export * from './dataspace-protocol';
+export * from './employee';
 export * from './didcomm';
 export * from './didcomm-submit';
 export * from './didcomm-submit-policy';
