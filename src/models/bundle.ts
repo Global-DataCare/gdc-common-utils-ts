@@ -41,6 +41,12 @@ export interface BundleRequest {
 /**
  * Defines the `response` property for an entry in a response Bundle.
  * This indicates the outcome of the action for the entry.
+ *
+ * Notes for consumers:
+ * - `status` is the primary per-entry result signal.
+ * - `response.outcome` may be present for diagnostics, warnings, or richer success details,
+ *   but is not guaranteed to be present on every successful entry.
+ * - `BundleJsonApi.total` counts response entries in the bundle; it is not a success counter.
  */
 export interface BundleResponse {
   /** The HTTP status code as a string (e.g., "201", "404"). */
@@ -128,7 +134,13 @@ export interface ErrorEntry {
   response: {
     /** The HTTP status code reflecting the error (e.g., "400", "500"). */
     status: string;
-    /** A FHIR OperationOutcome resource providing detailed error diagnostics. */
+    /**
+     * A FHIR OperationOutcome resource providing detailed diagnostics.
+     *
+     * `OperationOutcome.issue[*].severity` is not restricted to failure cases.
+     * Depending on the producer/profile it may contain:
+     * `fatal | error | warning | information | success`.
+     */
     outcome: OperationOutcome;
   };
 }

@@ -23,7 +23,7 @@ describe('101 IPS bundle all sections claims', () => {
     const bundle = JSON.parse(fs.readFileSync(IPS_BUNDLE_PATH, 'utf8'));
     const claimsList = extractBundleDocumentClaimsList(bundle);
 
-    expect(claimsList).toHaveLength(35);
+    expect(claimsList).toHaveLength(37);
 
     const byResourceType = new Map<string, Record<string, unknown>[]>();
     for (const claims of claimsList) {
