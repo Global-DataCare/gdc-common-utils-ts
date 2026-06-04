@@ -2,6 +2,42 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [1.16.1] - 2026-06-04
+
+### Added
+- Added canonical consent-permission template design guidance in:
+  - `docs/101-CONSENT_PERMISSION_TEMPLATES.md`
+- Added executable coverage for consent classified views in:
+  - `__tests__/utils-consent-access-editor-classification.test.ts`
+- Added canonical healthcare section family helpers for consent and picker UI:
+  - `HealthcareCanonicalSectionFamilies`
+  - `getHealthcareSectionFamilyByCode(...)`
+
+### Changed
+- Reworked healthcare section taxonomy so the canonical section families are:
+  - `core-section`
+  - `kind-of-document`
+  - `type-of-service`
+  - `subject-matter-domain`
+  while keeping legacy aliases for compatibility.
+- Expanded the healthcare section registry so the clinical summary/core set is
+  explicit and the LP workbook families are separated by meaning instead of
+  being mixed under generic legacy buckets.
+- Updated `ConsentAccessEditor` classified helpers so:
+  - `getDecision()` is the canonical reader for permit/deny
+  - LOINC targets are normalized as `section`
+  - section targets expose `sectionFamily`
+  - `document-type` is no longer taught as a separate public target kind in
+    consent classified views
+- Linked the consent access docs and package README to the new permission
+  template planning note so the next implementation block does not depend on
+  chat history.
+
+### Testing
+- `npm run typecheck`
+- `npm test -- --watchman=false __tests__/constants-healthcare-sections.test.ts __tests__/utils-consent-access-editor-classification.test.ts __tests__/101-consent-bundle-editor.test.ts`
+- `npm run build`
+
 ## [1.16.0] - 2026-06-04
 
 ### Added
