@@ -1,9 +1,11 @@
 import {
   BundleEditor,
+  BundleReader,
   EmployeeBatchEntryTypes,
   EmployeeBundleMethods,
   EmployeeBundleOperations,
   EmployeeBundleRoutes,
+  EmployeeResourceTypes,
   buildEmployeeBatchEntry,
   buildEmployeePurgeBundle,
   buildExampleEmployeeClaims,
@@ -83,10 +85,12 @@ describe('101: employee examples', () => {
     });
   });
 
-  it('builds employee bundles through one generic BundleEditor with one operation per bundle', () => {
+  it('builds employee bundles through one generic bundle editor plus one employee entry editor', () => {
     const createBundle = new BundleEditor()
       .setBundleOperation(EmployeeBundleOperations.create)
+      .setAllowedResourceType(EmployeeResourceTypes.employee)
       .newEntry()
+      .asEmployee()
       .setEmail(EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE.email)
       .setRole(EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE.role)
       .doneEntry()
@@ -101,7 +105,9 @@ describe('101: employee examples', () => {
 
     const searchBundle = new BundleEditor()
       .setBundleOperation(EmployeeBundleOperations.search)
+      .setAllowedResourceType(EmployeeResourceTypes.employee)
       .newEntry()
+      .asEmployee()
       .setEmail(ExampleEmployeeEmails.SharedProfessional)
       .doneEntry()
       .build();
@@ -112,5 +118,9 @@ describe('101: employee examples', () => {
         url: EmployeeBundleRoutes.search,
       },
     });
+
+    const createBundleReader = new BundleReader(createBundle).openEntry(0);
+    expect(createBundleReader.getTotalOperations()).toBe(1);
+    expect(createBundleReader.getEntryResponseStatus()).toBeUndefined();
   });
 });

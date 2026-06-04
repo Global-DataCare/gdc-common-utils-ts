@@ -66,6 +66,13 @@ export const EmployeeBundleRoutes = Object.freeze({
   search: 'Employee/_search',
 } as const);
 
+export const EmployeeResourceTypes = Object.freeze({
+  employee: 'Employee',
+  bundle: 'Bundle',
+  batch: 'batch',
+  parameters: 'Parameters',
+} as const);
+
 export const EmployeeBatchEntryTypes = Object.freeze({
   create: 'Employee-create-request-v1.0',
   disable: 'Employee-disable-request-v1.0',

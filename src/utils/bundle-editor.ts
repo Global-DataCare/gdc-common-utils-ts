@@ -1,26 +1,29 @@
 import { ClaimsPersonSchemaorg } from '../constants/schemaorg';
 import {
-  EmployeeBatchEntryTypes,
-  buildEmployeeBatchBundle,
   buildEmployeeBatchEntry,
-  buildEmployeeClaims,
   buildEmployeePurgeBundle,
   buildEmployeeSearchBundle,
-  EmployeeClaims,
+  EmployeeBatchEntryTypes,
+  EmployeeBatchMethod,
   EmployeeBundleMethods,
   EmployeeBundleOperations,
+  EmployeeClaims,
+  EmployeeResourceTypes,
   EmployeeSearchValue,
 } from './employee';
 
 export type BundleOperation =
   (typeof EmployeeBundleOperations)[keyof typeof EmployeeBundleOperations];
 
-export type BuiltEmployeeBatchEntry = ReturnType<typeof buildEmployeeBatchEntry> & {
+export type AllowedResourceType =
+  (typeof EmployeeResourceTypes)[keyof typeof EmployeeResourceTypes];
+
+export type BuiltBundleEntry = ReturnType<typeof buildEmployeeBatchEntry> & {
   fullUrl?: string;
 };
 
-function cloneEntry(entry: BuiltEmployeeBatchEntry): BuiltEmployeeBatchEntry {
-  return JSON.parse(JSON.stringify(entry)) as BuiltEmployeeBatchEntry;
+function cloneEntry<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T;
 }
 
 function cloneClaimValue<T>(value: T): T {
@@ -38,23 +41,23 @@ function normalizeOptionalIdentifier(value: unknown): string | undefined {
   return normalized ? normalized : undefined;
 }
 
-function createEmployeeIdentifierUrn(): string {
+function createCanonicalIdentifierUrn(): string {
   const cryptoLike = globalThis as typeof globalThis & {
     crypto?: { randomUUID?: () => string };
   };
   const uuid = typeof cryptoLike.crypto?.randomUUID === 'function'
     ? cryptoLike.crypto.randomUUID()
-    : `employee-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    : `resource-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   return `urn:uuid:${uuid}`;
 }
 
-function resolveRequestMethodForOperation(operation: BundleOperation): 'POST' | 'DELETE' {
+function resolveRequestMethodForOperation(operation: BundleOperation): EmployeeBatchMethod {
   switch (operation) {
     case EmployeeBundleOperations.disable:
       return EmployeeBundleMethods.disable;
+    case EmployeeBundleOperations.search:
     case EmployeeBundleOperations.create:
     case EmployeeBundleOperations.purge:
-    case EmployeeBundleOperations.search:
     default:
       return EmployeeBundleMethods.create;
   }
@@ -75,296 +78,188 @@ function resolveEntryTypeForOperation(operation: BundleOperation): string {
 }
 
 /**
- * Generic bundle editor with an employee adapter surface.
+ * Generic bundle editor for FHIR-like bundle payloads assembled in memory.
  *
- * Current scope:
- * - one declared business operation per bundle
- * - active-entry editing through generic claim helpers
- * - employee convenience setters layered on the same active entry
+ * This class owns bundle-level concerns:
+ * - which business operation the bundle represents
+ * - which resource type the bundle allows
+ * - which entries belong to the bundle
+ * - when the final bundle is materialized through `build()`
  *
- * This editor lives in `common-utils` because it is runtime-neutral and can be
- * consumed by frontend SDKs, backend SDKs, and backend services.
+ * Resource-specific semantics belong to resource entry editors such as
+ * `EmployeeEntryEditor`.
  */
 export class BundleEditor {
   private bundleOperation: BundleOperation | null = null;
-  private readonly entries: BuiltEmployeeBatchEntry[] = [];
-  private activeEntryIndex: number | null = null;
+  private allowedResourceType: AllowedResourceType | null = null;
+  private readonly entries: BuiltBundleEntry[] = [];
 
-  /** Declares which business operation the bundle is assembling. */
+  /** Declares which business operation this bundle is staging. */
   public setBundleOperation(operation: BundleOperation): this {
     this.bundleOperation = operation;
     return this;
   }
 
-  /** Returns the operation currently assigned to this bundle. */
+  /** Returns the current business operation assigned to the bundle. */
   public getBundleOperation(): BundleOperation | null {
     return this.bundleOperation;
   }
 
   /**
-   * Opens one new active entry.
+   * Restricts the bundle to one resource type.
    *
-   * If the current bundle operation needs an identifier and none is supplied,
-   * a canonical `urn:uuid:*` identifier is generated and aligned across
-   * `fullUrl`, `resource.id`, and `org.schema.Person.identifier`.
+   * For employee batch bundles this should be fixed to
+   * `EmployeeResourceTypes.employee` so the editor cannot mix unrelated
+   * resource kinds.
    */
-  public newEntry(resourceId?: string): this {
-    const operation = this.requireBundleOperation();
-    const normalizedIdentifier = operation === EmployeeBundleOperations.search
-      ? normalizeOptionalIdentifier(resourceId)
-      : (normalizeOptionalIdentifier(resourceId) || createEmployeeIdentifierUrn());
-    const claims = normalizedIdentifier
-      ? buildEmployeeClaims({ identifier: normalizedIdentifier })
-      : buildEmployeeClaims({});
-
-    const entry = buildEmployeeBatchEntry({
-      type: resolveEntryTypeForOperation(operation),
-      method: resolveRequestMethodForOperation(operation),
-      resourceId: normalizedIdentifier,
-      claims,
-    }) as BuiltEmployeeBatchEntry;
-
-    if (normalizedIdentifier) {
-      entry.fullUrl = normalizedIdentifier;
-    }
-
-    this.entries.push(entry);
-    this.activeEntryIndex = this.entries.length - 1;
+  public setAllowedResourceType(resourceType: AllowedResourceType): this {
+    this.allowedResourceType = resourceType;
     return this;
   }
 
-  /** Reopens an existing entry by identifier or `fullUrl`. */
-  public openEntry(resourceId: string): this {
-    const normalizedIdentifier = normalizeOptionalIdentifier(resourceId);
+  /** Returns the bundle resource type restriction when already declared. */
+  public getAllowedResourceType(): AllowedResourceType | null {
+    return this.allowedResourceType;
+  }
+
+  /**
+   * Opens one new entry and returns a generic entry editor for that slot.
+   *
+   * The entry editor can later expose resource-specific semantics through
+   * methods such as `asEmployee()`.
+   */
+  public newEntry(resourceId?: string): BundleEntryEditor {
+    const operation = this.requireBundleOperation();
+    const resourceType = this.requireAllowedResourceType();
+    const entry = this.createEntryDraft(operation, resourceType, resourceId);
+    this.entries.push(entry);
+    return new BundleEntryEditor(this, this.entries.length - 1);
+  }
+
+  /** Reopens one existing entry by `resource.id` or `fullUrl`. */
+  public openEntry(resourceIdOrFullUrl: string): BundleEntryEditor {
+    const normalizedIdentifier = normalizeOptionalIdentifier(resourceIdOrFullUrl);
     if (!normalizedIdentifier) {
-      throw new Error('openEntry requires a non-empty resource identifier.');
+      throw new Error('openEntry requires a non-empty resource identifier or fullUrl.');
     }
 
-    const nextIndex = this.entries.findIndex((entry) => {
-      const claims = entry.resource?.meta?.claims || {};
+    const entryIndex = this.entries.findIndex((entry) => {
       return normalizeOptionalIdentifier(entry.resource?.id) === normalizedIdentifier
-        || normalizeOptionalIdentifier(entry.fullUrl) === normalizedIdentifier
-        || normalizeOptionalIdentifier(claims[ClaimsPersonSchemaorg.identifier]) === normalizedIdentifier;
+        || normalizeOptionalIdentifier(entry.fullUrl) === normalizedIdentifier;
     });
 
-    if (nextIndex < 0) {
-      throw new Error(`openEntry could not find resource identifier: ${normalizedIdentifier}`);
+    if (entryIndex < 0) {
+      throw new Error(`openEntry could not find resource identifier or fullUrl: ${normalizedIdentifier}`);
     }
 
-    this.activeEntryIndex = nextIndex;
-    return this;
+    return new BundleEntryEditor(this, entryIndex);
   }
 
-  /** Closes the current active entry while preserving it inside the bundle draft. */
-  public doneEntry(): this {
-    this.activeEntryIndex = null;
-    return this;
-  }
-
-  /** Returns a cloned snapshot of the currently staged entries. */
-  public getEntries(): readonly BuiltEmployeeBatchEntry[] {
+  /** Returns cloned staged entries for inspection or debugging. */
+  public getEntries(): readonly BuiltBundleEntry[] {
     return this.entries.map((entry) => cloneEntry(entry));
   }
 
   /**
-   * Builds the final bundle payload for the declared operation.
+   * Materializes the final bundle payload from the editor state.
    *
-   * `search` returns one canonical search bundle.
-   * `purge` returns a batch bundle whose entries are routed later to
-   * `Employee/_purge`.
-   * `create` and `disable` return canonical batch bundles.
+   * `build()` does not send, sign, or wrap the payload. It only returns the
+   * final bundle object for the declared operation and staged entries.
    */
   public build():
-    | ReturnType<typeof buildEmployeeBatchBundle>
+    | ReturnType<typeof buildEmployeePurgeBundle>
     | ReturnType<typeof buildEmployeeSearchBundle> {
     const operation = this.requireBundleOperation();
+    const resourceType = this.requireAllowedResourceType();
+
+    if (resourceType !== EmployeeResourceTypes.employee) {
+      throw new Error(`BundleEditor does not yet support build() for resource type: ${resourceType}`);
+    }
+
     if (operation === EmployeeBundleOperations.search) {
-      const claims = this.getActiveOrSingleSearchClaims();
-      return buildEmployeeSearchBundle({ claims });
+      return buildEmployeeSearchBundle({
+        claims: this.getSingleSearchClaims(),
+        resourceType,
+      });
     }
 
     if (operation === EmployeeBundleOperations.purge) {
       return {
-        resourceType: 'Bundle' as const,
-        type: 'batch' as const,
+        resourceType: EmployeeResourceTypes.bundle,
+        type: EmployeeResourceTypes.batch,
         entry: this.entries.map((entry) => {
-          const identifier = normalizeOptionalIdentifier(entry.resource?.meta?.claims?.[ClaimsPersonSchemaorg.identifier]);
+          const identifier = normalizeOptionalIdentifier(
+            entry.resource?.meta?.claims?.[ClaimsPersonSchemaorg.identifier]
+              || entry.resource?.id
+              || entry.fullUrl,
+          );
           if (!identifier) {
-            throw new Error('Every purge entry requires org.schema.Person.identifier.');
+            throw new Error('Every purge entry requires one canonical employee identifier.');
           }
-          return buildEmployeePurgeBundle({ identifier }).entry[0];
+          return buildEmployeePurgeBundle({
+            identifier,
+            resourceType,
+          }).entry[0];
         }),
       };
     }
 
     return {
-      resourceType: 'Bundle' as const,
-      type: 'batch' as const,
+      resourceType: EmployeeResourceTypes.bundle,
+      type: EmployeeResourceTypes.batch,
       entry: this.entries.map((entry) => cloneEntry(entry)),
     };
   }
 
-  /** Reads one claim from the active entry. */
-  public getClaim(key: string): unknown {
-    return cloneClaimValue(this.getActiveEntryClaims()[String(key).trim()]);
+  /** @internal */
+  public getMutableEntry(entryIndex: number): BuiltBundleEntry {
+    if (!Number.isInteger(entryIndex) || entryIndex < 0 || entryIndex >= this.entries.length) {
+      throw new Error(`BundleEditor could not open entry index: ${entryIndex}`);
+    }
+    return this.entries[entryIndex];
   }
 
-  /** Checks whether the active entry contains one claim key. */
-  public hasClaim(key: string): boolean {
-    return Object.prototype.hasOwnProperty.call(this.getActiveEntryClaims(), String(key).trim());
-  }
+  private createEntryDraft(
+    operation: BundleOperation,
+    resourceType: AllowedResourceType,
+    resourceId?: string,
+  ): BuiltBundleEntry {
+    if (resourceType !== EmployeeResourceTypes.employee) {
+      throw new Error(`BundleEditor does not yet support newEntry() for resource type: ${resourceType}`);
+    }
 
-  /** Writes one claim on the active entry. */
-  public setClaim(key: string, value: unknown): this {
-    const entry = this.getRequiredActiveEntry();
-    entry.resource = entry.resource || { resourceType: 'Employee', meta: { claims: {} } };
-    entry.resource.meta = entry.resource.meta || {};
-    entry.resource.meta.claims = {
-      ...(entry.resource.meta.claims || {}),
-      [String(key).trim()]: cloneClaimValue(value),
+    const normalizedIdentifier = operation === EmployeeBundleOperations.search
+      ? normalizeOptionalIdentifier(resourceId)
+      : (normalizeOptionalIdentifier(resourceId) || createCanonicalIdentifierUrn());
+    const claims: EmployeeClaims = {
+      '@context': 'org.schema',
+      ...(normalizedIdentifier ? { [ClaimsPersonSchemaorg.identifier]: normalizedIdentifier } : {}),
     };
-    return this;
-  }
 
-  /** Appends one claim value on the active entry. */
-  public addClaim(key: string, value: unknown): this {
-    const normalizedKey = String(key).trim();
-    const current = this.getClaim(normalizedKey);
-    if (current === undefined) {
-      return this.setClaim(normalizedKey, value);
+    const entry = buildEmployeeBatchEntry({
+      type: resolveEntryTypeForOperation(operation),
+      method: resolveRequestMethodForOperation(operation),
+      resourceId: normalizedIdentifier,
+      resourceType,
+      claims,
+    }) as BuiltBundleEntry;
+
+    if (normalizedIdentifier) {
+      entry.fullUrl = normalizedIdentifier;
     }
-    if (Array.isArray(current)) {
-      return this.setClaim(normalizedKey, [...current, cloneClaimValue(value)]);
-    }
-    return this.setClaim(normalizedKey, [current, cloneClaimValue(value)]);
+
+    return entry;
   }
 
-  /** Removes one claim from the active entry. */
-  public removeClaim(key: string): this {
-    const entry = this.getRequiredActiveEntry();
-    const claims = {
-      ...(entry.resource?.meta?.claims || {}),
-    };
-    delete claims[String(key).trim()];
-    entry.resource = entry.resource || { resourceType: 'Employee', meta: { claims: {} } };
-    entry.resource.meta = entry.resource.meta || {};
-    entry.resource.meta.claims = claims;
-    return this;
-  }
-
-  /**
-   * Sets the active entry identifier.
-   *
-   * When informed, the value is synchronized into `fullUrl`, `resource.id`,
-   * and the canonical identifier claim.
-   * Empty values remove the identifier from all three places.
-   */
-  public setIdentifier(identifier?: string | null): this {
-    const normalized = normalizeOptionalIdentifier(identifier);
-    const entry = this.getRequiredActiveEntry();
-    if (!normalized) {
-      this.removeClaim(ClaimsPersonSchemaorg.identifier);
-      delete entry.resource?.id;
-      delete entry.fullUrl;
-      return this;
-    }
-    this.setClaim(ClaimsPersonSchemaorg.identifier, normalized);
-    entry.resource = entry.resource || { resourceType: 'Employee', meta: { claims: {} } };
-    entry.resource.id = normalized;
-    entry.fullUrl = normalized;
-    return this;
-  }
-
-  /** Reads the active entry identifier from claims, resource id, or fullUrl. */
-  public getIdentifier(): string | undefined {
-    const entry = this.getRequiredActiveEntry();
-    return normalizeOptionalIdentifier(
-      entry.resource?.meta?.claims?.[ClaimsPersonSchemaorg.identifier]
-      || entry.resource?.id
-      || entry.fullUrl,
-    );
-  }
-
-  /** Ensures the active entry carries one canonical identifier. */
-  public ensureIdentifier(): string {
-    const existing = this.getIdentifier();
-    if (existing) {
-      return existing;
-    }
-    const generated = createEmployeeIdentifierUrn();
-    this.setIdentifier(generated);
-    return generated;
-  }
-
-  /** Sets the active entry `fullUrl` explicitly. */
-  public setFullUrl(fullUrl?: string | null): this {
-    const entry = this.getRequiredActiveEntry();
-    const normalized = normalizeOptionalIdentifier(fullUrl);
-    if (!normalized) {
-      delete entry.fullUrl;
-      return this;
-    }
-    entry.fullUrl = normalized;
-    return this;
-  }
-
-  /** Returns the active entry `fullUrl` when present. */
-  public getFullUrl(): string | undefined {
-    return normalizeOptionalIdentifier(this.getRequiredActiveEntry().fullUrl);
-  }
-
-  /** Convenience employee setter for email. */
-  public setEmail(email: string): this {
-    return this.setClaim(ClaimsPersonSchemaorg.email, String(email).trim());
-  }
-
-  /** Convenience employee setter for occupational role. */
-  public setRole(role: string): this {
-    return this.setClaim(ClaimsPersonSchemaorg.hasOccupationalRoleValue, String(role).trim());
-  }
-
-  /** Convenience employee setter for `worksFor`. */
-  public setWorksFor(worksFor: string): this {
-    return this.setClaim(ClaimsPersonSchemaorg.worksFor, String(worksFor).trim());
-  }
-
-  /** Convenience employee setter for `memberOf`. */
-  public setMemberOf(memberOf: string): this {
-    return this.setClaim(ClaimsPersonSchemaorg.memberOf, String(memberOf).trim());
-  }
-
-  /** Convenience employee setter for `memberOf.taxID`. */
-  public setMemberOfOrgTaxId(taxId: string): this {
-    return this.setClaim(ClaimsPersonSchemaorg.memberOfOrgTaxId, String(taxId).trim());
-  }
-
-  private requireBundleOperation(): BundleOperation {
-    if (!this.bundleOperation) {
-      throw new Error('BundleEditor requires setBundleOperation(...) before newEntry() or build().');
-    }
-    return this.bundleOperation;
-  }
-
-  private getRequiredActiveEntry(): BuiltEmployeeBatchEntry {
-    if (this.activeEntryIndex === null) {
-      throw new Error('BundleEditor requires one active entry. Call newEntry(...) or openEntry(...) first.');
-    }
-    return this.entries[this.activeEntryIndex];
-  }
-
-  private getActiveEntryClaims(): EmployeeClaims {
-    return {
-      ...(this.getRequiredActiveEntry().resource?.meta?.claims || {}),
-    };
-  }
-
-  private getActiveOrSingleSearchClaims(): Record<string, EmployeeSearchValue | undefined> {
+  private getSingleSearchClaims(): Record<string, EmployeeSearchValue | undefined> {
     if (this.entries.length === 0) {
       return {};
     }
+
     if (this.entries.length > 1) {
-      throw new Error('Search bundles currently support one search entry per bundle.');
+      throw new Error('Search bundles currently support one entry per bundle.');
     }
+
     const claims = this.entries[0].resource?.meta?.claims || {};
     const searchClaims: Record<string, EmployeeSearchValue | undefined> = {};
     for (const [key, value] of Object.entries(claims)) {
@@ -379,5 +274,238 @@ export class BundleEditor {
       }
     }
     return searchClaims;
+  }
+
+  private requireBundleOperation(): BundleOperation {
+    if (!this.bundleOperation) {
+      throw new Error('BundleEditor requires setBundleOperation(...) before newEntry() or build().');
+    }
+    return this.bundleOperation;
+  }
+
+  private requireAllowedResourceType(): AllowedResourceType {
+    if (!this.allowedResourceType) {
+      throw new Error('BundleEditor requires setAllowedResourceType(...) before newEntry() or build().');
+    }
+    return this.allowedResourceType;
+  }
+}
+
+/**
+ * Generic editor for one staged bundle entry.
+ *
+ * This class only knows generic entry concerns such as:
+ * - resource id
+ * - fullUrl
+ * - meta claims
+ * - conversion to one resource-specific entry editor
+ */
+export class BundleEntryEditor {
+  constructor(
+    protected readonly bundleEditor: BundleEditor,
+    protected readonly entryIndex: number,
+  ) {}
+
+  /** Opens the current entry as one employee-specific resource editor. */
+  public asEmployee(): EmployeeEntryEditor {
+    const entry = this.getMutableEntry();
+    if (entry.resource?.resourceType !== EmployeeResourceTypes.employee) {
+      throw new Error(`BundleEntryEditor cannot open this entry as Employee: ${String(entry.resource?.resourceType || '')}`);
+    }
+    return new EmployeeEntryEditor(this.bundleEditor, this.entryIndex);
+  }
+
+  /** Reads one claim from this entry. */
+  public getClaim(key: string): unknown {
+    return cloneClaimValue(this.getClaims()[String(key).trim()]);
+  }
+
+  /** Checks whether this entry contains one claim key. */
+  public hasClaim(key: string): boolean {
+    return Object.prototype.hasOwnProperty.call(this.getClaims(), String(key).trim());
+  }
+
+  /** Writes one claim on this entry. */
+  public setClaim(key: string, value: unknown): this {
+    const entry = this.getMutableEntry();
+    entry.resource = entry.resource || {
+      resourceType: this.bundleEditor.getAllowedResourceType() || EmployeeResourceTypes.employee,
+      meta: { claims: {} },
+    };
+    entry.resource.meta = entry.resource.meta || {};
+    entry.resource.meta.claims = {
+      ...(entry.resource.meta.claims || {}),
+      [String(key).trim()]: cloneClaimValue(value),
+    };
+    return this;
+  }
+
+  /** Appends one claim value on this entry. */
+  public addClaim(key: string, value: unknown): this {
+    const normalizedKey = String(key).trim();
+    const current = this.getClaim(normalizedKey);
+    if (current === undefined) {
+      return this.setClaim(normalizedKey, value);
+    }
+    if (Array.isArray(current)) {
+      return this.setClaim(normalizedKey, [...current, cloneClaimValue(value)]);
+    }
+    return this.setClaim(normalizedKey, [current, cloneClaimValue(value)]);
+  }
+
+  /** Removes one claim from this entry. */
+  public removeClaim(key: string): this {
+    const entry = this.getMutableEntry();
+    const claims = {
+      ...(entry.resource?.meta?.claims || {}),
+    };
+    delete claims[String(key).trim()];
+    entry.resource = entry.resource || {
+      resourceType: this.bundleEditor.getAllowedResourceType() || EmployeeResourceTypes.employee,
+      meta: { claims: {} },
+    };
+    entry.resource.meta = entry.resource.meta || {};
+    entry.resource.meta.claims = claims;
+    return this;
+  }
+
+  /** Writes the staged entry `resource.id`. */
+  public setResourceId(resourceId?: string | null): this {
+    const entry = this.getMutableEntry();
+    const normalized = normalizeOptionalIdentifier(resourceId);
+    if (!normalized) {
+      delete entry.resource?.id;
+      return this;
+    }
+    entry.resource = entry.resource || {
+      resourceType: this.bundleEditor.getAllowedResourceType() || EmployeeResourceTypes.employee,
+      meta: { claims: {} },
+    };
+    entry.resource.id = normalized;
+    return this;
+  }
+
+  /** Reads the staged entry `resource.id` when present. */
+  public getResourceId(): string | undefined {
+    return normalizeOptionalIdentifier(this.getMutableEntry().resource?.id);
+  }
+
+  /** Writes the staged entry `fullUrl`. */
+  public setFullUrl(fullUrl?: string | null): this {
+    const entry = this.getMutableEntry();
+    const normalized = normalizeOptionalIdentifier(fullUrl);
+    if (!normalized) {
+      delete entry.fullUrl;
+      return this;
+    }
+    entry.fullUrl = normalized;
+    return this;
+  }
+
+  /** Reads the staged entry `fullUrl` when present. */
+  public getFullUrl(): string | undefined {
+    return normalizeOptionalIdentifier(this.getMutableEntry().fullUrl);
+  }
+
+  /** Returns control to the parent bundle editor. */
+  public doneEntry(): BundleEditor {
+    return this.bundleEditor;
+  }
+
+  protected getMutableEntry(): BuiltBundleEntry {
+    return this.bundleEditor.getMutableEntry(this.entryIndex);
+  }
+
+  protected getClaims(): EmployeeClaims {
+    return {
+      ...(this.getMutableEntry().resource?.meta?.claims || {}),
+    };
+  }
+}
+
+/**
+ * Employee-specific editor for one staged bundle entry.
+ *
+ * Use this class after `bundle.newEntry().asEmployee()` or
+ * `bundle.openEntry(...).asEmployee()`.
+ */
+export class EmployeeEntryEditor extends BundleEntryEditor {
+  /**
+   * Writes the canonical employee identifier.
+   *
+   * The identifier is synchronized across:
+   * - `entry.fullUrl`
+   * - `resource.id`
+   * - `org.schema.Person.identifier`
+   */
+  public setIdentifier(identifier?: string | null): this {
+    const normalized = normalizeOptionalIdentifier(identifier);
+    if (!normalized) {
+      this.removeClaim(ClaimsPersonSchemaorg.identifier);
+      this.setResourceId(undefined);
+      this.setFullUrl(undefined);
+      return this;
+    }
+    this.setClaim(ClaimsPersonSchemaorg.identifier, normalized);
+    this.setResourceId(normalized);
+    this.setFullUrl(normalized);
+    return this;
+  }
+
+  /** Reads the canonical employee identifier from claims, resource id, or fullUrl. */
+  public getIdentifier(): string | undefined {
+    return normalizeOptionalIdentifier(
+      this.getClaim(ClaimsPersonSchemaorg.identifier)
+        || this.getResourceId()
+        || this.getFullUrl(),
+    );
+  }
+
+  /** Ensures the employee entry carries one canonical `urn:uuid:*` identifier. */
+  public ensureIdentifier(): string {
+    const existing = this.getIdentifier();
+    if (existing) {
+      return existing;
+    }
+    const generated = createCanonicalIdentifierUrn();
+    this.setIdentifier(generated);
+    return generated;
+  }
+
+  /** Writes the canonical employee email claim on this entry. */
+  public setEmail(email: string): this {
+    return this.setClaim(ClaimsPersonSchemaorg.email, String(email).trim());
+  }
+
+  /** Reads the canonical employee email claim from this entry. */
+  public getEmail(): string | undefined {
+    const email = this.getClaim(ClaimsPersonSchemaorg.email);
+    return typeof email === 'string' && email.trim() ? email.trim() : undefined;
+  }
+
+  /** Writes the canonical employee occupational role claim on this entry. */
+  public setRole(role: string): this {
+    return this.setClaim(ClaimsPersonSchemaorg.hasOccupationalRoleValue, String(role).trim());
+  }
+
+  /** Reads the canonical employee occupational role claim from this entry. */
+  public getRole(): string | undefined {
+    const role = this.getClaim(ClaimsPersonSchemaorg.hasOccupationalRoleValue);
+    return typeof role === 'string' && role.trim() ? role.trim() : undefined;
+  }
+
+  /** Writes the canonical employee `worksFor` claim on this entry. */
+  public setWorksFor(worksFor: string): this {
+    return this.setClaim(ClaimsPersonSchemaorg.worksFor, String(worksFor).trim());
+  }
+
+  /** Writes the canonical employee `memberOf` claim on this entry. */
+  public setMemberOf(memberOf: string): this {
+    return this.setClaim(ClaimsPersonSchemaorg.memberOf, String(memberOf).trim());
+  }
+
+  /** Writes the canonical employee organization tax id claim on this entry. */
+  public setMemberOfOrgTaxId(taxId: string): this {
+    return this.setClaim(ClaimsPersonSchemaorg.memberOfOrgTaxId, String(taxId).trim());
   }
 }

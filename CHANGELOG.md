@@ -2,6 +2,37 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [1.16.0] - 2026-06-04
+
+### Added
+- Added `BundleEntryEditor` and `EmployeeEntryEditor` on top of the shared
+  `BundleEditor` so bundle-level concerns and resource-level concerns stop
+  being mixed in the same public API.
+- Added the first executable `BundleReader` walkthrough in:
+  - `__tests__/101-bundle-reader.test.ts`
+
+### Changed
+- Reworked the shared employee editing model so the high-level flow is now:
+  - `BundleEditor`
+  - `setBundleOperation(...)`
+  - `setAllowedResourceType(...)`
+  - `newEntry(...).asEmployee()`
+  - `doneEntry().build()`
+- Kept employee batch bundles homogeneous by requiring an explicit allowed
+  resource type and teaching `EmployeeResourceTypes.employee` in docs/tests.
+- Removed employee-specific setters from the base `BundleEditor` so the base
+  class stays generic and employee semantics live in `EmployeeEntryEditor`.
+- Updated the canonical bundle editor / reader `101` and employee tests so
+  they explain:
+  - bundle vs entry vs resource responsibilities
+  - generic claim editing vs employee-specific editing
+  - one resource editor per staged entry
+
+### Testing
+- `npm run typecheck`
+- `npm test -- --watchman=false`
+- `npm run build`
+
 ## [1.15.0] - 2026-06-04
 
 ### Added

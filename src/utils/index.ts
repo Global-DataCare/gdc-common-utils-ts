@@ -4,6 +4,7 @@ export * from './base-convert';
 export * from './baseN';
 export * from './bundle';
 export * from './bundle-editor';
+export * from './bundle-reader';
 export * from './bundle-query';
 export * from '../claims';
 export * from './content';

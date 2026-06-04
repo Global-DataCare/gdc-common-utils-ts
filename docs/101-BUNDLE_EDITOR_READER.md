@@ -33,17 +33,20 @@ Owns the generic shared infrastructure:
 
 - `BundleEditor`
 - `BundleReader`
+- `BundleEntryEditor`
+- `EmployeeEntryEditor`
+- `ConsentEditor` as future work
 - canonical bundle/entry typing
 - generic `fullUrl`, `resource.id`, and claim alignment rules
 
 ### `gdc-sdk-core-ts`
 
-Owns domain-level adapters and higher-level helpers on top of the shared
-editor/reader:
+Owns runtime-neutral orchestration and domain-facing documentation on top of
+the shared editor/reader:
 
-- `employee`
-- `consent`
-- `ips`
+- `EmployeeDraft`
+- shared business-flow documentation such as `101-EMPLOYEES.md`
+- higher-level neutral orchestration where needed
 
 ### `gdc-sdk-node-ts` and `gdc-sdk-front-ts`
 
@@ -59,11 +62,14 @@ today.
 Target shape:
 
 ```ts
-import { EmployeeBundleOperations } from 'gdc-common-utils-ts/utils/employee';
+import {
+  EmployeeBundleOperations,
+  EmployeeResourceTypes,
+} from 'gdc-common-utils-ts/utils/employee';
 
 const bundle = new BundleEditor()
-  .setBundleType('batch')
-  .setBundleOperation(EmployeeBundleOperations.create);
+  .setBundleOperation(EmployeeBundleOperations.create)
+  .setAllowedResourceType(EmployeeResourceTypes.employee);
 ```
 
 The editor then manages one active entry at a time:
@@ -71,30 +77,43 @@ The editor then manages one active entry at a time:
 ```ts
 bundle.newEntry(resourceId?);
 bundle.openEntry(resourceIdOrFullUrl);
-bundle.doneEntry();
 bundle.build();
 ```
 
+`build()` does not send, sign, or translate the payload to another standard.
+It only materializes the final bundle object from the editor state currently
+held in memory.
+
 ### Active Entry Editing
 
-The active entry should expose generic editing methods:
+The generic entry editor should expose:
 
-- `setIdentifier(...)`
-- `getIdentifier()`
-- `ensureIdentifier()`
-- `setFullUrl(...)`
-- `getFullUrl()`
 - `setClaim(...)`
 - `getClaim(...)`
 - `addClaim(...)`
 - `removeClaim(...)`
+- `setResourceId(...)`
+- `getResourceId()`
+- `setFullUrl(...)`
+- `getFullUrl()`
+- `doneEntry()`
 
-Domain adapters may then add higher-level helpers such as:
+Then the entry can be opened as one resource-specific editor:
 
+```ts
+const employeeEntry = bundle.newEntry().asEmployee();
+```
+
+`EmployeeEntryEditor` then adds:
+
+- `setIdentifier(...)`
+- `getIdentifier()`
+- `ensureIdentifier()`
 - `setEmail(...)`
 - `setRole(...)`
-- `setConsentDecision(...)`
-- `setSectionList(...)`
+- `setWorksFor(...)`
+- `setMemberOf(...)`
+- `setMemberOfOrgTaxId(...)`
 
 ## `BundleReader`
 
@@ -156,7 +175,7 @@ semantics needed by each business area.
 
 ### Employee
 
-Employee adapters should define:
+Employee adapters live in `gdc-common-utils-ts` and should define:
 
 - create
 - search
@@ -172,7 +191,7 @@ and employee claim helpers such as:
 
 ### Consent
 
-Consent adapters should define:
+Consent adapters also belong in `gdc-common-utils-ts` and should define:
 
 - consent entry helpers
 - consent claim helpers
@@ -180,7 +199,7 @@ Consent adapters should define:
 
 ### IPS
 
-IPS/document adapters should define:
+IPS/document adapters should also belong in `gdc-common-utils-ts` and should define:
 
 - `Composition`-centric helpers
 - document entry conventions
