@@ -16,11 +16,18 @@
  * 2.  **`BundleEntry`**: The core component of a Bundle. Represents a single unit of work,
  *     such as registering one organization or creating one employee. It has a strict
  *     structure:
- *     - `type`: A string that defines the business action (e.g., 'Organization-registration-offer-v1.0').
+ *     - `type`: A string that defines the internal business/message kind
+ *       (e.g., 'Organization-registration-offer-v1.0').
  *     - `resource.meta.claims`: Canonical location for claims in request entries.
  *     - `meta.claims`: Legacy compatibility location accepted during migration.
  *     - `resource`: A FHIR-like resource object that is the subject of the action.
  *     - `request`/`response`: Contextual objects indicating the operation's details or result.
+ *
+ * Important distinction:
+ * - `BundleEntry.type` is not a FHIR field
+ * - `BundleEntry.resource.resourceType` is the actual FHIR-like resource type
+ * - `BundleJsonApi.type` is the batch container type
+ * - DIDComm envelope `type` is yet another outer field
  */
 
 import { OperationOutcome } from "./operation-outcome";
@@ -32,6 +39,11 @@ import { OperationOutcome } from "./operation-outcome";
 /**
  * Defines the `request` property for an entry in a request Bundle.
  * This indicates the intended action for the entry.
+ *
+ * FHIR note:
+ * - this is the closest layer to FHIR batch semantics
+ * - `request.method` and `request.url` describe the operation
+ * - `BundleEntry.type` remains a separate internal business/message label
  */
 export interface BundleRequest {
   method: 'POST' | 'PUT' | 'DELETE' | 'GET';
@@ -149,7 +161,8 @@ export interface ErrorEntry {
  * Represents a single, canonical entry within a `BundleJsonApi`.
  * This structure is used for both requests and successful responses.
  *
- * @property {string} type - A string identifying the business action of the entry.
+ * @property {string} type - Internal business/message kind for this entry.
+ * This is not the FHIR `resourceType`.
  * @property {object} resource - The primary FHIR-like resource that is the subject of the action.
  *                               Canonical claims location is `resource.meta.claims`.
  * @property {BundleEntryMeta} [meta] - Legacy top-level claims location for backward compatibility.
@@ -175,6 +188,11 @@ export type BundleEntry = {
  * Represents the canonical Bundle structure used as the `body` of a request or response.
  * The generic type `T` allows for specifying whether the `data` array contains request
  * entries or response entries, providing strong type safety.
+ *
+ * Layering note:
+ * - this is the business batch container
+ * - it is often placed inside the `body` of a DIDComm/FAPI envelope
+ * - entries inside it carry FHIR-like resources plus internal business labels
  *
  * @example
  * const requestBundle: BundleJsonApi<BundleEntry> = { ... };

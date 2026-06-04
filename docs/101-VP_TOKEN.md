@@ -653,4 +653,4 @@ repeating the whole procedure inline.
 
 Recommended short link text:
 
-- `VP_TOKEN_101.md`
+- `101-VP_TOKEN.md`

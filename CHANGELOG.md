@@ -60,7 +60,7 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
   - `default-first`
   - `internet-first`
 - Added copy/paste backend bootstrap documentation in:
-  - `docs/DATASPACE_DISCOVERY_DEFAULTS_101.md`
+  - `docs/101-DATASPACE_DISCOVERY_DEFAULTS.md`
 
 ### Changed
 - Updated the shared discovery README/docs so portal/backend integrations teach:
@@ -134,7 +134,7 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 ### Changed
 - Renamed the VP walkthrough test to `__tests__/101-vp-token.test.ts` so `101`
   tests stay visually grouped.
-- Clarified `docs/VP_TOKEN_101.md` around:
+- Clarified `docs/101-VP_TOKEN.md` around:
   - `Organization.hasCredential.material`
   - `Person.hasCredential.material`
   - `SoftwareApplication.material`
@@ -163,7 +163,7 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
   existing SDK and GW consumers keep working during migration.
 
 ### Changed
-- Updated `docs/VP_TOKEN_101.md` so legal-organization and software/runtime VP
+- Updated `docs/101-VP_TOKEN.md` so legal-organization and software/runtime VP
   flows are documented separately and no longer appear mixed in one payload.
 - Added a mockable `SoftwareApplication` VC example with
   `schema.org/SoftwareApplication` semantics and communication-key binding
@@ -178,7 +178,7 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 ## [1.7.1] - 2026-05-27
 
 ### Added
-- Added `docs/VP_TOKEN_101.md` as the canonical step-by-step guide for building
+- Added `docs/101-VP_TOKEN.md` as the canonical step-by-step guide for building
   ICA/GW `vp_token` proofs, including separate controller-onboarding and
   software/runtime proof examples.
 
@@ -226,7 +226,7 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 ### Added
 - Added canonical lifecycle example surface for cross-repository reuse:
   - `src/examples/lifecycle.ts`
-  - `docs/LIFECYCLE_101.md`
+  - `docs/101-LIFECYCLE.md`
   - exported via `examples`, `api-flow-examples`, and `contract-examples`
 - Added shared individual onboarding PDF claim derivation helper:
   - `src/utils/individual-form-pdf.ts`
@@ -261,7 +261,7 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
   - `MissingPermissionSet`
   - `ActiveConsentView`
   - reusable consent access matrix examples under `src/examples/consent-access.ts`
-- Added `docs/CONSENT_ACCESS_101.md` as the shared cross-repository guide for dynamic consent evaluation.
+- Added `docs/101-CONSENT_ACCESS.md` as the shared cross-repository guide for dynamic consent evaluation.
 
 ### Changed
 - Extended `src/utils/consent.ts` with shared consent-access helpers for:

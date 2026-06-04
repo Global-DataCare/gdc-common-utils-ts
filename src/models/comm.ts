@@ -4,6 +4,17 @@
 
 /**
  * Represents the standard payload of a DIDComm v2 message.
+ *
+ * Layering rule:
+ * - `type` here is the DIDComm/protocol envelope type
+ * - it is not the FHIR `resourceType`
+ * - it is not the internal GW batch-entry business type
+ * - `body` carries the next business layer (often a `BundleJsonApi`)
+ *
+ * Read together with:
+ * - `docs/101-COMMUNICATION_LAYERING.md`
+ * - `src/models/bundle.ts`
+ *
  * @see https://identity.foundation/didcomm-messaging/spec/v2.0/#plaintext-message-structure
  */
 export interface DidCommPayload {
@@ -21,6 +32,11 @@ export interface DidCommPayload {
 /**
  * Represents a data entry in the `body` of a CommMsgExtended,
  * following a hybrid JSON:API and FHIR structure.
+ *
+ * Important:
+ * - `type` is an internal entry/data kind such as `Reference` or `Attachment`
+ * - it is not the DIDComm envelope type
+ * - it is not a FHIR `resourceType`
  */
 export interface DataEntry {
   id: string;
@@ -43,6 +59,19 @@ export interface DidCommAttachment {
 /**
  * The canonical, internal representation of a secure message, extending
  * the standard DIDComm payload with FHIR-specific, flattened metadata.
+ *
+ * Intended usage:
+ * - internal GW/runtime representation
+ * - derived from FHIR-like `Communication` payloads when needed
+ *
+ * Not intended as:
+ * - the primary client-facing payload new integrators should author first
+ *
+ * New client code should usually send:
+ * - DIDComm/FAPI-style envelope
+ * - carrying a batch body
+ * - carrying FHIR-like resources such as `Communication`
+ * - with canonical business semantics in `resource.meta.claims`
  */
 export interface CommMsgExtended extends DidCommPayload {
   // Overriding body for a more specific structure

@@ -30,6 +30,10 @@ export type EmployeeBatchEntryInput = Readonly<{
   type?: string;
 }>;
 
+export type EmployeeBatchBundleInput = Readonly<{
+  entries: readonly EmployeeBatchEntryInput[];
+}>;
+
 export type EmployeeSearchBundleInput = Readonly<{
   claims?: Record<string, EmployeeSearchValue | undefined>;
   method?: 'GET' | 'POST';
@@ -39,6 +43,17 @@ export type EmployeeSearchBundleInput = Readonly<{
 
 function cloneClaims(claims?: EmployeeClaims): EmployeeClaims {
   return { ...(claims || {}) };
+}
+
+function normalizeEmployeeSearchClaims(
+  claims?: Record<string, EmployeeSearchValue | undefined>,
+): Record<string, EmployeeSearchValue | undefined> {
+  const normalized: Record<string, EmployeeSearchValue | undefined> = {};
+  for (const [key, value] of Object.entries(claims || {})) {
+    if (key === '@context') continue;
+    normalized[key] = value;
+  }
+  return normalized;
 }
 
 function inferEmployeeEntryType(method: EmployeeBatchMethod): string {
@@ -114,12 +129,28 @@ export function buildEmployeeBatchEntry(input: EmployeeBatchEntryInput): {
 }
 
 /**
+ * Builds a canonical employee `_batch` bundle from one or more employee batch
+ * entries.
+ */
+export function buildEmployeeBatchBundle(input: EmployeeBatchBundleInput): {
+  resourceType: 'Bundle';
+  type: 'batch';
+  entry: Array<ReturnType<typeof buildEmployeeBatchEntry>>;
+} {
+  return {
+    resourceType: 'Bundle',
+    type: 'batch',
+    entry: [...input.entries].map((entry) => buildEmployeeBatchEntry(entry)),
+  };
+}
+
+/**
  * Builds the legacy query-string employee search target kept for compatibility
  * with older `_search` wrappers.
  */
 export function buildEmployeeSearchQuery(input: EmployeeSearchBundleInput = {}): string {
   const resourceType = input.resourceType || 'Employee';
-  const query = buildSearchQueryString(input.claims || {});
+  const query = buildSearchQueryString(normalizeEmployeeSearchClaims(input.claims));
   return query ? `${resourceType}?${query}` : resourceType;
 }
 
@@ -144,7 +175,7 @@ export function buildEmployeeSearchBundle(input: EmployeeSearchBundleInput = {})
   }>;
 } {
   const resourceType = input.resourceType || 'Employee';
-  const claims = input.claims || {};
+  const claims = normalizeEmployeeSearchClaims(input.claims);
   const method = input.method || (input.encoding === 'get-query' ? 'GET' : 'POST');
 
   if (method === 'GET') {

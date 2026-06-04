@@ -27,7 +27,14 @@ boundaries used in `gdc-common-utils-ts`.
 - FHIR SearchParameter names must use canonical FHIR naming (lowercase, with `-` when defined by FHIR).
 - Never use invented camelCase parameter names for FHIR claims/search keys (example: `Communication.part-of` is valid, `Communication.partOf` is not).
 - Only define custom names when no canonical FHIR SearchParameter exists.
-- `resource.meta.claims` is the canonical claims container and must be preserved across conversions/transports.
+- `resource.meta.claims` is the canonical project-specific claims container and must be preserved across conversions/transports.
+- `resource.meta.claims` is not part of base FHIR; it is a claims-first extension carried by FHIR-like resources in GDC contracts.
+
+If you need the canonical explanation of how DIDComm envelope, batch body,
+entry types, FHIR-like resources, and `resource.meta.claims` fit together,
+read first:
+
+- [`docs/101-COMMUNICATION_LAYERING.md`](docs/101-COMMUNICATION_LAYERING.md)
 
 ## Install
 
@@ -148,12 +155,12 @@ import { JweObject, JwtCompactParts } from 'gdc-common-utils-ts/models';
 - [docs/DATASPACE_DISCOVERY_ROADMAP.md](docs/DATASPACE_DISCOVERY_ROADMAP.md)
   - cross-repo contract for dataspace discovery semantics, EU coverage
     inference, shared DTOs, and parameterized examples
-- [docs/DATASPACE_DISCOVERY_DEFAULTS_101.md](docs/DATASPACE_DISCOVERY_DEFAULTS_101.md)
+- [docs/101-DATASPACE_DISCOVERY_DEFAULTS.md](docs/101-DATASPACE_DISCOVERY_DEFAULTS.md)
   - portal/backend bootstrap guide for `defaults-only`, `default-first`, and
     `internet-first` discovery seeding by `jurisdiction + version + networkType`
 - [docs/consent-access-matrix-task.md](docs/consent-access-matrix-task.md)
   - next-step design/task document for active consent aggregation, explicit deny precedence, controller views, permission-request communications, and SMART access evaluation
-- [docs/IPS_BUNDLE_101.md](docs/IPS_BUNDLE_101.md)
+- [docs/101-IPS_BUNDLE.md](docs/101-IPS_BUNDLE.md)
   - canonical 101 for requesting IPS, editing IPS-style bundles in `Communication.content-attachment-data`, and reading resources by section
 
 ## Dataspace Protocol And Discovery
@@ -177,7 +184,7 @@ Main entry points:
 - [`src/examples/dataspace-discovery.ts`](src/examples/dataspace-discovery.ts)
   - synthetic provider/operator examples that distinguish discovery URL from
     derived catalog artifact URL
-- [`docs/DATASPACE_DISCOVERY_DEFAULTS_101.md`](docs/DATASPACE_DISCOVERY_DEFAULTS_101.md)
+- [`docs/101-DATASPACE_DISCOVERY_DEFAULTS.md`](docs/101-DATASPACE_DISCOVERY_DEFAULTS.md)
   - copy/paste backend bootstrap guide for portal `default-first` rollout
 - [`__tests__/dataspace-discovery-defaults.101.test.ts`](__tests__/dataspace-discovery-defaults.101.test.ts)
   - executable defaults-registry examples for ICAs, hosting operators, and
@@ -267,7 +274,7 @@ The canonical API contract should live in JSDoc on exported code. The README act
   - This is the preferred first scope to teach when the backend only needs subject-scoped read access.
 - [`getOrganizationCredentialFromVpToken(...)`, `getLegalRepresentativeCredentialFromVpToken(...)`](src/utils/vp-token.ts)
   - Extract typed VC objects from a VP token when GW/SDK flows carry canonical proof only in `vp_token`.
-- [`docs/VP_TOKEN_101.md`](docs/VP_TOKEN_101.md)
+- [`docs/101-VP_TOKEN.md`](docs/101-VP_TOKEN.md)
   - Step-by-step guide for building the canonical compact `vp_token` string from organization and representative VCs.
 - [`validateCommunicationResourceFhirR4(...)`](src/utils/communication-fhir-r4.ts)
   - Validates FHIR R4 `Communication` resources.
@@ -336,9 +343,9 @@ The canonical API contract should live in JSDoc on exported code. The README act
 - [`src/examples/shared.ts`](src/examples/shared.ts)
   - Shared route contexts, controller binding fragments, and reusable helper builders.
   - `tenantId` is modeled as an identifier-like route token (`acme-id`), not as a friendly alternate name.
-- [`docs/LIFECYCLE_101.md`](docs/LIFECYCLE_101.md)
+- [`docs/101-LIFECYCLE.md`](docs/101-LIFECYCLE.md)
   - Copy/paste lifecycle `101` guide with semantic rules and reusable placeholders.
-- [`docs/HEALTHCARE_ROLES_I18N_101.md`](docs/HEALTHCARE_ROLES_I18N_101.md)
+- [`docs/101-HEALTHCARE_ROLES_I18N.md`](docs/101-HEALTHCARE_ROLES_I18N.md)
   - Sector-aware healthcare role catalog and i18n `101` (ISCO-08 + HL7) for FE/BE onboarding.
 
 ## Documentation Naming Rules

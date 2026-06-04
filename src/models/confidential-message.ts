@@ -36,6 +36,15 @@ export interface DidCommDecodedMetadata {
  * Represents the plaintext of a decoded DIDComm message.
  * This is the core business-level "input" for a job.
  * For FAPI compliance, this entire object is typically the payload of a signed JWS.
+ *
+ * Layering rule:
+ * - `type` is the outer envelope/protocol type
+ * - `body` carries the business payload
+ * - that `body` is often a batch container such as `BundleJsonApi`
+ * - resources inside that batch may be FHIR-like resources with
+ *   `resource.meta.claims`
+ *
+ * This object is not itself a FHIR resource.
  */
 export interface IDecodedDidcommPayload {
 
@@ -90,11 +99,25 @@ export interface IDecodedDidcommPayload {
 
   /**
    * The Message Type URI, identifying the type of data in the body or protocol used.
-   * (e.g. 'application/json') 
+   *
+   * Examples:
+   * - DIDComm/business envelope type
+   * - transport protocol hint
+   *
+   * This is not:
+   * - a FHIR `resourceType`
+   * - a GW batch-entry business type
   */
   type: string;
 
-  /** The main business payload of the message. The structure is defined by the 'type' protocol. */
+  /**
+   * The main business payload of the message.
+   *
+   * In GW/SDK flows this is often:
+   * - a hybrid batch container (`BundleJsonApi`)
+   * - carrying entries
+   * - carrying FHIR-like resources
+   */
   body: any;
 }
 
@@ -114,6 +137,11 @@ export interface CommDataEntry {
 /**
  * The canonical, internal representation of a secure message, extending
  * the standard DIDComm payload with FHIR-specific, flattened metadata.
+ *
+ * Internal model note:
+ * - this is a gateway/runtime representation
+ * - it is not the main payload shape that new SDK/frontend/backend integrators
+ *   should author directly
  */
 export interface ICommPayloadExtended extends IDecodedDidcommPayload {
   // Overriding body for a more specific structure

@@ -30,8 +30,10 @@ mental model simple:
 - one or more `Consent` resources live inside a `Bundle`
 - that bundle can be carried inside a `Communication`
 - `bundleEditor` is the in-memory editing unit
-- `get/set/add/remove` claim helpers are the only API needed to edit one
-  selected consent
+- explicit consent claim helpers such as `setConsentDecision(...)`,
+  `setPurposeList(...)`, `addSectionList(...)`, and the matching
+  `get*/set*/add*/remove*` helpers are the API needed to edit one selected
+  consent
 
 Executable step-by-step reference:
 
