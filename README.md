@@ -3,8 +3,8 @@
 Employee shared examples live in `src/examples/employee.ts`.
 Employee pure helper functions live in `src/utils/employee.ts`.
 
-The canonical employee contract note lives in
-`gdc-sdk-core-ts/docs/EMPLOYEES_101.md`.
+The canonical employee editor note lives in
+[`docs/101-EMPLOYEE_ENTRY_EDITOR.md`](docs/101-EMPLOYEE_ENTRY_EDITOR.md).
 
 Shared TypeScript utilities for GDC client and connector code. This package provides low-level primitives for cryptography, DID/DIDComm-related helpers, and the shared models and interfaces used across SDKs.
 
