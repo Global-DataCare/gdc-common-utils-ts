@@ -1,0 +1,232 @@
+# Bundle Editor And Reader 101
+
+This document defines the target migration for shared bundle construction and
+bundle reading across the GDC repositories.
+
+It is the canonical design note for:
+
+- `gdc-common-utils-ts`
+- `gdc-sdk-core-ts`
+- `gdc-sdk-node-ts`
+- `gdc-sdk-front-ts`
+- `gwtemplate-node-ts`
+
+Read this after:
+
+- [101-COMMUNICATION_LAYERING.md](./101-COMMUNICATION_LAYERING.md)
+
+## Goal
+
+Unify bundle editing and bundle reading in one shared layer so that:
+
+- `employee`
+- `consent`
+- `ips`
+
+do not each invent their own base editor or bundle reader model.
+
+## Package Boundaries
+
+### `gdc-common-utils-ts`
+
+Owns the generic shared infrastructure:
+
+- `BundleEditor`
+- `BundleReader`
+- canonical bundle/entry typing
+- generic `fullUrl`, `resource.id`, and claim alignment rules
+
+### `gdc-sdk-core-ts`
+
+Owns domain-level adapters and higher-level helpers on top of the shared
+editor/reader:
+
+- `employee`
+- `consent`
+- `ips`
+
+### `gdc-sdk-node-ts` and `gdc-sdk-front-ts`
+
+Own transport/runtime behavior and actor-facing APIs.
+
+They should consume shared bundle helpers instead of redefining them.
+
+## `BundleEditor`
+
+`BundleEditor` is the generic builder for bundle types that clients construct
+today.
+
+Target shape:
+
+```ts
+import { EmployeeBundleOperations } from 'gdc-common-utils-ts/utils/employee';
+
+const bundle = new BundleEditor()
+  .setBundleType('batch')
+  .setBundleOperation(EmployeeBundleOperations.create);
+```
+
+The editor then manages one active entry at a time:
+
+```ts
+bundle.newEntry(resourceId?);
+bundle.openEntry(resourceIdOrFullUrl);
+bundle.doneEntry();
+bundle.build();
+```
+
+### Active Entry Editing
+
+The active entry should expose generic editing methods:
+
+- `setIdentifier(...)`
+- `getIdentifier()`
+- `ensureIdentifier()`
+- `setFullUrl(...)`
+- `getFullUrl()`
+- `setClaim(...)`
+- `getClaim(...)`
+- `addClaim(...)`
+- `removeClaim(...)`
+
+Domain adapters may then add higher-level helpers such as:
+
+- `setEmail(...)`
+- `setRole(...)`
+- `setConsentDecision(...)`
+- `setSectionList(...)`
+
+## `BundleReader`
+
+`BundleReader` is the generic reader for received bundles and stored bundles.
+
+It should support:
+
+- opening a bundle
+- iterating entries
+- selecting entries by index / `resource.id` / `fullUrl`
+- reading per-entry status and diagnostics
+- reading bundle totals and aggregate result counts
+
+Target shape:
+
+```ts
+const reader = new BundleReader(bundle);
+reader.getBundleType();
+reader.getEntries();
+reader.openEntry(0);
+reader.getEntryResponseStatus();
+reader.getIssueSeverities();
+reader.getIssueDiagnostics();
+reader.getTotalOperations();
+reader.getTotalSuccessfulOperations();
+reader.getTotalErrorOperations();
+```
+
+## Supported Types
+
+### Editor-first types
+
+These are the bundle types that should be constructed by `BundleEditor`
+initially:
+
+- `batch`
+- `document`
+- maybe `collection`
+
+Not enabled as editor-first types yet:
+
+- `transaction`
+- `message`
+
+### Reader-first types
+
+These are primarily response or read models:
+
+- `batch-response`
+- `transaction-response`
+- `searchset`
+- `history`
+- `subscription-notification` when supported
+
+## Domain Adapters
+
+The generic editor/reader stays resource-agnostic. Domain adapters then add the
+semantics needed by each business area.
+
+### Employee
+
+Employee adapters should define:
+
+- create
+- search
+- disable
+- purge
+
+and employee claim helpers such as:
+
+- `setEmail(...)`
+- `setRole(...)`
+- `setMemberOf(...)`
+- `setMemberOfOrgTaxId(...)`
+
+### Consent
+
+Consent adapters should define:
+
+- consent entry helpers
+- consent claim helpers
+- communication-attached bundle behavior where relevant
+
+### IPS
+
+IPS/document adapters should define:
+
+- `Composition`-centric helpers
+- document entry conventions
+- sector/composition alignment rules
+
+## Identifier And URL Alignment
+
+When an entry needs one generated identity, the editor should keep these values
+aligned:
+
+- `entry.fullUrl`
+- `resource.id`
+- canonical claim identifier
+
+For employee today, that canonical claim is:
+
+- `org.schema.Person.identifier`
+
+If an identifier is not provided and the operation requires one, the editor
+should generate it and keep it available to the caller through
+`getIdentifier()`.
+
+## Why This Migration Exists
+
+Without this split, each flow tends to create its own partial model:
+
+- one-off bundle editor logic
+- one-off entry editing logic
+- one-off response parsing logic
+
+That increases cognitive load and makes the `101` docs diverge.
+
+The migration target is:
+
+- one generic editor
+- one generic reader
+- domain adapters on top
+- same mental model across employee, consent, and IPS
+
+## Documentation Rule
+
+All `101` docs should explain bundle work in this order:
+
+1. high-level domain adapter
+2. active entry editing
+3. final `build()` or reader output
+4. low-level raw bundle details last
+
+That keeps onboarding focused on business use first, not wire format first.

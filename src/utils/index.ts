@@ -3,6 +3,7 @@ export * from './activation-policy';
 export * from './base-convert';
 export * from './baseN';
 export * from './bundle';
+export * from './bundle-editor';
 export * from './bundle-query';
 export * from '../claims';
 export * from './content';

@@ -612,3 +612,6 @@ and their mappings:
 - `AllergyIntoleranceSearchParamToClaimKey`
 
 That preserves the FHIR search-parameter approach without forcing frontend code to use fully contextualized claim keys as search names.
+# Shared editor/reader migration note
+
+- [101-BUNDLE_EDITOR_READER.md](./101-BUNDLE_EDITOR_READER.md)

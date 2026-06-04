@@ -34,12 +34,44 @@ export type EmployeeBatchBundleInput = Readonly<{
   entries: readonly EmployeeBatchEntryInput[];
 }>;
 
+export type EmployeePurgeBundleInput = Readonly<{
+  identifier: string;
+  resourceId?: string;
+  resourceType?: 'Employee';
+  requestType?: (typeof EmployeeBatchEntryTypes)['purge'];
+}>;
+
 export type EmployeeSearchBundleInput = Readonly<{
   claims?: Record<string, EmployeeSearchValue | undefined>;
   method?: 'GET' | 'POST';
   encoding?: SearchRequestEncoding;
   resourceType?: 'Employee';
 }>;
+
+export const EmployeeBundleOperations = Object.freeze({
+  create: 'create',
+  search: 'search',
+  disable: 'disable',
+  purge: 'purge',
+} as const);
+
+export const EmployeeBundleMethods = Object.freeze({
+  create: 'POST',
+  search: 'POST',
+  disable: 'DELETE',
+  purge: 'POST',
+} as const);
+
+export const EmployeeBundleRoutes = Object.freeze({
+  search: 'Employee/_search',
+} as const);
+
+export const EmployeeBatchEntryTypes = Object.freeze({
+  create: 'Employee-create-request-v1.0',
+  disable: 'Employee-disable-request-v1.0',
+  search: 'Employee-search-request-v1.0',
+  purge: 'Employee-purge-request-v1.0',
+} as const);
 
 function cloneClaims(claims?: EmployeeClaims): EmployeeClaims {
   return { ...(claims || {}) };
@@ -59,15 +91,15 @@ function normalizeEmployeeSearchClaims(
 function inferEmployeeEntryType(method: EmployeeBatchMethod): string {
   switch (method) {
     case 'DELETE':
-      return 'Employee-delete-request-v1.0';
+      return EmployeeBatchEntryTypes.disable;
     case 'PUT':
     case 'PATCH':
       return 'Employee-update-request-v1.0';
     case 'GET':
-      return 'Employee-search-request-v1.0';
+      return EmployeeBatchEntryTypes.search;
     case 'POST':
     default:
-      return 'Employee-create-request-v1.0';
+      return EmployeeBatchEntryTypes.create;
   }
 }
 
@@ -145,6 +177,33 @@ export function buildEmployeeBatchBundle(input: EmployeeBatchBundleInput): {
 }
 
 /**
+ * Builds the canonical employee purge batch bundle.
+ *
+ * Purge is a terminal lifecycle operation routed to the explicit
+ * `Employee/_purge` endpoint by runtime layers. The bundle selector should be
+ * one concrete employee identity, therefore this helper keeps the payload
+ * focused on the canonical employee identifier.
+ */
+export function buildEmployeePurgeBundle(input: EmployeePurgeBundleInput): {
+  resourceType: 'Bundle';
+  type: 'batch';
+  entry: Array<ReturnType<typeof buildEmployeeBatchEntry>>;
+} {
+  const identifier = input.identifier.trim();
+  return buildEmployeeBatchBundle({
+    entries: [
+      {
+        type: input.requestType || EmployeeBatchEntryTypes.purge,
+        method: EmployeeBundleMethods.purge,
+        resourceId: input.resourceId || identifier,
+        resourceType: input.resourceType,
+        claims: buildEmployeeClaims({ identifier }),
+      },
+    ],
+  });
+}
+
+/**
  * Builds the legacy query-string employee search target kept for compatibility
  * with older `_search` wrappers.
  */
@@ -176,7 +235,7 @@ export function buildEmployeeSearchBundle(input: EmployeeSearchBundleInput = {})
 } {
   const resourceType = input.resourceType || 'Employee';
   const claims = normalizeEmployeeSearchClaims(input.claims);
-  const method = input.method || (input.encoding === 'get-query' ? 'GET' : 'POST');
+  const method = input.method || (input.encoding === 'get-query' ? 'GET' : EmployeeBundleMethods.search);
 
   if (method === 'GET') {
     return {
@@ -199,9 +258,9 @@ export function buildEmployeeSearchBundle(input: EmployeeSearchBundleInput = {})
     entry: [
       {
         request: {
-          method: 'POST',
-          url: `${resourceType}/_search`,
-        },
+            method: EmployeeBundleMethods.search,
+            url: EmployeeBundleRoutes.search,
+          },
         resource: buildFhirParametersResourceFromSearchParams(claims),
       },
     ],

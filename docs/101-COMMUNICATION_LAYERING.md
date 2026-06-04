@@ -22,6 +22,11 @@ This document is the source of truth for:
 - `gdc-sdk-front-ts`
 - `gwtemplate-node-ts`
 
+For the target shared editing/reading model used on top of those layers, read
+also:
+
+- [101-BUNDLE_EDITOR_READER.md](./101-BUNDLE_EDITOR_READER.md)
+
 ## One Sentence Summary
 
 The client-facing contract is:

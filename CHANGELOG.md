@@ -2,6 +2,39 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [1.15.0] - 2026-06-04
+
+### Added
+- Added the first shared `BundleEditor` foundation in `common-utils`:
+  - `src/utils/bundle-editor.ts`
+- Added executable employee coverage for the shared editor in:
+  - `__tests__/101-employee-examples.test.ts`
+- Added canonical bundle editor / reader migration guidance in:
+  - `docs/101-BUNDLE_EDITOR_READER.md`
+
+### Changed
+- Promoted bundle editing to a shared cross-repo concern owned by
+  `gdc-common-utils-ts` instead of leaving employee bundle editing logic
+  duplicated in higher SDK layers.
+- Added shared employee bundle constants so examples, tests, and higher SDK
+  layers stop hardcoding operation and entry literals:
+  - `EmployeeBundleOperations`
+  - `EmployeeBundleMethods`
+  - `EmployeeBundleRoutes`
+  - `EmployeeBatchEntryTypes`
+- Clarified the `101` documentation layering so:
+  - `common-utils` owns the generic bundle editor / reader story
+  - `sdk-core` owns the employee business walkthrough
+  - `sdk-front` explains Vite/non-confidential vs confidential runtime usage
+- Extended the communication-attached consent editor with explicit active-entry
+  claim accessors to match the same high-level / low-level teaching pattern as
+  employee bundle editing.
+
+### Testing
+- `npm run typecheck`
+- `npm test -- --watchman=false`
+- `npm run build`
+
 ## [1.14.10] - 2026-06-02
 
 ### Added

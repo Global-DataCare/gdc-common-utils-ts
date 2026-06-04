@@ -1,5 +1,11 @@
 import {
+  BundleEditor,
+  EmployeeBatchEntryTypes,
+  EmployeeBundleMethods,
+  EmployeeBundleOperations,
+  EmployeeBundleRoutes,
   buildEmployeeBatchEntry,
+  buildEmployeePurgeBundle,
   buildExampleEmployeeClaims,
   buildEmployeeSearchBundle,
   ClaimsPersonSchemaorg,
@@ -33,13 +39,13 @@ describe('101: employee examples', () => {
   it('builds employee batch entries from method + claims without exposing resource.meta.claims details to callers', () => {
     const claims = buildExampleEmployeeClaims(EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE);
     const entry = buildEmployeeBatchEntry({
-      method: 'POST',
+      method: EmployeeBundleMethods.create,
       claims,
-      resourceId: 'employee-controller-active-001',
+      resourceId: EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE.identifier,
     });
 
-    expect(entry.type).toBe('Employee-create-request-v1.0');
-    expect(entry.request.method).toBe('POST');
+    expect(entry.type).toBe(EmployeeBatchEntryTypes.create);
+    expect(entry.request.method).toBe(EmployeeBundleMethods.create);
     expect(entry.resource.meta.claims).toEqual(claims);
   });
 
@@ -50,8 +56,8 @@ describe('101: employee examples', () => {
       },
     });
 
-    expect(bundle.entry[0].request.method).toBe('POST');
-    expect(bundle.entry[0].request.url).toBe('Employee/_search');
+    expect(bundle.entry[0].request.method).toBe(EmployeeBundleMethods.search);
+    expect(bundle.entry[0].request.url).toBe(EmployeeBundleRoutes.search);
     expect(bundle.entry[0].resource).toEqual({
       resourceType: 'Parameters',
       parameter: [
@@ -60,6 +66,51 @@ describe('101: employee examples', () => {
           valueString: ExampleEmployeeEmails.SharedProfessional,
         },
       ],
+    });
+  });
+
+  it('builds employee purge bundles from one identifier without exposing raw entry assembly to callers', () => {
+    const bundle = buildEmployeePurgeBundle({
+      identifier: EXAMPLE_EMPLOYEE_DOCTOR_PURGED_HISTORICAL.identifier,
+    });
+
+    expect(bundle.entry[0].type).toBe(EmployeeBatchEntryTypes.purge);
+    expect(bundle.entry[0].request.method).toBe(EmployeeBundleMethods.purge);
+    expect(bundle.entry[0].resource.id).toBe(EXAMPLE_EMPLOYEE_DOCTOR_PURGED_HISTORICAL.identifier);
+    expect(bundle.entry[0].resource.meta.claims).toEqual({
+      '@context': 'org.schema',
+      [ClaimsPersonSchemaorg.identifier]: EXAMPLE_EMPLOYEE_DOCTOR_PURGED_HISTORICAL.identifier,
+    });
+  });
+
+  it('builds employee bundles through one generic BundleEditor with one operation per bundle', () => {
+    const createBundle = new BundleEditor()
+      .setBundleOperation(EmployeeBundleOperations.create)
+      .newEntry()
+      .setEmail(EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE.email)
+      .setRole(EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE.role)
+      .doneEntry()
+      .build();
+
+    expect(createBundle.entry[0]).toMatchObject({
+      request: { method: EmployeeBundleMethods.create },
+      resource: {
+        id: expect.stringMatching(/^urn:uuid:/),
+      },
+    });
+
+    const searchBundle = new BundleEditor()
+      .setBundleOperation(EmployeeBundleOperations.search)
+      .newEntry()
+      .setEmail(ExampleEmployeeEmails.SharedProfessional)
+      .doneEntry()
+      .build();
+
+    expect(searchBundle.entry[0]).toMatchObject({
+      request: {
+        method: EmployeeBundleMethods.search,
+        url: EmployeeBundleRoutes.search,
+      },
     });
   });
 });

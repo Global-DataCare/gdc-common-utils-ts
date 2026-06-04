@@ -35,6 +35,7 @@ entry types, FHIR-like resources, and `resource.meta.claims` fit together,
 read first:
 
 - [`docs/101-COMMUNICATION_LAYERING.md`](docs/101-COMMUNICATION_LAYERING.md)
+- [`docs/101-BUNDLE_EDITOR_READER.md`](docs/101-BUNDLE_EDITOR_READER.md)
 
 ## Install
 

@@ -11,6 +11,10 @@ This guide defines the shared consent-access evaluation model used across:
 It does not reopen bootstrap decisions around `_activate`, `vp_token`,
 `controller.*`, `owner`, or legal representative semantics.
 
+Shared bundle editing/reading migration note:
+
+- [101-BUNDLE_EDITOR_READER.md](./101-BUNDLE_EDITOR_READER.md)
+
 It also does not replace the broader SDK flow documentation for:
 
 - organization onboarding
@@ -124,6 +128,34 @@ bundleEditor.patchActiveEntryClaims(editedConsentClaims);
 bundleEditor.saveAndReleaseActiveEntry();
 ```
 
+Alternative explicit-claim example on the same active entry:
+
+```ts
+import { createConsentAccessEditor } from 'gdc-common-utils-ts/utils/communication-attached-bundle-session';
+import { ClaimConsent, ConsentDecisions } from 'gdc-common-utils-ts/models/consent-rule';
+import {
+  EXAMPLE_CONSENT_IDENTIFIER,
+  EXAMPLE_SUBJECT_DID,
+} from 'gdc-common-utils-ts/examples/shared';
+
+const bundleEditor = createConsentAccessEditor();
+
+bundleEditor.upsertActiveConsentEntry({
+  claims: {
+    '@context': 'org.hl7.fhir.api',
+    [ClaimConsent.identifier]: EXAMPLE_CONSENT_IDENTIFIER,
+    [ClaimConsent.subject]: EXAMPLE_SUBJECT_DID,
+  },
+  fullUrl: `urn:uuid:${EXAMPLE_CONSENT_IDENTIFIER}`,
+});
+
+bundleEditor.setActiveEntryClaim(ClaimConsent.decision, ConsentDecisions.Permit);
+
+console.log(bundleEditor.getActiveEntryClaim(ClaimConsent.decision));
+
+bundleEditor.saveAndReleaseActiveEntry();
+```
+
 This is the preferred 101 flow when:
 
 - a `Communication` already arrived with a permissions bundle
@@ -144,6 +176,9 @@ Mental model:
 - `editedConsentClaims` = the same consent after applying setters/adders
 - `bundleEditor.patchActiveEntryClaims(...)` writes that edited version back into
   the same active `Consent` entry
+- `getActiveEntryClaim(...)` / `setActiveEntryClaim(...)`
+  are the generic low-level tools when you need direct claim control on the
+  selected active entry
 
 Role and section catalogs used in consent editing:
 

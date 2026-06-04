@@ -57,6 +57,8 @@ export type AddContainedDocumentToActiveEntryInput = Readonly<{
  * - `Communication.content-attachment-data` is always derived from the
  *   in-memory bundle after each committed update.
  * - saving can release active entry memory via `saveAndReleaseActiveEntry()`.
+ * - consent onboarding should prefer semantic helpers first, but this session
+ *   also exposes direct claim-level editing on the selected active entry.
  */
 export class CommunicationAttachedBundleSession {
   private communicationClaims: Record<string, unknown>;
@@ -99,6 +101,73 @@ export class CommunicationAttachedBundleSession {
       return null;
     }
     return cloneEntry(this.bundleInMemory.data[this.activeEntryIndex]);
+  }
+
+  /** Returns one claim from the currently selected active entry. */
+  getActiveEntryClaim(key: string): unknown {
+    const claims = this.getRequiredActiveEntryClaims();
+    return cloneUnknownValue(claims[key]);
+  }
+
+  /** Returns whether the currently selected active entry carries one claim key. */
+  hasActiveEntryClaim(key: string): boolean {
+    const claims = this.getRequiredActiveEntryClaims();
+    return Object.prototype.hasOwnProperty.call(claims, key);
+  }
+
+  /** Sets one claim on the currently selected active entry and syncs the bundle attachment. */
+  setActiveEntryClaim(key: string, value: unknown): this {
+    const current = cloneEntry(this.getRequiredActiveEntry());
+    const resource = ensureEntryResource(current, this.mode);
+    resource.meta = resource.meta || {};
+    resource.meta.claims = {
+      ...(resource.meta.claims || {}),
+      [String(key).trim()]: cloneUnknownValue(value),
+    };
+    current.resource = resource;
+    this.bundleInMemory.data[this.activeEntryIndex as number] = current;
+    this.syncAttachmentFromBundle();
+    return this;
+  }
+
+  /** Appends one claim value on the currently selected active entry and syncs the bundle attachment. */
+  addActiveEntryClaim(key: string, value: unknown): this {
+    const current = cloneEntry(this.getRequiredActiveEntry());
+    const resource = ensureEntryResource(current, this.mode);
+    resource.meta = resource.meta || {};
+    const claims = {
+      ...(resource.meta.claims || {}),
+    };
+    const normalizedKey = String(key).trim();
+    const currentValue = claims[normalizedKey];
+    if (currentValue === undefined) {
+      claims[normalizedKey] = cloneUnknownValue(value);
+    } else if (Array.isArray(currentValue)) {
+      claims[normalizedKey] = [...currentValue, cloneUnknownValue(value)];
+    } else {
+      claims[normalizedKey] = [currentValue, cloneUnknownValue(value)];
+    }
+    resource.meta.claims = claims;
+    current.resource = resource;
+    this.bundleInMemory.data[this.activeEntryIndex as number] = current;
+    this.syncAttachmentFromBundle();
+    return this;
+  }
+
+  /** Removes one claim from the currently selected active entry and syncs the bundle attachment. */
+  removeActiveEntryClaim(key: string): this {
+    const current = cloneEntry(this.getRequiredActiveEntry());
+    const resource = ensureEntryResource(current, this.mode);
+    resource.meta = resource.meta || {};
+    const claims = {
+      ...(resource.meta.claims || {}),
+    };
+    delete claims[String(key).trim()];
+    resource.meta.claims = claims;
+    current.resource = resource;
+    this.bundleInMemory.data[this.activeEntryIndex as number] = current;
+    this.syncAttachmentFromBundle();
+    return this;
   }
 
   /** Selects an active entry by index or fullUrl. */
@@ -397,6 +466,22 @@ export class CommunicationAttachedBundleSession {
     return query.getEntryUrl(entryId);
   }
 
+  private getRequiredActiveEntry(): BundleEntry {
+    if (this.activeEntryIndex === null) {
+      throw new Error('No active entry selected.');
+    }
+    return this.bundleInMemory.data[this.activeEntryIndex];
+  }
+
+  private getRequiredActiveEntryClaims(): Record<string, unknown> {
+    const current = cloneEntry(this.getRequiredActiveEntry());
+    const resource = ensureEntryResource(current, this.mode);
+    resource.meta = resource.meta || {};
+    return {
+      ...(resource.meta.claims || {}),
+    };
+  }
+
   private decodeBundleFromClaims(claims: Record<string, unknown>): BundleJsonApi<BundleEntry> {
     const encoded = asTrimmedString(claims[CommunicationClaim.ContentAttachmentData]);
     if (!encoded) {
@@ -626,6 +711,13 @@ function cloneBundle(bundle: BundleJsonApi<BundleEntry>): BundleJsonApi<BundleEn
 
 function cloneEntry(entry: BundleEntry): BundleEntry {
   return JSON.parse(JSON.stringify(entry)) as BundleEntry;
+}
+
+function cloneUnknownValue<T>(value: T): T {
+  if (value === undefined) {
+    return value;
+  }
+  return JSON.parse(JSON.stringify(value)) as T;
 }
 
 function asTrimmedString(value: unknown): string {

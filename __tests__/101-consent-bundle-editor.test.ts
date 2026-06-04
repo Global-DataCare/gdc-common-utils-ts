@@ -114,4 +114,24 @@ describe('101: consent bundle editor', () => {
     ]);
     expect(savedConsentClaims[ClaimConsent.identifier]).toBe(EXAMPLE_CONSENT_IDENTIFIER);
   });
+
+  it('supports direct claim-level control on the active Consent entry when lower-level editing is needed', () => {
+    const bundleEditor = createConsentAccessEditor();
+
+    bundleEditor.upsertActiveConsentEntry({
+      claims: {
+        '@context': 'org.hl7.fhir.api',
+        [ClaimConsent.identifier]: EXAMPLE_CONSENT_IDENTIFIER,
+        [ClaimConsent.subject]: EXAMPLE_SUBJECT_DID,
+      },
+      fullUrl: `urn:uuid:${EXAMPLE_CONSENT_IDENTIFIER}`,
+    });
+
+    bundleEditor.setActiveEntryClaim(ClaimConsent.decision, ConsentDecisions.Permit);
+    expect(bundleEditor.getActiveEntryClaim(ClaimConsent.decision)).toBe(ConsentDecisions.Permit);
+    expect(bundleEditor.hasActiveEntryClaim(ClaimConsent.identifier)).toBe(true);
+
+    bundleEditor.removeActiveEntryClaim(ClaimConsent.decision);
+    expect(bundleEditor.hasActiveEntryClaim(ClaimConsent.decision)).toBe(false);
+  });
 });
