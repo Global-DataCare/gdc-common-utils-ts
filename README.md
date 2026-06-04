@@ -36,6 +36,7 @@ read first:
 
 - [`docs/101-COMMUNICATION_LAYERING.md`](docs/101-COMMUNICATION_LAYERING.md)
 - [`docs/101-BUNDLE_EDITOR_READER.md`](docs/101-BUNDLE_EDITOR_READER.md)
+- [`docs/101-CONSENT_PERMISSION_TEMPLATES.md`](docs/101-CONSENT_PERMISSION_TEMPLATES.md)
 
 ## Install
 
@@ -161,6 +162,10 @@ import { JweObject, JwtCompactParts } from 'gdc-common-utils-ts/models';
     `internet-first` discovery seeding by `jurisdiction + version + networkType`
 - [docs/consent-access-matrix-task.md](docs/consent-access-matrix-task.md)
   - next-step design/task document for active consent aggregation, explicit deny precedence, controller views, permission-request communications, and SMART access evaluation
+- [docs/101-CONSENT_PERMISSION_TEMPLATES.md](docs/101-CONSENT_PERMISSION_TEMPLATES.md)
+  - canonical design note for role/relationship permission templates, front
+    pickers, actor/target/purpose classification, and consent import/export
+    planning
 - [docs/101-IPS_BUNDLE.md](docs/101-IPS_BUNDLE.md)
   - canonical 101 for requesting IPS, editing IPS-style bundles in `Communication.content-attachment-data`, and reading resources by section
 

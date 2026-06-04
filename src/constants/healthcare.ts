@@ -1,9 +1,5 @@
 import { LOINC_SYSTEM_URL, loincI18nKey } from '../models/clinical-sections';
-import {
-  clinicalDocTypes,
-  clinicalSectionAdditional,
-  clinicalSectionsBase,
-} from '../models/clinical-sections.en';
+import { clinicalWorkbookSummaryLabelI18nEn } from '../models/clinical-workbook-summary';
 import {
   HL7_CODING_SYSTEM_PERSONAL_RELATIONSHIP,
   HL7_CODING_SYSTEM_V3_ROLE_CODE,
@@ -91,38 +87,73 @@ function defineDocumentType(id: string, code: string, titleEn?: string): Healthc
 }
 
 export const HealthcareSectionFamilies = Object.freeze({
+  CoreSection: 'core-section',
+  KindOfDocument: 'kind-of-document',
+  TypeOfService: 'type-of-service',
+  SubjectMatterDomainSection: 'subject-matter-domain',
+  /** @deprecated Use `CoreSection`. */
   Summary: 'summary',
+  /** @deprecated Use `KindOfDocument` and `TypeOfService`. */
   Management: 'management',
+  /** @deprecated Use `SubjectMatterDomainSection`. */
   SubjectMatterDomain: 'subjectMatterDomain',
 } as const);
 
 export type HealthcareSectionFamily =
   typeof HealthcareSectionFamilies[keyof typeof HealthcareSectionFamilies];
 
-function buildSectionCatalogByCode(
-  source: Record<string, string>,
+export const HealthcareCanonicalSectionFamilies = Object.freeze({
+  CoreSection: HealthcareSectionFamilies.CoreSection,
+  KindOfDocument: HealthcareSectionFamilies.KindOfDocument,
+  TypeOfService: HealthcareSectionFamilies.TypeOfService,
+  SubjectMatterDomain: HealthcareSectionFamilies.SubjectMatterDomainSection,
+} as const);
+
+export type HealthcareCanonicalSectionFamily =
+  typeof HealthcareCanonicalSectionFamilies[keyof typeof HealthcareCanonicalSectionFamilies];
+
+function workbookLabel(code: string): string | undefined {
+  const lookupCode = String(code || '').trim();
+  const workbookLabels = clinicalWorkbookSummaryLabelI18nEn as Readonly<Record<string, string>>;
+  return workbookLabels[`org.loinc.${lookupCode}`] || undefined;
+}
+
+function buildWorkbookSectionCatalog(
+  codes: readonly string[],
 ): Readonly<Record<string, HealthcareSectionDescriptor>> {
   return Object.freeze(
     Object.fromEntries(
-      Object.entries(source).map(([code, titleEn]) => [code, defineSection(code, titleEn)]),
+      codes.map((code) => [code, defineSection(code, workbookLabel(code))]),
     ),
   );
 }
-
-export const HealthcareBasicSections = Object.freeze({
-  PatientSummaryDocument: defineSection('60591-5'),
-  AllergiesAndIntolerances: defineSection('48765-2'),
-  HistoryOfMedicationUse: defineSection('10160-0'),
-  ProblemList: defineSection('11450-4'),
-  Results: defineSection('30954-2'),
-  Procedures: defineSection('47519-4'),
-  Immunizations: defineSection('11369-6'),
-  MedicalDevices: defineSection('46264-8'),
-  FunctionalStatus: defineSection('47420-5'),
-  PlanOfCare: defineSection('18776-5'),
-  SocialHistory: defineSection('29762-2'),
-  VitalSigns: defineSection('8716-3'),
+export const HealthcareCoreSections = Object.freeze({
+  PatientSummaryDocument: defineSection('60591-5', 'Patient summary document'),
+  AllergiesAndIntolerances: defineSection('48765-2', 'Allergies and adverse reactions'),
+  DietAndNutrition: defineSection('61144-2', 'Diet and nutrition'),
+  HistoryOfMedicationUse: defineSection('10160-0', 'History of medication use'),
+  HistoryOfFamilyMemberDiseases: defineSection('10157-6', 'History of family member diseases'),
+  HistoryOfHospitalizationsAndOutpatientVisits: defineSection('46240-8', 'History of hospitalizations+History of outpatient visits'),
+  HistoryOfPastIllness: defineSection('11348-0', 'History of past illness'),
+  HistoryOfPresentIllness: defineSection('10164-2', 'History of present illness'),
+  ProblemList: defineSection('11450-4', 'Problem list'),
+  ProblemListNarrativeReported: defineSection('57852-6', 'Problem list'),
+  Results: defineSection('30954-2', 'Relevant diagnostic tests/laboratory data'),
+  Procedures: defineSection('47519-4', 'History of Procedures'),
+  Immunizations: defineSection('11369-6', 'History of immunization'),
+  MedicalDevices: defineSection('46264-8', 'History of medical device use'),
+  FunctionalStatus: defineSection('47420-5', 'Functional status'),
+  PlanOfTreatment: defineSection('18776-5', 'Plan of treatment'),
+  /** @deprecated Use `PlanOfTreatment`. */
+  PlanOfCare: defineSection('18776-5', 'Plan of treatment'),
+  SocialHistory: defineSection('29762-2', 'Social history'),
+  VitalSigns: defineSection('8716-3', 'Vital signs'),
+  AdvanceDirectives: defineSection('42348-3', 'Advance directives'),
+  Instructions: defineSection('69730-0', 'Instructions'),
 });
+
+/** @deprecated Use `HealthcareCoreSections`. */
+export const HealthcareBasicSections = HealthcareCoreSections;
 
 export const HealthcareDocumentTypes = Object.freeze({
   [DocumentTypeLoincOntology.IPS]: defineDocumentType(
@@ -132,17 +163,88 @@ export const HealthcareDocumentTypes = Object.freeze({
   ),
 } as const);
 
+export const HealthcareKindOfDocumentSections = buildWorkbookSectionCatalog([
+  'LP447691-9',
+  'LP173390-8',
+  'LP173394-0',
+  'LP173404-7',
+  'LP181204-1',
+  'LP173421-1',
+]);
+
+const healthcareTypeOfServiceWorkbookSections = buildWorkbookSectionCatalog([
+  'LP437010-4',
+  'LP310260-7',
+  'LP200117-2',
+  'LP203673-1',
+]);
+
+export const HealthcareTypeOfServiceSections = Object.freeze({
+  ...healthcareTypeOfServiceWorkbookSections,
+  'LP438240-6': defineSection('LP438240-6', 'Appointment summary'),
+});
+
+export const HealthcareSubjectMatterDomainSections = buildWorkbookSectionCatalog([
+  'LP172918-7',
+  'LP172919-5',
+  'LP172923-7',
+  'LP172934-4',
+  'LP172935-1',
+  'LP172957-5',
+  'LP183499-5',
+  'LP172943-5',
+  'LP172894-0',
+  'LP172946-8',
+  'LP172911-2',
+  'LP172941-9',
+  'LP172945-0',
+  'LP172947-6',
+  'LP175685-9',
+  'LP172951-8',
+  'LP175686-7',
+  'LP172962-5',
+  'LP173015-1',
+  'LP173023-5',
+  'LP248728-0',
+  'LP417852-3',
+  'LP173027-6',
+  'LP172956-7',
+  'LP173011-0',
+  'LP173012-8',
+  'LP345049-3',
+  'LP172964-1',
+  'LP172968-2',
+  'LP172971-6',
+  'LP172973-2',
+  'LP172901-3',
+  'LP172974-0',
+  'LP434870-4',
+  'LP172979-9',
+  'LP434767-2',
+  'LP172980-7',
+  'LP172982-3',
+  'LP172984-9',
+  'LP173002-9',
+  'LP173004-5',
+  'LP173008-6',
+  'LP173018-5',
+  'LP173036-7',
+  'LP248732-2',
+]);
+
+/** @deprecated Use the explicit LP families instead. */
 export const HealthcareAdditionalSections = Object.freeze({
-  AdvanceDirectives: defineSection('42348-3'),
   DiagnosticImaging: defineSection('18726-0'),
-  HistoryOfPastIllness: defineSection('11348-0'),
   ReasonForReferral: defineSection('42349-1'),
   ChiefComplaint: defineSection('10154-3'),
   HealthcareGeneral: defineSection('56796-6'),
 });
 
 export const HealthcareAllSections = Object.freeze({
-  ...HealthcareBasicSections,
+  ...HealthcareCoreSections,
+  ...HealthcareKindOfDocumentSections,
+  ...HealthcareTypeOfServiceSections,
+  ...HealthcareSubjectMatterDomainSections,
   ...HealthcareAdditionalSections,
 });
 
@@ -151,24 +253,85 @@ export const HealthcareAllSections = Object.freeze({
  * `models/clinical-sections.en.ts`.
  *
  * Family mapping used by SDK/business layers:
- * - `summary`: IPS/base summary sections.
- * - `management`: kind-of-document and type-of-service oriented sections.
- * - `subjectMatterDomain`: additional service-domain sections.
+ * - `core-section`: central summary and IPS-oriented sections.
+ * - `kind-of-document`: LP document classification.
+ * - `type-of-service`: LP service classification.
+ * - `subject-matter-domain`: LP specialty/domain classification.
+ * Deprecated aliases remain available for compatibility:
+ * - `summary` -> `core-section`
+ * - `management` -> merged `kind-of-document` + `type-of-service`
+ * - `subjectMatterDomain` -> `subject-matter-domain`
  */
 export const HealthcareSectionsByFamily = Object.freeze({
-  [HealthcareSectionFamilies.Summary]: buildSectionCatalogByCode(clinicalSectionsBase),
-  [HealthcareSectionFamilies.Management]: buildSectionCatalogByCode(clinicalDocTypes),
-  [HealthcareSectionFamilies.SubjectMatterDomain]: buildSectionCatalogByCode(clinicalSectionAdditional),
+  [HealthcareSectionFamilies.CoreSection]: Object.freeze({
+    ...Object.fromEntries(
+      Object.values(HealthcareCoreSections).map((descriptor) => [descriptor.code, descriptor]),
+    ),
+    ...Object.fromEntries(
+      Object.values(HealthcareAdditionalSections).map((descriptor) => [descriptor.code, descriptor]),
+    ),
+  }),
+  [HealthcareSectionFamilies.KindOfDocument]: HealthcareKindOfDocumentSections,
+  [HealthcareSectionFamilies.TypeOfService]: HealthcareTypeOfServiceSections,
+  [HealthcareSectionFamilies.SubjectMatterDomainSection]: HealthcareSubjectMatterDomainSections,
+  [HealthcareSectionFamilies.Summary]: Object.freeze({
+    ...Object.fromEntries(
+      Object.values(HealthcareCoreSections).map((descriptor) => [descriptor.code, descriptor]),
+    ),
+    ...Object.fromEntries(
+      Object.values(HealthcareAdditionalSections).map((descriptor) => [descriptor.code, descriptor]),
+    ),
+  }),
+  [HealthcareSectionFamilies.Management]: Object.freeze({
+    ...HealthcareKindOfDocumentSections,
+    ...HealthcareTypeOfServiceSections,
+  }),
+  [HealthcareSectionFamilies.SubjectMatterDomain]: HealthcareSubjectMatterDomainSections,
 } as const);
 
 export const HealthcareAllSectionsByCode: Readonly<Record<string, HealthcareSectionDescriptor>> = Object.freeze({
-  ...HealthcareSectionsByFamily[HealthcareSectionFamilies.Summary],
-  ...HealthcareSectionsByFamily[HealthcareSectionFamilies.Management],
-  ...HealthcareSectionsByFamily[HealthcareSectionFamilies.SubjectMatterDomain],
+  ...HealthcareSectionsByFamily[HealthcareSectionFamilies.CoreSection],
+  ...HealthcareSectionsByFamily[HealthcareSectionFamilies.KindOfDocument],
+  ...HealthcareSectionsByFamily[HealthcareSectionFamilies.TypeOfService],
+  ...HealthcareSectionsByFamily[HealthcareSectionFamilies.SubjectMatterDomainSection],
+  ...HealthcareAdditionalSections,
 });
 
 export function getHealthcareSectionByCode(code: string): HealthcareSectionDescriptor | undefined {
-  return HealthcareAllSectionsByCode[String(code || '').trim()];
+  const normalizedCode = String(code || '').trim().split('|').slice(-1)[0];
+  return HealthcareAllSectionsByCode[normalizedCode];
+}
+
+export function getHealthcareSectionFamilyByCode(
+  code: string,
+): HealthcareCanonicalSectionFamily | undefined {
+  const normalizedCode = String(code || '').trim().split('|').slice(-1)[0];
+  const coreSections = HealthcareSectionsByFamily[
+    HealthcareSectionFamilies.CoreSection
+  ] as Readonly<Record<string, HealthcareSectionDescriptor>>;
+  const kindOfDocumentSections = HealthcareSectionsByFamily[
+    HealthcareSectionFamilies.KindOfDocument
+  ] as Readonly<Record<string, HealthcareSectionDescriptor>>;
+  const typeOfServiceSections = HealthcareSectionsByFamily[
+    HealthcareSectionFamilies.TypeOfService
+  ] as Readonly<Record<string, HealthcareSectionDescriptor>>;
+  const subjectMatterDomainSections = HealthcareSectionsByFamily[
+    HealthcareSectionFamilies.SubjectMatterDomainSection
+  ] as Readonly<Record<string, HealthcareSectionDescriptor>>;
+
+  if (coreSections[normalizedCode]) {
+    return HealthcareCanonicalSectionFamilies.CoreSection;
+  }
+  if (kindOfDocumentSections[normalizedCode]) {
+    return HealthcareCanonicalSectionFamilies.KindOfDocument;
+  }
+  if (typeOfServiceSections[normalizedCode]) {
+    return HealthcareCanonicalSectionFamilies.TypeOfService;
+  }
+  if (subjectMatterDomainSections[normalizedCode]) {
+    return HealthcareCanonicalSectionFamilies.SubjectMatterDomain;
+  }
+  return undefined;
 }
 
 export function getHealthcareSectionsByFamily(

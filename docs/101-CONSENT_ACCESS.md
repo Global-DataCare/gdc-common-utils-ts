@@ -14,6 +14,7 @@ It does not reopen bootstrap decisions around `_activate`, `vp_token`,
 Shared bundle editing/reading migration note:
 
 - [101-BUNDLE_EDITOR_READER.md](./101-BUNDLE_EDITOR_READER.md)
+- [101-CONSENT_PERMISSION_TEMPLATES.md](./101-CONSENT_PERMISSION_TEMPLATES.md)
 
 It also does not replace the broader SDK flow documentation for:
 
@@ -127,6 +128,49 @@ editedConsentClaims = addSectionList(editedConsentClaims, [
 bundleEditor.patchActiveEntryClaims(editedConsentClaims);
 bundleEditor.saveAndReleaseActiveEntry();
 ```
+
+Read-only classified views from the current consent claim contract:
+
+```ts
+import {
+  ConsentEditorScopeCodes,
+  ConsentEditorTargetKinds,
+  createConsentAccessEditor,
+} from 'gdc-common-utils-ts/utils/communication-attached-bundle-session';
+
+const bundleEditor = createConsentAccessEditor();
+
+const decision = bundleEditor.getDecision();
+const targets = bundleEditor.getTargetsClassified();
+const actors = bundleEditor.getActorsClassified();
+
+console.log(decision);
+console.log(targets.find((item) => item.target.kind === ConsentEditorTargetKinds.Section));
+console.log(targets[0]?.scopes[0]?.code === ConsentEditorScopeCodes.Read);
+console.log(targets[0]?.target.sectionFamily);
+console.log(actors.users);
+console.log(actors.organizations);
+console.log(actors.jurisdictions);
+```
+
+Important:
+
+- this does not alter the persisted consent claim contract
+- `getTargetsClassified()` is derived from:
+  - `Consent.action`
+  - `Consent.category`
+  - `Consent.resourceType`
+- LOINC-based targets are normalized as `section` and additionally classified by
+  `sectionFamily`, for example:
+  - `core-section`
+  - `kind-of-document`
+  - `type-of-service`
+  - `subject-matter-domain`
+- `getActorsClassified()` is derived from:
+  - `Consent.actor-identifier`
+  - `Consent.actor-role`
+- richer permission-template import/export still belongs in a separate
+  transformation layer before claims are generated
 
 Alternative explicit-claim example on the same active entry:
 

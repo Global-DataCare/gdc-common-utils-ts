@@ -2,6 +2,12 @@
 // Always create JSDoc, do not use strings inline in keys nor values, use types instead, and reuse the data test examples.
 
 import { ResourceTypesFhirR4 } from '../constants/fhir-resource-types';
+import {
+  getHealthcareRoleByClaim,
+  getHealthcareSectionByCode,
+  getHealthcareSectionFamilyByCode,
+  type HealthcareCanonicalSectionFamily,
+} from '../constants/healthcare';
 import { ClaimConsent } from '../models/consent-rule';
 import { AllergyIntoleranceClaim } from '../models/interoperable-claims/allergy-intolerance-claims';
 import { BundleEntry, BundleEntryResource, BundleJsonApi, BundleRequest } from '../models/bundle';
@@ -46,6 +52,80 @@ export type AddContainedDocumentToActiveEntryInput = Readonly<{
   description?: string;
   date?: string;
   language?: string;
+}>;
+
+export const ConsentEditorTargetKinds = Object.freeze({
+  Section: 'section',
+  ResourceType: 'resource-type',
+} as const);
+
+export type ConsentEditorTargetKind =
+  typeof ConsentEditorTargetKinds[keyof typeof ConsentEditorTargetKinds];
+
+export const ConsentEditorScopeCodes = Object.freeze({
+  Search: 's',
+  Read: 'r',
+  Create: 'c',
+  Update: 'u',
+  Delete: 'd',
+} as const);
+
+export type ConsentEditorScopeCode =
+  typeof ConsentEditorScopeCodes[keyof typeof ConsentEditorScopeCodes];
+
+export type ConsentEditorClassifiedScope = Readonly<{
+  code: ConsentEditorScopeCode;
+  display?: string;
+}>;
+
+export type ConsentEditorClassifiedTarget = Readonly<{
+  target: Readonly<{
+    kind: ConsentEditorTargetKind;
+    code: string;
+    display?: string;
+    sectionFamily?: HealthcareCanonicalSectionFamily;
+  }>;
+  scopes: readonly ConsentEditorClassifiedScope[];
+}>;
+
+export type ConsentEditorClassifiedActorRole = Readonly<{
+  codingSystem: string;
+  code: string;
+  display?: string;
+}>;
+
+export type ConsentEditorClassifiedDepartment = Readonly<{
+  code: string;
+  display?: string;
+}>;
+
+export type ConsentEditorClassifiedLocation = Readonly<{
+  code: string;
+  display?: string;
+}>;
+
+export type ConsentEditorClassifiedOrganization = Readonly<{
+  domain: string;
+  display?: string;
+  departments: readonly ConsentEditorClassifiedDepartment[];
+  locations: readonly ConsentEditorClassifiedLocation[];
+}>;
+
+export type ConsentEditorClassifiedJurisdiction = Readonly<{
+  code: string;
+  display?: string;
+}>;
+
+export type ConsentEditorClassifiedUser = Readonly<{
+  email?: string;
+  phone?: string;
+  role?: ConsentEditorClassifiedActorRole;
+}>;
+
+export type ConsentEditorClassifiedActors = Readonly<{
+  jurisdictions: readonly ConsentEditorClassifiedJurisdiction[];
+  organizations: readonly ConsentEditorClassifiedOrganization[];
+  users: readonly ConsentEditorClassifiedUser[];
 }>;
 
 /**
@@ -657,7 +737,89 @@ export class CommunicationAttachedBundleSession {
  * Consent access rules inside a Communication-carried bundle and should not
  * need to start from the lower-level generic session name.
  */
-export class ConsentAccessEditor extends CommunicationAttachedBundleSession {}
+export class ConsentAccessEditor extends CommunicationAttachedBundleSession {
+  /** Returns the canonical permit/deny decision from the active Consent entry. */
+  getDecision(): string {
+    return asTrimmedString(this.getActiveEntryClaim(ClaimConsent.decision));
+  }
+
+  /**
+   * @deprecated Use `getDecision()`.
+   * Kept as a compatibility alias for the previous helper name.
+   */
+  getPermit(): string {
+    return this.getDecision();
+  }
+
+  /**
+   * Returns target classification derived from the current consent claim
+   * contract without altering or extending the persisted claim keys.
+   */
+  getTargetsClassified(): ConsentEditorClassifiedTarget[] {
+    const claims = {
+      ...(this.getActiveEntry()?.resource?.meta?.claims || {}),
+    };
+    const actionTargets = splitCsv(claims[ClaimConsent.action]).map((code) =>
+      buildClassifiedConsentTarget(ConsentEditorTargetKinds.Section, code, [ConsentEditorScopeCodes.Read]));
+    const categoryTargets = splitCsv(claims[ClaimConsent.category]).map((code) =>
+      buildClassifiedConsentTarget(ConsentEditorTargetKinds.Section, code, [ConsentEditorScopeCodes.Read]));
+    const resourceTypes = splitCsv(claims[ClaimConsent.resourceType]).map((code) =>
+      buildClassifiedConsentTarget(ConsentEditorTargetKinds.ResourceType, code, [ConsentEditorScopeCodes.Read]));
+
+    return normalizeClassifiedTargets([
+      ...actionTargets,
+      ...categoryTargets,
+      ...resourceTypes,
+    ]);
+  }
+
+  /** Returns consent actors grouped by jurisdiction, organization, and user. */
+  getActorsClassified(): ConsentEditorClassifiedActors {
+    const claims = {
+      ...(this.getActiveEntry()?.resource?.meta?.claims || {}),
+    };
+    const actorTokens = splitCsv(claims[ClaimConsent.actorIdentifier]);
+    const actorRole = parseConsentActorRole(asTrimmedString(claims[ClaimConsent.actorRole]));
+
+    const jurisdictions = new Map<string, ConsentEditorClassifiedJurisdiction>();
+    const organizations = new Map<string, ConsentEditorClassifiedOrganization>();
+    const users = new Map<string, ConsentEditorClassifiedUser>();
+
+    for (const token of actorTokens) {
+      if (looksLikeJurisdictionToken(token)) {
+        jurisdictions.set(token, { code: token, display: token });
+        continue;
+      }
+
+      if (looksLikeEmailToken(token)) {
+        users.set(`email:${token}`, {
+          email: token,
+          ...(actorRole ? { role: actorRole } : {}),
+        });
+        continue;
+      }
+
+      if (looksLikePhoneToken(token)) {
+        users.set(`phone:${token}`, {
+          phone: token,
+          ...(actorRole ? { role: actorRole } : {}),
+        });
+        continue;
+      }
+
+      const organization = parseDidWebOrganizationToken(token);
+      if (organization) {
+        organizations.set(organization.domain, organization);
+      }
+    }
+
+    return {
+      jurisdictions: Array.from(jurisdictions.values()),
+      organizations: Array.from(organizations.values()),
+      users: Array.from(users.values()),
+    };
+  }
+}
 
 /**
  * High-level factory for consent-access editing.
@@ -772,4 +934,140 @@ function runtimeUuid(prefix: string): string {
     return cryptoLike.crypto.randomUUID();
   }
   return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+const CSV_SEPARATOR = ',';
+const DID_WEB_PREFIX = 'did:web:';
+const PHONE_PREFIX = 'tel:';
+
+function splitCsv(value: unknown): string[] {
+  return String(value || '')
+    .split(CSV_SEPARATOR)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function buildClassifiedConsentTarget(
+  kind: ConsentEditorTargetKind,
+  code: string,
+  scopeCodes: readonly ConsentEditorScopeCode[],
+): ConsentEditorClassifiedTarget {
+  const normalizedCode = String(code || '').trim();
+  return {
+    target: {
+      kind,
+      code: normalizedCode,
+      display: resolveConsentTargetDisplay(kind, normalizedCode),
+      ...(kind === ConsentEditorTargetKinds.Section
+        ? { sectionFamily: getHealthcareSectionFamilyByCode(normalizedCode) }
+        : {}),
+    },
+    scopes: normalizeScopeCodes(scopeCodes).map((scopeCode) => ({
+      code: scopeCode,
+      display: resolveConsentScopeDisplay(scopeCode),
+    })),
+  };
+}
+
+function normalizeScopeCodes(scopeCodes: readonly ConsentEditorScopeCode[]): ConsentEditorScopeCode[] {
+  const values = Array.from(new Set(scopeCodes.map((scopeCode) => String(scopeCode).trim()).filter(Boolean)));
+  return values.filter((scopeCode): scopeCode is ConsentEditorScopeCode =>
+    Object.values(ConsentEditorScopeCodes).includes(scopeCode as ConsentEditorScopeCode),
+  );
+}
+
+function normalizeClassifiedTargets(targets: readonly ConsentEditorClassifiedTarget[]): ConsentEditorClassifiedTarget[] {
+  const result = new Map<string, ConsentEditorClassifiedTarget>();
+  for (const target of targets) {
+    const normalized = buildClassifiedConsentTarget(
+      target.target.kind,
+      String(target.target.code || '').trim(),
+      target.scopes.map((scope) => scope.code),
+    );
+    const key = `${normalized.target.kind}:${normalized.target.code}`;
+    result.set(key, normalized);
+  }
+  return Array.from(result.values());
+}
+
+function resolveConsentTargetDisplay(kind: ConsentEditorTargetKind, code: string): string | undefined {
+  if (kind === ConsentEditorTargetKinds.ResourceType) {
+    return code;
+  }
+  if (kind === ConsentEditorTargetKinds.Section) {
+    const loincCode = code.includes('|') ? code.split('|').slice(-1)[0] : code;
+    return getHealthcareSectionByCode(loincCode)?.titleEn;
+  }
+  return undefined;
+}
+
+function resolveConsentScopeDisplay(scopeCode: ConsentEditorScopeCode): string {
+  if (scopeCode === ConsentEditorScopeCodes.Search) return 'search';
+  if (scopeCode === ConsentEditorScopeCodes.Read) return 'read';
+  if (scopeCode === ConsentEditorScopeCodes.Create) return 'create';
+  if (scopeCode === ConsentEditorScopeCodes.Update) return 'update';
+  return 'delete';
+}
+
+function looksLikeEmailToken(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim().toLowerCase());
+}
+
+function looksLikePhoneToken(value: string): boolean {
+  return String(value || '').trim().startsWith(PHONE_PREFIX);
+}
+
+function looksLikeJurisdictionToken(value: string): boolean {
+  return /^[A-Z]{2}([\-:][A-Z0-9]+)?$/.test(String(value || '').trim());
+}
+
+function parseDidWebOrganizationToken(value: string): ConsentEditorClassifiedOrganization | undefined {
+  const normalized = String(value || '').trim();
+  if (!normalized.startsWith(DID_WEB_PREFIX)) {
+    return undefined;
+  }
+  const segments = normalized.slice(DID_WEB_PREFIX.length).split(':').filter(Boolean);
+  if (segments.length === 0) {
+    return undefined;
+  }
+  const [domain, ...departmentSegments] = segments;
+  return {
+    domain,
+    display: domain,
+    departments: departmentSegments.map((segment) => ({
+      code: segment,
+      display: segment,
+    })),
+    locations: [],
+  };
+}
+
+function parseConsentActorRole(value: string): ConsentEditorClassifiedActorRole | undefined {
+  const normalized = String(value || '').trim();
+  if (!normalized) {
+    return undefined;
+  }
+  const healthcareRole = getHealthcareRoleByClaim(normalized);
+  if (healthcareRole) {
+    return {
+      codingSystem: healthcareRole.codingSystem,
+      code: healthcareRole.code,
+      display: healthcareRole.titleEn,
+    };
+  }
+
+  const separatorIndex = normalized.indexOf('|');
+  if (separatorIndex < 0) {
+    return {
+      codingSystem: '',
+      code: normalized,
+      display: normalized,
+    };
+  }
+
+  return {
+    codingSystem: normalized.slice(0, separatorIndex),
+    code: normalized.slice(separatorIndex + 1),
+    display: normalized,
+  };
 }
