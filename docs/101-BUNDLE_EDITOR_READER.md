@@ -104,6 +104,24 @@ Then the entry can be opened as one resource-specific editor:
 const employeeEntry = bundle.newEntry().asEmployee();
 ```
 
+The recommended teaching order is:
+
+```ts
+const bundle = new BundleEditor()
+  .setBundleOperation(EmployeeBundleOperations.create)
+  .setAllowedResourceType(EmployeeResourceTypes.employee);
+
+const employeeEntry = bundle
+  .newEntry()
+  .asEmployee()
+  .setEmail(...)
+  .setRole(...);
+
+employeeEntry.doneEntry();
+
+const builtBundle = bundle.build();
+```
+
 `EmployeeEntryEditor` then adds:
 
 - `setIdentifier(...)`
