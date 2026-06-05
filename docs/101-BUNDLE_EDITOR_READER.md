@@ -35,7 +35,7 @@ Owns the generic shared infrastructure:
 - `BundleReader`
 - `BundleEntryEditor`
 - `EmployeeEntryEditor`
-- `ConsentEditor` as future work
+- `ConsentAccessEditor` for consent editing/reading on top of the shared bundle model
 - canonical bundle/entry typing
 - generic `fullUrl`, `resource.id`, and claim alignment rules
 
