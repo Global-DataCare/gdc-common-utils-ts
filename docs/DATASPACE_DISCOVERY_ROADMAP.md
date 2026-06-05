@@ -100,7 +100,7 @@ Add:
 Expected DTOs:
 
 - `DataspaceServiceCapability`
-- `DataspaceServiceCapabilityToken`
+- `DataspaceServiceCapabilityToken` (deprecated compatibility alias)
 - `DataspaceCoverage`
 - `DataspaceServiceSemanticRecord`
 - `HostingOperatorSemanticRecord`

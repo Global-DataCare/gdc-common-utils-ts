@@ -4,6 +4,19 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- Canonicalized public dataspace service capability usage around `ServiceCapability` with FHIR-aligned persisted values:
+  - `ServiceCapability.IndexReader = 'organization/Composition.rs'`
+  - `ServiceCapability.IndexProvider = 'organization/Composition.cruds'`
+  - `ServiceCapability.DigitalTwinReader = 'organization/ResearchSubject.rs'`
+  - `ServiceCapability.DigitalTwinProvider = 'organization/ResearchSubject.cruds'`
+- Kept backward compatibility for deprecated persisted values:
+  - `indexing.rs`
+  - `indexing.cruds`
+  - `digitaltwin.rs`
+  - `digitaltwin.cruds`
+- Updated dataspace discovery examples/tests/docs to teach `ServiceCapability.*` as the public API instead of `ServiceCapabilityToken`.
+
 ## [1.18.0] - 2026-06-05
 
 ### Added

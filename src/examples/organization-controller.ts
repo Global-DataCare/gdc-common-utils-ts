@@ -7,8 +7,8 @@ import {
   ClaimsServiceSchemaorg,
 } from '../constants/schemaorg';
 import {
-  ServiceCapabilityToken,
   serializeServiceCapabilityTokens,
+  ServiceCapability,
 } from '../constants/service-capabilities';
 import {
   EXAMPLE_CONTROLLER_BINDING,
@@ -46,8 +46,8 @@ export const EXAMPLE_ACTIVATE_ORGANIZATION_FROM_ICA_PROOF_INPUT = {
     [ClaimsServiceSchemaorg.identifier]: EXAMPLE_SERVICE_PUBLIC_DID,
     [ClaimsServiceSchemaorg.url]: `https://operator.example.net/acme/cds-${String(EXAMPLE_JURISDICTION).toLowerCase()}/v1/${EXAMPLE_SECTOR}`,
     [ClaimsServiceSchemaorg.serviceType]: serializeServiceCapabilityTokens([
-      ServiceCapabilityToken.IndexProvider,
-      ServiceCapabilityToken.DigitalTwinReader,
+      ServiceCapability.IndexProvider,
+      ServiceCapability.DigitalTwinReader,
     ]),
   },
 } as const;

@@ -1,7 +1,10 @@
 import { describe, expect, it } from '@jest/globals';
 import { DataspaceSectors } from '../src/constants/sectors.js';
 import { ClaimsOrganizationSchemaorg, ClaimsServiceSchemaorg } from '../src/constants/schemaorg.js';
-import { ServiceCapabilityToken } from '../src/constants/service-capabilities.js';
+import {
+  ServiceCapability,
+  ServiceCapabilityToken,
+} from '../src/constants/service-capabilities.js';
 import {
   buildExampleHostingOperatorDiscoveryCatalog,
   buildExampleHostingOperatorCredentialSubject,
@@ -42,8 +45,8 @@ describe('dataspace discovery helpers', () => {
 
     expect(record.subjectId).toBe(EXAMPLE_HOSTING_OPERATOR_DID);
     expect(record.serviceTypes).toEqual([
-      ServiceCapabilityToken.IndexProvider,
-      ServiceCapabilityToken.DigitalTwinProvider,
+      ServiceCapability.IndexProvider,
+      ServiceCapability.DigitalTwinProvider,
     ]);
     expect(record.categories).toEqual([EXAMPLE_SECTOR]);
     expect(record.areaServed).toEqual([EXAMPLE_COVERAGE_SCOPE_EU, EXAMPLE_JURISDICTION]);
@@ -62,7 +65,7 @@ describe('dataspace discovery helpers', () => {
     });
 
     expect(record.subjectId).toBe(EXAMPLE_TENANT_SERVICE_DID);
-    expect(record.serviceTypes).toEqual([ServiceCapabilityToken.IndexProvider]);
+    expect(record.serviceTypes).toEqual([ServiceCapability.IndexProvider]);
     expect(record.categories).toEqual([EXAMPLE_SECTOR]);
     expect(record.areaServed).toEqual([EXAMPLE_COVERAGE_SCOPE_EU]);
     expect(record.addressCountry).toBe(EXAMPLE_JURISDICTION);
@@ -126,7 +129,7 @@ describe('dataspace discovery helpers', () => {
       [matchingRecord, nonMatchingRecord],
       {
         sector: EXAMPLE_SECTOR,
-        requiredCapabilities: [ServiceCapabilityToken.IndexProvider],
+        requiredCapabilities: [ServiceCapability.IndexProvider],
         coverageScope: EXAMPLE_COVERAGE_SCOPE_EU,
       },
     );
@@ -138,12 +141,12 @@ describe('dataspace discovery helpers', () => {
     const matchingRecord = buildExamplePublishedProviderCatalogRecord();
     const readerRecord = buildExamplePublishedProviderCatalogRecord({
       did: EXAMPLE_TENANT_SERVICE_DID,
-      serviceTypes: [ServiceCapabilityToken.DigitalTwinReader],
+      serviceTypes: [ServiceCapability.DigitalTwinReader],
     });
 
     expect(matchesPublishedProviderDiscoveryFilter(matchingRecord, {
       sector: EXAMPLE_SECTOR,
-      capability: ServiceCapabilityToken.IndexProvider,
+      capability: ServiceCapability.IndexProvider,
       coverageScope: EXAMPLE_COVERAGE_SCOPE_EU,
     })).toBe(true);
 
@@ -163,13 +166,13 @@ describe('dataspace discovery helpers', () => {
       buildExamplePublishedProviderCatalogRecord(),
       buildExamplePublishedProviderCatalogRecord({
         did: EXAMPLE_SECONDARY_TENANT_SERVICE_DID,
-        serviceTypes: [ServiceCapabilityToken.DigitalTwinProvider],
+        serviceTypes: [ServiceCapability.DigitalTwinProvider],
       }),
     ]);
 
     const filtered = filterHostingOperatorDiscoveryCatalog(catalog, {
       sector: EXAMPLE_SECTOR,
-      capability: ServiceCapabilityToken.IndexProvider,
+      capability: ServiceCapability.IndexProvider,
       coverageScope: EXAMPLE_COVERAGE_SCOPE_EU,
     });
 
@@ -177,7 +180,26 @@ describe('dataspace discovery helpers', () => {
     expect(filtered.discoveryUrl).toBe(EXAMPLE_HOSTING_OPERATOR_DSPACE_VERSION_URL);
     expect(filtered.catalogUrl).toBe(EXAMPLE_HOSTING_OPERATOR_CATALOG_ARTIFACT_URL);
     expect(filtered.providers).toHaveLength(1);
-    expect(filtered.providers[0]?.serviceType).toBe(ServiceCapabilityToken.IndexProvider);
+    expect(filtered.providers[0]?.serviceType).toBe(ServiceCapability.IndexProvider);
+  });
+
+  it('normalizes deprecated persisted capability values into the canonical family tokens', () => {
+    const record = extractTenantServiceSemanticRecord({
+      credentialSubject: {
+        id: EXAMPLE_TENANT_SERVICE_DID,
+      },
+      meta: {
+        claims: {
+          ...buildExampleTenantServiceMetaClaims(),
+          [ClaimsServiceSchemaorg.serviceType]: `${ServiceCapabilityToken.LegacyIndexProvider},${ServiceCapabilityToken.LegacyDigitalTwinReader}`,
+        },
+      },
+    });
+
+    expect(record.serviceTypes).toEqual([
+      ServiceCapability.IndexProvider,
+      ServiceCapability.DigitalTwinReader,
+    ]);
   });
 
   it('publishes discovery entrypoint and derived catalog artifact explicitly in examples', () => {

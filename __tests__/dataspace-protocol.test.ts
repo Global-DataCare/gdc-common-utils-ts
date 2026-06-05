@@ -1,4 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
+import { ServiceCapability } from '../src/constants/service-capabilities.js';
 import { HostNetworkTypes } from '../src/constants/network.js';
 import { DataspaceProtocolVersions } from '../src/constants/dataspace-protocol.js';
 import {
@@ -66,7 +67,7 @@ describe('dataspace protocol helpers', () => {
       providers: [
         buildDefaultPublishedProviderCatalogRecord({
           providerDid: 'did:web:provider.example.org',
-          serviceType: 'indexing.cruds',
+          serviceType: ServiceCapability.IndexProvider,
           category: 'health-care',
           areaServed: ['EU', 'ES'],
           endpointUrl: 'https://host.example.org/catalog/provider-a',

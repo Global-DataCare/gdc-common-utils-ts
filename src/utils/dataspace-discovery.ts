@@ -2,7 +2,10 @@
 
 import { ClaimsOrganizationSchemaorg, ClaimsServiceSchemaorg } from '../constants/schemaorg';
 import { isEuCountryCode, normalizeCountryCode } from '../constants/eu-countries';
-import { isProviderServiceCapability } from '../constants/service-capabilities';
+import {
+  isProviderServiceCapability,
+  parseServiceCapabilityTokens,
+} from '../constants/service-capabilities';
 import {
   DataspaceCoverageScope,
   type DataspaceDiscoveryFilter,
@@ -154,7 +157,7 @@ function getFlattenedClaims(input: unknown): JsonObject | undefined {
 }
 
 function getSemanticServiceTypes(subject: JsonObject | undefined): string[] {
-  return toStringList(subject?.serviceType);
+  return parseServiceTypeCsv(subject?.serviceType);
 }
 
 function getSemanticCategories(subject: JsonObject | undefined): string[] {
@@ -171,7 +174,7 @@ function getSemanticAddressCountry(subject: JsonObject | undefined): string {
 }
 
 function getFlattenedServiceTypes(claims: JsonObject | undefined): string[] {
-  return toStringList(claims?.[ClaimsServiceSchemaorg.serviceType]);
+  return parseServiceTypeCsv(claims?.[ClaimsServiceSchemaorg.serviceType]);
 }
 
 function getFlattenedCategories(claims: JsonObject | undefined): string[] {
@@ -209,12 +212,17 @@ function assertNoScalarMismatch(kind: string, semantic: string, flattened: strin
  *
  * @example
  * ```ts
- * parseServiceTypeCsv('indexing.cruds,digitaltwin.rs');
- * // ['indexing.cruds', 'digitaltwin.rs']
+ * parseServiceTypeCsv('organization/Composition.cruds,organization/ResearchSubject.rs');
+ * // ['organization/Composition.cruds', 'organization/ResearchSubject.rs']
  * ```
  */
 export function parseServiceTypeCsv(value: unknown): string[] {
-  return toStringList(value);
+  if (Array.isArray(value)) {
+    return Array.from(new Set(
+      value.flatMap((entry) => parseServiceTypeCsv(entry)),
+    ));
+  }
+  return parseServiceCapabilityTokens(value);
 }
 
 /**
@@ -308,14 +316,14 @@ export function inferCoverageScopeFromCredentialSubject(subject: unknown): strin
  * extractDataspaceServiceSemanticRecord({
  *   credentialSubject: {
  *     id: 'did:web:provider.example.org',
- *     serviceType: 'indexing.cruds',
+ *     serviceType: 'organization/Composition.cruds',
  *     category: 'animal-care',
  *     areaServed: { '@type': 'AdministrativeArea', name: 'EU' },
  *     address: { addressCountry: 'ES' },
  *   },
  *   meta: {
  *     claims: {
- *       'org.schema.Service.serviceType': 'indexing.cruds',
+ *       'org.schema.Service.serviceType': 'organization/Composition.cruds',
  *       'org.schema.Service.category': 'animal-care',
  *       'org.schema.Service.areaServed': 'EU',
  *       'org.schema.Organization.address.addressCountry': 'ES',

@@ -35,7 +35,7 @@ Rule:
 ```ts
 import {
   DataspaceDiscoverySourceMode,
-  ServiceCapabilityToken,
+  ServiceCapability,
 } from 'gdc-common-utils-ts/constants';
 import {
   buildDefaultHostingOperatorRegistrationFromAuthority,
@@ -61,7 +61,7 @@ defaults.addHostingOperator(buildDefaultHostingOperatorRegistrationFromAuthority
   networkType: 'test',
   title: 'Health Care Host ES',
   sector: 'health-care',
-  serviceTypes: [ServiceCapabilityToken.IndexProvider],
+  serviceTypes: [ServiceCapability.IndexProvider],
   areaServed: ['EU', 'ES'],
   coverageScope: 'EU',
 }));
@@ -77,7 +77,7 @@ defaults.addHostingOperator({
     networkType: 'test',
     title: 'Health Host ES',
     sector: 'health-care',
-    serviceTypes: [ServiceCapabilityToken.IndexProvider],
+    serviceTypes: [ServiceCapability.IndexProvider],
     areaServed: ['EU', 'ES'],
     coverageScope: 'EU',
   }),
@@ -88,7 +88,7 @@ defaults.addHostingOperator({
       jurisdiction: 'ES',
       version: 'v1',
       sector: 'health-care',
-      providerCapability: ServiceCapabilityToken.IndexProvider,
+      providerCapability: ServiceCapability.IndexProvider,
       areaServed: ['EU', 'ES'],
       // Future optional public domain:
       // externalDomain: 'acme-health.example.org',
@@ -102,7 +102,7 @@ const plan = defaults.buildBootstrapPlan({
   networkType: 'test',
   sector: 'health-care',
   coverageScope: 'EU',
-  requiredCapabilities: [ServiceCapabilityToken.IndexProvider],
+  requiredCapabilities: [ServiceCapability.IndexProvider],
   sourceMode: DataspaceDiscoverySourceMode.DefaultFirst,
 });
 ```

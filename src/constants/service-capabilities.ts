@@ -2,73 +2,135 @@
 // Always create JSDoc, do not use strings inline in keys nor values, use types instead, and reuse the data test examples.
 
 /**
- * Canonical capability families persisted through
+ * Canonical persisted capability values stored in
  * `org.schema.Service.serviceType`.
  */
-export const ServiceCapabilityFamily = {
-  Indexing: 'indexing',
-  DigitalTwin: 'digitaltwin',
-} as const;
-
-export type ServiceCapabilityFamilyValue =
-  typeof ServiceCapabilityFamily[keyof typeof ServiceCapabilityFamily];
-
-/**
- * Canonical capability tokens currently documented for tenant activation.
- *
- * The family prefix is the stable part of the contract. Suffixes such as
- * `.rs` and `.cruds` can evolve independently across runtimes.
- */
-export const ServiceCapabilityToken = {
-  IndexReader: 'indexing.rs',
-  IndexProvider: 'indexing.cruds',
-  DigitalTwinReader: 'digitaltwin.rs',
-  DigitalTwinProvider: 'digitaltwin.cruds',
-  /**
-   * @deprecated Prefer `IndexReader`.
-   */
-  IndexingReadSearch: 'indexing.rs',
-  /**
-   * @deprecated Prefer `IndexProvider`.
-   */
-  IndexingCruds: 'indexing.cruds',
-  /**
-   * @deprecated Prefer `DigitalTwinReader`.
-   */
-  DigitalTwinReadSearch: 'digitaltwin.rs',
-  /**
-   * @deprecated Prefer `DigitalTwinProvider`.
-   */
-  DigitalTwinCruds: 'digitaltwin.cruds',
-} as const;
-
-export type ServiceCapabilityTokenValue =
-  typeof ServiceCapabilityToken[keyof typeof ServiceCapabilityToken];
-
-/**
- * SDK-facing capability names.
- *
- * These names are intentionally more explicit than the persisted claim tokens:
- * - `Provider` maps to write/manage capability (`*.cruds`)
- * - `Reader` maps to read/search capability (`*.rs`)
- */
 export const ServiceCapability = {
-  IndexProvider: ServiceCapabilityToken.IndexProvider,
-  IndexReader: ServiceCapabilityToken.IndexReader,
-  DigitalTwinProvider: ServiceCapabilityToken.DigitalTwinProvider,
-  DigitalTwinReader: ServiceCapabilityToken.DigitalTwinReader,
-  /**
-   * @deprecated Prefer `IndexProvider`.
-   */
-  IndexingProvider: ServiceCapabilityToken.IndexProvider,
-  /**
-   * @deprecated Prefer `IndexReader`.
-   */
-  IndexingReader: ServiceCapabilityToken.IndexReader,
+  IndexReader: 'organization/Composition.rs',
+  IndexProvider: 'organization/Composition.cruds',
+  DigitalTwinReader: 'organization/ResearchSubject.rs',
+  DigitalTwinProvider: 'organization/ResearchSubject.cruds',
 } as const;
 
 export type ServiceCapabilityValue =
   typeof ServiceCapability[keyof typeof ServiceCapability];
+
+/**
+ * Canonical capability families derived from the persisted service capability
+ * values.
+ */
+export const ServiceCapabilityKind = {
+  Indexing: 'organization/composition',
+  DigitalTwin: 'organization/researchsubject',
+} as const;
+
+export type ServiceCapabilityKindValue =
+  typeof ServiceCapabilityKind[keyof typeof ServiceCapabilityKind];
+
+/**
+ * @deprecated Legacy serviceType values accepted for backward compatibility.
+ */
+export const DeprecatedServiceCapabilityToken = {
+  IndexReader: 'indexing.rs',
+  IndexProvider: 'indexing.cruds',
+  DigitalTwinReader: 'digitaltwin.rs',
+  DigitalTwinProvider: 'digitaltwin.cruds',
+} as const;
+
+export type DeprecatedServiceCapabilityTokenValue =
+  typeof DeprecatedServiceCapabilityToken[keyof typeof DeprecatedServiceCapabilityToken];
+
+/**
+ * @deprecated Prefer `ServiceCapability`.
+ *
+ * Kept as a compatibility alias for older callers that imported
+ * `ServiceCapabilityToken`.
+ */
+export const ServiceCapabilityToken = {
+  IndexReader: ServiceCapability.IndexReader,
+  IndexProvider: ServiceCapability.IndexProvider,
+  DigitalTwinReader: ServiceCapability.DigitalTwinReader,
+  DigitalTwinProvider: ServiceCapability.DigitalTwinProvider,
+  /**
+   * @deprecated Prefer `IndexReader`.
+   */
+  IndexingReadSearch: ServiceCapability.IndexReader,
+  /**
+   * @deprecated Prefer `IndexProvider`.
+   */
+  IndexingCruds: ServiceCapability.IndexProvider,
+  /**
+   * @deprecated Prefer `DigitalTwinReader`.
+   */
+  DigitalTwinReadSearch: ServiceCapability.DigitalTwinReader,
+  /**
+   * @deprecated Prefer `DigitalTwinProvider`.
+   */
+  DigitalTwinCruds: ServiceCapability.DigitalTwinProvider,
+  /**
+   * @deprecated Prefer `ServiceCapability.IndexReader`.
+   * Legacy persisted value kept for compatibility while external payloads
+   * still emit `indexing.rs`.
+   */
+  LegacyIndexReader: DeprecatedServiceCapabilityToken.IndexReader,
+  /**
+   * @deprecated Prefer `ServiceCapability.IndexProvider`.
+   * Legacy persisted value kept for compatibility while external payloads
+   * still emit `indexing.cruds`.
+   */
+  LegacyIndexProvider: DeprecatedServiceCapabilityToken.IndexProvider,
+  /**
+   * @deprecated Prefer `ServiceCapability.DigitalTwinReader`.
+   * Legacy persisted value kept for compatibility while external payloads
+   * still emit `digitaltwin.rs`.
+   */
+  LegacyDigitalTwinReader: DeprecatedServiceCapabilityToken.DigitalTwinReader,
+  /**
+   * @deprecated Prefer `ServiceCapability.DigitalTwinProvider`.
+   * Legacy persisted value kept for compatibility while external payloads
+   * still emit `digitaltwin.cruds`.
+   */
+  LegacyDigitalTwinProvider: DeprecatedServiceCapabilityToken.DigitalTwinProvider,
+} as const;
+
+/**
+ * @deprecated Prefer `ServiceCapabilityValue`.
+ */
+export type ServiceCapabilityTokenValue =
+  typeof ServiceCapabilityToken[keyof typeof ServiceCapabilityToken];
+
+const CANONICAL_SERVICE_CAPABILITY_BY_VALUE = new Map<string, string>([
+  [String(ServiceCapability.IndexReader).toLowerCase(), ServiceCapability.IndexReader],
+  [String(ServiceCapability.IndexProvider).toLowerCase(), ServiceCapability.IndexProvider],
+  [String(ServiceCapability.DigitalTwinReader).toLowerCase(), ServiceCapability.DigitalTwinReader],
+  [String(ServiceCapability.DigitalTwinProvider).toLowerCase(), ServiceCapability.DigitalTwinProvider],
+  [String(DeprecatedServiceCapabilityToken.IndexReader).toLowerCase(), ServiceCapability.IndexReader],
+  [String(DeprecatedServiceCapabilityToken.IndexProvider).toLowerCase(), ServiceCapability.IndexProvider],
+  [String(DeprecatedServiceCapabilityToken.DigitalTwinReader).toLowerCase(), ServiceCapability.DigitalTwinReader],
+  [String(DeprecatedServiceCapabilityToken.DigitalTwinProvider).toLowerCase(), ServiceCapability.DigitalTwinProvider],
+]);
+
+function splitServiceCapabilityToken(
+  value: string,
+): Readonly<{ family?: string; suffix?: string }> {
+  const lastDot = value.lastIndexOf('.');
+  if (lastDot < 0) {
+    return { family: value || undefined, suffix: undefined };
+  }
+  return {
+    family: value.slice(0, lastDot) || undefined,
+    suffix: value.slice(lastDot + 1) || undefined,
+  };
+}
+
+/**
+ * Normalizes a service capability token into its canonical persisted form.
+ */
+export function normalizeServiceCapability(value: string | undefined | null): string | undefined {
+  const normalized = String(value || '').trim();
+  if (!normalized) return undefined;
+  return CANONICAL_SERVICE_CAPABILITY_BY_VALUE.get(normalized.toLowerCase()) || normalized;
+}
 
 /**
  * Parses the CSV stored in `org.schema.Service.serviceType`.
@@ -77,8 +139,8 @@ export function parseServiceCapabilityTokens(value: unknown): string[] {
   return Array.from(new Set(
     String(value || '')
       .split(',')
-      .map((item) => item.trim())
-      .filter(Boolean),
+      .map((item) => normalizeServiceCapability(item))
+      .filter((item): item is string => Boolean(item)),
   ));
 }
 
@@ -88,32 +150,32 @@ export function parseServiceCapabilityTokens(value: unknown): string[] {
 export function serializeServiceCapabilityTokens(values: ReadonlyArray<string | undefined | null>): string | undefined {
   const normalized = Array.from(new Set(
     values
-      .map((item) => String(item || '').trim())
-      .filter(Boolean),
+      .map((item) => normalizeServiceCapability(item))
+      .filter((item): item is string => Boolean(item)),
   ));
   return normalized.length ? normalized.join(',') : undefined;
 }
 
 /**
- * Returns the capability family prefix from a token.
+ * Returns the capability family prefix from a persisted capability token.
  */
-export function getServiceCapabilityFamily(value: string | undefined): string | undefined {
-  const normalized = String(value || '').trim().toLowerCase();
+export function getServiceCapabilityKind(value: string | undefined): string | undefined {
+  const normalized = normalizeServiceCapability(value)?.toLowerCase();
   if (!normalized) return undefined;
-  return normalized.split('.')[0] || undefined;
+  return splitServiceCapabilityToken(normalized).family;
 }
 
 /**
  * Checks whether the claim contains at least one capability from the requested
  * family.
  */
-export function hasServiceCapabilityFamily(
+export function hasServiceCapabilityKind(
   value: unknown,
-  family: ServiceCapabilityFamilyValue | string,
+  family: ServiceCapabilityKindValue | string,
 ): boolean {
   const normalizedFamily = String(family || '').trim().toLowerCase();
   if (!normalizedFamily) return false;
-  return parseServiceCapabilityTokens(value).some((item) => getServiceCapabilityFamily(item) === normalizedFamily);
+  return parseServiceCapabilityTokens(value).some((item) => getServiceCapabilityKind(item) === normalizedFamily);
 }
 
 /**
@@ -121,7 +183,7 @@ export function hasServiceCapabilityFamily(
  * role rather than a reader-only role.
  */
 export function isProviderServiceCapability(value: string | undefined | null): boolean {
-  const normalized = String(value || '').trim().toLowerCase();
-  return normalized === ServiceCapabilityToken.IndexProvider
-    || normalized === ServiceCapabilityToken.DigitalTwinProvider;
+  const normalized = normalizeServiceCapability(value);
+  return normalized === ServiceCapability.IndexProvider
+    || normalized === ServiceCapability.DigitalTwinProvider;
 }

@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import {
   DataspaceDiscoverySourceMode,
   DataspaceSectors,
-  ServiceCapabilityToken,
+  ServiceCapability,
 } from '../src/constants/index.js';
 import {
   buildExampleHostingOperatorCredentialSubject,
@@ -44,7 +44,7 @@ function buildDefaultHostingOperatorRegistration(
     record: extractHostingOperatorSemanticRecord({
       credentialSubject: buildExampleHostingOperatorCredentialSubject({
         categories: [DataspaceSectors.HealthCare],
-        serviceTypes: [ServiceCapabilityToken.IndexProvider],
+        serviceTypes: [ServiceCapability.IndexProvider],
         areaServed: [EXAMPLE_COVERAGE_SCOPE_EU, EXAMPLE_JURISDICTION],
       }),
     }),
@@ -61,7 +61,7 @@ function buildBootstrapInput(
     networkType: EXAMPLE_NETWORK_TYPE,
     sector: DataspaceSectors.HealthCare,
     coverageScope: EXAMPLE_COVERAGE_SCOPE_EU,
-    requiredCapabilities: [ServiceCapabilityToken.IndexProvider],
+    requiredCapabilities: [ServiceCapability.IndexProvider],
     ...overrides,
   };
 }
@@ -92,7 +92,7 @@ describe('dataspace discovery defaults 101', () => {
       networkType: EXAMPLE_NETWORK_TYPE,
       title: 'Animal Care Host ES',
       sector: DataspaceSectors.AnimalCare,
-      serviceTypes: [ServiceCapabilityToken.IndexProvider],
+      serviceTypes: [ServiceCapability.IndexProvider],
       areaServed: [EXAMPLE_COVERAGE_SCOPE_EU, EXAMPLE_JURISDICTION],
       coverageScope: EXAMPLE_COVERAGE_SCOPE_EU,
     })).toEqual({
@@ -106,7 +106,7 @@ describe('dataspace discovery defaults 101', () => {
       publishedProviders: [],
       record: {
         subjectId: 'did:web:host-animal-care.example.org',
-        serviceTypes: [ServiceCapabilityToken.IndexProvider],
+        serviceTypes: [ServiceCapability.IndexProvider],
         categories: [DataspaceSectors.AnimalCare],
         areaServed: [EXAMPLE_COVERAGE_SCOPE_EU, EXAMPLE_JURISDICTION],
         addressCountry: EXAMPLE_JURISDICTION,
@@ -122,11 +122,11 @@ describe('dataspace discovery defaults 101', () => {
       jurisdiction: EXAMPLE_JURISDICTION,
       version: EXAMPLE_ROUTE_VERSION,
       sector: DataspaceSectors.HealthCare,
-      providerCapability: ServiceCapabilityToken.IndexProvider,
+      providerCapability: ServiceCapability.IndexProvider,
       areaServed: [EXAMPLE_COVERAGE_SCOPE_EU, EXAMPLE_JURISDICTION],
     })).toEqual({
       providerDid: 'did:web:host-health.example.org:acme-id:cds-ES:v1:health-care',
-      serviceType: ServiceCapabilityToken.IndexProvider,
+      serviceType: ServiceCapability.IndexProvider,
       category: DataspaceSectors.HealthCare,
       areaServed: `${EXAMPLE_COVERAGE_SCOPE_EU},${EXAMPLE_JURISDICTION}`,
       endpointUrl: 'https://host-health.example.org/acme-id/cds-ES/v1/health-care/',
@@ -175,7 +175,7 @@ describe('dataspace discovery defaults 101', () => {
           record: extractHostingOperatorSemanticRecord({
             credentialSubject: buildExampleHostingOperatorCredentialSubject({
               categories: [DataspaceSectors.AnimalCare],
-              serviceTypes: [ServiceCapabilityToken.DigitalTwinProvider],
+              serviceTypes: [ServiceCapability.DigitalTwinProvider],
               areaServed: [EXAMPLE_COVERAGE_SCOPE_EU, EXAMPLE_JURISDICTION],
             }),
           }),
@@ -230,7 +230,7 @@ describe('dataspace discovery defaults 101', () => {
       ...buildBootstrapInput(),
       sourceMode: DataspaceDiscoverySourceMode.DefaultFirst,
       sector: DataspaceSectors.AnimalCare,
-      requiredCapabilities: [ServiceCapabilityToken.DigitalTwinProvider],
+      requiredCapabilities: [ServiceCapability.DigitalTwinProvider],
     });
 
     expect(planWithHosts.shouldUseDefaultsFirst).toBe(true);

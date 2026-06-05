@@ -1,7 +1,10 @@
 // Copyright 2026 Antifraud Services Inc. under the Apache License, Version 2.0.
 
 import { ClaimsOrganizationSchemaorg, ClaimsServiceSchemaorg } from '../constants/schemaorg';
-import { serializeServiceCapabilityTokens, ServiceCapabilityToken } from '../constants/service-capabilities';
+import {
+  serializeServiceCapabilityTokens,
+  ServiceCapability,
+} from '../constants/service-capabilities';
 import type {
   HostingOperatorDiscoveryCatalog,
   PublishedProviderCatalogRecord,
@@ -41,8 +44,8 @@ export function buildExampleHostingOperatorCredentialSubject(
   input: ExampleDataspaceCredentialSubjectInput = {},
 ) {
   const serviceTypes = input.serviceTypes || [
-    ServiceCapabilityToken.IndexProvider,
-    ServiceCapabilityToken.DigitalTwinProvider,
+    ServiceCapability.IndexProvider,
+    ServiceCapability.DigitalTwinProvider,
   ];
   const categories = input.categories || [EXAMPLE_SECTOR];
   const areaServed = input.areaServed || ['EU', EXAMPLE_JURISDICTION];
@@ -67,7 +70,7 @@ export function buildExampleHostingOperatorCredentialSubject(
 export function buildExampleTenantServiceCredentialSubject(
   input: ExampleDataspaceCredentialSubjectInput = {},
 ) {
-  const serviceTypes = input.serviceTypes || [ServiceCapabilityToken.IndexProvider];
+  const serviceTypes = input.serviceTypes || [ServiceCapability.IndexProvider];
   const categories = input.categories || [EXAMPLE_SECTOR];
   const areaServed = input.areaServed || ['EU'];
   const addressCountry = input.addressCountry || EXAMPLE_JURISDICTION;
@@ -93,8 +96,8 @@ export function buildExampleHostingOperatorMetaClaims(
   input: ExampleDataspaceCredentialSubjectInput = {},
 ) {
   const serviceTypes = input.serviceTypes || [
-    ServiceCapabilityToken.IndexProvider,
-    ServiceCapabilityToken.DigitalTwinProvider,
+    ServiceCapability.IndexProvider,
+    ServiceCapability.DigitalTwinProvider,
   ];
   const categories = input.categories || [EXAMPLE_SECTOR];
   const areaServed = input.areaServed || ['EU', EXAMPLE_JURISDICTION];
@@ -117,7 +120,7 @@ export function buildExampleHostingOperatorMetaClaims(
 export function buildExampleTenantServiceMetaClaims(
   input: ExampleDataspaceCredentialSubjectInput = {},
 ) {
-  const serviceTypes = input.serviceTypes || [ServiceCapabilityToken.IndexProvider];
+  const serviceTypes = input.serviceTypes || [ServiceCapability.IndexProvider];
   const categories = input.categories || [EXAMPLE_SECTOR];
   const areaServed = input.areaServed || ['EU'];
   const addressCountry = input.addressCountry || EXAMPLE_JURISDICTION;
@@ -144,12 +147,12 @@ export function buildExampleTenantServiceMetaClaims(
 export function buildExamplePublishedProviderCatalogRecord(
   input: ExampleDataspaceCredentialSubjectInput = {},
 ): PublishedProviderCatalogRecord {
-  const serviceTypes = input.serviceTypes || [ServiceCapabilityToken.IndexProvider];
+  const serviceTypes = input.serviceTypes || [ServiceCapability.IndexProvider];
   const categories = input.categories || [EXAMPLE_SECTOR];
   const areaServed = input.areaServed || ['EU'];
   return {
     providerDid: input.did || EXAMPLE_TENANT_SERVICE_DID,
-    serviceType: serviceTypes[0] || ServiceCapabilityToken.IndexProvider,
+    serviceType: serviceTypes[0] || ServiceCapability.IndexProvider,
     category: categories[0] || EXAMPLE_SECTOR,
     areaServed: firstOrCsv(areaServed) || 'EU',
     endpointUrl: EXAMPLE_PROVIDER_PUBLISHED_ENDPOINT_URL,
