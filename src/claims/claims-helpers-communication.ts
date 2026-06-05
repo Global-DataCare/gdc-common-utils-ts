@@ -83,6 +83,17 @@ export function removeCommunicationCategoryList(
   return removeClaimValues(claims, CommunicationClaim.Category, value);
 }
 
+export function getCommunicationTopic(claims: CommunicationInteroperableClaims): string {
+  return getCommunicationScalar(claims, CommunicationClaim.Topic);
+}
+
+export function setCommunicationTopic(
+  claims: CommunicationInteroperableClaims,
+  value: unknown,
+): CommunicationInteroperableClaims {
+  return setCommunicationScalar(claims, CommunicationClaim.Topic, value);
+}
+
 export function getCommunicationText(claims: CommunicationInteroperableClaims): string {
   return getCommunicationScalar(claims, CommunicationClaim.Text);
 }

@@ -6,6 +6,7 @@ import {
   HealthcareCanonicalSectionFamilies,
   HealthcareConsentPurposes,
   HealthcareCoreSections,
+  HealthcareKindOfDocumentSections,
 } from '../constants/healthcare';
 import { ResourceTypesFhirR4 } from '../constants/fhir-resource-types';
 import { CommunicationCategoryCodes } from '../constants/communication';
@@ -41,6 +42,7 @@ import {
   setCommunicationIdentifier,
   setCommunicationSubject,
   setCommunicationText,
+  setCommunicationTopic,
 } from '../claims/claims-helpers-communication';
 import {
   setActorIdentifierList,
@@ -66,6 +68,9 @@ import {
   resolvePermissionTemplate,
 } from '../utils/permission-templates';
 
+const CONSENT_BUNDLE_COMMUNICATION_TOPIC =
+  HealthcareKindOfDocumentSections['LP173394-0'].attributeValue;
+
 /**
  * First developer use case:
  * - edit a Consent entry inside a Communication-attached Bundle
@@ -89,6 +94,10 @@ export function buildConsentEditingCommunicationSessionExample(): {
   communicationClaims = setCommunicationCategory(
     communicationClaims,
     CommunicationCategoryCodes.Notification.attributeValue,
+  );
+  communicationClaims = setCommunicationTopic(
+    communicationClaims,
+    CONSENT_BUNDLE_COMMUNICATION_TOPIC,
   );
   communicationClaims = setCommunicationText(
     communicationClaims,
@@ -211,6 +220,10 @@ export function buildConsentPermissionTemplateImportExportSessionExample(): {
     communicationClaims,
     CommunicationCategoryCodes.Notification.attributeValue,
   );
+  communicationClaims = setCommunicationTopic(
+    communicationClaims,
+    CONSENT_BUNDLE_COMMUNICATION_TOPIC,
+  );
   communicationClaims = setCommunicationText(
     communicationClaims,
     EXAMPLE_IPS_BUNDLE_NOTE_TEXT,
@@ -310,6 +323,10 @@ export function buildSeparateConsentPermissionBundleExample(): {
   communicationClaims = setCommunicationCategory(
     communicationClaims,
     CommunicationCategoryCodes.Notification.attributeValue,
+  );
+  communicationClaims = setCommunicationTopic(
+    communicationClaims,
+    CONSENT_BUNDLE_COMMUNICATION_TOPIC,
   );
   communicationClaims = setCommunicationText(
     communicationClaims,

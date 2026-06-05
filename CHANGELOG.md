@@ -4,6 +4,27 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [1.18.0] - 2026-06-05
+
+### Added
+- Added canonical `Communication.topic` flat-claim support for communication-attached bundle flows in:
+  - `src/models/interoperable-claims/communication-claims.ts`
+  - `src/claims/claims-helpers-communication.ts`
+  - `src/utils/communication-claim-helpers.ts`
+- Added executable consent view-model roundtrip coverage in:
+  - `__tests__/101-consent-view-model.test.ts`
+
+### Changed
+- Simplified `ConsentViewModel` so frontend-facing consent editing uses `classifiedActors`, `classifiedRoles`, `classifiedPurposes`, and `classifiedTargets` as the public shape while `ConsentAccessEditor` still maps to the canonical flat `Consent` claims on load/save.
+- Updated consent bundle examples and `101` coverage so consent `Communication` wrappers carry the consent section topic `LOINC|LP173394-0`.
+- Preserved explicit `kind-of-document` target family semantics when rebuilding classified consent targets from persisted flat claims.
+- Updated `docs/101-CONSENT_ACCESS.md` to teach the classified consent view-model shape.
+
+### Testing
+- `npm test -- --watchman=false __tests__/101-consent-bundle-editor.test.ts __tests__/101-consent-view-model.test.ts`
+- `npm run typecheck`
+- `npm run build`
+
 ## [1.17.0] - 2026-06-04
 
 ### Added

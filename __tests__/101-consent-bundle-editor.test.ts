@@ -7,6 +7,7 @@ import {
   HealthcareBasicSections,
   HealthcareCanonicalSectionFamilies,
   HealthcareConsentPurposes,
+  HealthcareKindOfDocumentSections,
   ISCO08_CODING_SYSTEM,
 } from '../src/constants/healthcare.js';
 import { ClaimConsent, ConsentDecisions } from '../src/models/consent-rule.js';
@@ -27,6 +28,7 @@ import {
   setCommunicationCategory,
   setCommunicationIdentifier,
   setCommunicationSubject,
+  setCommunicationTopic,
 } from '../src/utils/claims-helpers-communication.js';
 import {
   addSectionList,
@@ -55,6 +57,8 @@ import {
 } from '../src/examples/communication-attached-bundle-session.js';
 import { CommunicationCategoryCodes } from '../src/constants/communication.js';
 
+const CONSENT_COMMUNICATION_TOPIC = HealthcareKindOfDocumentSections['LP173394-0'].attributeValue;
+
 describe('101: consent bundle editor', () => {
   it('creates or edits one Consent inside a Communication bundle step by step', () => {
     // Step 1.
@@ -73,6 +77,10 @@ describe('101: consent bundle editor', () => {
     communicationBaseClaims = setCommunicationCategory(
       communicationBaseClaims,
       CommunicationCategoryCodes.Notification.attributeValue,
+    );
+    communicationBaseClaims = setCommunicationTopic(
+      communicationBaseClaims,
+      CONSENT_COMMUNICATION_TOPIC,
     );
 
     const bundleEditor = createConsentAccessEditor({
@@ -122,6 +130,7 @@ describe('101: consent bundle editor', () => {
     // Assertions: the edited Consent is now persisted inside the
     // Communication-attached bundle and ready to be sent or rendered again.
     const communicationClaims = bundleEditor.getCommunicationClaims();
+    expect(communicationClaims[CommunicationClaim.Topic]).toBe(CONSENT_COMMUNICATION_TOPIC);
     const decodedBundle = JSON.parse(
       Buffer.from(String(communicationClaims[CommunicationClaim.ContentAttachmentData]), 'base64').toString('utf8'),
     );
@@ -334,6 +343,7 @@ describe('101: consent bundle editor', () => {
     });
 
     const wrappedCommunicationClaims = wrappedSession.getCommunicationClaims();
+    expect(wrappedCommunicationClaims[CommunicationClaim.Topic]).toBe(CONSENT_COMMUNICATION_TOPIC);
     const decodedWrappedBundle = JSON.parse(
       Buffer.from(
         String(wrappedCommunicationClaims[CommunicationClaim.ContentAttachmentData]),

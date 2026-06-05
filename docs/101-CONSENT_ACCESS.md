@@ -196,6 +196,46 @@ Important:
   - classified readback helpers such as `getActorsClassified()` and
     `getSelectedPurposes()`
 
+## 1. ConsentViewModel Roundtrip
+
+Frontend should not mutate raw FHIR `Consent` resources directly.
+
+Preferred mental model:
+
+- read one selected bundle `Consent` entry through `ConsentAccessEditor`
+- export that selected entry to one editable `ConsentViewModel`
+- let frontend render and edit that `ConsentViewModel`
+- apply the edited `ConsentViewModel` back through `ConsentAccessEditor`
+- save the updated `Consent` back into the same bundle entry
+
+Executable 101 reference:
+
+- [__tests__/101-consent-view-model.test.ts](../__tests__/101-consent-view-model.test.ts)
+
+Minimal path:
+
+```ts
+const editor = createConsentAccessEditor({ initialBundle });
+editor.selectActiveEntry({ fullUrl: 'urn:uuid:consent-1' });
+
+const viewModel = editor.getConsentViewModel();
+
+const editedViewModel = {
+  ...viewModel,
+  classifiedPurposes: [{ code: 'ETREAT' }],
+};
+
+editor
+  .applyConsentViewModel(editedViewModel)
+  .saveAndReleaseActiveEntry();
+```
+
+This is the preferred high-level frontend teaching path when:
+
+- the user reads one persisted consent from a returned bundle
+- the UI edits that consent in form/view-model state
+- the updated consent must be written back into the bundle before transport
+
 Alternative explicit-claim example on the same active entry:
 
 ```ts

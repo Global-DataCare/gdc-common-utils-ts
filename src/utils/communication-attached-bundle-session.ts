@@ -165,6 +165,17 @@ export type ConsentEditorClassifiedPurpose = Readonly<{
   display?: string;
 }>;
 
+export type ConsentViewModel = Readonly<{
+  fullUrl?: string;
+  identifier: string;
+  subject: string;
+  decision: string;
+  classifiedActors: ConsentEditorClassifiedActors;
+  classifiedRoles: ConsentEditorClassifiedRoles;
+  classifiedPurposes: readonly ConsentEditorClassifiedPurpose[];
+  classifiedTargets: readonly ConsentEditorClassifiedTarget[];
+}>;
+
 /**
  * Communication editing session with bundle-in-memory as source of truth.
  *
@@ -775,6 +786,45 @@ export class CommunicationAttachedBundleSession {
  * need to start from the lower-level generic session name.
  */
 export class ConsentAccessEditor extends CommunicationAttachedBundleSession {
+  /** Returns one frontend-facing editable view model for the active Consent entry. */
+  getConsentViewModel(): ConsentViewModel {
+    const activeEntry = this.getActiveEntry();
+    const claims = {
+      ...(activeEntry?.resource?.meta?.claims || {}),
+    };
+    return {
+      ...(activeEntry?.fullUrl ? { fullUrl: activeEntry.fullUrl } : {}),
+      identifier: asTrimmedString(claims[ClaimConsent.identifier]),
+      subject: asTrimmedString(claims[ClaimConsent.subject]),
+      decision: this.getDecision(),
+      classifiedActors: this.getActorsClassified(),
+      classifiedRoles: this.getRolesClassified(),
+      classifiedPurposes: this.getPurposesClassified(),
+      classifiedTargets: this.getTargetsClassified(),
+    };
+  }
+
+  /** Applies one frontend-facing editable view model back into the active Consent entry. */
+  applyConsentViewModel(viewModel: ConsentViewModel): this {
+    this.setActiveEntryClaim(ClaimConsent.identifier, viewModel.identifier);
+    this.setActiveEntryClaim(ClaimConsent.subject, viewModel.subject);
+    this.setActiveEntryClaim(ClaimConsent.decision, viewModel.decision);
+    this.setActiveEntryClaimList(
+      ClaimConsent.actorIdentifier,
+      flattenClassifiedActors(viewModel.classifiedActors),
+    );
+    this.setSelectedRoles(flattenClassifiedRoles(viewModel.classifiedRoles));
+    this.setSelectedPurposes(viewModel.classifiedPurposes.map((purpose) => purpose.code));
+
+    const flattenedTargets = flattenClassifiedTargets(viewModel.classifiedTargets);
+    this.setSelectedCoreSections(flattenedTargets.coreSections);
+    this.setSelectedKindOfDocuments(flattenedTargets.kindOfDocuments);
+    this.setSelectedTypeOfServices(flattenedTargets.typeOfServices);
+    this.setSelectedSubjectMatterDomains(flattenedTargets.subjectMatterDomains);
+    this.setSelectedResourceTypes(flattenedTargets.resourceTypes);
+    return this;
+  }
+
   /** Returns the canonical permit/deny decision from the active Consent entry. */
   getDecision(): string {
     return asTrimmedString(this.getActiveEntryClaim(ClaimConsent.decision));
@@ -799,7 +849,12 @@ export class ConsentAccessEditor extends CommunicationAttachedBundleSession {
     const actionTargets = splitCsv(claims[ClaimConsent.action]).map((code) =>
       buildClassifiedConsentTarget(ConsentEditorTargetKinds.Section, code, [ConsentEditorScopeCodes.Read]));
     const categoryTargets = splitCsv(claims[ClaimConsent.category]).map((code) =>
-      buildClassifiedConsentTarget(ConsentEditorTargetKinds.Section, code, [ConsentEditorScopeCodes.Read]));
+      buildClassifiedConsentTarget(
+        ConsentEditorTargetKinds.Section,
+        code,
+        [ConsentEditorScopeCodes.Read],
+        HealthcareCanonicalSectionFamilies.KindOfDocument,
+      ));
     const resourceTypes = splitCsv(claims[ClaimConsent.resourceType]).map((code) =>
       buildClassifiedConsentTarget(ConsentEditorTargetKinds.ResourceType, code, [ConsentEditorScopeCodes.Read]));
 
@@ -1352,6 +1407,7 @@ function buildClassifiedConsentTarget(
   kind: ConsentEditorTargetKind,
   code: string,
   scopeCodes: readonly ConsentEditorScopeCode[],
+  sectionFamily?: HealthcareCanonicalSectionFamily,
 ): ConsentEditorClassifiedTarget {
   const normalizedCode = String(code || '').trim();
   return {
@@ -1360,7 +1416,7 @@ function buildClassifiedConsentTarget(
       code: normalizedCode,
       display: resolveConsentTargetDisplay(kind, normalizedCode),
       ...(kind === ConsentEditorTargetKinds.Section
-        ? { sectionFamily: getHealthcareSectionFamilyByCode(normalizedCode) }
+        ? { sectionFamily: sectionFamily || getHealthcareSectionFamilyByCode(normalizedCode) }
         : {}),
     },
     scopes: normalizeScopeCodes(scopeCodes).map((scopeCode) => ({
@@ -1395,6 +1451,7 @@ function normalizeClassifiedTargets(targets: readonly ConsentEditorClassifiedTar
       target.target.kind,
       String(target.target.code || '').trim(),
       target.scopes.map((scope) => scope.code),
+      target.target.sectionFamily,
     );
     const key = `${normalized.target.kind}:${normalized.target.code}`;
     result.set(key, normalized);
@@ -1504,5 +1561,84 @@ function parseConsentActorRole(value: string): ConsentEditorClassifiedActorRole 
     codingSystem: normalized.slice(0, separatorIndex),
     code: normalized.slice(separatorIndex + 1),
     display: normalized,
+  };
+}
+
+function flattenClassifiedActors(classifiedActors: ConsentEditorClassifiedActors): string[] {
+  return normalizeCsvValues([
+    ...classifiedActors.jurisdictions.map((jurisdiction) => jurisdiction.code),
+    ...classifiedActors.organizations.map(serializeClassifiedOrganization),
+    ...classifiedActors.users.flatMap((user) => [user.email, user.phone]),
+  ]);
+}
+
+function serializeClassifiedOrganization(organization: ConsentEditorClassifiedOrganization): string {
+  const domain = String(organization.domain || '').trim();
+  const departments = organization.departments
+    .map((department) => String(department.code || '').trim())
+    .filter(Boolean);
+  return [DID_WEB_PREFIX.replace(/:$/, ''), domain, ...departments].join(':');
+}
+
+function flattenClassifiedRoles(classifiedRoles: ConsentEditorClassifiedRoles): string[] {
+  return normalizeCsvValues([
+    ...classifiedRoles.professional.map(serializeClassifiedRole),
+    ...classifiedRoles.relationship.map(serializeClassifiedRole),
+    ...classifiedRoles.legalRepresentative.map(serializeClassifiedRole),
+    ...classifiedRoles.other.map(serializeClassifiedRole),
+  ]);
+}
+
+function serializeClassifiedRole(role: ConsentEditorClassifiedRole): string {
+  const descriptor = getHealthcareRoleByClaim(`${String(role.codingSystem || '').trim()}|${String(role.code || '').trim()}`);
+  if (descriptor) {
+    return descriptor.claim;
+  }
+  return String(role.code || '').trim() || String(role.display || '').trim();
+}
+
+function flattenClassifiedTargets(
+  classifiedTargets: readonly ConsentEditorClassifiedTarget[],
+): Readonly<{
+  coreSections: readonly string[];
+  kindOfDocuments: readonly string[];
+  typeOfServices: readonly string[];
+  subjectMatterDomains: readonly string[];
+  resourceTypes: readonly string[];
+}> {
+  const coreSections: string[] = [];
+  const kindOfDocuments: string[] = [];
+  const typeOfServices: string[] = [];
+  const subjectMatterDomains: string[] = [];
+  const resourceTypes: string[] = [];
+
+  for (const entry of normalizeClassifiedTargets(classifiedTargets)) {
+    if (entry.target.kind === ConsentEditorTargetKinds.ResourceType) {
+      resourceTypes.push(entry.target.code);
+      continue;
+    }
+
+    const family = entry.target.sectionFamily || getHealthcareSectionFamilyByCode(entry.target.code);
+    if (family === HealthcareCanonicalSectionFamilies.KindOfDocument) {
+      kindOfDocuments.push(entry.target.code);
+      continue;
+    }
+    if (family === HealthcareCanonicalSectionFamilies.TypeOfService) {
+      typeOfServices.push(entry.target.code);
+      continue;
+    }
+    if (family === HealthcareCanonicalSectionFamilies.SubjectMatterDomain) {
+      subjectMatterDomains.push(entry.target.code);
+      continue;
+    }
+    coreSections.push(entry.target.code);
+  }
+
+  return {
+    coreSections: normalizeCsvValues(coreSections),
+    kindOfDocuments: normalizeCsvValues(kindOfDocuments),
+    typeOfServices: normalizeCsvValues(typeOfServices),
+    subjectMatterDomains: normalizeCsvValues(subjectMatterDomains),
+    resourceTypes: normalizeCsvValues(resourceTypes),
   };
 }

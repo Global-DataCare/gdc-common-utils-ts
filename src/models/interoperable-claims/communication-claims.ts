@@ -29,6 +29,8 @@ export const CommunicationClaim = {
   Sent: 'Communication.sent',
   /** Human note text for the communication context. */
   NoteText: 'Communication.note-text',
+  /** Communication topic code (`system|code`). */
+  Topic: 'Communication.topic',
   /** Narrative text (short summary or body). */
   Text: 'Communication.text',
   /** Related resource references; CSV allowed. */
