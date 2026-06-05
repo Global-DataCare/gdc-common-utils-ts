@@ -170,6 +170,8 @@ Global bundle queries:
 - `hasErrors()`
 - `getBundleIssueSeverities()`
 - `getBundleIssueDiagnostics()`
+- `getEntryIdentifierByArrayIndex(index)`
+- `getEntryIndexByIdentifier(identifier)`
 - `getEntrySummaries()`
 - `getEntriesWithWarningOrErrorIssues()`
 - `getResponseAnalysis()`
@@ -215,6 +217,8 @@ reader.hasWarnings();
 reader.hasErrors();
 reader.getBundleIssueSeverities();
 reader.getBundleIssueDiagnostics();
+reader.getEntryIdentifierByArrayIndex(0);
+reader.getEntryIndexByIdentifier('employee-123');
 reader.getEntrySummaries();
 reader.getEntriesWithWarningOrErrorIssues();
 reader.getResponseAnalysis();

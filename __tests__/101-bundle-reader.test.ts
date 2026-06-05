@@ -131,6 +131,11 @@ describe('101: bundle reader', () => {
       'Purge accepted but pending historical cleanup.',
       'Employee must be disabled before purge.',
     ]);
+    expect(reader.getEntryIdentifierByArrayIndex(0)).toBe(EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE.identifier);
+    expect(reader.getEntryIdentifierByArrayIndex(2)).toBe(EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE.identifier);
+    expect(reader.getEntryIdentifierByArrayIndex(99)).toBeUndefined();
+    expect(reader.getEntryIndexByIdentifier(EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE.identifier)).toBe(0);
+    expect(reader.getEntryIndexByIdentifier('missing-identifier')).toBeUndefined();
 
     // Step 5.
     // The frontend can iterate every operation with a normalized summary.
@@ -173,6 +178,15 @@ describe('101: bundle reader', () => {
     ]);
 
     // Step 7.
+    // When the UI stores one identifier from the response analysis, it can
+    // resolve one matching array index later without remembering indexes.
+    // In this fixture the identifier is reused across several operations, so
+    // the lookup returns the first matching entry index.
+    expect(
+      reader.getEntryIndexByIdentifier(responseAnalysis.severityBuckets.error.identifiers[0]),
+    ).toBe(0);
+
+    // Step 8.
     // The opened-entry path still works for detail screens once the user clicks
     // one problematic operation from the filtered list.
     const failingEntryReader = new BundleReader(responseBundle).openEntry(2);
@@ -180,7 +194,7 @@ describe('101: bundle reader', () => {
     expect(failingEntryReader.getIssueSeverities()).toEqual([IssueSeverity.Error]);
     expect(failingEntryReader.getIssueDiagnostics()).toEqual(['Employee must be disabled before purge.']);
 
-    // Step 8.
+    // Step 9.
     // One frontend-friendly response analysis is available for banners or
     // screen-level result cards. Each severity bucket also keeps the resource
     // identifiers that the UI can use to reopen problematic rows later.
@@ -232,6 +246,14 @@ describe('101: bundle reader', () => {
     // Prove against one real GW CORE response that `entry.id` is returned and
     // matches the canonical resource identifier, so frontend code can safely use
     // `responseAnalysis.severityBuckets.*.identifierList` to reopen resources.
+    //
+    // TODO(frontend bundle-reader 101):
+    // Add one case where each operation has a distinct identifier.
+    // Frontend use case:
+    // - `getEntryIndexByIdentifier(...)` is most useful when the identifier is
+    //   unique per returned operation
+    // - if several entries reuse one identifier, the lookup is intentionally
+    //   "first match" and callers need extra disambiguation
   });
 
   it('accepts either entry[].id or data[].id as the practical response identifier source', () => {

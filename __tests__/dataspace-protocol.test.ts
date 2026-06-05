@@ -3,6 +3,7 @@ import { ServiceCapability } from '../src/constants/service-capabilities.js';
 import { HostNetworkTypes } from '../src/constants/network.js';
 import { DataspaceProtocolVersions } from '../src/constants/dataspace-protocol.js';
 import {
+  EXAMPLE_HOST_COVERAGE_SCOPE,
   EXAMPLE_HOSTING_OPERATOR_CATALOG_ARTIFACT_URL,
   EXAMPLE_HOSTING_OPERATOR_DSPACE_VERSION_URL,
   EXAMPLE_JURISDICTION,
@@ -27,6 +28,7 @@ import {
 describe('dataspace protocol helpers', () => {
   const hostContext = {
     participantId: 'host',
+    hostCoverageScope: EXAMPLE_HOST_COVERAGE_SCOPE,
     jurisdiction: EXAMPLE_JURISDICTION,
     version: DataspaceProtocolVersions.Current,
     hostNetwork: HostNetworkTypes.Test,
@@ -34,11 +36,20 @@ describe('dataspace protocol helpers', () => {
   const currentVersion = DataspaceProtocolVersions.Current;
 
   it('builds the canonical host-scoped DSP paths from one route context', () => {
-    expect(buildGwDataspaceBasePath(hostContext)).toBe(`/host/cds-ES/${currentVersion}/test/dsp`);
-    expect(buildGwDspaceVersionWellKnownPath(hostContext)).toBe(`/host/cds-ES/${currentVersion}/test/.well-known/dspace-version`);
-    expect(buildGwCatalogRequestPath(hostContext)).toBe(`/host/cds-ES/${currentVersion}/test/dsp/catalog/request`);
-    expect(buildGwCatalogArtifactPath(hostContext)).toBe(`/host/cds-ES/${currentVersion}/test/dsp/catalog/dcat.json`);
-    expect(buildGwCatalogDatasetPath(hostContext, 'dataset-1')).toBe(`/host/cds-ES/${currentVersion}/test/dsp/catalog/datasets/dataset-1`);
+    expect(buildGwDataspaceBasePath(hostContext)).toBe(`/host/cds-EU/${currentVersion}/test/dsp`);
+    expect(buildGwDspaceVersionWellKnownPath(hostContext)).toBe(`/host/cds-EU/${currentVersion}/test/.well-known/dspace-version`);
+    expect(buildGwCatalogRequestPath(hostContext)).toBe(`/host/cds-EU/${currentVersion}/test/dsp/catalog/request`);
+    expect(buildGwCatalogArtifactPath(hostContext)).toBe(`/host/cds-EU/${currentVersion}/test/dsp/catalog/dcat.json`);
+    expect(buildGwCatalogDatasetPath(hostContext, 'dataset-1')).toBe(`/host/cds-EU/${currentVersion}/test/dsp/catalog/datasets/dataset-1`);
+  });
+
+  it('falls back to jurisdiction when host coverage scope is not provided', () => {
+    expect(buildGwDspaceVersionWellKnownPath({
+      participantId: 'host',
+      jurisdiction: EXAMPLE_JURISDICTION,
+      version: DataspaceProtocolVersions.Current,
+      hostNetwork: HostNetworkTypes.Test,
+    })).toBe(`/host/cds-ES/${currentVersion}/test/.well-known/dspace-version`);
   });
 
   it('builds the canonical tenant-scoped DSP entrypoint from tenant route inputs', () => {
@@ -51,7 +62,7 @@ describe('dataspace protocol helpers', () => {
   });
 
   it('derives the catalog artifact URL from the advertised dspace-version payload', () => {
-    const metadata = buildDspaceVersionMetadata('/host/cds-ES/v1/test/dsp');
+    const metadata = buildDspaceVersionMetadata('/host/cds-EU/v1/test/dsp');
 
     expect(deriveGwCatalogArtifactUrlFromDspaceVersion(
       EXAMPLE_HOSTING_OPERATOR_DSPACE_VERSION_URL,

@@ -11,6 +11,7 @@ import {
   EXAMPLE_COVERAGE_SCOPE_EU,
   EXAMPLE_DEFAULT_ICA_DID,
   EXAMPLE_DEFAULT_ICA_URL,
+  EXAMPLE_HOST_COVERAGE_SCOPE,
   EXAMPLE_HOSTING_OPERATOR_CATALOG_ARTIFACT_URL,
   EXAMPLE_HOSTING_OPERATOR_DID,
   EXAMPLE_HOSTING_OPERATOR_DSPACE_VERSION_URL,
@@ -88,6 +89,7 @@ describe('dataspace discovery defaults 101', () => {
     expect(buildDefaultHostingOperatorRegistrationFromAuthority({
       authority: 'host-animal-care.example.org',
       jurisdiction: EXAMPLE_JURISDICTION,
+      hostCoverageScope: EXAMPLE_HOST_COVERAGE_SCOPE,
       version: EXAMPLE_ROUTE_VERSION,
       networkType: EXAMPLE_NETWORK_TYPE,
       title: 'Animal Care Host ES',

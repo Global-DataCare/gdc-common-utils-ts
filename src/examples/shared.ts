@@ -28,6 +28,7 @@ import { medicationStatementFlatToFhirR4 } from '../utils/clinical-resource-conv
 
 export const EXAMPLE_TENANT_IDENTIFIER = 'acme-id' as const;
 export const EXAMPLE_JURISDICTION = 'ES' as const;
+export const EXAMPLE_HOST_COVERAGE_SCOPE = 'EU' as const;
 export const EXAMPLE_NETWORK_TYPE = HostNetworkTypes.Test;
 export const EXAMPLE_ROUTE_VERSION = 'v1' as const;
 export const EXAMPLE_SECTOR = DataspaceSectors.HealthCare;
@@ -41,6 +42,7 @@ export const EXAMPLE_TENANT_ROUTE_CONTEXT = {
 } as const;
 
 export const EXAMPLE_HOST_ROUTE_CONTEXT = {
+  hostCoverageScope: EXAMPLE_HOST_COVERAGE_SCOPE,
   jurisdiction: EXAMPLE_JURISDICTION,
   sector: HostNetworkTypes.Test,
 } as const;
@@ -63,8 +65,8 @@ export const EXAMPLE_TENANT_SERVICE_DID = 'did:web:provider.example.org' as cons
 export const EXAMPLE_SECONDARY_TENANT_SERVICE_DID = 'did:web:provider-b.example.org' as const;
 export const EXAMPLE_INDEX_PROVIDER_SECTOR_DID_WEB =
   'did:web:provider.example.org:acme-id:cds-es:v1:health-care' as const;
-export const EXAMPLE_HOSTING_OPERATOR_DSPACE_VERSION_URL = `https://host.example.org/host/cds-ES/${EXAMPLE_ROUTE_VERSION}/${EXAMPLE_NETWORK_TYPE}/.well-known/dspace-version` as const;
-export const EXAMPLE_HOSTING_OPERATOR_CATALOG_ARTIFACT_URL = `https://host.example.org/host/cds-ES/${EXAMPLE_ROUTE_VERSION}/${EXAMPLE_NETWORK_TYPE}/dsp/catalog/dcat.json` as const;
+export const EXAMPLE_HOSTING_OPERATOR_DSPACE_VERSION_URL = `https://host.example.org/host/cds-${EXAMPLE_HOST_COVERAGE_SCOPE}/${EXAMPLE_ROUTE_VERSION}/${EXAMPLE_NETWORK_TYPE}/.well-known/dspace-version` as const;
+export const EXAMPLE_HOSTING_OPERATOR_CATALOG_ARTIFACT_URL = `https://host.example.org/host/cds-${EXAMPLE_HOST_COVERAGE_SCOPE}/${EXAMPLE_ROUTE_VERSION}/${EXAMPLE_NETWORK_TYPE}/dsp/catalog/dcat.json` as const;
 /** @deprecated Use `EXAMPLE_HOSTING_OPERATOR_DSPACE_VERSION_URL`. */
 export const EXAMPLE_HOSTING_OPERATOR_CATALOG_URL = EXAMPLE_HOSTING_OPERATOR_DSPACE_VERSION_URL;
 export const EXAMPLE_PROVIDER_PUBLISHED_ENDPOINT_URL = 'https://host.example.org/catalog/provider-a' as const;

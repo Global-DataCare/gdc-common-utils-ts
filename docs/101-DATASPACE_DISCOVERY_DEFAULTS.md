@@ -15,7 +15,8 @@ Use this document when the immediate goal is:
 Three dimensions must stay separate:
 
 1. host/network context
-   - `jurisdiction`
+   - `jurisdiction` for legal/bootstrap selection
+   - `hostCoverageScope` for host-scoped discovery URLs
    - `version`
    - `networkType`
 2. provider/tenant business context
@@ -57,6 +58,7 @@ defaults.addIca(buildDefaultIcaRegistrationFromAuthority({
 defaults.addHostingOperator(buildDefaultHostingOperatorRegistrationFromAuthority({
   authority: 'host.example.org',
   jurisdiction: 'ES',
+  hostCoverageScope: 'EU',
   version: 'v1',
   networkType: 'test',
   title: 'Health Care Host ES',
@@ -73,6 +75,7 @@ defaults.addHostingOperator({
   ...buildDefaultHostingOperatorRegistrationFromAuthority({
     authority: 'host-health.example.org',
     jurisdiction: 'ES',
+    hostCoverageScope: 'EU',
     version: 'v1',
     networkType: 'test',
     title: 'Health Host ES',

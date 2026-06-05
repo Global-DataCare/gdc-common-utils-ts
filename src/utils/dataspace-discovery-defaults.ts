@@ -132,6 +132,7 @@ export type BuildDefaultIcaRegistrationFromAuthorityInput = Readonly<{
 export type BuildDefaultHostingOperatorRegistrationFromAuthorityInput = Readonly<{
   authority: string;
   jurisdiction: string;
+  hostCoverageScope?: string;
   version: string;
   networkType: string;
   sector: string;
@@ -196,7 +197,8 @@ export function buildDefaultHostingOperatorRegistrationFromAuthority(
   const authority = normalizeAuthority(input.authority);
   const protocol = getProtocolForAuthority(authority);
   const addressCountry = normalizeCountryCode(input.addressCountry) || normalizeCountryCode(input.jurisdiction);
-  const coverageScope = normalizeString(input.coverageScope) || undefined;
+  const hostCoverageScope = normalizeString(input.hostCoverageScope || input.coverageScope || input.jurisdiction);
+  const coverageScope = normalizeString(input.coverageScope || hostCoverageScope) || undefined;
   const areaServed = Array.from(new Set(
     (input.areaServed || [input.jurisdiction])
       .map((value) => normalizeString(value))
@@ -208,7 +210,7 @@ export function buildDefaultHostingOperatorRegistrationFromAuthority(
     networkType: input.networkType,
     title: input.title,
     operatorDid: buildDidWebFromAuthority(authority),
-    discoveryUrl: `${protocol}://${authority}/host/cds-${input.jurisdiction}/${input.version}/${input.networkType}/.well-known/dspace-version`,
+    discoveryUrl: `${protocol}://${authority}/host/cds-${hostCoverageScope}/${input.version}/${input.networkType}/.well-known/dspace-version`,
     record: {
       subjectId: buildDidWebFromAuthority(authority),
       serviceTypes: [...input.serviceTypes],

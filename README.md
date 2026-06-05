@@ -231,13 +231,14 @@ import { HostNetworkTypes } from 'gdc-common-utils-ts/constants/network';
 
 const hostContext = {
   participantId: 'host',
+  hostCoverageScope: 'EU',
   jurisdiction: 'ES',
   version: 'v1',
   hostNetwork: HostNetworkTypes.Test,
 };
 
 const discoveryPath = buildGwDspaceVersionWellKnownPath(hostContext);
-const metadata = buildDspaceVersionMetadata('/host/cds-ES/v1/test/dsp');
+const metadata = buildDspaceVersionMetadata('/host/cds-EU/v1/test/dsp');
 const catalogPath = buildGwCatalogArtifactPath(hostContext);
 const catalogUrl = deriveGwCatalogArtifactUrlFromDspaceVersion(
   `https://host.example.org${discoveryPath}`,

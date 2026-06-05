@@ -87,6 +87,31 @@ export class BundleReader {
     return this;
   }
 
+  /** Returns the resolved identifier for one entry array index when present. */
+  public getEntryIdentifierByArrayIndex(index: number): string | undefined {
+    const entries = this.getEntries();
+    if (!Number.isInteger(index) || index < 0 || index >= entries.length) {
+      return undefined;
+    }
+    return this.resolveEntryIdentifier(entries[index]);
+  }
+
+  /** Returns the first entry array index whose resolved identifier matches the requested value. */
+  public getEntryIndexByIdentifier(identifier: string): number | undefined {
+    const normalizedIdentifier = normalizeOptionalString(identifier);
+    if (!normalizedIdentifier) {
+      return undefined;
+    }
+
+    const entries = this.getEntries();
+    for (let index = 0; index < entries.length; index += 1) {
+      if (this.resolveEntryIdentifier(entries[index]) === normalizedIdentifier) {
+        return index;
+      }
+    }
+    return undefined;
+  }
+
   /** Returns the active entry response status when present. */
   public getEntryResponseStatus(): string | undefined {
     const entry = this.getRequiredActiveEntry();

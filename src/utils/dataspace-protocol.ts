@@ -15,13 +15,14 @@ import type {
  * Route context used to build tenant-scoped or host-scoped GW CORE DSP paths.
  *
  * Semantic rule:
- * - `tenantId` participants use `businessSector`
- * - `host`/ICA/runtime participants use `hostNetwork`
+ * - `tenantId` participants use `jurisdiction + businessSector`
+ * - `host`/ICA/runtime participants use `hostCoverageScope + hostNetwork`
  */
 export type GwDataspaceRouteContext = Readonly<{
   participantId?: string;
   tenantId?: string;
   jurisdiction?: string;
+  hostCoverageScope?: string;
   version?: string;
   hostNetwork?: string;
   /** @deprecated Use `hostNetwork`. */
@@ -34,6 +35,10 @@ function resolveParticipantId(input: GwDataspaceRouteContext): string {
   return String(input.participantId || input.tenantId || '').trim();
 }
 
+function usesHostNetworkContext(input: GwDataspaceRouteContext): boolean {
+  return Boolean(resolveParticipantId(input) && !String(input.tenantId || '').trim());
+}
+
 function resolveSectorLikeSegment(input: GwDataspaceRouteContext): string {
   return String(
     input.hostNetwork
@@ -44,10 +49,17 @@ function resolveSectorLikeSegment(input: GwDataspaceRouteContext): string {
   ).trim();
 }
 
+function resolveScopeLikeSegment(input: GwDataspaceRouteContext): string {
+  if (usesHostNetworkContext(input)) {
+    return String(input.hostCoverageScope || input.jurisdiction || '').trim();
+  }
+  return String(input.jurisdiction || '').trim();
+}
+
 function hasParticipantRouteContext(input: GwDataspaceRouteContext): boolean {
   return Boolean(
     resolveParticipantId(input)
-    && String(input.jurisdiction || '').trim()
+    && resolveScopeLikeSegment(input)
     && String(input.version || '').trim()
     && resolveSectorLikeSegment(input),
   );
@@ -57,7 +69,8 @@ function hasParticipantRouteContext(input: GwDataspaceRouteContext): boolean {
  * Builds the GW CORE base DSP path.
  *
  * Participant scope:
- * - `/{participantId}/cds-{jurisdiction}/{version}/{hostNetwork|businessSector}/dsp`
+ * - host/ICA/runtime: `/{participantId}/cds-{hostCoverageScope}/{version}/{hostNetwork}/dsp`
+ * - tenant/provider: `/{tenantId}/cds-{jurisdiction}/{version}/{businessSector}/dsp`
  */
 export function buildGwDataspaceBasePath(input: GwDataspaceRouteContext = {}): string {
   if (!hasParticipantRouteContext(input)) {
@@ -65,7 +78,7 @@ export function buildGwDataspaceBasePath(input: GwDataspaceRouteContext = {}): s
   }
 
   return `/${resolveParticipantId(input)}`
-    + `/cds-${String(input.jurisdiction).trim()}`
+    + `/cds-${resolveScopeLikeSegment(input)}`
     + `/${String(input.version).trim()}`
     + `/${resolveSectorLikeSegment(input)}`
     + GwDataspaceBindingPaths.Base;
@@ -75,7 +88,10 @@ export function buildGwDataspaceBasePath(input: GwDataspaceRouteContext = {}): s
  * Builds the canonical DSP version-discovery well-known path for GW CORE.
  *
  * Participant scope:
- * - `/{participantId}/cds-{jurisdiction}/{version}/{hostNetwork|businessSector}/.well-known/dspace-version`
+ * - host/ICA/runtime:
+ *   `/{participantId}/cds-{hostCoverageScope}/{version}/{hostNetwork}/.well-known/dspace-version`
+ * - tenant/provider:
+ *   `/{tenantId}/cds-{jurisdiction}/{version}/{businessSector}/.well-known/dspace-version`
  */
 export function buildGwDspaceVersionWellKnownPath(input: GwDataspaceRouteContext = {}): string {
   if (!hasParticipantRouteContext(input)) {
@@ -83,7 +99,7 @@ export function buildGwDspaceVersionWellKnownPath(input: GwDataspaceRouteContext
   }
 
   return `/${resolveParticipantId(input)}`
-    + `/cds-${String(input.jurisdiction).trim()}`
+    + `/cds-${resolveScopeLikeSegment(input)}`
     + `/${String(input.version).trim()}`
     + `/${resolveSectorLikeSegment(input)}`
     + DataspaceWellKnownPaths.VersionMetadata;

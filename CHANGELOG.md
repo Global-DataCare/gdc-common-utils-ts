@@ -16,6 +16,23 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
   - `digitaltwin.rs`
   - `digitaltwin.cruds`
 - Updated dataspace discovery examples/tests/docs to teach `ServiceCapability.*` as the public API instead of `ServiceCapabilityToken`.
+- Clarified the host-scoped discovery contract so GW host paths now use
+  `hostCoverageScope` when available while tenant/provider paths keep
+  `jurisdiction`.
+- Updated the default hosting-operator authority helper so generated host
+  discovery URLs publish `hostCoverageScope` and only fall back to
+  `jurisdiction` for backward compatibility.
+- Extended `BundleReader` with identifier/index lookup helpers for frontend
+  response analysis:
+  - `getEntryIdentifierByArrayIndex(...)`
+  - `getEntryIndexByIdentifier(...)`
+- Updated the bundle-reader `101` and docs so UI code can reopen response rows
+  from stored identifiers without relying on remembered array indexes.
+
+### Testing
+- `npm test -- --watchman=false __tests__/101-bundle-reader.test.ts`
+- `npm test -- --watchman=false __tests__/dataspace-protocol.test.ts __tests__/dataspace-discovery-defaults.101.test.ts`
+- `npm run build`
 
 ## [1.18.0] - 2026-06-05
 
