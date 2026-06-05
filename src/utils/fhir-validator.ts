@@ -1,8 +1,10 @@
+import { IssueSeverity, IssueType, type IssueSeverityAttentionCode, type IssueTypeCode } from '../models/issue';
+
 export type FhirVersion = 'r4' | 'r5' | string;
 
 export type FhirValidationIssue = {
-  severity: 'error' | 'warning';
-  code: string;
+  severity: IssueSeverityAttentionCode;
+  code: IssueTypeCode | string;
   diagnostics: string;
   expression?: string;
 };
@@ -88,9 +90,9 @@ export function validateFhirResourceBasic(
   const issues: FhirValidationIssue[] = [];
   const resourceType = String(resource?.resourceType || '').trim();
   if (!resourceType) {
-    issues.push({
-      severity: 'error',
-      code: 'required',
+      issues.push({
+      severity: IssueSeverity.Error,
+      code: IssueType.Required,
       diagnostics: 'Missing required field: resourceType.',
       expression: 'resourceType',
     });
@@ -100,8 +102,8 @@ export function validateFhirResourceBasic(
     const status = String(resource?.status || '').trim();
     if (!status) {
       issues.push({
-        severity: 'error',
-        code: 'required',
+        severity: IssueSeverity.Error,
+        code: IssueType.Required,
         diagnostics: 'Communication.status is required.',
         expression: 'Communication.status',
       });
@@ -110,8 +112,8 @@ export function validateFhirResourceBasic(
     const payload = resource?.payload;
     if (Array.isArray(payload) && payload.length > 1) {
       issues.push({
-        severity: 'warning',
-        code: 'business-rule',
+        severity: IssueSeverity.Warning,
+        code: IssueType.BusinessRule,
         diagnostics: 'Gateway convention recommends one payload per Communication.',
         expression: 'Communication.payload',
       });
@@ -120,8 +122,8 @@ export function validateFhirResourceBasic(
     const note = resource?.note;
     if (Array.isArray(note) && note.length > 1) {
       issues.push({
-        severity: 'warning',
-        code: 'business-rule',
+        severity: IssueSeverity.Warning,
+        code: IssueType.BusinessRule,
         diagnostics: 'Gateway convention recommends one note per Communication.',
         expression: 'Communication.note',
       });
@@ -129,7 +131,7 @@ export function validateFhirResourceBasic(
   }
 
   return {
-    ok: issues.every((issue) => issue.severity !== 'error'),
+    ok: issues.every((issue) => issue.severity !== IssueSeverity.Error),
     issues,
   };
 }

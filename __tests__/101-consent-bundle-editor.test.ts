@@ -61,6 +61,13 @@ const CONSENT_COMMUNICATION_TOPIC = HealthcareKindOfDocumentSections['LP173394-0
 
 describe('101: consent bundle editor', () => {
   it('creates or edits one Consent inside a Communication bundle step by step', () => {
+    // Teaching goal:
+    // - the app owns one Communication that carries a consent bundle
+    // - the user opens one Consent from that bundle
+    // - the app edits the selected Consent
+    // - the app saves the same Consent back into the bundle
+    // - the saved bundle is ready to be shown again or transported
+
     // Step 1.
     // Frontend/runtime already has the Communication wrapper or creates one.
     // The in-memory bundle editor is the canonical unit for editing the
@@ -104,13 +111,14 @@ describe('101: consent bundle editor', () => {
     });
 
     // Step 3.
-    // Read the currently selected Consent claims from the active bundle entry.
+    // Read the currently selected Consent claims from the active bundle entry
+    // so the app can populate the current screen state.
     const activeConsentClaims = {
       ...(bundleEditor.getActiveEntry()?.resource?.meta?.claims || {}),
     };
 
     // Step 4.
-    // Edit the same Consent claim set that we just read from the active entry.
+    // Simulate the user editing that same Consent on screen.
     // This is not a second Consent. It is the updated version of the same one.
     let editedConsentClaims = setPurposeList(activeConsentClaims, [HealthcareConsentPurposes.Treatment]);
     editedConsentClaims = setActorRoleList(editedConsentClaims, [HealthcareActorRoles.GeneralistMedicalPractitioner]);
@@ -122,13 +130,14 @@ describe('101: consent bundle editor', () => {
     ]);
 
     // Step 5.
-    // Patch the edited claims back into the active bundle entry and save.
+    // Save the edited values back into the selected Consent entry.
     bundleEditor.patchActiveEntryClaims(editedConsentClaims);
     bundleEditor.saveAndReleaseActiveEntry();
 
     // Step 6.
-    // Assertions: the edited Consent is now persisted inside the
-    // Communication-attached bundle and ready to be sent or rendered again.
+    // Final didactic proof:
+    // the edited Consent is now persisted inside the Communication-attached
+    // bundle and ready to be rendered again or sent to backend transport.
     const communicationClaims = bundleEditor.getCommunicationClaims();
     expect(communicationClaims[CommunicationClaim.Topic]).toBe(CONSENT_COMMUNICATION_TOPIC);
     const decodedBundle = JSON.parse(
@@ -146,6 +155,9 @@ describe('101: consent bundle editor', () => {
   });
 
   it('supports direct claim-level control on the active Consent entry when lower-level editing is needed', () => {
+    // Teaching goal:
+    // this is the low-level escape hatch. It is useful for internal plumbing
+    // or advanced cases, but it is intentionally not the main 101 UI path.
     const bundleEditor = createConsentAccessEditor();
 
     bundleEditor.upsertActiveConsentEntry({
@@ -166,6 +178,11 @@ describe('101: consent bundle editor', () => {
   });
 
   it('exports a permission-template-shaped draft into consent claims and imports it back through the active entry', () => {
+    // Teaching goal:
+    // - the app starts from one draft object shaped like a permission template
+    // - the app converts that draft into canonical Consent claims
+    // - the app saves the result into the bundle
+    // - the app later reads the persisted Consent back
     const bundleEditor = createConsentAccessEditor({
       communicationClaims: { '@context': 'org.hl7.fhir.r4' },
     });
@@ -214,8 +231,12 @@ describe('101: consent bundle editor', () => {
       claims: consentClaims,
       fullUrl: `urn:uuid:${EXAMPLE_CONSENT_IDENTIFIER}`,
     });
+
+    // Save the draft-derived Consent exactly as storage/transport would see it.
     bundleEditor.saveAndReleaseActiveEntry();
 
+    // Re-read the serialized bundle payload and prove that persisted data still
+    // matches the user's selected template values.
     const exportedBundle = JSON.parse(
       Buffer.from(
         String(bundleEditor.getCommunicationClaims()[CommunicationClaim.ContentAttachmentData]),
@@ -252,6 +273,8 @@ describe('101: consent bundle editor', () => {
     const reloadedEditor = createConsentAccessEditor({
       communicationClaims: bundleEditor.getCommunicationClaims(),
     });
+
+    // Open the saved Consent again exactly like the app would do on reload.
     reloadedEditor.selectActiveEntry({
       fullUrl: `urn:uuid:${EXAMPLE_CONSENT_IDENTIFIER}`,
     });
@@ -299,6 +322,9 @@ describe('101: consent bundle editor', () => {
   });
 
   it('keeps the published permission-template import/export example deterministic', () => {
+    // Teaching goal:
+    // the published example must stay executable and readable as tutorial
+    // material, not drift into undocumented helper behavior.
     const {
       templateDraft,
       consentClaims,
@@ -332,6 +358,9 @@ describe('101: consent bundle editor', () => {
   });
 
   it('wraps one already-built consent bundle into Communication as the final complementary transport step', () => {
+    // Teaching goal:
+    // after the app finishes editing the bundle, the final user-visible result
+    // is still a Communication wrapper ready for transport.
     const {
       bundleInMemory,
       communicationClaims,

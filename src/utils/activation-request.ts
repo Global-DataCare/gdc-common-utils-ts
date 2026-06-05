@@ -7,6 +7,7 @@ import {
   OrganizationActivationRequest,
   OrganizationBindingInput,
 } from '../models/identity-bootstrap';
+import { IssueSeverity, type IssueSeverityAttentionCode } from '../models/issue';
 import { JwkSet } from '../models/jwk';
 
 /**
@@ -53,7 +54,7 @@ export interface BuildOrganizationBindingInputInput {
 
 function pushIssue(
   issues: IdentityBootstrapValidationIssue[],
-  severity: 'error' | 'warning',
+  severity: IssueSeverityAttentionCode,
   code: string,
   message: string,
   path?: string,
@@ -149,13 +150,13 @@ export function validateOrganizationActivationRequest(
   const issues: IdentityBootstrapValidationIssue[] = [];
 
   if (!String(request.vp_token || '').trim()) {
-    pushIssue(issues, 'error', 'missing-vp-token', 'Canonical activation proof must be carried in vp_token.', 'vp_token');
+    pushIssue(issues, IssueSeverity.Error, 'missing-vp-token', 'Canonical activation proof must be carried in vp_token.', 'vp_token');
   }
 
   if (request.organizationCredential !== undefined) {
     pushIssue(
       issues,
-      'warning',
+      IssueSeverity.Warning,
       'deprecated-organization-credential',
       'organizationCredential is deprecated compatibility input. Canonical proof must be carried in vp_token.',
       'organizationCredential',
@@ -165,7 +166,7 @@ export function validateOrganizationActivationRequest(
   if (request.representativeCredential !== undefined) {
     pushIssue(
       issues,
-      'warning',
+      IssueSeverity.Warning,
       'deprecated-representative-credential',
       'representativeCredential is deprecated compatibility input. Canonical proof must be carried in vp_token.',
       'representativeCredential',
@@ -179,7 +180,7 @@ export function validateOrganizationActivationRequest(
     if ((controller.did || controller.sameAs) && !(hasPublicKeyJwk || hasJwks)) {
       pushIssue(
         issues,
-        'error',
+        IssueSeverity.Error,
         'incomplete-controller-binding',
         'controller.did/controller.sameAs requires controller.publicKeyJwk or controller.jwks for DID bootstrap.',
         'controller',
@@ -188,8 +189,8 @@ export function validateOrganizationActivationRequest(
   }
 
   return {
-    ok: !issues.some((issue) => issue.severity === 'error'),
-    errors: issues.filter((issue) => issue.severity === 'error'),
-    warnings: issues.filter((issue) => issue.severity === 'warning'),
+    ok: !issues.some((issue) => issue.severity === IssueSeverity.Error),
+    errors: issues.filter((issue) => issue.severity === IssueSeverity.Error),
+    warnings: issues.filter((issue) => issue.severity === IssueSeverity.Warning),
   };
 }

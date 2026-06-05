@@ -10,6 +10,14 @@ import {
 
 describe('101 bundle other resource claims', () => {
   it('extracts Organization and Location claims from a non-IPS support bundle', () => {
+    // Teaching goal:
+    // - the app receives a document bundle that contains support resources,
+    //   not only the usual IPS clinical resources
+    // - the app still needs a flat-claims view of those resources
+    // - Organization and Location must be extractable without custom caller code
+
+    // Step 1.
+    // Build one small document bundle with Organization and Location entries.
     const bundle = {
       resourceType: ResourceTypesFhirR4.Bundle,
       type: 'document',
@@ -64,9 +72,14 @@ describe('101 bundle other resource claims', () => {
       ],
     };
 
+    // Step 2.
+    // Extract the flat claims list from that support bundle.
     const claimsList = extractBundleDocumentClaimsList(bundle);
     expect(claimsList).toHaveLength(2);
 
+    // Step 3.
+    // Split the extracted claims by resource family exactly like the app would
+    // when rendering different resource cards or forms.
     const organizationClaims = claimsList.find((claims) =>
       Object.keys(claims).some((key) => key.startsWith('Organization.')),
     );
@@ -74,6 +87,10 @@ describe('101 bundle other resource claims', () => {
       Object.keys(claims).some((key) => key.startsWith('Location.')),
     );
 
+    // Step 4.
+    // Final didactic proof:
+    // support resources can be consumed as flat claims without traversing raw
+    // FHIR structures in the caller.
     expect(organizationClaims?.[OrganizationClaim.Name]).toBe('Cardiology Department');
     expect(organizationClaims?.[OrganizationClaim.Alias]).toBe('Cardiology,Heart Clinic');
     expect(locationClaims?.[LocationClaim.Name]).toBe('Consultation Room 201');
@@ -81,6 +98,12 @@ describe('101 bundle other resource claims', () => {
   });
 
   it('rebuilds a support bundle from Organization and Location claims', () => {
+    // Teaching goal:
+    // - the app may also start from flat claims and rebuild a document bundle
+    // - callers should not need to assemble Composition/entry/resource wiring by hand
+
+    // Step 1.
+    // Start from flat claims for Organization and Location.
     const claimsList = [
       {
         [OrganizationClaim.Identifier]: 'dept-cardiology-001',
@@ -103,11 +126,17 @@ describe('101 bundle other resource claims', () => {
       },
     ];
 
+    // Step 2.
+    // Rebuild a document bundle from those flat claims.
     const bundle = buildBundleDocumentFromClaims({
       claimsList,
       compositionType: 'http://loinc.org|11503-0',
     });
 
+    // Step 3.
+    // Final didactic proof:
+    // the rebuilt bundle contains the expected support resources with caller-
+    // visible business fields preserved.
     expect(bundle.resourceType).toBe(ResourceTypesFhirR4.Bundle);
     expect(bundle.type).toBe('document');
 

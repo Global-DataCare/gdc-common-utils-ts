@@ -1,9 +1,11 @@
 import {
+  IssueSeverity,
+  IssueType,
   convertFhirErrorBundleToJsonApiError,
   convertPrimaryDocToBundleFHIR,
   convertResourceDataToArrayOfDataEntries,
   convertResourceOrBundleToPrimaryDoc,
-} from '../src/utils/format-converter.js';
+} from '../src';
 
 describe('format-converter', () => {
   it('normalizes a FHIR resource into entries', () => {
@@ -63,7 +65,7 @@ describe('format-converter', () => {
         {
           resource: {
             id: 'err-1',
-            issue: [{ code: 'invalid', severity: 'error', details: { text: 'Bad' }, diagnostics: 'Oops' }],
+            issue: [{ code: IssueType.Invalid, severity: IssueSeverity.Error, details: { text: 'Bad' }, diagnostics: 'Oops' }],
           },
           response: { status: 400 },
         },
@@ -73,10 +75,10 @@ describe('format-converter', () => {
     expect(jsonApiError.errors[0]).toEqual({
       id: 'err-1',
       status: '400',
-      code: 'invalid',
+      code: IssueType.Invalid,
       title: 'Bad',
       detail: 'Oops',
-      meta: { severity: 'error' },
+      meta: { severity: IssueSeverity.Error },
     });
   });
 

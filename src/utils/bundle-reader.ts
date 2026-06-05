@@ -1,4 +1,43 @@
+import {
+  getHighestIssueSeverity,
+  isIssueSeverityCode,
+  IssueSeverity,
+  type IssueSeverityCode,
+} from '../models/issue';
+
 export type BundleReaderEntry = Record<string, unknown>;
+
+export type BundleReaderEntrySummary = Readonly<{
+  index: number;
+  identifier?: string;
+  responseStatus?: string;
+  issueSeverities: readonly IssueSeverityCode[];
+  issueDiagnostics: readonly string[];
+  severity?: IssueSeverityCode;
+  isSuccessful: boolean;
+}>;
+
+export type BundleReaderSeverityBucket = Readonly<{
+  entryIndexes: readonly number[];
+  identifiers: readonly string[];
+  identifierList: string;
+}>;
+
+export type BundleReaderResponseAnalysis = Readonly<{
+  totalOperations: number;
+  successfulOperations: number;
+  errorOperations: number;
+  hasWarnings: boolean;
+  hasErrors: boolean;
+  issueDiagnostics: readonly string[];
+  severityBuckets: Readonly<{
+    fatal: BundleReaderSeverityBucket;
+    error: BundleReaderSeverityBucket;
+    warning: BundleReaderSeverityBucket;
+    information: BundleReaderSeverityBucket;
+    success: BundleReaderSeverityBucket;
+  }>;
+}>;
 
 function cloneEntry<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
@@ -32,8 +71,10 @@ export class BundleReader {
 
   /** Returns cloned bundle entries. */
   public getEntries(): readonly BundleReaderEntry[] {
-    const entries = this.bundle.entry;
-    return Array.isArray(entries) ? entries.map((entry) => cloneEntry(entry as BundleReaderEntry)) : [];
+    const entries = Array.isArray(this.bundle.entry)
+      ? this.bundle.entry
+      : (Array.isArray(this.bundle.data) ? this.bundle.data : []);
+    return entries.map((entry) => cloneEntry(entry as BundleReaderEntry));
   }
 
   /** Opens one entry by index. */
@@ -55,10 +96,10 @@ export class BundleReader {
   }
 
   /** Returns all active entry issue severities. */
-  public getIssueSeverities(): string[] {
+  public getIssueSeverities(): IssueSeverityCode[] {
     return this.getActiveEntryIssues()
       .map((issue) => issue.severity)
-      .filter((severity): severity is string => typeof severity === 'string' && severity.trim().length > 0);
+      .filter(isIssueSeverityCode);
   }
 
   /** Returns all active entry issue diagnostics strings. */
@@ -75,15 +116,72 @@ export class BundleReader {
 
   /** Returns the number of entries with one 2xx response status. */
   public getTotalSuccessfulOperations(): number {
-    return this.getEntries().filter((entry) => {
-      const response = entry.response as Record<string, unknown> | undefined;
-      return typeof response?.status === 'string' && /^2\d\d$/.test(response.status);
-    }).length;
+    return this.getEntrySummaries().filter((entry) => entry.isSuccessful).length;
   }
 
   /** Returns the number of entries without one 2xx response status. */
   public getTotalErrorOperations(): number {
     return this.getTotalOperations() - this.getTotalSuccessfulOperations();
+  }
+
+  /** Returns normalized summaries for every bundle entry. */
+  public getEntrySummaries(): BundleReaderEntrySummary[] {
+    return this.getEntries().map((entry, index) => this.buildEntrySummary(entry, index));
+  }
+
+  /** Returns all issue severities across the whole bundle in entry order. */
+  public getBundleIssueSeverities(): IssueSeverityCode[] {
+    return this.getEntrySummaries().flatMap((entry) => [...entry.issueSeverities]);
+  }
+
+  /** Returns all issue diagnostics strings across the whole bundle in entry order. */
+  public getBundleIssueDiagnostics(): string[] {
+    return this.getEntrySummaries().flatMap((entry) => [...entry.issueDiagnostics]);
+  }
+
+  /** Returns `true` when at least one bundle entry contains warning issues. */
+  public hasWarnings(): boolean {
+    return this.getEntrySummaries().some((entry) => entry.issueSeverities.includes(IssueSeverity.Warning));
+  }
+
+  /** Returns `true` when at least one bundle entry contains fatal/error issues. */
+  public hasErrors(): boolean {
+    return this.getEntrySummaries().some((entry) =>
+      entry.issueSeverities.some((severity) =>
+        severity === IssueSeverity.Fatal || severity === IssueSeverity.Error));
+  }
+
+  /** Returns entries whose issues contain warning/fatal/error severities. */
+  public getEntriesWithWarningOrErrorIssues(): BundleReaderEntrySummary[] {
+    return this.getEntrySummaries().filter((entry) =>
+      entry.issueSeverities.some((severity) =>
+        severity === IssueSeverity.Warning
+        || severity === IssueSeverity.Error
+        || severity === IssueSeverity.Fatal));
+  }
+
+  /** Returns one frontend-oriented response analysis for global bundle outcome rendering. */
+  public getResponseAnalysis(): BundleReaderResponseAnalysis {
+    const summaries = this.getEntrySummaries();
+    const severityBuckets = {
+      fatal: this.buildSeverityBucket(summaries, [IssueSeverity.Fatal]),
+      error: this.buildSeverityBucket(summaries, [IssueSeverity.Error]),
+      warning: this.buildSeverityBucket(summaries, [IssueSeverity.Warning]),
+      information: this.buildSeverityBucket(summaries, [IssueSeverity.Information]),
+      success: this.buildSeverityBucket(summaries, [IssueSeverity.Success]),
+    } as const;
+
+    return {
+      totalOperations: this.getTotalOperations(),
+      successfulOperations: this.getTotalSuccessfulOperations(),
+      errorOperations: this.getTotalErrorOperations(),
+      hasWarnings: summaries.some((entry) => entry.issueSeverities.includes(IssueSeverity.Warning)),
+      hasErrors: summaries.some((entry) =>
+        entry.issueSeverities.some((severity) =>
+          severity === IssueSeverity.Fatal || severity === IssueSeverity.Error)),
+      issueDiagnostics: summaries.flatMap((entry) => [...entry.issueDiagnostics]),
+      severityBuckets,
+    };
   }
 
   private getRequiredActiveEntry(): BundleReaderEntry {
@@ -96,9 +194,92 @@ export class BundleReader {
 
   private getActiveEntryIssues(): Array<Record<string, unknown>> {
     const entry = this.getRequiredActiveEntry();
+    return this.getEntryIssues(entry);
+  }
+
+  private getEntryIssues(entry: BundleReaderEntry): Array<Record<string, unknown>> {
     const response = entry.response as Record<string, unknown> | undefined;
     const outcome = response?.outcome as Record<string, unknown> | undefined;
     const issue = outcome?.issue;
     return Array.isArray(issue) ? issue.filter((value): value is Record<string, unknown> => !!value && typeof value === 'object') : [];
   }
+
+  private buildEntrySummary(entry: BundleReaderEntry, index: number): BundleReaderEntrySummary {
+    const response = entry.response as Record<string, unknown> | undefined;
+    const responseStatus = typeof response?.status === 'string' && response.status.trim()
+      ? response.status.trim()
+      : undefined;
+    const issues = this.getEntryIssues(entry);
+    const issueSeverities = issues
+      .map((issue) => issue.severity)
+      .filter(isIssueSeverityCode);
+    const issueDiagnostics = issues
+      .map((issue) => issue.diagnostics)
+      .filter((diagnostics): diagnostics is string =>
+        typeof diagnostics === 'string' && diagnostics.trim().length > 0);
+    const is2xxResponse = typeof responseStatus === 'string' && /^2\d\d$/.test(responseStatus);
+    const hasBlockingSeverity = issueSeverities.some((severity) =>
+      severity === IssueSeverity.Warning
+      || severity === IssueSeverity.Error
+      || severity === IssueSeverity.Fatal);
+    const severity = getHighestIssueSeverity(issueSeverities)
+      ?? (is2xxResponse ? IssueSeverity.Success : undefined);
+
+    return {
+      index,
+      ...(this.resolveEntryIdentifier(entry) ? { identifier: this.resolveEntryIdentifier(entry) } : {}),
+      ...(responseStatus ? { responseStatus } : {}),
+      issueSeverities,
+      issueDiagnostics,
+      ...(severity ? { severity } : {}),
+      isSuccessful: is2xxResponse && !hasBlockingSeverity,
+    };
+  }
+
+  private buildSeverityBucket(
+    summaries: readonly BundleReaderEntrySummary[],
+    severities: readonly IssueSeverityCode[],
+  ): BundleReaderSeverityBucket {
+    const matches = summaries.filter((entry) =>
+      typeof entry.severity === 'string' && severities.includes(entry.severity));
+    const identifiers = matches
+      .map((entry) => entry.identifier)
+      .filter((identifier): identifier is string => typeof identifier === 'string' && identifier.trim().length > 0);
+    return {
+      entryIndexes: matches.map((entry) => entry.index),
+      identifiers,
+      identifierList: identifiers.join(','),
+    };
+  }
+
+  private resolveEntryIdentifier(entry: BundleReaderEntry): string | undefined {
+    const explicitEntryId = normalizeOptionalString(entry.id);
+    if (explicitEntryId) {
+      return explicitEntryId;
+    }
+
+    const resource = entry.resource as Record<string, unknown> | undefined;
+    const resourceId = normalizeOptionalString(resource?.id);
+    if (resourceId) {
+      return resourceId;
+    }
+
+    const fullUrl = normalizeOptionalString(entry.fullUrl);
+    if (fullUrl) {
+      return fullUrl;
+    }
+
+    const claims = (resource?.meta as Record<string, unknown> | undefined)?.claims as Record<string, unknown> | undefined;
+    if (!claims) {
+      return undefined;
+    }
+
+    const identifierKey = Object.keys(claims)
+      .find((key) => String(key || '').toLowerCase().endsWith('.identifier'));
+    return identifierKey ? normalizeOptionalString(claims[identifierKey]) : undefined;
+  }
+}
+
+function normalizeOptionalString(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim() ? value.trim() : undefined;
 }

@@ -48,6 +48,17 @@ No change is accepted without tests for:
 - at least one negative/validation path
 - compatibility behavior when aliases are supported.
 
+## 101 Tutorial Policy
+Any test labeled `101` must read like an executable tutorial.
+
+Required structure:
+1. Start with a `Teaching goal` comment block.
+2. Use explicit `Step 1.`, `Step 2.`, ... comments for the main flow.
+3. Explain app/user intent, not only helper plumbing.
+4. State clearly when a low-level helper path is an escape hatch and not the main tutorial path.
+
+Reject `101` tests that only prove internals but do not teach the intended app flow.
+
 ## Quality Gates
 Run before merge:
 - `npm run typecheck`

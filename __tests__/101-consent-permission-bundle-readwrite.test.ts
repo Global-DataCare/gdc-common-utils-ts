@@ -43,6 +43,14 @@ import {
 
 describe('101: consent permission bundle read/write', () => {
   it('creates three separate consents and reads them back as professional, organization, and jurisdiction permissions', () => {
+    // Teaching goal:
+    // - the app prepares one Communication that carries several Consent entries
+    // - each Consent represents a different permission rule the user will later inspect
+    // - the app saves those Consent entries into the bundle
+    // - the app reopens each Consent and reads classified values ready for rendering
+
+    // Step 1.
+    // Create the Communication wrapper that will carry the permission bundle.
     let communicationClaims: Record<string, unknown> = { '@context': 'org.hl7.fhir.r4' };
     communicationClaims = setCommunicationIdentifier(
       communicationClaims,
@@ -68,6 +76,9 @@ describe('101: consent permission bundle read/write', () => {
 
     expect(physicianTemplate).toBeDefined();
 
+    // Step 2.
+    // Build three different permission decisions that simulate what the app
+    // wants to show later as three separate persisted consents.
     const ipsCoreTargets = Array.from(new Set(
       Object.values(HealthcareCoreSections).map((section) => section.attributeValue),
     )).map((code) => ({
@@ -141,6 +152,8 @@ describe('101: consent permission bundle read/write', () => {
       },
     );
 
+    // Step 3.
+    // Save those three consent decisions into one bundle.
     const bundleEditor = createConsentAccessEditor({
       communicationClaims,
     });
@@ -169,13 +182,22 @@ describe('101: consent permission bundle read/write', () => {
 
     const bundleInMemory = bundleEditor.getBundleInMemory();
 
+    // Step 4.
+    // Prove that the bundle now contains the three persisted consents that the
+    // app can later list and open.
     expect(decisions).toHaveLength(3);
     expect(bundleInMemory.data).toHaveLength(3);
 
+    // Step 5.
+    // Reopen the saved Communication bundle as a reader would do on a later
+    // screen load.
     const reader = createConsentAccessEditor({
       communicationClaims: bundleEditor.getCommunicationClaims(),
     });
 
+    // Step 6.
+    // Open the first consent and verify the classified data the UI would render
+    // for a professional/user permission.
     reader.selectActiveEntry({ fullUrl: bundleInMemory.data[0].fullUrl });
     expect(reader.getSelectedPurposes()).toEqual([EXAMPLE_CONSENT_PURPOSE_TREATMENT]);
     expect(reader.getSelectedRoles()).toEqual([
@@ -207,6 +229,9 @@ describe('101: consent permission bundle read/write', () => {
       }),
     ]));
 
+    // Step 7.
+    // Open the second consent and verify the organization-shaped data that the
+    // app would show for an organization permission.
     reader.selectActiveEntry({ fullUrl: bundleInMemory.data[1].fullUrl });
     expect(reader.getSelectedPurposes()).toEqual([
       EXAMPLE_CONSENT_PURPOSE_EMERGENCY_TREATMENT,
@@ -223,6 +248,9 @@ describe('101: consent permission bundle read/write', () => {
       }),
     ]);
 
+    // Step 8.
+    // Open the third consent and verify the jurisdiction-shaped data that the
+    // app would show for a jurisdiction permission.
     reader.selectActiveEntry({ fullUrl: bundleInMemory.data[2].fullUrl });
     expect(reader.getSelectedPurposes()).toEqual([
       EXAMPLE_CONSENT_PURPOSE_EMERGENCY_TREATMENT,

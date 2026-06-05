@@ -27,6 +27,16 @@ import {
 
 describe('101: consent view model', () => {
   it('maps one Consent entry to ConsentViewModel and applies edited values back through ConsentAccessEditor', () => {
+    // Teaching goal:
+    // - the app already has one persisted Consent inside a bundle
+    // - the UI loads that Consent into one frontend-facing view model
+    // - the user edits the rendered values
+    // - the app saves those edited values back into the same Consent entry
+    // - the app reloads the saved Consent to prove the user sees persisted data
+
+    // Step 1.
+    // Build one draft bundle that will contain exactly one Consent entry.
+    // This simulates the stored data source that the app will later read.
     const draftBundle = new BundleEditor()
       .setBundleOperation(EmployeeBundleOperations.create)
       .setAllowedResourceType(ResourceTypesFhirR4.Consent)
@@ -35,6 +45,9 @@ describe('101: consent view model', () => {
       .doneEntry()
       .buildJsonApi();
 
+    // Step 2.
+    // Create one initial decision as backend/persisted consent data.
+    // This is what exists before the user opens the consent screen.
     const physicianTemplate = resolvePermissionTemplate({
       sector: DataspaceSectors.HealthCare,
       roleClaim: EXAMPLE_HEALTHCARE_ACTOR_ROLE_GENERALIST_MEDICAL_PRACTITIONER,
@@ -58,6 +71,9 @@ describe('101: consent view model', () => {
       },
     );
 
+    // Step 3.
+    // Persist that initial consent into the bundle exactly as the app would
+    // receive it from storage or from a previous backend roundtrip.
     const bundleEditor = createConsentAccessEditor({
       initialBundle: draftBundle,
     });
@@ -70,12 +86,20 @@ describe('101: consent view model', () => {
       }))
       .saveAndReleaseActiveEntry();
 
+    // Step 4.
+    // The app opens the consent screen, selects the stored Consent entry,
+    // and projects it into one frontend-facing ConsentViewModel.
     const editor = createConsentAccessEditor({
       initialBundle: bundleEditor.getBundleInMemory(),
     });
     editor.selectActiveEntry({ fullUrl: `urn:uuid:${EXAMPLE_CONSENT_IDENTIFIER}-view-model` });
 
     const initialViewModel = editor.getConsentViewModel();
+
+    // Step 5.
+    // Assertions for the screen load:
+    // the rendered view model must show the same persisted data the user is
+    // supposed to see on first load.
     expect(initialViewModel.identifier).toBe(`${EXAMPLE_CONSENT_IDENTIFIER}-view-model`);
     expect(initialViewModel.subject).toBe(EXAMPLE_SUBJECT_DID);
     expect(initialViewModel.classifiedPurposes).toEqual([
@@ -89,6 +113,11 @@ describe('101: consent view model', () => {
       }),
     ]);
 
+    // Step 6.
+    // Simulate what the user changes in the UI:
+    // - change who receives access
+    // - change the allowed purpose
+    // - change the selected targets shown on screen
     const editedViewModel = {
       ...initialViewModel,
       classifiedActors: {
@@ -122,16 +151,28 @@ describe('101: consent view model', () => {
       ],
     };
 
+    // Step 7.
+    // Save the edited screen state back into the same Consent entry.
+    // The app does not save the view model itself; it saves canonical Consent
+    // claims through the editor.
     editor
       .applyConsentViewModel(editedViewModel)
       .saveAndReleaseActiveEntry();
 
+    // Step 8.
+    // Reopen the stored Consent exactly like the app would after save or on
+    // the next screen load.
     const reloadedEditor = createConsentAccessEditor({
       initialBundle: editor.getBundleInMemory(),
     });
     reloadedEditor.selectActiveEntry({ fullUrl: `urn:uuid:${EXAMPLE_CONSENT_IDENTIFIER}-view-model` });
 
     const reloadedViewModel = reloadedEditor.getConsentViewModel();
+
+    // Step 9.
+    // Final didactic proof:
+    // the user-facing view model now reflects persisted edited data, not just
+    // an in-memory temporary object.
     expect(reloadedViewModel.classifiedPurposes).toEqual([
       expect.objectContaining({
         code: EXAMPLE_CONSENT_PURPOSE_EMERGENCY_TREATMENT,

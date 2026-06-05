@@ -137,28 +137,98 @@ const builtBundle = bundle.build();
 
 `BundleReader` is the generic reader for received bundles and stored bundles.
 
-It should support:
+It currently supports:
 
 - opening a bundle
 - iterating entries
-- selecting entries by index / `resource.id` / `fullUrl`
-- reading per-entry status and diagnostics
+- opening one entry by index
+- reading per-entry status, severities, and diagnostics
 - reading bundle totals and aggregate result counts
+- returning one frontend-oriented response analysis
+- reading either FHIR-style `entry[]` bundles or JSON:API-like `data[]` bundles
 
-Target shape:
+### Supported Bundle Queries
+
+Use `BundleReader` when a frontend or SDK caller needs to answer questions such as:
+
+- what bundle type came back
+- how many operations came back
+- how many operations are fully successful
+- whether the response contains warnings or errors
+- which diagnostics messages should be shown in a banner or detail drawer
+- which individual operations need attention
+- which identifiers belong to warning/error rows that the UI may reopen later
+
+Global bundle queries:
+
+- `getBundleType()`
+- `getEntries()`
+- `getTotalOperations()`
+- `getTotalSuccessfulOperations()`
+- `getTotalErrorOperations()`
+- `hasWarnings()`
+- `hasErrors()`
+- `getBundleIssueSeverities()`
+- `getBundleIssueDiagnostics()`
+- `getEntrySummaries()`
+- `getEntriesWithWarningOrErrorIssues()`
+- `getResponseAnalysis()`
+
+Per-entry queries:
+
+- `openEntry(index)`
+- `getEntryResponseStatus()`
+- `getIssueSeverities()`
+- `getIssueDiagnostics()`
+
+Frontend-oriented result shape:
+
+- `getEntrySummaries()` returns normalized per-entry summaries with:
+  - entry index
+  - resolved identifier
+  - response status
+  - collected issue severities
+  - collected diagnostics
+  - one final representative `severity`
+  - `isSuccessful`
+- `getResponseAnalysis()` returns:
+  - `totalOperations`
+  - `successfulOperations`
+  - `errorOperations`
+  - `hasWarnings`
+  - `hasErrors`
+  - `issueDiagnostics`
+  - `severityBuckets.fatal|error|warning|information|success`
+  - per bucket: `entryIndexes`, `identifiers`, `identifierList`
+
+Current target shape:
 
 ```ts
 const reader = new BundleReader(bundle);
+
 reader.getBundleType();
 reader.getEntries();
+reader.getTotalOperations();
+reader.getTotalSuccessfulOperations();
+reader.getTotalErrorOperations();
+reader.hasWarnings();
+reader.hasErrors();
+reader.getBundleIssueSeverities();
+reader.getBundleIssueDiagnostics();
+reader.getEntrySummaries();
+reader.getEntriesWithWarningOrErrorIssues();
+reader.getResponseAnalysis();
+
 reader.openEntry(0);
 reader.getEntryResponseStatus();
 reader.getIssueSeverities();
 reader.getIssueDiagnostics();
-reader.getTotalOperations();
-reader.getTotalSuccessfulOperations();
-reader.getTotalErrorOperations();
 ```
+
+See also:
+
+- [`__tests__/101-bundle-reader.test.ts`](../__tests__/101-bundle-reader.test.ts)
+- [`__tests__/101-bundle-response-analysis.test.ts`](../__tests__/101-bundle-response-analysis.test.ts)
 
 ## Supported Types
 

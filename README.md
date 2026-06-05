@@ -30,6 +30,24 @@ boundaries used in `gdc-common-utils-ts`.
 - `resource.meta.claims` is the canonical project-specific claims container and must be preserved across conversions/transports.
 - `resource.meta.claims` is not part of base FHIR; it is a claims-first extension carried by FHIR-like resources in GDC contracts.
 
+## 101 Test Convention
+
+Every `101` test in this repo is expected to be a didactic executable tutorial,
+not only a behavior check.
+
+Required shape for `101` tests:
+
+- start with a short `Teaching goal` comment block
+- explain the main app/business flow, not only internal plumbing
+- use explicit `Step 1.`, `Step 2.`, ... comments for the happy path
+- make clear what the user/app already has, what is shown, what is edited,
+  what is saved, and what is reloaded
+- if a low-level helper path is shown, mark it explicitly as an escape hatch
+  and not the primary `101` path
+
+The goal is that a developer can read the test top-to-bottom as tutorial
+material without needing chat history or private repo context.
+
 If you need the canonical explanation of how DIDComm envelope, batch body,
 entry types, FHIR-like resources, and `resource.meta.claims` fit together,
 read first:

@@ -1,7 +1,7 @@
 // src/models/fhir/operation-outcome.ts
 // Copyright 2025 Antifraud Services Inc. under the Apache License, Version 2.0.
 
-import { IssueLevel, IssueTypeCode } from './issue';
+import { IssueSeverityCode, IssueTypeCode } from './issue';
 
 /**
  * A single detail associated with an operation, based on a simplified FHIR structure.
@@ -11,7 +11,7 @@ export interface OperationOutcomeDetails {
   /**
    * Indicates the severity of the detail.
    */
-  severity: IssueLevel;
+  severity: IssueSeverityCode;
 
   /**
    * A code classifying the type of detail.
@@ -31,4 +31,3 @@ export interface OperationOutcome {
   resourceType: 'OperationOutcome';
   issue: OperationOutcomeDetails[];
 }
-

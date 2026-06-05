@@ -1,6 +1,7 @@
 // crypto-ts/utils/format-converter.ts
 // Copyright 2025 Antifraud Services Inc. under the Apache License, Version 2.0.
 
+import { IssueSeverity } from "../models/issue";
 import { safelyJoinUrl } from "./url";
 
 /**
@@ -61,7 +62,7 @@ export const convertPrimaryDocToBundleFHIR = (primaryDocument: any, bundleType: 
         id: errorObject.id,
         issue: [{
           code: errorObject.status,
-          severity: 'error',
+          severity: IssueSeverity.Error,
           details: { text: errorObject.detail },
         }]
       }
@@ -108,7 +109,7 @@ export const convertFhirErrorBundleToJsonApiError = (errorBundle: any): any => {
       title: title,
       detail: issue.diagnostics || 'An error occurred while processing the request.',
       meta: {
-        severity: issue.severity || 'error'
+        severity: issue.severity || IssueSeverity.Error
       }
     };
   });

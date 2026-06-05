@@ -32,9 +32,20 @@ import {
 
 describe('101: consent template bundle editor', () => {
   it('builds one consent bundle at high level and edits each consent entry from templates before backend delivery', () => {
+    // Teaching goal:
+    // - the app starts from an empty bundle that will carry several consents
+    // - the app prepares template-driven decisions for several user-visible rules
+    // - the app saves each decision into its matching Consent entry
+    // - the app reopens the saved bundle to prove the user would later see the same data
+    // - the final output is one bundle ready for backend delivery
+
     // Frontend side:
     // - Vite can assemble this bundle and send it to its backend wrapper for GW CORE
     // - Expo confidential app can assemble the same bundle before its transport layer
+
+    // Step 1.
+    // Build the empty bundle skeleton with three Consent slots that the app
+    // will later fill.
     const bundleEditor = new BundleEditor()
       .setBundleOperation(EmployeeBundleOperations.create)
       .setAllowedResourceType(ResourceTypesFhirR4.Consent)
@@ -51,6 +62,9 @@ describe('101: consent template bundle editor', () => {
     const draftBundle = bundleEditor.buildJsonApi();
     expect(new BundleReader(bundleEditor.build()).getTotalOperations()).toBe(3);
 
+    // Step 2.
+    // Build three high-level template decisions representing what the user has
+    // chosen in the app.
     const physicianTemplate = resolvePermissionTemplate({
       sector: DataspaceSectors.HealthCare,
       roleClaim: EXAMPLE_HEALTHCARE_ACTOR_ROLE_GENERALIST_MEDICAL_PRACTITIONER,
@@ -122,6 +136,8 @@ describe('101: consent template bundle editor', () => {
       },
     );
 
+    // Step 3.
+    // Open each Consent slot and save one template-derived decision into it.
     const consentBundleEditor = createConsentAccessEditor({
       initialBundle: draftBundle,
     });
@@ -150,6 +166,9 @@ describe('101: consent template bundle editor', () => {
       }))
       .saveAndReleaseActiveEntry();
 
+    // Step 4.
+    // The bundle is now ready to send, but before transport the app can still
+    // reopen it and show the saved data again.
     const readyToSendBundle = consentBundleEditor.getBundleInMemory();
     expect(readyToSendBundle.data).toHaveLength(3);
 
@@ -157,6 +176,9 @@ describe('101: consent template bundle editor', () => {
       initialBundle: readyToSendBundle,
     });
 
+    // Step 5.
+    // Reopen each persisted consent and verify the classified values the UI
+    // would render to the user.
     reader.selectActiveEntry({ fullUrl: `urn:uuid:${EXAMPLE_CONSENT_IDENTIFIER}-1` });
     expect(reader.getSelectedPurposes()).toEqual([EXAMPLE_CONSENT_PURPOSE_TREATMENT]);
     expect(reader.getActorsClassified().users).toEqual([

@@ -1,3 +1,4 @@
+import { IssueSeverity, IssueType } from '../src';
 import {
   clearFhirValidatorAdapters,
   registerFhirValidatorAdapter,
@@ -13,7 +14,7 @@ describe('utils/fhir-validator', () => {
   it('basic validator reports missing resourceType', () => {
     const result = validateFhirResourceBasic({});
     expect(result.ok).toBe(false);
-    expect(result.issues.some((item) => item.code === 'required')).toBe(true);
+    expect(result.issues.some((item) => item.code === IssueType.Required)).toBe(true);
   });
 
   it('basic validator accepts minimal Communication with status', () => {
@@ -35,7 +36,7 @@ describe('utils/fhir-validator', () => {
       validate() {
         return {
           ok: true,
-          issues: [{ severity: 'warning', code: 'adapter', diagnostics: 'adapter-called' }],
+          issues: [{ severity: IssueSeverity.Warning, code: 'adapter', diagnostics: 'adapter-called' }],
         };
       },
     });

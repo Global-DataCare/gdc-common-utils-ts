@@ -1,85 +1,131 @@
 // src/models/issue.ts
 // Copyright 2025 Antifraud Services Inc. under the Apache License, Version 2.0.
-// Source: https://www.hl7.org/fhir/valueset-issue-severity.html
+// Source: https://build.fhir.org/valueset-issue-severity.html
+// Source: https://build.fhir.org/valueset-issue-type.html
 
 /**
- * Defines the level of an issue.
+ * Canonical FHIR issue severities shared across common-utils.
  */
-export enum IssueLevel {
-  /** The issue is fatal and the system is in an unstable state. */
-  Fatal = 'fatal',
-  /** The issue is an error that prevents the action from completing. */
-  Error = 'error',
-  /** The issue is a warning that does not prevent the action from completing. */
-  Warning = 'warning',
-  /** The issue is informational and requires no action. */
-  Information = 'information',
-}
-
-// Source: https://www.hl7.org/fhir/valueset-issue-type.html
-/**
- * Defines the code for the type of issue.
- * This is a subset of the full FHIR value set, focused on common API scenarios.
- */
-export const IssueType = {
-  // --- Category: Invalid Content ---
-  /** Content invalid against the specification. */
-  Invalid: 'invalid',
-  /** A required element is missing. */
-  Required: 'required',
-  /** An element value is invalid. */
-  Value: 'value',
-  /** A business rule has been violated. */
-  BusinessRule: 'business-rule',
-
-  // --- Category: Security ---
-  /** An authentication/authorization error has occurred. */
-  Login: 'login',
-  /** The user is not authorized for the requested action. */
-  Forbidden: 'forbidden',
-  /** A security-related issue has been detected. */
-  Security: 'security',
-
-  // --- Category: Processing ---
-  /** The resource was not found. */
-  NotFound: 'not-found',
-  /** The operation led to a conflict. */
-  Conflict: 'conflict',
-  /** A duplicate record was detected. */
-  Duplicate: 'duplicate',
-  /** The operation is not supported. */
-  NotSupported: 'not-supported',
-  /** An internal processing exception occurred. */
-  Exception: 'exception',
-  /** The operation has timed out. */
-  Timeout: 'timeout',
-  /** The operation was throttled. */
-  Throttled: 'throttled',
+export const IssueSeverity = {
+  Fatal: 'fatal',
+  Error: 'error',
+  Warning: 'warning',
+  Information: 'information',
+  Success: 'success',
 } as const;
 
+export type IssueSeverityCode = typeof IssueSeverity[keyof typeof IssueSeverity];
+export type IssueSeverityAttentionCode =
+  | typeof IssueSeverity.Error
+  | typeof IssueSeverity.Warning;
+
 /**
- * A union type derived from the keys of the IssueType object.
- * This ensures that only defined issue type codes can be used.
+ * Backward-compatible alias kept for older callers.
  */
+export const IssueLevel = IssueSeverity;
+export type IssueLevel = IssueSeverityCode;
+
+export const IssueSeverityPriority: Readonly<Record<IssueSeverityCode, number>> = {
+  [IssueSeverity.Fatal]: 5,
+  [IssueSeverity.Error]: 4,
+  [IssueSeverity.Warning]: 3,
+  [IssueSeverity.Information]: 2,
+  [IssueSeverity.Success]: 1,
+};
+
+const ISSUE_SEVERITY_VALUES = Object.values(IssueSeverity);
+
+export function isIssueSeverityCode(value: unknown): value is IssueSeverityCode {
+  return typeof value === 'string' && ISSUE_SEVERITY_VALUES.includes(value as IssueSeverityCode);
+}
+
+export function getHighestIssueSeverity(
+  severities: readonly IssueSeverityCode[],
+): IssueSeverityCode | undefined {
+  return severities.reduce<IssueSeverityCode | undefined>((highest, current) => {
+    if (!highest) {
+      return current;
+    }
+    return IssueSeverityPriority[current] > IssueSeverityPriority[highest] ? current : highest;
+  }, undefined);
+}
+
+/**
+ * Canonical FHIR issue types shared across common-utils.
+ */
+export const IssueType = {
+  Invalid: 'invalid',
+  Structure: 'structure',
+  Required: 'required',
+  Value: 'value',
+  Invariant: 'invariant',
+  Security: 'security',
+  Login: 'login',
+  Unknown: 'unknown',
+  Expired: 'expired',
+  Forbidden: 'forbidden',
+  Suppressed: 'suppressed',
+  Processing: 'processing',
+  NotSupported: 'not-supported',
+  Duplicate: 'duplicate',
+  MultipleMatches: 'multiple-matches',
+  NotFound: 'not-found',
+  Deleted: 'deleted',
+  TooLong: 'too-long',
+  CodeInvalid: 'code-invalid',
+  Extension: 'extension',
+  TooCostly: 'too-costly',
+  BusinessRule: 'business-rule',
+  Conflict: 'conflict',
+  LimitedFilter: 'limited-filter',
+  Transient: 'transient',
+  LockError: 'lock-error',
+  NoStore: 'no-store',
+  Exception: 'exception',
+  Timeout: 'timeout',
+  Incomplete: 'incomplete',
+  Throttled: 'throttled',
+  Informational: 'informational',
+  Success: 'success',
+} as const;
+
 export type IssueTypeCode = typeof IssueType[keyof typeof IssueType];
 
 /**
- * Maps our internal IssueType codes to the appropriate HTTP status code strings.
- * This provides a single source of truth for error responses.
+ * Pragmatic HTTP mapping for common API/server adapters.
  */
 export const IssueTypeToHttpStatus: Record<IssueTypeCode, string> = {
   [IssueType.Invalid]: '400',
+  [IssueType.Structure]: '400',
   [IssueType.Required]: '400',
   [IssueType.Value]: '400',
-  [IssueType.BusinessRule]: '400',
-  [IssueType.Login]: '401',
-  [IssueType.Forbidden]: '403',
+  [IssueType.Invariant]: '400',
   [IssueType.Security]: '403',
-  [IssueType.NotFound]: '404',
-  [IssueType.Conflict]: '409',
-  [IssueType.Duplicate]: '409',
+  [IssueType.Login]: '401',
+  [IssueType.Unknown]: '401',
+  [IssueType.Expired]: '401',
+  [IssueType.Forbidden]: '403',
+  [IssueType.Suppressed]: '403',
+  [IssueType.Processing]: '422',
   [IssueType.NotSupported]: '501',
+  [IssueType.Duplicate]: '409',
+  [IssueType.MultipleMatches]: '409',
+  [IssueType.NotFound]: '404',
+  [IssueType.Deleted]: '410',
+  [IssueType.TooLong]: '413',
+  [IssueType.CodeInvalid]: '400',
+  [IssueType.Extension]: '400',
+  [IssueType.TooCostly]: '422',
+  [IssueType.BusinessRule]: '422',
+  [IssueType.Conflict]: '409',
+  [IssueType.LimitedFilter]: '422',
+  [IssueType.Transient]: '503',
+  [IssueType.LockError]: '423',
+  [IssueType.NoStore]: '503',
   [IssueType.Exception]: '500',
-  [IssueType.Timeout]: '503',
+  [IssueType.Timeout]: '504',
+  [IssueType.Incomplete]: '206',
   [IssueType.Throttled]: '429',
+  [IssueType.Informational]: '200',
+  [IssueType.Success]: '200',
 };

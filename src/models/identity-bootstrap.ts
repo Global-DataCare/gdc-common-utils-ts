@@ -1,6 +1,7 @@
 // Copyright 2026 Antifraud Services Inc. under the Apache License, Version 2.0.
 
 import { PublicJwk } from '../interfaces/Cryptography.types';
+import { type IssueSeverityAttentionCode } from './issue';
 import { JwkSet } from './jwk';
 
 /**
@@ -90,7 +91,7 @@ export interface OrganizationActivationRequest extends ActivationProofInput {
  */
 export type IdentityBootstrapValidationIssue = {
   /** Validation severity. Errors fail the contract, warnings flag compatibility debt. */
-  severity: 'error' | 'warning';
+  severity: IssueSeverityAttentionCode;
   /** Stable machine-readable issue identifier. */
   code: string;
   /** Human-readable description of the problem or compatibility note. */

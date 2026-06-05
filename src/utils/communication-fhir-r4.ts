@@ -1,5 +1,6 @@
 // Always create JSDoc, do not use strings inline in keys nor values, use types instead, and reuse the data test examples.
 import { CommunicationClaim } from '../models/interoperable-claims/communication-claims';
+import { type FhirValidationResult } from './fhir-validator';
 import { validateFhirResource } from './fhir-validator';
 
 export type CommunicationClaims = Record<string, unknown>;
@@ -22,7 +23,7 @@ export type TransformCommunicationClaimsToResourceFhirR4Result = {
  */
 export async function validateCommunicationResourceFhirR4(
   resource: Record<string, unknown>,
-): Promise<{ ok: boolean; issues: Array<{ severity: 'error' | 'warning'; code: string; diagnostics: string; expression?: string }> }> {
+): Promise<FhirValidationResult> {
   return validateFhirResource(resource, 'r4');
 }
 
