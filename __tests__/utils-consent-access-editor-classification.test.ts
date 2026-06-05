@@ -74,7 +74,7 @@ describe('ConsentAccessEditor classification helpers', () => {
         target: expect.objectContaining({
           kind: ConsentEditorTargetKinds.Section,
           code: HealthcareDocumentTypes.IPS.attributeValue,
-          sectionFamily: HealthcareCanonicalSectionFamilies.CoreSection,
+          sectionFamily: HealthcareCanonicalSectionFamilies.KindOfDocument,
         }),
         scopes: [expect.objectContaining({ code: ConsentEditorScopeCodes.Read })],
       }),

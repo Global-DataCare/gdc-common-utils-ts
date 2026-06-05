@@ -28,10 +28,14 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
   - `getEntryIndexByIdentifier(...)`
 - Updated the bundle-reader `101` and docs so UI code can reopen response rows
   from stored identifiers without relying on remembered array indexes.
+- Aligned consent classification coverage with the canonical healthcare section
+  taxonomy so IPS (`http://loinc.org|60591-5`) remains classified as
+  `kind-of-document` instead of `core-section`.
 
 ### Testing
 - `npm test -- --watchman=false __tests__/101-bundle-reader.test.ts`
 - `npm test -- --watchman=false __tests__/dataspace-protocol.test.ts __tests__/dataspace-discovery-defaults.101.test.ts`
+- `npm test -- --watchman=false __tests__/utils-consent-access-editor-classification.test.ts`
 - `npm run build`
 
 ## [1.18.0] - 2026-06-05
