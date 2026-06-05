@@ -100,6 +100,27 @@ export type CreateIpsSummarySearchCommunicationInput = Readonly<{
   filterSections?: string[];
 }>;
 
+export type CreateSummaryOperationCommunicationInput = Readonly<{
+  subjectId: string;
+  requesterId: string;
+  communicationIdentifier?: string;
+  recipient?: string | string[];
+  thid?: string;
+  sent?: string;
+  status?: string;
+  text?: string;
+  noteText?: string;
+  filterSections?: string[];
+  documentType?: BundleDocumentTypeKey;
+  operationPath?: string;
+}>;
+
+export const SummaryOperationCommunicationDefaults = Object.freeze({
+  AttachmentType: 'application/fhir+json',
+  AttachmentTitle: 'summary-operation-parameters.json',
+  OperationPath: 'individual/org.hl7.fhir.api/Subject/$summary',
+} as const);
+
 /**
  * Builds canonical flat claims for a `Communication` that requests a bundle
  * search by reference URL.
@@ -406,6 +427,55 @@ export function createSummaryOperationRequestParametersResource(
   return buildFhirParametersResourceFromParameterData(parameters);
 }
 
+function encodeJsonAttachmentData(payload: unknown): string {
+  return Buffer.from(JSON.stringify(payload), 'utf8').toString('base64');
+}
+
+export function buildCommunicationRequestOperationWithAttachedParametersClaims(
+  input: CreateSummaryOperationCommunicationInput,
+): Record<string, unknown> {
+  const requesterId = String(input.requesterId || '').trim();
+  const parsedActor = parseActorFromSub(requesterId);
+  const requesterKind = inferRequesterKindFromActorSub(requesterId);
+  const summaryOperationRequestParameters = createSummaryOperationRequestParameters({
+    subjectId: String(input.subjectId || '').trim(),
+    filterSections: input.filterSections,
+    documentType: input.documentType || DocumentTypeLoincOntology.IPS,
+  });
+  const attachmentResource =
+    createSummaryOperationRequestParametersResource(summaryOperationRequestParameters);
+  const operationPath = String(
+    input.operationPath || SummaryOperationCommunicationDefaults.OperationPath,
+  ).trim();
+
+  const claims = buildBundleDocumentRequestCommunicationClaims({
+    subjectDid: String(input.subjectId || '').trim(),
+    sender: requesterId,
+    requesterKind,
+    requesterIdentifier: parsedActor.identifier || requesterId,
+    requesterRole: parsedActor.role,
+    recipient: input.recipient,
+    communicationIdentifier: input.communicationIdentifier,
+    thid: input.thid,
+    sent: input.sent,
+    status: input.status,
+    documentType: input.documentType || DocumentTypeLoincOntology.IPS,
+    sections: input.filterSections,
+    summaryOperationRequestReferencePath: operationPath,
+    text: input.text,
+    noteText: input.noteText,
+  });
+
+  claims[CommunicationClaim.ContentAttachmentType] =
+    SummaryOperationCommunicationDefaults.AttachmentType;
+  claims[CommunicationClaim.ContentAttachmentTitle] =
+    SummaryOperationCommunicationDefaults.AttachmentTitle;
+  claims[CommunicationClaim.ContentAttachmentData] =
+    encodeJsonAttachmentData(attachmentResource);
+
+  return claims;
+}
+
 /**
  * Resolves the full runtime URL to call GW CORE from the provider sector DID
  * and the generated relative search path.
@@ -452,22 +522,16 @@ export const createSummaryOperationParameters = createSummaryOperationRequestPar
 /** @deprecated Use `createSummaryOperationRequestReferencePath(...)`. */
 export const flattenParametersToSearchReference = createSummaryOperationRequestReferencePath;
 
-export function buildCommunicationRequestOperationWithAttachedParametersClaims(): never {
-  throw new Error(
-    'TODO: CommunicationRequestOperationWithAttachedParameters for individual/org.hl7.fhir.r4/Patient/$summary is not implemented yet. Reference: https://hl7.org.au/fhir/ps/1.0.0-preview/generation-and-access.html',
-  );
-}
-
 /**
  * Preferred high-level developer-facing helpers for auditable search requests
  * carried inside `Communication`.
  *
- * TODO:
- * - `setRequestSummaryOperation(...)` should build a future
- *   `CommunicationRequestOperationWithAttachedParameters` payload for
- *   `individual/org.hl7.fhir.r4/Patient/$summary`
- * - reference:
- *   https://hl7.org.au/fhir/ps/1.0.0-preview/generation-and-access.html
+ * Current split:
+ * - `newSearchWithReferencePath(...)` keeps the existing `content-reference`
+ *   search-url contract
+ * - `setRequestSummaryOperation(...)` builds the operation contract where
+ *   `content-reference` points to the operation path and
+ *   `content-attachment-data` carries the serialized FHIR `Parameters`
  */
 export const communication = Object.freeze({
   /**

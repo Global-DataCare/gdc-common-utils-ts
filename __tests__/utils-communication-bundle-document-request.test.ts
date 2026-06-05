@@ -15,9 +15,11 @@ import {
   communication,
   createDidcommSearchWithReferenceUrlMessage,
   createSummaryOperationRequestParameters,
+  createSummaryOperationRequestParametersResource,
   createSummaryOperationRequestReferencePath,
   createSummaryOperationRequestReferenceUrl,
   IpsSummaryParameterNames,
+  SummaryOperationCommunicationDefaults,
 } from '../src/utils/communication-bundle-document-request';
 import {
   EXAMPLE_EMAIL_CONTROLLER_INDIVIDUAL,
@@ -120,7 +122,33 @@ describe('utils/communication-bundle-document-request', () => {
     });
 
     expect(claims[CommunicationClaim.ContentReference]).toBe(EXAMPLE_IPS_BUNDLE_REFERENCE_URL);
-    expect(() => communication.setRequestSummaryOperation()).toThrow(/Patient\/\$summary/);
+
+    const summaryOperationClaims = communication.setRequestSummaryOperation({
+      subjectId: EXAMPLE_SUBJECT_DID,
+      requesterId: EXAMPLE_EMAIL_CONTROLLER_INDIVIDUAL,
+    });
+
+    expect(summaryOperationClaims[CommunicationClaim.ContentReference]).toBe(
+      SummaryOperationCommunicationDefaults.OperationPath,
+    );
+    expect(summaryOperationClaims[CommunicationClaim.ContentAttachmentType]).toBe(
+      SummaryOperationCommunicationDefaults.AttachmentType,
+    );
+    expect(summaryOperationClaims[CommunicationClaim.ContentAttachmentTitle]).toBe(
+      SummaryOperationCommunicationDefaults.AttachmentTitle,
+    );
+    expect(
+      JSON.parse(
+        Buffer.from(
+          String(summaryOperationClaims[CommunicationClaim.ContentAttachmentData] || ''),
+          'base64',
+        ).toString('utf8'),
+      ),
+    ).toEqual(
+      createSummaryOperationRequestParametersResource(
+        createSummaryOperationRequestParameters(EXAMPLE_SUBJECT_DID),
+      ),
+    );
   });
 
   it('keeps the direct bundle-search helper aligned with the parameter-based flattening', () => {

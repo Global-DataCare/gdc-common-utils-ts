@@ -1,186 +1,192 @@
 # 101 Consent Permission Templates
 
-## Objetivo
+## Goal
 
-Tiene que existir una capa común de `permission templates` que sirva a la vez para:
+There must be one shared permission-template layer that can serve all of these
+use cases:
 
-- UI del front
-- solicitud de permisos al controller del individuo
-- creación manual de permisos por el controller del individuo
-- persistencia final en consent/access rules
-- documentación y validación previa
+- frontend UI
+- permission request creation for the individual controller
+- manual permission granting by the individual controller
+- final persistence into consent/access rules
+- documentation and pre-validation
 
-Esa capa no sustituye el contrato actual de claims de consent. Lo alimenta. La transformación hacia claims/FHIR Consent la tiene que hacer `ConsentAccessEditor` o una capa adyacente en `common-utils`.
+This layer does not replace the current consent claim contract. It feeds it.
+Transformation into claims or FHIR `Consent` entries should happen in
+`ConsentAccessEditor` or an adjacent shared layer in `gdc-common-utils-ts`.
 
-## Casos de uso que tiene que cubrir
+## Required Use Cases
 
-### 1. UI del front
+### 1. Frontend UI
 
-Sirve para:
+The same template layer must support:
 
-- mostrar opciones disponibles
-- ocultar o desactivar acciones no permitidas
-- adaptar pantallas según:
+- showing available options
+- hiding tools/actions that are not allowed
+- disabling tools/actions that are visible but not usable
+- adapting screens by:
   - actor
   - sector
-  - rol profesional o relación personal
+  - professional role or personal relationship
 
-Ejemplo:
+Example:
 
-- un administrativo puede ver “buscar documentos”
-- no puede ver “leer contenido clínico”
-- un médico sí puede ver lectura clínica completa
+- a hospital administrator may see "search documents"
+- that same role should not see "read full clinical content"
+- a physician may see full clinical read capabilities
 
-### 2. Solicitud de permisos al controller del individuo
+### 2. Permission Request Creation
 
-Sirve para:
+The same template layer must support:
 
-- el profesional elige su rol
-- el front carga la plantilla recomendada
-- se genera una solicitud ya rellenada con:
-  - recursos
-  - secciones
-  - tipo de acceso
-  - scopes SMART sugeridos
+- the professional choosing a role
+- the frontend loading the recommended template
+- generating a pre-filled request with:
+  - resources
+  - sections
+  - access type
+  - suggested SMART scopes
 
-No parte de cero. Parte de una plantilla sectorial razonable.
+The request should start from a reasonable sector template, not from scratch.
 
-### 3. Creación manual por el controller del individuo
+### 3. Manual Granting By The Individual Controller
 
-Sirve para:
+The same template layer must support:
 
-- el controller del individuo elige:
+- the individual controller choosing:
   - sector
-  - rol
-- el sistema propone la plantilla predeterminada
-- luego puede:
-  - aceptarla tal cual
-  - ajustarla
-  - restringirla más
+  - role
+- the system proposing the default template
+- the controller then being able to:
+  - accept it as-is
+  - adjust it
+  - restrict it further
 
-Valor real:
+This is the real value:
 
-- una sola tabla base
-- usada para UX, solicitud y concesión manual
+- one base table
+- reused by UI, request creation, and manual granting
 
-## Flujo funcional
+## Functional Flow
 
-### 1. Catálogo base
+### 1. Base Catalog
 
-Vive como configuración compartida. Contiene:
+The shared catalog should contain:
 
 - `actorType`
 - `sector`
-- `roleId` o `relationshipCode`
-- permisos recomendados
-- recursos y secciones
-- scopes SMART sugeridos
-- flags como `metadataOnly`
+- `roleId` or `relationshipCode`
+- recommended permissions
+- resources and sections
+- suggested SMART scopes
+- flags such as `metadataOnly`
 
-### 2. Selección de rol
+### 2. Role Selection
 
-En el front:
+In the frontend:
 
-- el usuario o el sistema identifica `sector + role`
-- se resuelve la plantilla recomendada
-- eso sirve ya para:
-  - mostrar UI
-  - ocultar acciones no válidas
-  - preparar solicitudes
+- the user or system resolves `sector + role`
+- the recommended template is loaded
+- that template can already be used to:
+  - drive UI visibility
+  - hide invalid actions
+  - prepare permission requests
 
-### 3. Preview de permisos
+### 3. Permission Preview
 
-Antes de pedir o conceder:
+Before requesting or granting:
 
-- se muestra una vista clara:
-  - puede listar
-  - puede leer
-  - puede crear
-  - sobre qué recursos
-  - sobre qué secciones
-- si es `metadataOnly`, se dice explícitamente
+- the user should see a clear summary:
+  - can search/list
+  - can read
+  - can create
+  - over which resources
+  - over which sections
+- if `metadataOnly` applies, it must be stated explicitly
 
-### 4. Solicitud al controller
+### 4. Request To The Individual Controller
 
-- el front genera una solicitud basada en la plantilla
-- el controller del individuo recibe algo ya estructurado
+- the frontend generates a request from the template
+- the individual controller receives a structured permission draft
 
-### 5. Edición manual por el controller
+### 5. Manual Editing By The Individual Controller
 
-- puede aceptar
-- restringir
-- ampliar si la política lo permite
-- guardar como preset
+The controller may:
 
-### 6. Persistencia final
+- accept
+- restrict
+- widen if policy allows it
+- save as a preset
 
-Lo que se guarda no es “la plantilla” sin más. Se guarda la decisión final:
+### 6. Final Persistence
+
+The stored artifact must be the final decision, not merely "the template":
 
 - targets
 - CRUD/scopes
 - actors
 - roles
 - purposes
-- metadatos vs contenido
-- scopes SMART efectivos
-- límites temporales o contextuales si aplican
+- metadata-only vs full content
+- effective SMART scopes
+- optional temporal or contextual limits
 
-## Dónde vive cada cosa
+## Ownership By Repository
 
 - `gdc-common-utils-ts`
-  - tipos
-  - catálogo base
-  - helpers de resolución
+  - types
+  - base catalog
+  - resolution helpers
   - `ConsentAccessEditor`
   - `BundleEditor` / `BundleReader`
   - `EmployeeEntryEditor`
-  - futuros `ConsentEntryEditor`, `RelatedPersonEntryEditor`, `Ips...`
+  - future editors such as `ConsentEntryEditor`, `RelatedPersonEntryEditor`, `Ips...`
 - `gdc-sdk-core-ts`
-  - lógica neutral de resolución de plantilla efectiva
-  - mapping a surface/capabilities por actor
+  - neutral effective-template resolution logic
+  - actor-facing capability/surface mapping
 - `gdc-sdk-front-ts`
   - UI
-  - overrides
-  - formularios de solicitud/concesión
+  - app overrides
+  - request/grant forms
 - `gdc-sdk-node-ts`
-  - enforcement runtime si aplica
+  - runtime enforcement when applicable
 
-## Orden de resolución
+## Resolution Order
 
-1. plantilla base del SDK
-2. override por organización/app
-3. ajuste por caso concreto
-4. consentimiento/permiso final persistido
+1. SDK base template
+2. organization/app override
+3. case-specific adjustment
+4. final persisted consent/permission
 
-## Identidad de roles y relaciones
+## Canonical Role And Relationship Identity
 
-No usar labels libres como clave canónica.
+Do not use free-text labels as canonical keys.
 
-Profesionales o personal:
+Professional or staff identities:
 
-- usar `sector + ISCO-08 code`
+- use `sector + ISCO-08 code`
 
-Relaciones personales:
+Personal relationships:
 
-- usar `sector + v3-RoleCode`
+- use `sector + HL7 v3-RoleCode` or the relationship-family role system in use
 
-Ejemplos:
+Examples:
 
 - `health-care_isco-08_221`
-- `health-care_isco-08_222`
+- `health-care_isco-08_2211`
 - `individual_v3-RoleCode_MTH`
 
-## Formato interno simple de permisos
+## Simple Internal Permission Shape
 
-La configuración base puede venir como:
+The base config may be expressed as:
 
-- clave: `<sector>_<codingSystem>_<code>`
-- valor CSV: `<target>.<ops>`
+- key: `<sector>_<codingSystem>_<code>`
+- value: `<target>.<ops>`
 
-Ejemplos:
+Examples:
 
 - `health-care_isco-08_221=DocumentReference.sr,MedicationStatement.sr,Observation.sr,LOINC|60591-5.sr`
-- `health-care_isco-08_222=DocumentReference.sr,MedicationStatement.sr,Observation.s,LOINC|60591-5.s`
+- `health-care_isco-08_2211=DocumentReference.sr,MedicationStatement.sr,Observation.sr,LOINC|60591-5.sr`
 - `individual_v3-RoleCode_MTH=DocumentReference.sr,Observation.s`
 
 `ops`:
@@ -191,9 +197,10 @@ Ejemplos:
 - `u` = update
 - `d` = delete
 
-## Modelo de consent que tiene que salir de ahí
+## Canonical Consent Mental Model
 
-El modelo mental principal no debe ser `Consent.action/category/resourceType`. Debe ser:
+The main mental model should not be `Consent.action/category/resourceType`.
+It should be:
 
 - `decision`
 - `purposes[]`
@@ -201,24 +208,32 @@ El modelo mental principal no debe ser `Consent.action/category/resourceType`. D
 - `actors[]`
 - `roles[]`
 
-Luego eso se exporta al contrato actual de claims.
+That canonical model is then exported into the current claim contract.
 
-## Contrato de lectura/clasificación del Consent editor
+## Current Consent Editor Classification Contract
 
-Ya encarrilado:
+Already established:
 
 - `getDecision()`
 - `getTargetsClassified()`
 - `getActorsClassified()`
 
-Pendiente ampliar:
+Also implemented now:
 
 - `getPurposesClassified()`
+- `getSelectedPurposes()`
+- `setSelectedPurposes(...)`
+- `addPurposes(...)`
+- `removePurposes(...)`
 - `getRolesClassified()`
+- `getSelectedRoles()`
+- `setSelectedRoles(...)`
+- `addRoles(...)`
+- `removeRoles(...)`
 
-## Targets clasificados
+## Classified Targets
 
-La API pública buena es `target`, no `section`.
+The public API should use `target`, not `section`, as the top-level concept.
 
 ```ts
 type ConsentTargetKind =
@@ -226,7 +241,8 @@ type ConsentTargetKind =
   | 'resource-type';
 ```
 
-Para LOINC, no separar `document-type` como kind distinto. Todo LOINC va como `section`, pero con familia:
+For LOINC, do not introduce a separate public `document-type` target kind.
+LOINC-backed targets should remain `section`, with a family:
 
 ```ts
 type ConsentSectionFamily =
@@ -253,33 +269,35 @@ type ClassifiedConsentTarget = {
 };
 ```
 
-## Taxonomía de secciones
+## Section Taxonomy
 
 - `core-section`
-  - secciones clínicas/resumen IPS y summary clínico
+  - IPS and clinical-summary core sections
 - `kind-of-document`
-  - LP de documento
+  - LOINC document-kind hierarchy
 - `type-of-service`
-  - LP de tipo de servicio
+  - LOINC type-of-service hierarchy
 - `subject-matter-domain`
-  - LP de especialidad/dominio
+  - LOINC specialty/domain hierarchy
 - `resource-type`
   - `DocumentReference`, `Observation`, etc.
 
-## Uso de LOINC
+## LOINC Usage
 
-No intentar reflejar toda la ontología LOINC como jerarquía dura. En el SDK usarla como clasificación reutilizable.
+The SDK should not try to mirror the whole LOINC ontology as a rigid hierarchy.
+It should reuse LOINC as a practical classification source.
 
-Ejemplo práctico:
+Example:
 
-- `Type of Service` puede usarse como clasificación general
-- no hace falta tratarlo como subsección obligatoria de otra cosa
+- `type-of-service` may be used directly as a reusable classification family
+- it does not need to become a mandatory sub-tree of another target kind
 
-## Front: helpers para pickers/collapsibles
+## Frontend Picker Helpers
 
-Sí, hacen falta helpers de catálogo y selección dentro del `ConsentAccessEditor` o muy pegados a él.
+The frontend should not manipulate raw `Consent.action`,
+`Consent.category`, or `Consent.resourceType` directly.
 
-Catálogos disponibles:
+Catalog helpers:
 
 - `getCoreSectionOptions()`
 - `getKindOfDocumentOptions()`
@@ -287,7 +305,7 @@ Catálogos disponibles:
 - `getSubjectMatterDomainOptions()`
 - `getResourceTypeOptions()`
 
-Selección actual:
+Current selection helpers:
 
 - `getSelectedCoreSections()`
 - `getSelectedKindOfDocuments()`
@@ -295,7 +313,7 @@ Selección actual:
 - `getSelectedSubjectMatterDomains()`
 - `getSelectedResourceTypes()`
 
-Set completo:
+Set/replace helpers:
 
 - `setSelectedCoreSections(...)`
 - `setSelectedKindOfDocuments(...)`
@@ -303,7 +321,7 @@ Set completo:
 - `setSelectedSubjectMatterDomains(...)`
 - `setSelectedResourceTypes(...)`
 
-Add/remove incremental:
+Incremental add/remove helpers:
 
 - `addCoreSections(...)`
 - `removeCoreSections(...)`
@@ -316,15 +334,9 @@ Add/remove incremental:
 - `addResourceTypes(...)`
 - `removeResourceTypes(...)`
 
-La idea es que el front no toque directamente:
+## Classified Actors
 
-- `Consent.action`
-- `Consent.category`
-- `Consent.resourceType`
-
-## Actors clasificados
-
-La API buena:
+Recommended public shape:
 
 ```ts
 getActorsClassified(): {
@@ -356,41 +368,32 @@ getActorsClassified(): {
 };
 ```
 
-Esto tiene que soportar:
+This must support:
 
-- uno o varios emails de profesional
-- uno o varios teléfonos
-- una o varias organizaciones `did:web`
-- uno o varios departamentos
-- una o varias locations
-- una o varias jurisdicciones ISO 3166
+- one or more professional emails
+- one or more phones
+- one or more organization `did:web` identifiers
+- one or more departments
+- one or more locations
+- one or more ISO 3166 jurisdictions
 
 ## Purposes
 
-No se puede olvidar. Tiene que haber listas de purposes por decisión, igual que hay listas de targets/actors/roles.
+Purposes are first-class data and must survive:
 
-Pendiente:
-
-- `getPurposesClassified()`
-- `setSelectedPurposes(...)`
-- `addPurposes(...)`
-- `removePurposes(...)`
-
-Y esa lista tiene que sobrevivir a:
-
-- solicitud
-- edición manual
-- export a claims/FHIR Consent
-- import de vuelta desde claims/FHIR Consent
+- request creation
+- manual editing
+- export to claims/FHIR `Consent`
+- import back from claims/FHIR `Consent`
 
 ## Roles
 
-También pendiente como lista explícita:
+Roles must also be explicit lists:
 
-- roles profesionales por sector
-- relaciones personales HL7/FHIR
+- professional roles by sector
+- personal or legal relationship roles
 
-Helpers necesarios:
+Helpers:
 
 - `getAvailableProfessionalRolesBySector(...)`
 - `getAvailableRelationshipRoles(...)`
@@ -399,46 +402,46 @@ Helpers necesarios:
 - `addRoles(...)`
 - `removeRoles(...)`
 
-Esto tiene que alimentar tanto:
+These feed both:
 
-- la UI del front
-- como la generación de permisos
-- como la validación de qué herramientas mostrar/habilitar
+- frontend UI
+- permission generation
+- tool visibility/enablement logic
 
-## Habilitar herramientas por rol y sector
+## Tool Visibility By Role And Sector
 
-La misma capa de templates tiene que servir para:
+The same template layer must drive:
 
-- mostrar herramientas
-- ocultar herramientas
-- desactivar herramientas
+- show tool
+- hide tool
+- disable tool
 
-Según:
+according to:
 
 - actor
 - sector
-- rol profesional/personal
+- professional or personal role
 
-Ejemplo:
+Example:
 
-- administrativo hospitalario:
-  - puede listar documentos
-  - no puede leer contenido clínico
-- médico:
-  - puede lectura clínica completa
-- bombero, policía, azafata, veterinario, etc.:
-  - plantillas específicas por sector y código
+- hospital administrative staff:
+  - may list documents
+  - may not read full clinical content
+- physician:
+  - may read full clinical content
+- firefighter, police, flight staff, veterinarian, etc.:
+  - should have sector-specific templates by role code
 
-## Tipos TS que siguen pendientes
+## Core TypeScript Types
 
-Base ya definida conceptualmente:
+The public model should cover at least:
 
 - `RolePermissionTemplate`
 - `ResolvedPermissionProfile`
 - `PermissionGrantRequestDraft`
 - `PermissionGrantDecision`
 
-Pero hay que evolucionarlos para cubrir:
+These must cover:
 
 - `purposes[]`
 - `targets[]`
@@ -448,63 +451,120 @@ Pero hay que evolucionarlos para cubrir:
 - `sectionFamily`
 - overrides
 
-## Transformación necesaria
+## Required Import/Export Layer
 
-Hace falta una capa de import/export entre:
+There must be a transformation layer between:
 
-- plantilla de permisos del front
-- modelo canónico del editor
-- claims persistidos
-- entries FHIR Consent
+- frontend permission template
+- canonical editor model
+- persisted claims
+- FHIR `Consent` bundle entries
 
-Nombres razonables:
+Current names in this repo:
 
 - `importPermissionTemplate(...)`
 - `exportConsentClaims(...)`
 - `exportConsentEntries(...)`
 - `importConsentClaims(...)`
-- `importConsentEntries(...)`
+- `importConsentEntry(...)`
 
-## Tests unitarios pendientes en common-utils
+## Executable Flow Today
 
-Hay que cubrir, como mínimo:
+The current executable flow already covered in examples/tests is:
 
-- una plantilla -> un consent entry
-- una plantilla -> varios consent entries
-- varios emails profesionales
-- varias organizaciones `did:web`
-- varios departamentos
-- varias locations
-- varias jurisdicciones ISO 3166
+- build a draft with `purposes`, `actorIdentifiers`, `roles`, `targets`
+- export it into the current consent claim contract
+- persist one or more `Consent` entries in a `Communication`-attached bundle
+- reload that bundle and reclassify the saved permissions for frontend display
+
+Executable references:
+
+- `__tests__/101-consent-template-bundle-editor.test.ts`
+- `__tests__/101-consent-bundle-editor.test.ts`
+- `__tests__/101-consent-permission-bundle-readwrite.test.ts`
+- `src/examples/communication-attached-bundle-session.ts`
+  - `buildConsentPermissionTemplateImportExportSessionExample()`
+  - `buildSeparateConsentPermissionBundleExample()`
+
+The preferred 101 flow is `__tests__/101-consent-template-bundle-editor.test.ts`:
+
+- build the `Bundle` first with `BundleEditor`
+- edit each `Consent` entry with `ConsentAccessEditor`
+- apply permission templates before export to consent claims
+- read the same bundle back for frontend rendering
+
+The separated-permission helper-oriented roundtrip is intentionally documented
+in `__tests__/101-consent-permission-bundle-readwrite.test.ts`, step by step,
+using the same public APIs frontend/backend code is expected to call:
+
+- `resolvePermissionTemplate(...)`
+- `importPermissionTemplate(...)`
+- `exportConsentEntry(...)`
+- `createConsentAccessEditor(...)`
+- `upsertActiveConsentEntry(...)`
+
+That test documents the frontend case where permissions are edited
+independently and then stored together in the same bundle:
+
+- one `Consent` for a professional email with role `ISCO-08|2211`
+- one `Consent` for one organization `did:web`
+- one `Consent` for jurisdictions `ES` and `PT`
+
+It covers both sides:
+
+- creation of each permission as a separate `Consent`
+- later readback of the same bundle for frontend rendering
+
+The final transport wrapping is complementary, not primary:
+
+- the bundle can then be wrapped into `Communication`
+- that wrapping step is asserted in `__tests__/101-consent-bundle-editor.test.ts`
+- backend and GW CORE should consume the wrapped `Communication`, but frontend
+  and backend permission authoring should keep the bundle-building logic
+  independent from that transport step
+
+## Minimum Test Coverage In Common Utils
+
+At minimum, the shared package should cover:
+
+- one template -> one consent entry
+- one template -> several consent entries
+- several professional emails
+- several organization `did:web` identifiers
+- several departments
+- several locations
+- several ISO 3166 jurisdictions
 - `permit`
 - `deny`
-- múltiples `purposes`
-- múltiples `roles`
-- múltiples `targets`
-- múltiples `resource-types`
-- clasificación `core-section`
-- clasificación `kind-of-document`
-- clasificación `type-of-service`
-- clasificación `subject-matter-domain`
+- multiple `purposes`
+- multiple `roles`
+- multiple `targets`
+- multiple `resource-types`
+- `core-section` classification
+- `kind-of-document` classification
+- `type-of-service` classification
+- `subject-matter-domain` classification
 
-## Estado actual ya resuelto
+## Current Status
 
-- `healthcare.ts`
-  - familias canónicas ya metidas
-- `ConsentAccessEditor`
-  - `getDecision()`
-  - `getTargetsClassified()`
-  - `getActorsClassified()`
-- `section + sectionFamily`
-  - ya encarrilado
-- tests focalizados
-  - pasan
+Already implemented:
 
-## Siguiente bloque real de implementación
+- canonical section families in `healthcare.ts`
+- `ConsentAccessEditor.getDecision()`
+- `ConsentAccessEditor.getTargetsClassified()`
+- `ConsentAccessEditor.getActorsClassified()`
+- section family-aware picker/read helpers
+- explicit purpose and role list helpers
+- permission-template catalog primitives
+- import/export helpers between templates and consent claims/entries
+- focused deterministic tests
 
-1. catálogo de permission templates por `sector + role/relationship`
-2. helpers de roles disponibles por sector
-3. `ConsentAccessEditor` con catálogos y setters/add/remove por familias de target
-4. purposes y roles como listas explícitas
-5. import/export plantilla -> claims -> Consent entries
-6. tests unitarios de todo eso en `gdc-common-utils-ts`
+## Current Next Step For Live Validation
+
+The next real validation step is not more local unit wiring. It is live GW CORE
+verification:
+
+1. create a permission bundle from templates
+2. persist it in backend
+3. read it back
+4. confirm frontend-facing classified rendering from the stored bundle

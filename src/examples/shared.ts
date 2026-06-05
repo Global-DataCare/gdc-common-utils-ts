@@ -84,8 +84,11 @@ export const EXAMPLE_GENERIC_SUBJECT_DID = 'did:web:subject.example' as const;
 export const EXAMPLE_EMAIL_PROFESSIONAL = 'doctor.oncall@example.org' as const;
 export const EXAMPLE_EMAIL_RELATED_PERSON = 'parent.guardian@example.org' as const;
 export const EXAMPLE_HEALTHCARE_JURISDICTION = 'ES' as const;
+export const EXAMPLE_SECONDARY_HEALTHCARE_JURISDICTION = EXAMPLE_SECONDARY_EU_COUNTRY;
 export const EXAMPLE_ORGANIZATION_CONTROLLER_ROLE = 'RESPRSN' as const;
 export const EXAMPLE_HEALTHCARE_ACTOR_ROLE_PHYSICIAN = HealthcareActorRoles.Physician;
+export const EXAMPLE_HEALTHCARE_ACTOR_ROLE_GENERALIST_MEDICAL_PRACTITIONER =
+  HealthcareActorRoles.GeneralistMedicalPractitioner;
 export const EXAMPLE_HEALTHCARE_ACTOR_ROLE_RECEPTIONIST = 'ISCO-08|4226' as const;
 export const EXAMPLE_HEALTHCARE_ROLE_PHYSICIAN_TEXT = 'physician' as const;
 export const EXAMPLE_RELATED_PERSON_ROLE = 'v3-RoleCode|RESPRSN' as const;
@@ -99,6 +102,8 @@ export const EXAMPLE_CONSENT_DATE = '2026-05-20' as const;
 export const EXAMPLE_CONSENT_DECISION_PERMIT = 'permit' as const;
 export const EXAMPLE_CONSENT_PERIOD_END = '2026-05-01T00:00:00Z' as const;
 export const EXAMPLE_CONSENT_PURPOSE_TREATMENT = HealthcareConsentPurposes.Treatment;
+export const EXAMPLE_CONSENT_PURPOSE_EMERGENCY_TREATMENT =
+  HealthcareConsentPurposes.EmergencyTreatment;
 export const EXAMPLE_CONSENT_UUID = 'urn:uuid:consent-example-001' as const;
 export const EXAMPLE_CONSENT_IDENTIFIER = EXAMPLE_CONSENT_UUID;
 export const EXAMPLE_CONSENT_OPERATION_IDENTIFIER = 'consent-operation-example-001' as const;

@@ -1,4 +1,6 @@
 import { ClaimsPersonSchemaorg } from '../constants/schemaorg';
+import { ResourceTypesFhirR4 } from '../constants/fhir-resource-types';
+import { type BundleEntry, type BundleJsonApi, type BundleRequest } from '../models/bundle';
 import {
   buildEmployeeBatchEntry,
   buildEmployeePurgeBundle,
@@ -15,10 +17,22 @@ import {
 export type BundleOperation =
   (typeof EmployeeBundleOperations)[keyof typeof EmployeeBundleOperations];
 
-export type AllowedResourceType =
-  (typeof EmployeeResourceTypes)[keyof typeof EmployeeResourceTypes];
+export const BundleEditableResourceTypes = Object.freeze({
+  employee: EmployeeResourceTypes.employee,
+  consent: ResourceTypesFhirR4.Consent,
+} as const);
 
-export type BuiltBundleEntry = ReturnType<typeof buildEmployeeBatchEntry> & {
+export type AllowedResourceType = string;
+
+export type BuiltBundleEntry = {
+  type: string;
+  request: { method: BundleRequest['method']; url?: string };
+  resource: {
+    resourceType: string;
+    id?: string;
+    meta: { claims: EmployeeClaims };
+    [key: string]: unknown;
+  };
   fullUrl?: string;
 };
 
@@ -51,7 +65,7 @@ function createCanonicalIdentifierUrn(): string {
   return `urn:uuid:${uuid}`;
 }
 
-function resolveRequestMethodForOperation(operation: BundleOperation): EmployeeBatchMethod {
+function resolveRequestMethodForOperation(operation: BundleOperation): BundleRequest['method'] {
   switch (operation) {
     case EmployeeBundleOperations.disable:
       return EmployeeBundleMethods.disable;
@@ -75,6 +89,14 @@ function resolveEntryTypeForOperation(operation: BundleOperation): string {
     default:
       return EmployeeBatchEntryTypes.create;
   }
+}
+
+function inferGenericEntryType(resourceType: string, operation: BundleOperation): string {
+  const normalizedResourceType = String(resourceType || '').trim();
+  if (normalizedResourceType === EmployeeResourceTypes.employee) {
+    return resolveEntryTypeForOperation(operation);
+  }
+  return `${normalizedResourceType}-${operation}-request-v1.0`;
 }
 
 /**
@@ -168,15 +190,19 @@ export class BundleEditor {
    */
   public build():
     | ReturnType<typeof buildEmployeePurgeBundle>
-    | ReturnType<typeof buildEmployeeSearchBundle> {
+    | ReturnType<typeof buildEmployeeSearchBundle>
+    | {
+      resourceType: 'Bundle';
+      type: 'batch';
+      entry: BuiltBundleEntry[];
+    } {
     const operation = this.requireBundleOperation();
     const resourceType = this.requireAllowedResourceType();
 
-    if (resourceType !== EmployeeResourceTypes.employee) {
-      throw new Error(`BundleEditor does not yet support build() for resource type: ${resourceType}`);
-    }
-
     if (operation === EmployeeBundleOperations.search) {
+      if (resourceType !== EmployeeResourceTypes.employee) {
+        throw new Error(`BundleEditor search currently supports only resource type: ${EmployeeResourceTypes.employee}`);
+      }
       return buildEmployeeSearchBundle({
         claims: this.getSingleSearchClaims(),
         resourceType,
@@ -184,6 +210,9 @@ export class BundleEditor {
     }
 
     if (operation === EmployeeBundleOperations.purge) {
+      if (resourceType !== EmployeeResourceTypes.employee) {
+        throw new Error(`BundleEditor purge currently supports only resource type: ${EmployeeResourceTypes.employee}`);
+      }
       return {
         resourceType: EmployeeResourceTypes.bundle,
         type: EmployeeResourceTypes.batch,
@@ -205,9 +234,39 @@ export class BundleEditor {
     }
 
     return {
-      resourceType: EmployeeResourceTypes.bundle,
+      resourceType: ResourceTypesFhirR4.Bundle,
       type: EmployeeResourceTypes.batch,
       entry: this.entries.map((entry) => cloneEntry(entry)),
+    };
+  }
+
+  /**
+   * Materializes the staged entries as the `BundleJsonApi` shape used by
+   * `CommunicationAttachedBundleSession` and `ConsentAccessEditor`.
+   *
+   * Use this when the next layer edits bundle entries in-memory before another
+   * runtime wraps or sends the bundle.
+   */
+  public buildJsonApi(): BundleJsonApi<BundleEntry> {
+    return {
+      resourceType: ResourceTypesFhirR4.Bundle,
+      type: EmployeeResourceTypes.batch,
+      data: this.entries.map((entry): BundleEntry => {
+        const clonedEntry = cloneEntry(entry) as BuiltBundleEntry;
+        const { request: _requestIgnored, ...clonedEntryWithoutRequest } = clonedEntry;
+        const normalizedRequest: BundleRequest | undefined = clonedEntry.request
+          ? {
+            method: clonedEntry.request.method,
+            url: clonedEntry.request.url || '',
+          }
+          : undefined;
+        return normalizedRequest
+          ? {
+            ...clonedEntryWithoutRequest,
+            request: normalizedRequest,
+          }
+          : clonedEntryWithoutRequest;
+      }),
     };
   }
 
@@ -224,10 +283,6 @@ export class BundleEditor {
     resourceType: AllowedResourceType,
     resourceId?: string,
   ): BuiltBundleEntry {
-    if (resourceType !== EmployeeResourceTypes.employee) {
-      throw new Error(`BundleEditor does not yet support newEntry() for resource type: ${resourceType}`);
-    }
-
     const normalizedIdentifier = operation === EmployeeBundleOperations.search
       ? normalizeOptionalIdentifier(resourceId)
       : (normalizeOptionalIdentifier(resourceId) || createCanonicalIdentifierUrn());
@@ -235,6 +290,19 @@ export class BundleEditor {
       '@context': 'org.schema',
       ...(normalizedIdentifier ? { [ClaimsPersonSchemaorg.identifier]: normalizedIdentifier } : {}),
     };
+
+    if (resourceType !== EmployeeResourceTypes.employee) {
+      return {
+        type: inferGenericEntryType(resourceType, operation),
+        request: { method: resolveRequestMethodForOperation(operation) },
+        fullUrl: normalizedIdentifier,
+        resource: {
+          resourceType,
+          ...(normalizedIdentifier ? { id: normalizedIdentifier } : {}),
+          meta: { claims: {} },
+        },
+      };
+    }
 
     const entry = buildEmployeeBatchEntry({
       type: resolveEntryTypeForOperation(operation),

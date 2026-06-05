@@ -7,6 +7,7 @@ import {
   communication,
   buildBundleDocumentRequestCommunicationPayload,
   createSummaryOperationRequestParameters,
+  createSummaryOperationRequestParametersResource,
   createSummaryOperationRequestReferencePath,
 } from '../utils/communication-bundle-document-request';
 import {
@@ -75,4 +76,18 @@ export function buildExampleIpsBundleDocumentRequestFromDoctor() {
     noteText: String(claims[CommunicationClaim.NoteText] || ''),
     summaryOperationRequestReferencePath: String(claims[CommunicationClaim.ContentReference] || ''),
   });
+}
+
+export function buildExampleIpsSummaryOperationRequestFromController() {
+  const claims = communication.setRequestSummaryOperation({
+    subjectId: EXAMPLE_SUBJECT_DID,
+    requesterId: EXAMPLE_EMAIL_CONTROLLER_INDIVIDUAL,
+  });
+
+  return {
+    claims,
+    parametersResource: createSummaryOperationRequestParametersResource(
+      createSummaryOperationRequestParameters(EXAMPLE_SUBJECT_DID),
+    ),
+  };
 }

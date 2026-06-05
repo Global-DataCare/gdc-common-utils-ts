@@ -2,6 +2,27 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [Unreleased]
+
+## [1.17.0] - 2026-06-04
+
+### Added
+- Added canonical permission-template catalog primitives in:
+  - `src/models/permission-templates.ts`
+  - `src/constants/permission-templates.ts`
+  - `src/utils/permission-templates.ts`
+- Added deterministic sector-scoped professional role lookups and shared relationship-role lookups for permission-template resolution.
+- Added template resolution helpers for canonical and legacy role selectors plus draft generation for permission-grant requests.
+- Extended `ConsentAccessEditor` / `CommunicationAttachedBundleSession` with family-aware target catalog and selection helpers, plus purpose and role selection/classification ergonomics for permission-template editing.
+- Added executable 101 coverage for separated permission creation/readback in:
+  - `__tests__/101-consent-permission-bundle-readwrite.test.ts`
+  - `src/examples/communication-attached-bundle-session.ts`
+
+### Testing
+- `npm run typecheck`
+- `npm test -- --watchman=false __tests__/101-consent-template-bundle-editor.test.ts __tests__/101-consent-bundle-editor.test.ts __tests__/101-consent-permission-bundle-readwrite.test.ts __tests__/utils-consent-access-editor-classification.test.ts __tests__/constants-permission-templates.test.ts __tests__/utils-permission-templates.test.ts __tests__/utils-communication-bundle-document-request.test.ts __tests__/101-communication-search-reference.test.ts __tests__/utils-fhir-search.test.ts`
+- `npm run build`
+
 ## [1.16.1] - 2026-06-04
 
 ### Added

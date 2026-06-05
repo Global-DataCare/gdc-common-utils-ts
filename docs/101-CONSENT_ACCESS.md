@@ -171,6 +171,30 @@ Important:
   - `Consent.actor-role`
 - richer permission-template import/export still belongs in a separate
   transformation layer before claims are generated
+- the current executable roundtrip example lives in
+  `src/examples/communication-attached-bundle-session.ts`
+  (`buildConsentPermissionTemplateImportExportSessionExample()`) and is
+  asserted in `__tests__/101-consent-bundle-editor.test.ts`
+- the preferred 101 bundle-first flow is asserted in
+  `__tests__/101-consent-template-bundle-editor.test.ts`
+  using the highest-level APIs available for this path:
+  - `BundleEditor`
+  - `createConsentAccessEditor(...)`
+  - `resolvePermissionTemplate(...)`
+  - `importPermissionTemplate(...)`
+  - `exportConsentClaims(...)`
+  - classified readback helpers such as `getActorsClassified()` and
+    `getSelectedPurposes()`
+- the complementary helper-oriented roundtrip remains asserted step by step in
+  `__tests__/101-consent-permission-bundle-readwrite.test.ts`
+  using the same public APIs frontend/backend code is expected to use:
+  - `resolvePermissionTemplate(...)`
+  - `importPermissionTemplate(...)`
+  - `exportConsentEntry(...)`
+  - `createConsentAccessEditor(...)`
+  - `upsertActiveConsentEntry(...)`
+  - classified readback helpers such as `getActorsClassified()` and
+    `getSelectedPurposes()`
 
 Alternative explicit-claim example on the same active entry:
 
@@ -200,14 +224,14 @@ console.log(bundleEditor.getActiveEntryClaim(ClaimConsent.decision));
 bundleEditor.saveAndReleaseActiveEntry();
 ```
 
-This is the preferred 101 flow when:
+This is the preferred consent-entry editing flow when:
 
 - a `Communication` already arrived with a permissions bundle
 - frontend creates a new permissions bundle to send later
 - the user selects one consent and edits its claims directly
 
-Only after that, another layer may place the resulting `Communication` in a
-draft/outbox or send it.
+Only after that, another layer may wrap the already-built bundle in
+`Communication`, place it in a draft/outbox, or send it.
 
 Mental model:
 

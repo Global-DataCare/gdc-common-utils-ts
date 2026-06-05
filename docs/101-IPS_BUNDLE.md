@@ -52,12 +52,16 @@ Current preferred request shape:
 - today that URL points to `individual/org.hl7.fhir.r4/Bundle/_search?...`
 - that URL is generated from a semantic parameter array first, then flattened
 
-Future shape kept as `TODO` only:
+Also supported for summary-operation flows:
 
-- `CommunicationRequestOperationWithAttachedParameters`
-- intended for a future `individual/org.hl7.fhir.r4/Patient/$summary`
-- reference:
-  https://hl7.org.au/fhir/ps/1.0.0-preview/generation-and-access.html
+- `Communication.content-reference` points to the operation path
+  `individual/org.hl7.fhir.api/Subject/$summary`
+- `Communication.content-attachment-data` carries the base64-encoded FHIR
+  `Parameters` resource
+- `Communication.content-attachment-type = application/fhir+json`
+
+That contract is the operation-style alternative to the current flattened
+`Bundle/_search` path. Both come from the same semantic parameter array.
 
 When the frontend wants the IPS document for an individual, the request should
 be anchored to the document type first.
@@ -101,6 +105,26 @@ const communicationClaims = communication.newIpsSummarySearchCommunication({
 ```
 
 This is the only helper that the `common-utils` 101 needs to teach.
+
+If runtime/backend wants the operation-style contract instead of the flattened
+search URL, use:
+
+```ts
+import { communication } from 'gdc-common-utils-ts/utils/communication-bundle-document-request';
+import {
+  EXAMPLE_PROFESSIONAL_DID,
+  EXAMPLE_SUBJECT_DID,
+} from 'gdc-common-utils-ts/examples/shared';
+
+const communicationClaims = communication.setRequestSummaryOperation({
+  subjectId: EXAMPLE_SUBJECT_DID,
+  requesterId: EXAMPLE_PROFESSIONAL_DID,
+});
+```
+
+That helper keeps the same semantic request, but serializes the FHIR
+`Parameters` payload into `Communication.content-attachment-data` instead of
+flattening everything into the query string.
 
 If a current transport/runtime flow still wraps that `Communication` into
 DIDComm, that belongs to the next SDK layer and is documented there.
