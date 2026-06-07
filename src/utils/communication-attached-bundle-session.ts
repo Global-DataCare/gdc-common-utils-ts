@@ -27,6 +27,10 @@ import { DocumentReferenceClaim } from '../models/interoperable-claims/document-
 import { BundleQuery, type BundleResourceIdFilters } from './bundle-query';
 import { addClaimValues, getClaimValues, removeClaimValues } from '../claims/claim-list-helpers';
 import {
+  detectDuplicateConsentRuleConflicts,
+  type ConsentDuplicateRuleConflict,
+} from './consent-duplicate-rules.js';
+import {
   MedicationStatementClaim,
   type MedicationStatementClaimsFlat,
 } from '../models/interoperable-claims/medication-statement-claims';
@@ -786,6 +790,21 @@ export class CommunicationAttachedBundleSession {
  * need to start from the lower-level generic session name.
  */
 export class ConsentAccessEditor extends CommunicationAttachedBundleSession {
+  /** Returns duplicate atomic consent-rule conflicts across the current bundle. */
+  getConsentRuleDuplicateConflicts(): ConsentDuplicateRuleConflict[] {
+    return detectDuplicateConsentRuleConflicts(this.getBundleInMemory().data);
+  }
+
+  /** Returns duplicate atomic consent-rule conflicts affecting the active Consent entry. */
+  getActiveConsentRuleDuplicateConflicts(): ConsentDuplicateRuleConflict[] {
+    const activeEntryIndex = this.getActiveEntryIndex();
+    if (activeEntryIndex === null) {
+      return [];
+    }
+    return this.getConsentRuleDuplicateConflicts()
+      .filter((conflict) => conflict.affectedEntries.some((entry) => entry.entryIndex === activeEntryIndex));
+  }
+
   /** Returns one frontend-facing editable view model for the active Consent entry. */
   getConsentViewModel(): ConsentViewModel {
     const activeEntry = this.getActiveEntry();

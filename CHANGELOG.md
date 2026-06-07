@@ -2,7 +2,20 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
-## [Unreleased]
+## [1.19.0] - 2026-06-07
+
+### Added
+- Added blockchain-oriented consent rule helpers in:
+  - `src/utils/consent-blockchain-rules.ts`
+  - `src/utils/evidence-blockchain-references.ts`
+  - `src/utils/multiformat-profile.ts`
+- Added duplicate atomic consent rule detection helpers in:
+  - `src/utils/consent-duplicate-rules.ts`
+- Added `ConsentAccessEditor` duplicate-conflict readers so frontend/editor
+  flows can inspect redundant consent coverage before persistence.
+- Added new consent-rule claims for blockchain provenance:
+  - `Consent.event-basedon`
+  - `Consent.source-reference`
 
 ### Changed
 - Canonicalized public dataspace service capability usage around `ServiceCapability` with FHIR-aligned persisted values:
@@ -33,6 +46,8 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
   `kind-of-document` instead of `core-section`.
 
 ### Testing
+- `npm run typecheck`
+- `npm test -- --watchman=false __tests__/utils-consent-blockchain-rules.test.ts __tests__/101-consent-bundle-editor.test.ts __tests__/utils-permission-templates.test.ts`
 - `npm test -- --watchman=false __tests__/101-bundle-reader.test.ts`
 - `npm test -- --watchman=false __tests__/dataspace-protocol.test.ts __tests__/dataspace-discovery-defaults.101.test.ts`
 - `npm test -- --watchman=false __tests__/utils-consent-access-editor-classification.test.ts`
