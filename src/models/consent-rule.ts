@@ -16,6 +16,8 @@ export enum ClaimConsent {
     'verifiedDate' = 'Consent.verified-date',
     'purpose' = 'Consent.purpose',
     'identifier' = 'Consent.identifier',
+    'eventBasedOn' = 'Consent.event-basedon',
+    'sourceReference' = 'Consent.source-reference',
     'containedDocuments' = 'Consent.contained-documents',
     /**
      * @deprecated Use `containedDocuments`.

@@ -5,6 +5,8 @@ import { HealthcareActorRoles, HealthcareConsentPurposes } from '../src/constant
 import { ResourceTypesFhirR4 } from '../src/constants/fhir-resource-types.js';
 import { ConsentDecisions } from '../src/models/consent-rule.js';
 import {
+  buildConsentAtomicRuleId,
+  detectDuplicateConsentRuleConflicts,
   exportConsentClaims,
   exportConsentEntries,
   importConsentClaims,
@@ -92,5 +94,93 @@ describe('Permission template utilities', () => {
 
     expect(() => exportConsentClaims(draft)).toThrow(/read-oriented targets/);
     expect(draft.targets[0].scopes).toEqual([PermissionTemplateOperationCodes.Search]);
+  });
+
+  it('detects duplicate atomic consent rules and calculates the shared least-privilege targets', () => {
+    const entries = exportConsentEntries([
+      {
+        actorIdentifiers: ['doctor@example.com'],
+        decision: ConsentDecisions.Permit,
+        purposes: [HealthcareConsentPurposes.Treatment],
+        roles: [HealthcareActorRoles.GeneralistMedicalPractitioner],
+        targets: [
+          { kind: 'section', code: 'LOINC|48765-2', scopes: ['r'] },
+          { kind: 'section', code: 'LOINC|10160-0', scopes: ['r'] },
+          { kind: 'resource-type', code: ResourceTypesFhirR4.Observation, scopes: ['r'] },
+          { kind: 'resource-type', code: ResourceTypesFhirR4.DocumentReference, scopes: ['r'] },
+        ],
+      },
+      {
+        actorIdentifiers: ['doctor@example.com'],
+        decision: ConsentDecisions.Permit,
+        purposes: [HealthcareConsentPurposes.Treatment],
+        roles: [HealthcareActorRoles.GeneralistMedicalPractitioner],
+        targets: [
+          { kind: 'section', code: 'LOINC|48765-2', scopes: ['r'] },
+          { kind: 'resource-type', code: ResourceTypesFhirR4.Observation, scopes: ['r'] },
+        ],
+      },
+    ], {
+      subject: 'did:web:patient.example.com',
+      fullUrl: 'urn:uuid:duplicate-consent',
+    });
+
+    const conflicts = detectDuplicateConsentRuleConflicts(entries);
+
+    expect(conflicts).toHaveLength(1);
+    expect(conflicts[0].ruleId).toBe(buildConsentAtomicRuleId({
+      subject: 'did:web:patient.example.com',
+      decision: ConsentDecisions.Permit,
+      actorIdentifier: 'doctor@example.com',
+      purpose: HealthcareConsentPurposes.Treatment,
+      role: HealthcareActorRoles.GeneralistMedicalPractitioner,
+    }));
+    expect(conflicts[0].effectiveTargets.sections).toEqual(['LOINC|48765-2']);
+    expect(conflicts[0].effectiveTargets.resourceTypes).toEqual([ResourceTypesFhirR4.Observation]);
+    expect(conflicts[0].hasPermissionReduction).toBe(true);
+    expect(conflicts[0].affectedEntries[0].redundantTargets.sections).toEqual(['LOINC|10160-0']);
+    expect(conflicts[0].affectedEntries[0].redundantTargets.resourceTypes).toEqual([ResourceTypesFhirR4.DocumentReference]);
+  });
+
+  it('derives duplicate groups per actor and purpose and ignores non-duplicated combinations', () => {
+    const entries = exportConsentEntries([
+      {
+        actorIdentifiers: ['doctor@example.com', 'nurse@example.com'],
+        decision: ConsentDecisions.Permit,
+        purposes: [HealthcareConsentPurposes.Treatment],
+        roles: [HealthcareActorRoles.GeneralistMedicalPractitioner],
+        targets: [
+          { kind: 'section', code: 'LOINC|48765-2', scopes: ['r'] },
+        ],
+      },
+      {
+        actorIdentifiers: ['doctor@example.com'],
+        decision: ConsentDecisions.Permit,
+        purposes: [HealthcareConsentPurposes.Treatment],
+        roles: [HealthcareActorRoles.GeneralistMedicalPractitioner],
+        targets: [
+          { kind: 'section', code: 'LOINC|48765-2', scopes: ['r'] },
+        ],
+      },
+      {
+        actorIdentifiers: ['doctor@example.com'],
+        decision: ConsentDecisions.Permit,
+        purposes: [HealthcareConsentPurposes.Operations],
+        roles: [HealthcareActorRoles.GeneralistMedicalPractitioner],
+        targets: [
+          { kind: 'section', code: 'LOINC|48765-2', scopes: ['r'] },
+        ],
+      },
+    ], {
+      subject: 'did:web:patient.example.com',
+      fullUrl: 'urn:uuid:derived-consent',
+    });
+
+    const conflicts = detectDuplicateConsentRuleConflicts(entries);
+
+    expect(conflicts).toHaveLength(1);
+    expect(conflicts[0].actorIdentifier).toBe('doctor@example.com');
+    expect(conflicts[0].purpose).toBe(HealthcareConsentPurposes.Treatment);
+    expect(conflicts[0].affectedEntries).toHaveLength(2);
   });
 });
