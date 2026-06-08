@@ -5,6 +5,7 @@ import { ParameterData } from "../models/params";
 
 export enum ClaimsServiceSchemaorg {
     areaServed = "org.schema.Service.areaServed",
+    additionalType = "org.schema.Service.additionalType",
     category = "org.schema.Service.category",
     identifier = "org.schema.Service.identifier",
     serviceType = "org.schema.Service.serviceType",
@@ -101,6 +102,10 @@ export enum ClaimsOfferSchemaorg {
     price = "org.schema.Offer.price",
     priceCurrency = "org.schema.Offer.priceCurrency",
     serialNumber = "org.schema.Offer.serialNumber",
+}
+
+export enum ClaimsOrderSchemaorg {
+    orderedItemServiceType = "org.schema.Order.orderedItem.serviceType",
 }
 
 /** For Employees (and Employee Role, but no PII) and customers / related persons.

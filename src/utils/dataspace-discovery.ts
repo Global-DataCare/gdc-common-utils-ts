@@ -157,7 +157,7 @@ function getFlattenedClaims(input: unknown): JsonObject | undefined {
 }
 
 function getSemanticServiceTypes(subject: JsonObject | undefined): string[] {
-  return parseServiceTypeCsv(subject?.serviceType);
+  return parseServiceTypeClaims(subject?.serviceType, subject?.additionalType);
 }
 
 function getSemanticCategories(subject: JsonObject | undefined): string[] {
@@ -174,7 +174,10 @@ function getSemanticAddressCountry(subject: JsonObject | undefined): string {
 }
 
 function getFlattenedServiceTypes(claims: JsonObject | undefined): string[] {
-  return parseServiceTypeCsv(claims?.[ClaimsServiceSchemaorg.serviceType]);
+  return parseServiceTypeClaims(
+    claims?.[ClaimsServiceSchemaorg.serviceType],
+    claims?.[ClaimsServiceSchemaorg.additionalType],
+  );
 }
 
 function getFlattenedCategories(claims: JsonObject | undefined): string[] {
@@ -223,6 +226,16 @@ export function parseServiceTypeCsv(value: unknown): string[] {
     ));
   }
   return parseServiceCapabilityTokens(value);
+}
+
+/**
+ * Parses service capability tokens from both `serviceType` and `additionalType`.
+ */
+export function parseServiceTypeClaims(serviceTypeValue: unknown, additionalTypeValue?: unknown): string[] {
+  return Array.from(new Set([
+    ...parseServiceTypeCsv(serviceTypeValue),
+    ...parseServiceTypeCsv(additionalTypeValue),
+  ]));
 }
 
 /**

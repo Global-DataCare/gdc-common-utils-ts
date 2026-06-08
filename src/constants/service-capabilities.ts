@@ -145,6 +145,16 @@ export function parseServiceCapabilityTokens(value: unknown): string[] {
 }
 
 /**
+ * Merges capability claims published across compatibility locations.
+ */
+export function mergeServiceCapabilityClaims(...values: unknown[]): string | undefined {
+  const merged = Array.from(new Set(
+    values.flatMap((value) => parseServiceCapabilityTokens(value)),
+  ));
+  return merged.length ? merged.join(',') : undefined;
+}
+
+/**
  * Serializes capability tokens into the canonical CSV claim format.
  */
 export function serializeServiceCapabilityTokens(values: ReadonlyArray<string | undefined | null>): string | undefined {

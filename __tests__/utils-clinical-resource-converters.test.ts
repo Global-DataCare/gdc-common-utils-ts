@@ -8,6 +8,17 @@ import { LocationClaim } from '../src/models/interoperable-claims/location-claim
 import { MedicationStatementClaim } from '../src/models/interoperable-claims/medication-statement-claims';
 import { OrganizationClaim } from '../src/models/interoperable-claims/organization-claims';
 import {
+  EXAMPLE_CONSENT_ATTACHMENT_DATA_BASE64,
+  EXAMPLE_DOCUMENT_REFERENCE_CONTENT_HASH,
+  EXAMPLE_DOCUMENT_REFERENCE_CONTENT_TYPE_PDF,
+  EXAMPLE_DOCUMENT_REFERENCE_DATE,
+  EXAMPLE_DOCUMENT_REFERENCE_DESCRIPTION,
+  EXAMPLE_DOCUMENT_REFERENCE_IDENTIFIER,
+  EXAMPLE_DOCUMENT_REFERENCE_LANGUAGE,
+  EXAMPLE_DOCUMENT_REFERENCE_URL,
+  EXAMPLE_SUBJECT_DID,
+} from '../src/examples/shared';
+import {
   allergyIntoleranceFhirR4ToFlat,
   allergyIntoleranceFlatToFhirR4,
   conditionFhirR4ToFlat,
@@ -125,15 +136,15 @@ describe('clinical-resource-converters', () => {
 
   it('roundtrips DocumentReference flat -> FHIR -> flat', () => {
     const flat = {
-      [DocumentReferenceClaim.Identifier]: 'DOC-1',
-      [DocumentReferenceClaim.Subject]: 'Patient/p1',
-      [DocumentReferenceClaim.Description]: 'Discharge summary',
-      [DocumentReferenceClaim.Date]: '2026-05-17T10:00:00Z',
-      [DocumentReferenceClaim.ContentType]: 'application/pdf',
-      [DocumentReferenceClaim.ContentData]: 'UERG',
-      [DocumentReferenceClaim.Location]: 'https://example.org/Binary/b1',
-      [DocumentReferenceClaim.ContentHash]: 'zcid',
-      [DocumentReferenceClaim.Language]: 'en',
+      [DocumentReferenceClaim.Identifier]: EXAMPLE_DOCUMENT_REFERENCE_IDENTIFIER,
+      [DocumentReferenceClaim.Subject]: EXAMPLE_SUBJECT_DID,
+      [DocumentReferenceClaim.Description]: EXAMPLE_DOCUMENT_REFERENCE_DESCRIPTION,
+      [DocumentReferenceClaim.Date]: EXAMPLE_DOCUMENT_REFERENCE_DATE,
+      [DocumentReferenceClaim.ContentType]: EXAMPLE_DOCUMENT_REFERENCE_CONTENT_TYPE_PDF,
+      [DocumentReferenceClaim.ContentData]: EXAMPLE_CONSENT_ATTACHMENT_DATA_BASE64,
+      [DocumentReferenceClaim.Location]: EXAMPLE_DOCUMENT_REFERENCE_URL,
+      [DocumentReferenceClaim.ContentHash]: EXAMPLE_DOCUMENT_REFERENCE_CONTENT_HASH,
+      [DocumentReferenceClaim.Language]: EXAMPLE_DOCUMENT_REFERENCE_LANGUAGE,
     };
 
     expect(documentReferenceFhirR4ToFlat(documentReferenceFlatToFhirR4(flat))).toEqual(flat);

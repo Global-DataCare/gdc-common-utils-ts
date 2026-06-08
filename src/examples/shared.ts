@@ -3,6 +3,8 @@
 
 import { DataspaceSectors } from '../constants/sectors';
 import { HostNetworkTypes } from '../constants/network';
+import { BirthSex, GenderIdentity } from '../constants/identity-gender';
+import { IdKind } from '../constants/identity-identifiers';
 import {
   HealthcareActorRoles,
   HealthcareBasicSections,
@@ -34,6 +36,49 @@ export const EXAMPLE_ROUTE_VERSION = 'v1' as const;
 export const EXAMPLE_SECTOR = DataspaceSectors.HealthCare;
 export const EXAMPLE_EMAIL_CONTROLLER_ORG = 'controller@acme.org' as const;
 export const EXAMPLE_EMAIL_CONTROLLER_INDIVIDUAL = 'ana.parent@example.org' as const;
+export const EXAMPLE_SELF_REGISTERED_INDIVIDUAL_ALTERNATE_NAME = 'Jane' as const;
+export const EXAMPLE_SELF_REGISTERED_INDIVIDUAL_EMAIL = 'Jane.Doe@example.com' as const;
+export const EXAMPLE_SELF_REGISTERED_INDIVIDUAL_EMAIL_NORMALIZED = 'jane.doe@example.com' as const;
+export const EXAMPLE_SELF_REGISTERED_INDIVIDUAL_GENDER = BirthSex.Female;
+export const EXAMPLE_SELF_REGISTERED_INDIVIDUAL_BIRTH_YEAR = '1980' as const;
+export const EXAMPLE_REGISTERED_SUBJECT_ALTERNATE_NAME = 'Doraemon' as const;
+export const EXAMPLE_REGISTERED_SUBJECT_BIRTH_YEAR = '2020' as const;
+export const EXAMPLE_PDF_CONSENT_DATE = '2026-06-08' as const;
+export const EXAMPLE_PDF_SERVICE_PROVIDER_DOMAIN = 'health-index' as const;
+export const EXAMPLE_KYC_CONTROLLER_UUID = '033ceb35-2528-402e-8385-f22e12f57805' as const;
+export const EXAMPLE_KYC_CONTROLLER_USER_UUID = '8c18ec13-e908-4b7a-91bb-134bb3a229e1' as const;
+export const EXAMPLE_KYC_CONTROLLER_GIVEN_NAME = 'System' as const;
+export const EXAMPLE_KYC_CONTROLLER_FAMILY_NAME = 'User' as const;
+export const EXAMPLE_KYC_CONTROLLER_COUNTRY = 'VE' as const;
+export const EXAMPLE_KYC_CONTROLLER_CITY = 'Caracas' as const;
+export const EXAMPLE_KYC_CONTROLLER_STREET_ADDRESS = 'Av. Principal 123' as const;
+export const EXAMPLE_KYC_CONTROLLER_IDENTIFIER = 'V-12345678' as const;
+export const EXAMPLE_KYC_CONTROLLER_POSTAL_CODE = '1010' as const;
+export const EXAMPLE_KYC_CONTROLLER_TELEPHONE = '+58-424-555-1234' as const;
+export const EXAMPLE_KYC_CONTROLLER_BIRTHDATE = '1990-01-01' as const;
+export const EXAMPLE_KYC_CONTROLLER_VERIFIED_AT = '2026-05-14T23:43:05.869+00:00' as const;
+export const EXAMPLE_KYC_CONTROLLER_LANGUAGE = 'es' as const;
+export const EXAMPLE_KYC_CONTROLLER_CREATED_AT = '2026-05-14T23:43:05.913+00:00' as const;
+export const EXAMPLE_KYC_CONTROLLER_UPDATED_AT = '2026-05-14T23:43:05.913+00:00' as const;
+export const EXAMPLE_KYC_CONTROLLER_GENDER_MALE = BirthSex.Male;
+export const EXAMPLE_KYC_CONTROLLER_GENDER_FEMALE = BirthSex.Female;
+export const EXAMPLE_KYC_CONTROLLER_GENDER_IDENTITY_MAN = GenderIdentity.Man;
+export const EXAMPLE_KYC_CONTROLLER_GENDER_IDENTITY_WOMAN = GenderIdentity.Woman;
+export const EXAMPLE_CONTROLLER_IDENTIFIER_TYPE = IdKind.PersonalNationalNumber;
+export const EXAMPLE_SUBJECT_IDENTIFIER_TYPE = IdKind.LocalPatientIdentifier;
+export const EXAMPLE_SYNTHETIC_SIGNER_SUBJECT_DN =
+  'CN=DOE JANE - TEST1234,SN=DOE,GN=JANE,serialNumber=IDCES-TEST1234,C=ES' as const;
+export const EXAMPLE_SYNTHETIC_CERT_COMMON_NAME = 'DOE JANE - TEST1234' as const;
+export const EXAMPLE_SYNTHETIC_CERT_FAMILY_NAME = 'DOE' as const;
+export const EXAMPLE_SYNTHETIC_CERT_GIVEN_NAME = 'JANE' as const;
+export const EXAMPLE_SYNTHETIC_CERT_SERIAL_NUMBER = 'IDCES-TEST1234' as const;
+export const EXAMPLE_SYNTHETIC_CERT_COUNTRY = 'ES' as const;
+export const EXAMPLE_SYNTHETIC_CERT_DISPLAY_NAME = 'JANE DOE' as const;
+export const EXAMPLE_KYC_CONTROLLER_DISPLAY_NAME = 'SYSTEM USER' as const;
+export const EXAMPLE_FORM_CONTROLLER_PHONE = '+34000000001' as const;
+export const EXAMPLE_FORM_SUBJECT_PHONE = '+34000000002' as const;
+export const EXAMPLE_FORM_CONTROLLER_IDENTIFIER_VALUE = 'identifier-controller-001' as const;
+export const EXAMPLE_FORM_SUBJECT_IDENTIFIER_VALUE = 'identifier-subject-001' as const;
 
 export const EXAMPLE_TENANT_ROUTE_CONTEXT = {
   tenantId: EXAMPLE_TENANT_IDENTIFIER,
@@ -125,6 +170,8 @@ export const EXAMPLE_DOCUMENT_REFERENCE_CONTENT_TYPE_PDF = 'application/pdf' as 
 export const EXAMPLE_DOCUMENT_REFERENCE_URL = 'https://example.org/prescription.pdf' as const;
 export const EXAMPLE_DOCUMENT_REFERENCE_DESCRIPTION = 'Prescription PDF' as const;
 export const EXAMPLE_DOCUMENT_REFERENCE_DATE = '2026-06-12T10:00:00Z' as const;
+export const EXAMPLE_DOCUMENT_REFERENCE_CONTENT_HASH = 'z-document-reference-example-hash' as const;
+export const EXAMPLE_DOCUMENT_REFERENCE_LANGUAGE = 'en' as const;
 export const EXAMPLE_CONSENT_ATTACHMENT_CONTENT_TYPE = EXAMPLE_DOCUMENT_REFERENCE_CONTENT_TYPE_PDF;
 export const EXAMPLE_CONSENT_ATTACHMENT_DATA_BASE64 =
   'JVBERi0xLjQKJUZha2UgY29uc2VudCBQREYgZm9yIGxvY2FsIHNtb2tlIHRlc3QK' as const;

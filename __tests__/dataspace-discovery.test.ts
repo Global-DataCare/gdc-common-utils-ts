@@ -14,6 +14,7 @@ import {
   buildExampleTenantServiceMetaClaims,
 } from '../src/examples/dataspace-discovery.js';
 import {
+  EXAMPLE_CONSENT_PURPOSE_TREATMENT,
   EXAMPLE_COVERAGE_SCOPE_EU,
   EXAMPLE_HOSTING_OPERATOR_CATALOG_ARTIFACT_URL,
   EXAMPLE_HOSTING_OPERATOR_DID,
@@ -199,6 +200,26 @@ describe('dataspace discovery helpers', () => {
     expect(record.serviceTypes).toEqual([
       ServiceCapability.IndexProvider,
       ServiceCapability.DigitalTwinReader,
+    ]);
+  });
+
+  it('accepts discovery capabilities from Service.additionalType during migration', () => {
+    const record = extractTenantServiceSemanticRecord({
+      credentialSubject: {
+        id: EXAMPLE_TENANT_SERVICE_DID,
+      },
+      meta: {
+        claims: {
+          ...buildExampleTenantServiceMetaClaims(),
+          [ClaimsServiceSchemaorg.serviceType]: '',
+          [ClaimsServiceSchemaorg.additionalType]: `${ServiceCapability.IndexProvider},${EXAMPLE_CONSENT_PURPOSE_TREATMENT}`,
+        },
+      },
+    });
+
+    expect(record.serviceTypes).toEqual([
+      ServiceCapability.IndexProvider,
+      EXAMPLE_CONSENT_PURPOSE_TREATMENT,
     ]);
   });
 

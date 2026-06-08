@@ -21,3 +21,5 @@ export * from './permission-templates';
 export * from './service-capabilities';
 export * from './urn';
 export * from './verifiable-credentials';
+export * from './identity-gender';
+export * from './identity-identifiers';

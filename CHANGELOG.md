@@ -2,6 +2,45 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [1.20.0] - 2026-06-08
+
+### Added
+- Added canonical onboarding contracts and helpers for individual PDF draft generation in:
+  - `src/models/individual-onboarding.ts`
+  - `src/utils/individual-organization-kyc.ts`
+  - `src/utils/individual-onboarding-document-reference.ts`
+- Added typed identity constants shared across onboarding/KYC/tests in:
+  - `src/constants/identity-gender.ts`
+  - `src/constants/identity-identifiers.ts`
+- Added reusable onboarding/KYC/PDF/document test fixtures in:
+  - `src/examples/shared.ts`
+- Added a frontend-oriented onboarding PDF request guide in:
+  - `docs/101-INDIVIDUAL_ONBOARDING_PDF_REQUEST.md`
+- Added executable coverage for the new KYC and claims-first onboarding PDF helpers in:
+  - `__tests__/utils-individual-organization-kyc.test.ts`
+  - `__tests__/utils-individual-onboarding-document-reference.test.ts`
+
+### Changed
+- Completed the shared individual PDF field contract so the onboarding form surface is typed in one place, including:
+  - controller and subject aliases
+  - controller and subject contact channels
+  - subject birth/gender fields
+  - consent date
+  - service-provider domain
+- Extended the PDF-to-claims mapper so it resolves the newly modeled onboarding fields and keeps the canonical `self` flag typed as boolean.
+- Added KYC-to-`org.schema` claim normalization for individual onboarding so GW CORE and higher SDK layers can reuse one shared mapping.
+- Added claims-first `DocumentReference` draft helpers so onboarding PDFs can travel as:
+  - `resource.meta.claims[DocumentReferenceClaim.ContentData]`
+  while remaining convertible to FHIR `DocumentReference` later.
+- Updated dataspace discovery capability handling so migration can read discovery capabilities from both:
+  - `Service.serviceType`
+  - `Service.additionalType`
+- Reworked onboarding/converter tests to stop hardcoding reusable gender, identifier, signer, and document values inline.
+
+### Testing
+- `npm test -- --watchman=false __tests__/utils-individual-form-pdf.test.ts __tests__/utils-individual-organization-kyc.test.ts __tests__/utils-clinical-resource-converters.test.ts __tests__/dataspace-discovery.test.ts`
+- `npm run build`
+
 ## [1.19.0] - 2026-06-07
 
 ### Added

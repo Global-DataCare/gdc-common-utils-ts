@@ -37,6 +37,8 @@ export * from './clinical-resource-converters';
 export * from './clinical-resource-view';
 export * from './fhir-validator';
 export * from './individual-form-pdf';
+export * from './individual-onboarding-document-reference';
+export * from './individual-organization-kyc';
 export * from './ips-bundle-claims';
 export * from './jwt';
 export * from './manager-error';

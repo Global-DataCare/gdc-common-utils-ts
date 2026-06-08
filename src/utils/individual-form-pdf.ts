@@ -1,12 +1,9 @@
-import { ClaimsOrganizationSchemaorg, ClaimsPersonSchemaorg } from '../constants/schemaorg';
-
-/**
- * Flat map of PDF form field names to their raw values as extracted from the form.
- *
- * The caller can pass strings, booleans, `undefined`, or `null` because PDF tooling
- * often returns untyped values depending on the widget type.
- */
-export type IndividualFormPdfFieldMap = Record<string, string | boolean | undefined | null>;
+import { ClaimsOrderSchemaorg, ClaimsOrganizationSchemaorg, ClaimsPersonSchemaorg } from '../constants/schemaorg';
+import {
+  IndividualFormPdfFieldMap,
+  IndividualFormPdfFieldName,
+} from '../models/individual-onboarding';
+import { ClaimConsent } from '../models/consent-rule';
 
 /**
  * Input required to derive normalized `org.schema` claims from an individual onboarding PDF.
@@ -30,12 +27,15 @@ export type IndividualFormPdfClaimsResult = {
   resolved: {
     selfDeclared: boolean;
     organizationAlternateName: string;
+    organizationBirthDate?: string;
     organizationEmail?: string;
     organizationTelephone?: string;
+    consentDate?: string;
     personName?: string;
     personGivenName?: string;
     personFamilyName?: string;
     personIdentifier?: string;
+    serviceProviderDomain?: string;
   };
 };
 
@@ -178,15 +178,29 @@ export function buildClaimsFromIndividualFormPdf(
   const personIdentity = derivePersonName(subjectDn);
   const fields = options.fields || {};
 
-  const selfDeclared = normalizeBoolean(fields.self);
-  const mainAlternateName = firstDefined(normalizeText(fields.alternateName));
-  const subjectAlternateName = firstDefined(normalizeText(fields.subjectAlternateName));
-  const mainEmail = normalizeEmail(fields.email);
-  const subjectEmail = normalizeEmail(fields.subjectEmail);
-  const mainPhone = normalizePhone(fields.phone);
-  const subjectPhone = normalizePhone(fields.subjectPhone);
+  const selfDeclared = normalizeBoolean(fields[IndividualFormPdfFieldName.self]);
+  const mainAlternateName = firstDefined(normalizeText(fields[IndividualFormPdfFieldName.alternateName]));
+  const subjectAlternateName = firstDefined(normalizeText(fields[IndividualFormPdfFieldName.subjectAlternateName]));
+  const mainEmail = normalizeEmail(fields[IndividualFormPdfFieldName.email]);
+  const subjectEmail = normalizeEmail(fields[IndividualFormPdfFieldName.subjectEmail]);
+  const mainPhone = normalizePhone(fields[IndividualFormPdfFieldName.phone]);
+  const subjectPhone = normalizePhone(fields[IndividualFormPdfFieldName.subjectPhone]);
+  const mainBirthDate = firstDefined(normalizeText(fields[IndividualFormPdfFieldName.dateOfBirth]));
+  const subjectBirthDate = firstDefined(normalizeText(fields[IndividualFormPdfFieldName.subjectDateOfBirth]));
+  const mainGender = firstDefined(
+    normalizeGender(fields[IndividualFormPdfFieldName.sexPicker]),
+    normalizeGender(fields[IndividualFormPdfFieldName.gender]),
+  );
+  const subjectGender = firstDefined(
+    normalizeGender(fields[IndividualFormPdfFieldName.subjectSexPicker]),
+    normalizeGender(fields[IndividualFormPdfFieldName.subjectGender]),
+  );
+  const consentDate = firstDefined(normalizeText(fields[IndividualFormPdfFieldName.date]));
+  const serviceProviderDomain = firstDefined(normalizeText(fields[IndividualFormPdfFieldName.serviceProviderDomain]));
 
-  const hasExplicitSubjectFields = Boolean(subjectAlternateName || subjectEmail || subjectPhone);
+  const hasExplicitSubjectFields = Boolean(
+    subjectAlternateName || subjectEmail || subjectPhone || subjectBirthDate || subjectGender,
+  );
   const useSubjectValues = !selfDeclared && hasExplicitSubjectFields;
 
   const organizationAlternateName = firstDefined(
@@ -214,10 +228,15 @@ export function buildClaimsFromIndividualFormPdf(
 
   const personAlternateName = firstDefined(mainAlternateName, organizationAlternateName);
   const gender = firstDefined(
-    normalizeGender(fields.sexPicker),
-    normalizeGender(fields.gender),
+    useSubjectValues ? subjectGender : undefined,
+    mainGender,
+    subjectGender,
   );
-  const birthDate = firstDefined(normalizeText(fields.dateOfBirth));
+  const birthDate = firstDefined(
+    useSubjectValues ? subjectBirthDate : undefined,
+    mainBirthDate,
+    subjectBirthDate,
+  );
 
   const claims: Record<string, string> = {
     '@context': 'org.schema',
@@ -244,6 +263,8 @@ export function buildClaimsFromIndividualFormPdf(
     ...(personIdentity.country ? { [ClaimsOrganizationSchemaorg.addressCountry]: personIdentity.country } : {}),
     ...(gender ? { [ClaimsPersonSchemaorg.gender]: gender } : {}),
     ...(birthDate ? { [ClaimsPersonSchemaorg.birthDate]: birthDate } : {}),
+    ...(consentDate ? { [ClaimConsent.date]: consentDate } : {}),
+    ...(serviceProviderDomain ? { [ClaimsOrderSchemaorg.orderedItemServiceType]: serviceProviderDomain } : {}),
   };
 
   return {
@@ -251,12 +272,15 @@ export function buildClaimsFromIndividualFormPdf(
     resolved: {
       selfDeclared,
       organizationAlternateName,
+      ...(birthDate ? { organizationBirthDate: birthDate } : {}),
       ...(resolvedContact.email ? { organizationEmail: resolvedContact.email } : {}),
       ...(resolvedContact.telephone ? { organizationTelephone: resolvedContact.telephone } : {}),
+      ...(consentDate ? { consentDate } : {}),
       ...(personIdentity.name ? { personName: personIdentity.name } : {}),
       ...(personIdentity.givenName ? { personGivenName: personIdentity.givenName } : {}),
       ...(personIdentity.familyName ? { personFamilyName: personIdentity.familyName } : {}),
       ...(personIdentity.identifier ? { personIdentifier: personIdentity.identifier } : {}),
+      ...(serviceProviderDomain ? { serviceProviderDomain } : {}),
     },
   };
 }
