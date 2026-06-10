@@ -81,11 +81,24 @@ export enum ClaimsOrganizationSchemaorg {
      */
     hasCredentialMaterial = "org.schema.Organization.hasCredential.material",
     /** Individual/family owner email used by subject-index registration flows. */
+    ownerAlternateName = "org.schema.Organization.owner.alternateName",
+    /** Individual/family owner email used by subject-index registration flows. */
     ownerEmail = "org.schema.Organization.owner.email",
     /** Individual/family owner telephone used by subject-index registration flows. */
     ownerTelephone = "org.schema.Organization.owner.telephone",
     /** Individual/family owner legal identifier used by subject-index registration flows. */
     ownerIdentifierValue = "org.schema.Organization.owner.identifier.value",
+    /** Individual/family indexed member friendly name used by onboarding draft helpers. */
+    memberAlternateName = "org.schema.Organization.member.alternateName",
+    memberGivenName = "org.schema.Organization.member.givenName",
+    memberFamilyName = "org.schema.Organization.member.familyName",
+    memberBirthDate = "org.schema.Organization.member.birthDate",
+    memberGender = "org.schema.Organization.member.gender",
+    memberEmail = "org.schema.Organization.member.email",
+    memberTelephone = "org.schema.Organization.member.telephone",
+    memberIdentifierType = "org.schema.Organization.member.identifier.additionalType",
+    memberIdentifierValue = "org.schema.Organization.member.identifier.value",
+    memberRole = "org.schema.Organization.member.role",
     numberOfEmployees = "org.schema.Organization.numberOfEmployees.value" // to purchase licenses for device profile's activation
 }
 

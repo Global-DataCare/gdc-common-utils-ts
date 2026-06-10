@@ -178,24 +178,24 @@ export function buildClaimsFromIndividualFormPdf(
   const personIdentity = derivePersonName(subjectDn);
   const fields = options.fields || {};
 
-  const selfDeclared = normalizeBoolean(fields[IndividualFormPdfFieldName.self]);
-  const mainAlternateName = firstDefined(normalizeText(fields[IndividualFormPdfFieldName.alternateName]));
+  const selfDeclared = normalizeBoolean(fields[IndividualFormPdfFieldName.controllerIsSubject]);
+  const controllerAlternateName = firstDefined(normalizeText(fields[IndividualFormPdfFieldName.controllerAlternateName]));
   const subjectAlternateName = firstDefined(normalizeText(fields[IndividualFormPdfFieldName.subjectAlternateName]));
-  const mainEmail = normalizeEmail(fields[IndividualFormPdfFieldName.email]);
+  const controllerEmail = normalizeEmail(fields[IndividualFormPdfFieldName.controllerEmail]);
   const subjectEmail = normalizeEmail(fields[IndividualFormPdfFieldName.subjectEmail]);
-  const mainPhone = normalizePhone(fields[IndividualFormPdfFieldName.phone]);
+  const controllerPhone = normalizePhone(fields[IndividualFormPdfFieldName.controllerPhone]);
   const subjectPhone = normalizePhone(fields[IndividualFormPdfFieldName.subjectPhone]);
-  const mainBirthDate = firstDefined(normalizeText(fields[IndividualFormPdfFieldName.dateOfBirth]));
+  const controllerBirthDate = firstDefined(normalizeText(fields[IndividualFormPdfFieldName.controllerDateOfBirth]));
   const subjectBirthDate = firstDefined(normalizeText(fields[IndividualFormPdfFieldName.subjectDateOfBirth]));
-  const mainGender = firstDefined(
-    normalizeGender(fields[IndividualFormPdfFieldName.sexPicker]),
-    normalizeGender(fields[IndividualFormPdfFieldName.gender]),
+  const controllerGender = firstDefined(
+    normalizeGender(fields[IndividualFormPdfFieldName.controllerSexAtBirth]),
+    normalizeGender(fields[IndividualFormPdfFieldName.controllerGender]),
   );
   const subjectGender = firstDefined(
-    normalizeGender(fields[IndividualFormPdfFieldName.subjectSexPicker]),
     normalizeGender(fields[IndividualFormPdfFieldName.subjectGender]),
+    normalizeGender(fields[IndividualFormPdfFieldName.subjectSexAtBirth]),
   );
-  const consentDate = firstDefined(normalizeText(fields[IndividualFormPdfFieldName.date]));
+  const consentDate = firstDefined(normalizeText(fields[IndividualFormPdfFieldName.docDate]));
   const serviceProviderDomain = firstDefined(normalizeText(fields[IndividualFormPdfFieldName.serviceProviderDomain]));
 
   const hasExplicitSubjectFields = Boolean(
@@ -205,54 +205,77 @@ export function buildClaimsFromIndividualFormPdf(
 
   const organizationAlternateName = firstDefined(
     useSubjectValues ? subjectAlternateName : undefined,
-    mainAlternateName,
+    controllerAlternateName,
     subjectAlternateName,
   );
   if (!organizationAlternateName) {
-    throw new Error('Individual PDF form requires alternateName or subjectAlternateName.');
+    throw new Error('Individual PDF form requires controllerAlternateName or subjectAlternateName.');
   }
 
   const resolvedContact = useSubjectValues
     ? (() => {
       const subjectContact = firstContact([subjectEmail], [subjectPhone]);
       if (subjectContact.email || subjectContact.telephone) return subjectContact;
-      return firstContact([mainEmail], [mainPhone]);
+      return firstContact([controllerEmail], [controllerPhone]);
     })()
     : firstContact(
-      [mainEmail, subjectEmail],
-      [mainPhone, subjectPhone],
+      [controllerEmail, subjectEmail],
+      [controllerPhone, subjectPhone],
     );
   if (!resolvedContact.email && !resolvedContact.telephone) {
-    throw new Error('Individual PDF form requires email/subjectEmail or phone/subjectPhone.');
+    throw new Error('Individual PDF form requires controllerEmail/subjectEmail or controllerPhone/subjectPhone.');
   }
 
-  const personAlternateName = firstDefined(mainAlternateName, organizationAlternateName);
+  const personAlternateName = firstDefined(controllerAlternateName);
+  const memberGivenName = firstDefined(
+    useSubjectValues ? normalizeText(fields[IndividualFormPdfFieldName.subjectGivenName]) : undefined,
+    normalizeText(fields[IndividualFormPdfFieldName.subjectGivenName]),
+    selfDeclared ? normalizeText(fields[IndividualFormPdfFieldName.controllerGivenName]) : undefined,
+  );
+  const memberFamilyName = firstDefined(
+    useSubjectValues ? normalizeText(fields[IndividualFormPdfFieldName.subjectFamilyName]) : undefined,
+    normalizeText(fields[IndividualFormPdfFieldName.subjectFamilyName]),
+    selfDeclared ? normalizeText(fields[IndividualFormPdfFieldName.controllerFamilyName]) : undefined,
+  );
+  const memberIdentifier = firstDefined(
+    useSubjectValues ? normalizeText(fields[IndividualFormPdfFieldName.subjectIdValue]) : undefined,
+    normalizeText(fields[IndividualFormPdfFieldName.subjectIdValue]),
+    selfDeclared ? normalizeText(fields[IndividualFormPdfFieldName.controllerIdValue]) : undefined,
+  );
+  const memberIdentifierType = firstDefined(
+    useSubjectValues ? normalizeText(fields[IndividualFormPdfFieldName.subjectIdType]) : undefined,
+    normalizeText(fields[IndividualFormPdfFieldName.subjectIdType]),
+    selfDeclared ? normalizeText(fields[IndividualFormPdfFieldName.controllerIdType]) : undefined,
+  );
   const gender = firstDefined(
     useSubjectValues ? subjectGender : undefined,
-    mainGender,
+    controllerGender,
     subjectGender,
   );
   const birthDate = firstDefined(
     useSubjectValues ? subjectBirthDate : undefined,
-    mainBirthDate,
+    controllerBirthDate,
     subjectBirthDate,
   );
 
   const claims: Record<string, string> = {
     '@context': 'org.schema',
     [ClaimsOrganizationSchemaorg.alternateName]: organizationAlternateName,
+    ...(personAlternateName ? {
+      [ClaimsOrganizationSchemaorg.ownerAlternateName]: personAlternateName,
+    } : {}),
     ...(personIdentity.identifier ? {
       [ClaimsOrganizationSchemaorg.ownerIdentifierValue]: personIdentity.identifier,
     } : {}),
     ...(resolvedContact.email ? {
       [ClaimsOrganizationSchemaorg.ownerEmail]: resolvedContact.email,
-      [ClaimsPersonSchemaorg.email]: resolvedContact.email,
     } : {}),
     ...(resolvedContact.telephone ? {
       [ClaimsOrganizationSchemaorg.ownerTelephone]: resolvedContact.telephone,
-      [ClaimsPersonSchemaorg.telephone]: resolvedContact.telephone,
     } : {}),
-    ...(personAlternateName ? { [ClaimsPersonSchemaorg.alternateName]: personAlternateName } : {}),
+    ...(organizationAlternateName ? {
+      [ClaimsOrganizationSchemaorg.memberRole]: 'ONESELF',
+    } : {}),
     ...(personIdentity.name ? { [ClaimsPersonSchemaorg.name]: personIdentity.name } : {}),
     ...(personIdentity.givenName ? { [ClaimsPersonSchemaorg.givenName]: personIdentity.givenName } : {}),
     ...(personIdentity.familyName ? { [ClaimsPersonSchemaorg.familyName]: personIdentity.familyName } : {}),
@@ -260,11 +283,23 @@ export function buildClaimsFromIndividualFormPdf(
       [ClaimsPersonSchemaorg.identifierValue]: personIdentity.identifier,
       [ClaimsPersonSchemaorg.identifier]: `urn:person:identifier:${personIdentity.identifier}`,
     } : {}),
+    ...(memberGivenName ? { [ClaimsOrganizationSchemaorg.memberGivenName]: memberGivenName } : {}),
+    ...(memberFamilyName ? { [ClaimsOrganizationSchemaorg.memberFamilyName]: memberFamilyName } : {}),
+    ...(memberIdentifier ? { [ClaimsOrganizationSchemaorg.memberIdentifierValue]: memberIdentifier } : {}),
+    ...(memberIdentifierType ? { [ClaimsOrganizationSchemaorg.memberIdentifierType]: memberIdentifierType } : {}),
     ...(personIdentity.country ? { [ClaimsOrganizationSchemaorg.addressCountry]: personIdentity.country } : {}),
-    ...(gender ? { [ClaimsPersonSchemaorg.gender]: gender } : {}),
-    ...(birthDate ? { [ClaimsPersonSchemaorg.birthDate]: birthDate } : {}),
+    ...(controllerGender ? { [ClaimsPersonSchemaorg.gender]: controllerGender } : {}),
+    ...(controllerBirthDate ? { [ClaimsPersonSchemaorg.birthDate]: controllerBirthDate } : {}),
+    ...(gender ? {
+      [ClaimsOrganizationSchemaorg.memberGender]: gender,
+    } : {}),
+    ...(birthDate ? {
+      [ClaimsOrganizationSchemaorg.memberBirthDate]: birthDate,
+    } : {}),
     ...(consentDate ? { [ClaimConsent.date]: consentDate } : {}),
-    ...(serviceProviderDomain ? { [ClaimsOrderSchemaorg.orderedItemServiceType]: serviceProviderDomain } : {}),
+    ...(serviceProviderDomain ? {
+      [ClaimsOrderSchemaorg.orderedItemServiceType]: serviceProviderDomain,
+    } : {}),
   };
 
   return {

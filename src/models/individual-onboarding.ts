@@ -11,55 +11,55 @@ import type { BirthSex, GenderIdentity } from '../constants/identity-gender';
  * claims. Keeping them typed avoids stringly-typed access in downstream repos.
  */
 export enum IndividualFormPdfFieldName {
-  self = 'self',
-  alternateName = 'alternateName',
-  givenName = 'givenName',
-  familyName = 'familyName',
+  docDate = 'docDate',
+  serviceProviderDomain = 'serviceProviderDomain',
+  controllerAlternateName = 'controllerAlternateName',
+  controllerDateOfBirth = 'controllerDateOfBirth',
+  controllerEmail = 'controllerEmail',
+  controllerFamilyName = 'controllerFamilyName',
+  controllerGender = 'controllerGender',
+  controllerGivenName = 'controllerGivenName',
+  controllerIdType = 'controllerIdType',
+  controllerIdValue = 'controllerIdValue',
+  controllerPhone = 'controllerPhone',
+  controllerSexAtBirth = 'controllerSexAtBirth',
+  controllerIsSubject = 'controllerIsSubject',
   subjectAlternateName = 'subjectAlternateName',
   subjectGivenName = 'subjectGivenName',
   subjectFamilyName = 'subjectFamilyName',
-  email = 'email',
   subjectEmail = 'subjectEmail',
-  phone = 'phone',
   subjectPhone = 'subjectPhone',
-  idType = 'idType',
-  idValue = 'idValue',
   subjectIdType = 'subjectIdType',
   subjectIdValue = 'subjectIdValue',
-  dateOfBirth = 'dateOfBirth',
   subjectDateOfBirth = 'subjectDateOfBirth',
-  sexPicker = 'sexPicker',
-  gender = 'gender',
-  subjectSexPicker = 'subjectSexPicker',
   subjectGender = 'subjectGender',
-  date = 'date',
-  serviceProviderDomain = 'serviceProviderDomain',
+  subjectSexAtBirth = 'subjectSexAtBirth',
 }
 
 export const IndividualFormPdfFieldNames = Object.freeze([
-  IndividualFormPdfFieldName.self,
-  IndividualFormPdfFieldName.alternateName,
-  IndividualFormPdfFieldName.givenName,
-  IndividualFormPdfFieldName.familyName,
+  IndividualFormPdfFieldName.docDate,
+  IndividualFormPdfFieldName.serviceProviderDomain,
+  IndividualFormPdfFieldName.controllerAlternateName,
+  IndividualFormPdfFieldName.controllerDateOfBirth,
+  IndividualFormPdfFieldName.controllerEmail,
+  IndividualFormPdfFieldName.controllerFamilyName,
+  IndividualFormPdfFieldName.controllerGender,
+  IndividualFormPdfFieldName.controllerGivenName,
+  IndividualFormPdfFieldName.controllerIdType,
+  IndividualFormPdfFieldName.controllerIdValue,
+  IndividualFormPdfFieldName.controllerPhone,
+  IndividualFormPdfFieldName.controllerSexAtBirth,
+  IndividualFormPdfFieldName.controllerIsSubject,
   IndividualFormPdfFieldName.subjectAlternateName,
   IndividualFormPdfFieldName.subjectGivenName,
   IndividualFormPdfFieldName.subjectFamilyName,
-  IndividualFormPdfFieldName.email,
   IndividualFormPdfFieldName.subjectEmail,
-  IndividualFormPdfFieldName.phone,
   IndividualFormPdfFieldName.subjectPhone,
-  IndividualFormPdfFieldName.idType,
-  IndividualFormPdfFieldName.idValue,
   IndividualFormPdfFieldName.subjectIdType,
   IndividualFormPdfFieldName.subjectIdValue,
-  IndividualFormPdfFieldName.dateOfBirth,
   IndividualFormPdfFieldName.subjectDateOfBirth,
-  IndividualFormPdfFieldName.sexPicker,
-  IndividualFormPdfFieldName.gender,
-  IndividualFormPdfFieldName.subjectSexPicker,
   IndividualFormPdfFieldName.subjectGender,
-  IndividualFormPdfFieldName.date,
-  IndividualFormPdfFieldName.serviceProviderDomain,
+  IndividualFormPdfFieldName.subjectSexAtBirth,
 ] as const);
 
 export type IndividualFormPdfFieldValue = string | boolean | undefined | null;
@@ -69,21 +69,37 @@ export type IndividualFormPdfFieldValue = string | boolean | undefined | null;
  *
  * This models the form surface exactly as published in the PDF, even when the
  * current mapper does not yet consume some of the fields.
+ *
+ * Validation and semantics:
+ *
+ * - `docDate` is the document signature / acceptance date shown in the PDF
+ * - `serviceProviderDomain` is the provider base locator selected during
+ *   autodiscovery, without `http://` or `https://`
+ * - it may be a public provider domain such as `service.provider.example`
+ * - it may also be a hosted `did:web` base path such as
+ *   `hosting.example.com/acme-id/cds-es/v1/health-care`
+ * - the current onboarding compatibility mapping still copies it into
+ *   `org.schema.Service.serviceType` and `org.schema.Order.orderedItem.serviceType`
+ *   even though semantically it is a provider locator, not a service purpose
+ * - `controller*` fields belong to the controller / legal representative
+ * - `subject*` fields belong to the indexed subject
+ * - `controllerIsSubject=true` means the controller and the subject are the
+ *   same natural person for the current onboarding flow
  */
-export interface IndividualIndexServiceFormFields {
-  alternateName?: string;
-  date?: string;
-  dateOfBirth?: string;
-  email?: string;
-  familyName?: string;
-  gender?: GenderIdentity | string;
-  givenName?: string;
-  idType?: IdKindValue | string;
-  idValue?: string;
-  phone?: string;
-  self?: boolean;
+export interface IndividualFormTemplateFields {
+  docDate?: string;
   serviceProviderDomain?: string;
-  sexAtBirth?: BirthSex | string;
+  controllerAlternateName?: string;
+  controllerDateOfBirth?: string;
+  controllerEmail?: string;
+  controllerFamilyName?: string;
+  controllerGender?: GenderIdentity | string;
+  controllerGivenName?: string;
+  controllerIdType?: IdKindValue | string;
+  controllerIdValue?: string;
+  controllerPhone?: string;
+  controllerSexAtBirth?: BirthSex | string;
+  controllerIsSubject?: boolean;
   subjectAlternateName?: string;
   subjectDateOfBirth?: string;
   subjectEmail?: string;
@@ -96,6 +112,9 @@ export interface IndividualIndexServiceFormFields {
   subjectSexAtBirth?: BirthSex | string;
 }
 
+/** @deprecated Use `IndividualFormTemplateFields`. */
+export type IndividualIndexServiceFormFields = IndividualFormTemplateFields;
+
 /**
  * Typed raw field map as extracted from the onboarding PDF.
  *
@@ -104,9 +123,9 @@ export interface IndividualIndexServiceFormFields {
  * that are intentionally excluded from the canonical interface.
  */
 export type IndividualFormPdfFieldMap = Readonly<
-  Omit<IndividualIndexServiceFormFields, 'self'>
+  Omit<IndividualFormTemplateFields, 'controllerIsSubject'>
   & {
-    self?: IndividualFormPdfFieldValue;
+    controllerIsSubject?: IndividualFormPdfFieldValue;
   }
   & Partial<Record<IndividualFormPdfFieldName, IndividualFormPdfFieldValue>>
   & Record<string, IndividualFormPdfFieldValue>
@@ -215,9 +234,22 @@ export type IndividualOnboardingValidationIssue = Readonly<{
   severity: 'error' | 'warning';
   code: string;
   message: string;
-  field?: keyof IndividualIndexServiceFormFields | 'template' | 'claims' | 'kyc' | string;
+  field?: keyof IndividualFormTemplateFields | 'template' | 'claims' | 'kyc' | string;
 }>;
 
+/**
+ * Result of the lightweight client-side validation performed by the onboarding
+ * editor/facade before a request is sent to GW CORE.
+ *
+ * Current scope:
+ *
+ * - required/optional field presence
+ * - basic date syntax and obvious temporal errors
+ * - service provider token syntax
+ *
+ * It is intentionally not the final business validation authority. Tenants may
+ * still apply stricter rules in GW CORE or in the portal/backend.
+ */
 export type IndividualOnboardingValidationResult = Readonly<{
   ok: boolean;
   errors: IndividualOnboardingValidationIssue[];
@@ -227,13 +259,13 @@ export type IndividualOnboardingValidationResult = Readonly<{
 export type IndividualOnboardingDraftInput = Readonly<{
   template?: IndividualOnboardingPdfTemplateInput;
   kyc?: IndividualOrganizationKycPayload;
-  formFields?: IndividualIndexServiceFormFields;
+  formFields?: IndividualFormTemplateFields;
   claims?: Record<string, unknown>;
   pdf?: IndividualOnboardingPdfDocumentReferenceInput;
 }>;
 
 export type IndividualOnboardingDraftResult = Readonly<{
-  formFields: IndividualIndexServiceFormFields;
+  formFields: IndividualFormTemplateFields;
   claims?: Record<string, unknown>;
   template?: IndividualOnboardingPdfTemplateInput;
   documentReference?: IndividualOnboardingPdfDocumentReferenceEntry;

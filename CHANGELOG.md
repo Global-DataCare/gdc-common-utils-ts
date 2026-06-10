@@ -2,13 +2,16 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
-## [1.20.0] - 2026-06-08
+## [1.20.0] - 2026-06-10
 
 ### Added
 - Added canonical onboarding contracts and helpers for individual PDF draft generation in:
   - `src/models/individual-onboarding.ts`
   - `src/utils/individual-organization-kyc.ts`
   - `src/utils/individual-onboarding-document-reference.ts`
+- Added reusable onboarding draft builders for apps/SDKs in:
+  - `src/utils/individual-onboarding-editor.ts`
+  - `src/utils/individual-organization-claims.ts`
 - Added typed identity constants shared across onboarding/KYC/tests in:
   - `src/constants/identity-gender.ts`
   - `src/constants/identity-identifiers.ts`
@@ -19,16 +22,40 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 - Added executable coverage for the new KYC and claims-first onboarding PDF helpers in:
   - `__tests__/utils-individual-organization-kyc.test.ts`
   - `__tests__/utils-individual-onboarding-document-reference.test.ts`
+- Added onboarding editor and final-claims coverage in:
+  - `__tests__/101-individual-onboarding-claims.test.ts`
+  - `__tests__/utils-individual-onboarding-editor.test.ts`
+  - `__tests__/utils-individual-organization-claims.test.ts`
 
 ### Changed
 - Completed the shared individual PDF field contract so the onboarding form surface is typed in one place, including:
-  - controller and subject aliases
-  - controller and subject contact channels
-  - subject birth/gender fields
-  - consent date
-  - service-provider domain
+  - explicit controller and subject aliases
+  - explicit controller and subject contact channels
+  - controller and subject identifier fields
+  - controller and subject birth/gender fields
+  - `docDate`
+  - `serviceProviderDomain`
+- Renamed the onboarding self-registration switch to the clearer controller-first field `controllerIsSubject` and aligned the template field list around `controller*` and `subject*` keys.
 - Extended the PDF-to-claims mapper so it resolves the newly modeled onboarding fields and keeps the canonical `self` flag typed as boolean.
-- Added KYC-to-`org.schema` claim normalization for individual onboarding so GW CORE and higher SDK layers can reuse one shared mapping.
+- Added canonical final-claims builders so onboarding flows can merge:
+  - base claims
+  - KYC-derived claims
+  - controller/subject form fields
+  with later explicit form data taking precedence when non-empty.
+- Reworked the onboarding claim mapping so:
+  - controller identity stays in `Person.*`
+  - controller contact stays in `Organization.owner.*`
+  - indexed subject identity stays in `Organization.member.*`
+- Added onboarding-specific `org.schema` claims for:
+  - `Organization.owner.alternateName`
+  - `Organization.member.givenName`
+  - `Organization.member.familyName`
+  - `Organization.member.birthDate`
+  - `Organization.member.gender`
+  - `Organization.member.identifierType`
+  - `Organization.member.identifierValue`
+  - `Organization.member.role`
+- Updated KYC-to-`org.schema` normalization for individual onboarding so GW CORE and higher SDK layers can reuse one shared controller/member mapping.
 - Added claims-first `DocumentReference` draft helpers so onboarding PDFs can travel as:
   - `resource.meta.claims[DocumentReferenceClaim.ContentData]`
   while remaining convertible to FHIR `DocumentReference` later.
@@ -38,7 +65,8 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 - Reworked onboarding/converter tests to stop hardcoding reusable gender, identifier, signer, and document values inline.
 
 ### Testing
-- `npm test -- --watchman=false __tests__/utils-individual-form-pdf.test.ts __tests__/utils-individual-organization-kyc.test.ts __tests__/utils-clinical-resource-converters.test.ts __tests__/dataspace-discovery.test.ts`
+- `npm test -- --watchman=false __tests__/utils-individual-form-pdf.test.ts __tests__/utils-individual-organization-kyc.test.ts __tests__/101-individual-onboarding-claims.test.ts __tests__/utils-individual-onboarding-editor.test.ts __tests__/utils-individual-organization-claims.test.ts`
+- `npm test -- --watchman=false __tests__/utils-clinical-resource-converters.test.ts __tests__/dataspace-discovery.test.ts`
 - `npm run build`
 
 ## [1.19.0] - 2026-06-07

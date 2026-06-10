@@ -91,23 +91,23 @@ describe('individual organization KYC mapper', () => {
     expect(result.claims).toEqual({
       '@context': 'org.schema',
       [ClaimsOrganizationSchemaorg.alternateName]: EXAMPLE_REGISTERED_SUBJECT_ALTERNATE_NAME,
+      [ClaimsOrganizationSchemaorg.ownerAlternateName]: EXAMPLE_REGISTERED_SUBJECT_ALTERNATE_NAME,
       [ClaimsOrganizationSchemaorg.ownerIdentifierValue]: EXAMPLE_KYC_PROFILE.id_number,
       [ClaimsOrganizationSchemaorg.ownerEmail]: EXAMPLE_SELF_REGISTERED_INDIVIDUAL_EMAIL_NORMALIZED,
       [ClaimsOrganizationSchemaorg.ownerTelephone]: EXAMPLE_KYC_PROFILE.phone_number,
+      [ClaimsOrganizationSchemaorg.memberBirthDate]: EXAMPLE_REGISTERED_SUBJECT_BIRTH_YEAR,
+      [ClaimsOrganizationSchemaorg.memberRole]: 'ONESELF',
       [ClaimsOrganizationSchemaorg.addressCountry]: EXAMPLE_KYC_PROFILE.country,
       [ClaimsOrganizationSchemaorg.addressLocality]: EXAMPLE_KYC_PROFILE.city,
       [ClaimsOrganizationSchemaorg.streetAddress]: EXAMPLE_KYC_PROFILE.address,
       [ClaimsOrganizationSchemaorg.postalCode]: EXAMPLE_KYC_PROFILE.postal_code,
       [ClaimsPersonSchemaorg.identifierValue]: EXAMPLE_KYC_PROFILE.id_number,
       [ClaimsPersonSchemaorg.identifier]: `urn:person:identifier:${EXAMPLE_KYC_PROFILE.id_number}`,
-      [ClaimsPersonSchemaorg.email]: EXAMPLE_SELF_REGISTERED_INDIVIDUAL_EMAIL_NORMALIZED,
-      [ClaimsPersonSchemaorg.telephone]: EXAMPLE_KYC_PROFILE.phone_number,
-      [ClaimsPersonSchemaorg.alternateName]: EXAMPLE_REGISTERED_SUBJECT_ALTERNATE_NAME,
       [ClaimsPersonSchemaorg.givenName]: EXAMPLE_KYC_CONTROLLER_GIVEN_NAME.toUpperCase(),
       [ClaimsPersonSchemaorg.familyName]: EXAMPLE_KYC_CONTROLLER_FAMILY_NAME.toUpperCase(),
       [ClaimsPersonSchemaorg.name]: EXAMPLE_KYC_CONTROLLER_DISPLAY_NAME,
       [ClaimsPersonSchemaorg.gender]: EXAMPLE_KYC_CONTROLLER_GENDER_MALE,
-      [ClaimsPersonSchemaorg.birthDate]: EXAMPLE_REGISTERED_SUBJECT_BIRTH_YEAR,
+      [ClaimsPersonSchemaorg.birthDate]: EXAMPLE_KYC_CONTROLLER_BIRTHDATE.slice(0, 4),
     });
   });
 

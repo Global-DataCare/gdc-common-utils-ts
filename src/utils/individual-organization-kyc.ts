@@ -40,7 +40,8 @@ export type IndividualOrganizationKycClaimsResult = Readonly<{
     controllerIdentifier?: string;
     controllerEmail?: string;
     controllerTelephone?: string;
-    birthYear?: string;
+    controllerBirthYear?: string;
+    subjectBirthYear?: string;
   }>;
 }>;
 
@@ -111,7 +112,8 @@ export function buildClaimsFromIndividualOrganizationKyc(
   const controllerIdentifier = normalizeText(profile.id_number) || undefined;
   const controllerEmail = normalizeEmail(options.controllerEmail);
   const controllerTelephone = normalizeText(profile.phone_number) || undefined;
-  const birthYear = normalizeBirthYear(options.individualBirthDate || profile.birthdate);
+  const controllerBirthYear = normalizeBirthYear(profile.birthdate);
+  const subjectBirthYear = normalizeBirthYear(options.individualBirthDate);
   const gender = normalizeKycGender(profile.gender);
 
   const claims: Record<string, string> = {
@@ -124,26 +126,24 @@ export function buildClaimsFromIndividualOrganizationKyc(
     claims[ClaimsPersonSchemaorg.identifierValue] = controllerIdentifier;
     claims[ClaimsPersonSchemaorg.identifier] = `urn:person:identifier:${controllerIdentifier}`;
   }
+  claims[ClaimsOrganizationSchemaorg.ownerAlternateName] = organizationAlternateName;
   if (controllerEmail) {
     claims[ClaimsOrganizationSchemaorg.ownerEmail] = controllerEmail;
-    claims[ClaimsPersonSchemaorg.email] = controllerEmail;
   }
   if (controllerTelephone) {
     claims[ClaimsOrganizationSchemaorg.ownerTelephone] = controllerTelephone;
-    claims[ClaimsPersonSchemaorg.telephone] = controllerTelephone;
   }
   if (givenName) claims[ClaimsPersonSchemaorg.givenName] = givenName;
   if (familyName) claims[ClaimsPersonSchemaorg.familyName] = familyName;
   if (controllerName) claims[ClaimsPersonSchemaorg.name] = controllerName;
-  if (normalizeDisplayText(options.individualAlternateName)) {
-    claims[ClaimsPersonSchemaorg.alternateName] = organizationAlternateName;
-  }
+  claims[ClaimsOrganizationSchemaorg.memberRole] = 'ONESELF';
   if (normalizeUpperText(profile.country)) claims[ClaimsOrganizationSchemaorg.addressCountry] = normalizeUpperText(profile.country) as string;
   if (normalizeText(profile.city)) claims[ClaimsOrganizationSchemaorg.addressLocality] = normalizeText(profile.city);
   if (normalizeText(profile.address)) claims[ClaimsOrganizationSchemaorg.streetAddress] = normalizeText(profile.address);
   if (normalizeText(profile.postal_code)) claims[ClaimsOrganizationSchemaorg.postalCode] = normalizeText(profile.postal_code);
   if (gender) claims[ClaimsPersonSchemaorg.gender] = gender;
-  if (birthYear) claims[ClaimsPersonSchemaorg.birthDate] = birthYear;
+  if (controllerBirthYear) claims[ClaimsPersonSchemaorg.birthDate] = controllerBirthYear;
+  if (subjectBirthYear) claims[ClaimsOrganizationSchemaorg.memberBirthDate] = subjectBirthYear;
 
   return {
     claims,
@@ -154,7 +154,8 @@ export function buildClaimsFromIndividualOrganizationKyc(
       ...(controllerIdentifier ? { controllerIdentifier } : {}),
       ...(controllerEmail ? { controllerEmail } : {}),
       ...(controllerTelephone ? { controllerTelephone } : {}),
-      ...(birthYear ? { birthYear } : {}),
+      ...(controllerBirthYear ? { controllerBirthYear } : {}),
+      ...(subjectBirthYear ? { subjectBirthYear } : {}),
     },
   };
 }
