@@ -44,7 +44,23 @@ export const EXAMPLE_SELF_REGISTERED_INDIVIDUAL_BIRTH_YEAR = '1980' as const;
 export const EXAMPLE_REGISTERED_SUBJECT_ALTERNATE_NAME = 'Doraemon' as const;
 export const EXAMPLE_REGISTERED_SUBJECT_BIRTH_YEAR = '2020' as const;
 export const EXAMPLE_PDF_CONSENT_DATE = '2026-06-08' as const;
-export const EXAMPLE_PDF_SERVICE_PROVIDER_DOMAIN = 'health-index' as const;
+/**
+ * Public provider domain selected during autodiscovery.
+ *
+ * This value may be:
+ * - a public domain masking the hosted tenant path, e.g. `service.provider.example`
+ * - or a hosted `did:web` base path without scheme, e.g.
+ *   `hosting.example.com/acme-id/cds-es/v1/health-care`
+ *
+ * The outbox later resolves the DID document from this base and derives the
+ * concrete endpoint URL for the selected operation.
+ */
+export const EXAMPLE_SERVICE_PROVIDER_DOMAIN = 'service.provider.example' as const;
+/** Example hosted `did:web` base without scheme, useful for tests/docs. */
+export const EXAMPLE_SERVICE_PROVIDER_HOSTED_DID_WEB_BASE =
+  'hosting.example.com/acme-id/cds-es/v1/health-care' as const;
+/** @deprecated Use `EXAMPLE_SERVICE_PROVIDER_DOMAIN`. */
+export const EXAMPLE_PDF_SERVICE_PROVIDER_DOMAIN = EXAMPLE_SERVICE_PROVIDER_DOMAIN;
 export const EXAMPLE_KYC_CONTROLLER_UUID = '033ceb35-2528-402e-8385-f22e12f57805' as const;
 export const EXAMPLE_KYC_CONTROLLER_USER_UUID = '8c18ec13-e908-4b7a-91bb-134bb3a229e1' as const;
 export const EXAMPLE_KYC_CONTROLLER_GIVEN_NAME = 'System' as const;
@@ -79,6 +95,11 @@ export const EXAMPLE_FORM_CONTROLLER_PHONE = '+34000000001' as const;
 export const EXAMPLE_FORM_SUBJECT_PHONE = '+34000000002' as const;
 export const EXAMPLE_FORM_CONTROLLER_IDENTIFIER_VALUE = 'identifier-controller-001' as const;
 export const EXAMPLE_FORM_SUBJECT_IDENTIFIER_VALUE = 'identifier-subject-001' as const;
+export const EXAMPLE_OTP_INVITATION_ID = 'invitation-demo-001' as const;
+export const EXAMPLE_OTP_CHALLENGE_ID = 'otp-challenge-demo-001' as const;
+export const EXAMPLE_OTP_CODE = '123456' as const;
+export const EXAMPLE_DEMO_PORTAL_ID_TOKEN =
+  'eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiJkZW1vLXVzZXIiLCJlbWFpbCI6ImRlbW9AZXhhbXBsZS5vcmcifQ.demo' as const;
 
 export const EXAMPLE_TENANT_ROUTE_CONTEXT = {
   tenantId: EXAMPLE_TENANT_IDENTIFIER,
