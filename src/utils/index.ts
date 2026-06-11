@@ -43,6 +43,7 @@ export * from './individual-onboarding-document-reference';
 export * from './individual-organization-kyc';
 export * from './ips-bundle-claims';
 export * from './jwt';
+export * from './license';
 export * from './manager-error';
 export * from './multibase58';
 export * from './multibasehash';

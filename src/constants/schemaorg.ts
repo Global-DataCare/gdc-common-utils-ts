@@ -117,6 +117,21 @@ export enum ClaimsOfferSchemaorg {
     serialNumber = "org.schema.Offer.serialNumber",
 }
 
+/**
+ * Canonical claim names used by the current GDC profile when a VC or flat
+ * request models a `schema.org/IndividualProduct`.
+ *
+ * Current GW licensing semantics use this family to represent:
+ * - the concrete seat/license serial number
+ * - the license category (`professional` or `individual`)
+ * - the target app/device form factor (`mobile` or `web`)
+ */
+export enum ClaimsIndividualProductSchemaorg {
+    category = "org.schema.IndividualProduct.category",
+    additionalType = "org.schema.IndividualProduct.additionalType",
+    serialNumber = "org.schema.IndividualProduct.serialNumber",
+}
+
 export enum ClaimsOrderSchemaorg {
     orderedItemServiceType = "org.schema.Order.orderedItem.serviceType",
 }
