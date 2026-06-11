@@ -133,6 +133,15 @@ export function normalizeServiceCapability(value: string | undefined | null): st
 }
 
 /**
+ * Returns whether the token is one of the known persisted service capabilities.
+ */
+export function isKnownServiceCapability(value: string | undefined | null): boolean {
+  const normalized = String(value || '').trim().toLowerCase();
+  if (!normalized) return false;
+  return CANONICAL_SERVICE_CAPABILITY_BY_VALUE.has(normalized);
+}
+
+/**
  * Parses the CSV stored in `org.schema.Service.serviceType`.
  */
 export function parseServiceCapabilityTokens(value: unknown): string[] {

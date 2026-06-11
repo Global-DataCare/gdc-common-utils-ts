@@ -203,7 +203,7 @@ describe('dataspace discovery helpers', () => {
     ]);
   });
 
-  it('accepts discovery capabilities from Service.additionalType during migration', () => {
+  it('accepts discovery capabilities from Service.additionalType during migration but ignores non-capability ActReason values', () => {
     const record = extractTenantServiceSemanticRecord({
       credentialSubject: {
         id: EXAMPLE_TENANT_SERVICE_DID,
@@ -217,10 +217,7 @@ describe('dataspace discovery helpers', () => {
       },
     });
 
-    expect(record.serviceTypes).toEqual([
-      ServiceCapability.IndexProvider,
-      EXAMPLE_CONSENT_PURPOSE_TREATMENT,
-    ]);
+    expect(record.serviceTypes).toEqual([ServiceCapability.IndexProvider]);
   });
 
   it('publishes discovery entrypoint and derived catalog artifact explicitly in examples', () => {
