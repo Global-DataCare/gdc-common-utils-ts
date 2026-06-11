@@ -3,6 +3,7 @@ import {
   DeprecatedServiceCapabilityToken,
   getServiceCapabilityKind,
   hasServiceCapabilityKind,
+  isKnownServiceCapability,
   isProviderServiceCapability,
   normalizeServiceCapability,
   parseServiceCapabilityTokens,
@@ -44,6 +45,8 @@ describe('service capability constants', () => {
     )).toBe(true);
     expect(isProviderServiceCapability(ServiceCapability.IndexProvider)).toBe(true);
     expect(isProviderServiceCapability(ServiceCapability.IndexReader)).toBe(false);
+    expect(isKnownServiceCapability(ServiceCapability.IndexProvider)).toBe(true);
+    expect(isKnownServiceCapability('http://terminology.hl7.org/CodeSystem/v3-ActReason|METAMGT')).toBe(false);
   });
 
   it('rejects empty capability inputs', () => {

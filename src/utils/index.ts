@@ -52,5 +52,6 @@ export * from './object-convert';
 export * from './normalize-uuid';
 export * from './permission-templates';
 export * from './smart-scope';
+export * from './service-act-reasons';
 export * from './activation-request';
 export * from './vp-token';

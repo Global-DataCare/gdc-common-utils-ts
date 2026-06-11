@@ -62,10 +62,18 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 - Updated dataspace discovery capability handling so migration can read discovery capabilities from both:
   - `Service.serviceType`
   - `Service.additionalType`
+- Added canonical `ActReason` parsing/serialization helpers for
+  `Service.additionalType`, including support for the compact shared-system CSV
+  form:
+  - `http://terminology.hl7.org/CodeSystem/v3-ActReason|METAMGT,HRESCH`
+- Tightened dataspace discovery capability parsing so `Service.additionalType`
+  only contributes known service capabilities during migration and no longer
+  mixes purpose-of-use `ActReason` values into discovery capability sets.
 - Reworked onboarding/converter tests to stop hardcoding reusable gender, identifier, signer, and document values inline.
 
 ### Testing
 - `npm test -- --watchman=false __tests__/utils-individual-form-pdf.test.ts __tests__/utils-individual-organization-kyc.test.ts __tests__/101-individual-onboarding-claims.test.ts __tests__/utils-individual-onboarding-editor.test.ts __tests__/utils-individual-organization-claims.test.ts`
+- `npm test -- --watchman=false __tests__/service-capabilities.test.ts __tests__/service-act-reasons.test.ts __tests__/dataspace-discovery.test.ts`
 - `npm test -- --watchman=false __tests__/utils-clinical-resource-converters.test.ts __tests__/dataspace-discovery.test.ts`
 - `npm run build`
 

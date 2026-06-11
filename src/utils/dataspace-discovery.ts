@@ -3,6 +3,7 @@
 import { ClaimsOrganizationSchemaorg, ClaimsServiceSchemaorg } from '../constants/schemaorg';
 import { isEuCountryCode, normalizeCountryCode } from '../constants/eu-countries';
 import {
+  isKnownServiceCapability,
   isProviderServiceCapability,
   parseServiceCapabilityTokens,
 } from '../constants/service-capabilities';
@@ -228,13 +229,23 @@ export function parseServiceTypeCsv(value: unknown): string[] {
   return parseServiceCapabilityTokens(value);
 }
 
+function parseAdditionalTypeCapabilityCsv(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return Array.from(new Set(
+      value.flatMap((entry) => parseAdditionalTypeCapabilityCsv(entry)),
+    ));
+  }
+  return parseServiceCapabilityTokens(value)
+    .filter((item) => isKnownServiceCapability(item));
+}
+
 /**
  * Parses service capability tokens from both `serviceType` and `additionalType`.
  */
 export function parseServiceTypeClaims(serviceTypeValue: unknown, additionalTypeValue?: unknown): string[] {
   return Array.from(new Set([
     ...parseServiceTypeCsv(serviceTypeValue),
-    ...parseServiceTypeCsv(additionalTypeValue),
+    ...parseAdditionalTypeCapabilityCsv(additionalTypeValue),
   ]));
 }
 
