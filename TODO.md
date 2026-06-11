@@ -49,11 +49,20 @@ Canonical roadmap references:
    - semantic `credentialSubject` parsing
    - flattened `meta.claims` projection helpers
    - parameterized examples without hardcoded business identities
-12. Keep repo scope boundaries explicit:
+12. Finish onboarding/discovery claim cleanup:
+   - keep `org.schema.Service.serviceType` limited to canonical technical capabilities such as `organization/Composition.cruds`
+   - keep `org.schema.Service.additionalType` limited to compact HL7 `ActReason` values such as `http://terminology.hl7.org/CodeSystem/v3-ActReason|METAMGT,HRESCH`
+   - stop copying onboarding provider locator/domain values into `Service.serviceType` and `Order.orderedItem.serviceType`
+   - add a separate canonical claim/field for provider locator or provider base URL
+   - update onboarding docs/examples to serialize only the new separation while preserving read compatibility for legacy payloads
+13. Keep repo scope boundaries explicit:
    - do not define concrete Fabric channel names here
    - do not define veterinary network taxonomy here
    - do not define concrete regional rollout naming here
    - leave veterinary taxonomy ownership to `uhc-sdk-core-ts`
+14. Keep `101-*` tests aligned with public editing surfaces:
+   - future `101` coverage should prefer `BundleEditor`-driven flows and public builders
+   - do not grow new `101` tests around internal/private helper functions as the primary entry point
 
 ## NEXT
 1. Introduce formal validator adapter examples for strict FHIR profile checks in CI.

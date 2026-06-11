@@ -1,4 +1,5 @@
 import {
+  ClaimsIndividualProductSchemaorg,
   ClaimsOrganizationSchemaorg,
   ClaimsPersonSchemaorg,
   ClaimsServiceSchemaorg,
@@ -23,5 +24,11 @@ describe('schemaorg claims', () => {
 
   it('includes software-application cryptographic material claim', () => {
     expect(ClaimsSoftwareApplicationSchemaorg.material).toBe('org.schema.SoftwareApplication.material');
+  });
+
+  it('includes individual-product licensing claims', () => {
+    expect(ClaimsIndividualProductSchemaorg.category).toBe('org.schema.IndividualProduct.category');
+    expect(ClaimsIndividualProductSchemaorg.additionalType).toBe('org.schema.IndividualProduct.additionalType');
+    expect(ClaimsIndividualProductSchemaorg.serialNumber).toBe('org.schema.IndividualProduct.serialNumber');
   });
 });

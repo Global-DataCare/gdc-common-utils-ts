@@ -5,6 +5,7 @@ export * from './organization-controller';
 export * from './individual-controller';
 export * from './professional';
 export * from './employee';
+export * from './license';
 export * from './related-person';
 export * from './consent-access';
 export * from './relationship-access';

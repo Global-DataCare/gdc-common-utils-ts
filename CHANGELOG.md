@@ -2,6 +2,28 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [1.20.2] - 2026-06-11
+
+### Added
+- Added canonical schema.org `IndividualProduct` licensing claims in:
+  - `src/constants/schemaorg.ts`
+- Added neutral shared licensing helpers and examples in:
+  - `src/utils/license.ts`
+  - `src/examples/license.ts`
+- Added executable coverage for the shared licensing helpers in:
+  - `__tests__/101-license-examples.test.ts`
+  - `__tests__/constants-schemaorg-claims.test.ts`
+
+### Changed
+- Kept licensing search payloads claims-first for secure HMAC-backed indexing:
+  - schema.org selectors stay in `meta.claims`
+  - document lifecycle state stays in `meta.status`
+  - removed the previously proposed generic `meta.filters`/`includeItems` shape to avoid inventing a parallel search contract
+- Added a roadmap rule that future `101-*` tests should validate public `BundleEditor` flows and public builders instead of centering new coverage on internal helper functions.
+
+### Testing
+- `npm test -- --runInBand __tests__/constants-schemaorg-claims.test.ts __tests__/101-license-examples.test.ts`
+
 ## [1.20.0] - 2026-06-10
 
 ### Added
