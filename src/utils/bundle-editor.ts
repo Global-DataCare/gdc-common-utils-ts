@@ -1,6 +1,8 @@
 import { ClaimsPersonSchemaorg } from '../constants/schemaorg';
 import { ResourceTypesFhirR4 } from '../constants/fhir-resource-types';
+import { ObservationCategoryCodes, VitalSignsCodes, VitalSignsUnits, type CodingDescriptor } from '../constants/vital-signs';
 import { type BundleEntry, type BundleJsonApi, type BundleRequest } from '../models/bundle';
+import { ObservationClaim } from '../models/interoperable-claims/observation-claims';
 import {
   buildEmployeeBatchEntry,
   buildEmployeePurgeBundle,
@@ -20,6 +22,8 @@ export type BundleOperation =
 export const BundleEditableResourceTypes = Object.freeze({
   employee: EmployeeResourceTypes.employee,
   consent: ResourceTypesFhirR4.Consent,
+  observation: ResourceTypesFhirR4.Observation,
+  vitalSign: ResourceTypesFhirR4.Observation,
 } as const);
 
 export type AllowedResourceType = string;
@@ -116,13 +120,36 @@ export class BundleEditor {
   private allowedResourceType: AllowedResourceType | null = null;
   private readonly entries: BuiltBundleEntry[] = [];
 
-  /** Declares which business operation this bundle is staging. */
+  /**
+   * Declares which business action this in-memory bundle is staging.
+   *
+   * Important distinction:
+   * - this is **not** the same concept as FHIR `Bundle.entry.request.method`
+   * - this is the higher-level action the editor is helping to assemble, for
+   *   example `create`, `search`, `disable`, or `purge`
+   * - the lower-level transport/request method may later be derived from that
+   *   action, and may differ by backend contract
+   *
+   * Example:
+   * - bundle operation `disable`
+   * - current employee GW contract -> inner `entry.request.method = DELETE`
+   * - current individual organization GW contract -> explicit `/_disable`
+   *   route with inner `entry.request.method = POST`
+   */
   public setBundleOperation(operation: BundleOperation): this {
     this.bundleOperation = operation;
     return this;
   }
 
-  /** Returns the current business operation assigned to the bundle. */
+  /**
+   * Returns the current high-level business action assigned to the bundle.
+   *
+   * Read this as:
+   * - "what am I trying to do?"
+   *
+   * not as:
+   * - "which HTTP/FHIR request method will the final entry use?"
+   */
   public getBundleOperation(): BundleOperation | null {
     return this.bundleOperation;
   }
@@ -383,6 +410,24 @@ export class BundleEntryEditor {
     return new EmployeeEntryEditor(this.bundleEditor, this.entryIndex);
   }
 
+  /** Opens the current entry as one vital-sign-specific Observation editor. */
+  public asVitalSign(): VitalSignEntryEditor {
+    const entry = this.getMutableEntry();
+    if (entry.resource?.resourceType !== ResourceTypesFhirR4.Observation) {
+      throw new Error(`BundleEntryEditor cannot open this entry as VitalSign: ${String(entry.resource?.resourceType || '')}`);
+    }
+    return new VitalSignEntryEditor(this.bundleEditor, this.entryIndex);
+  }
+
+  /** Opens the current entry as one general Observation editor. */
+  public asObservation(): ObservationEntryEditor {
+    const entry = this.getMutableEntry();
+    if (entry.resource?.resourceType !== ResourceTypesFhirR4.Observation) {
+      throw new Error(`BundleEntryEditor cannot open this entry as Observation: ${String(entry.resource?.resourceType || '')}`);
+    }
+    return new ObservationEntryEditor(this.bundleEditor, this.entryIndex);
+  }
+
   /** Reads one claim from this entry. */
   public getClaim(key: string): unknown {
     return cloneClaimValue(this.getClaims()[String(key).trim()]);
@@ -488,6 +533,295 @@ export class BundleEntryEditor {
     return {
       ...(this.getMutableEntry().resource?.meta?.claims || {}),
     };
+  }
+}
+
+/**
+ * Reduced Observation component-style editor surface.
+ *
+ * This base layer owns the reusable code/value authoring helpers shared by
+ * Vital Signs and broader Observation entry editors.
+ */
+export class ObservationComponentEntryEditor extends BundleEntryEditor {
+  public setCode(code: CodingDescriptor | string): this {
+    const token = typeof code === 'string' ? code.trim() : code.claim;
+    this.setClaim(ObservationClaim.Code, token);
+    if (typeof code !== 'string') {
+      this.setClaim(ObservationClaim.CodeSystem, code.system);
+      this.setClaim(ObservationClaim.CodeValue, code.code);
+      if (code.display) {
+        this.setClaim(ObservationClaim.CodeDisplay, code.display);
+      }
+    }
+    return this;
+  }
+
+  public getCode(): string | undefined {
+    return normalizeOptionalIdentifier(this.getClaim(ObservationClaim.Code));
+  }
+
+  public setCodeSystem(system: string): this {
+    return this.setClaim(ObservationClaim.CodeSystem, String(system).trim());
+  }
+
+  public getCodeSystem(): string | undefined {
+    return normalizeOptionalIdentifier(this.getClaim(ObservationClaim.CodeSystem));
+  }
+
+  public setCodeValue(value: string): this {
+    return this.setClaim(ObservationClaim.CodeValue, String(value).trim());
+  }
+
+  public getCodeValue(): string | undefined {
+    return normalizeOptionalIdentifier(this.getClaim(ObservationClaim.CodeValue));
+  }
+
+  public setCodeDisplay(display: string): this {
+    return this.setClaim(ObservationClaim.CodeDisplay, String(display).trim());
+  }
+
+  public getCodeDisplay(): string | undefined {
+    return normalizeOptionalIdentifier(this.getClaim(ObservationClaim.CodeDisplay));
+  }
+
+  /** Local-language label intended for forms and local UI. */
+  public setLocalText(text: string): this {
+    return this.setClaim(ObservationClaim.CodeText, String(text).trim());
+  }
+
+  public getLocalText(): string | undefined {
+    return normalizeOptionalIdentifier(this.getClaim(ObservationClaim.CodeText));
+  }
+
+  public setValueQuantityNumber(value: number): this {
+    return this.setClaim(ObservationClaim.ValueQuantityNumber, String(value));
+  }
+
+  public getValueQuantityNumber(): number | undefined {
+    const raw = this.getClaim(ObservationClaim.ValueQuantityNumber);
+    if (raw === undefined || raw === null || raw === '') return undefined;
+    const numeric = Number(raw);
+    return Number.isFinite(numeric) ? numeric : undefined;
+  }
+
+  public setValueQuantityUnit(unit: CodingDescriptor | string): this {
+    const normalized = typeof unit === 'string' ? unit.trim() : unit.claim;
+    return this.setClaim(ObservationClaim.ValueQuantityUnit, normalized);
+  }
+
+  public getValueQuantityUnit(): string | undefined {
+    return normalizeOptionalIdentifier(this.getClaim(ObservationClaim.ValueQuantityUnit));
+  }
+
+  public setValueString(value: string): this {
+    return this.setClaim(ObservationClaim.ValueString, String(value).trim());
+  }
+
+  public getValueString(): string | undefined {
+    return normalizeOptionalIdentifier(this.getClaim(ObservationClaim.ValueString));
+  }
+
+  public setValueDate(value: string): this {
+    return this.setClaim(ObservationClaim.ValueDate, String(value).trim());
+  }
+
+  public getValueDate(): string | undefined {
+    return normalizeOptionalIdentifier(this.getClaim(ObservationClaim.ValueDate));
+  }
+}
+
+/**
+ * Vital-sign-specific editor surface for one staged Observation entry.
+ *
+ * This layer applies the visible/searchable Vital Signs claim contract on top
+ * of the reduced Observation component helpers.
+ */
+export class VitalSignEntryEditor extends ObservationComponentEntryEditor {
+  public setIdentifier(identifier?: string | null): this {
+    const normalized = normalizeOptionalIdentifier(identifier);
+    if (!normalized) {
+      this.removeClaim(ObservationClaim.Identifier);
+      this.setResourceId(undefined);
+      this.setFullUrl(undefined);
+      return this;
+    }
+    this.setClaim(ObservationClaim.Identifier, normalized);
+    this.setResourceId(normalized);
+    this.setFullUrl(normalized);
+    return this;
+  }
+
+  public getIdentifier(): string | undefined {
+    return normalizeOptionalIdentifier(
+      this.getClaim(ObservationClaim.Identifier)
+        || this.getResourceId()
+        || this.getFullUrl(),
+    );
+  }
+
+  public ensureIdentifier(): string {
+    const existing = this.getIdentifier();
+    if (existing) return existing;
+    const generated = createCanonicalIdentifierUrn();
+    this.setIdentifier(generated);
+    return generated;
+  }
+
+  public setSubject(subject: string): this {
+    const normalized = String(subject).trim();
+    this.setClaim(ObservationClaim.Subject, normalized);
+    this.setClaim(ObservationClaim.Patient, normalized);
+    return this;
+  }
+
+  public getSubject(): string | undefined {
+    return normalizeOptionalIdentifier(
+      this.getClaim(ObservationClaim.Subject)
+        || this.getClaim(ObservationClaim.Patient),
+    );
+  }
+
+  public setStatus(status: string): this {
+    return this.setClaim(ObservationClaim.Status, String(status).trim());
+  }
+
+  public getStatus(): string | undefined {
+    return normalizeOptionalIdentifier(this.getClaim(ObservationClaim.Status));
+  }
+
+  public setCategory(category: CodingDescriptor | string): this {
+    const normalized = typeof category === 'string' ? category.trim() : category.claim;
+    return this.setClaim(ObservationClaim.Category, normalized);
+  }
+
+  public getCategory(): string | undefined {
+    return normalizeOptionalIdentifier(this.getClaim(ObservationClaim.Category));
+  }
+
+  public setDate(date: string): this {
+    const normalized = String(date).trim();
+    this.setClaim(ObservationClaim.Date, normalized);
+    this.setClaim(ObservationClaim.EffectiveDateTime, normalized);
+    return this;
+  }
+
+  public getDate(): string | undefined {
+    return normalizeOptionalIdentifier(
+      this.getClaim(ObservationClaim.Date)
+        || this.getClaim(ObservationClaim.EffectiveDateTime),
+    );
+  }
+
+  public setNote(note: string): this {
+    return this.setClaim(ObservationClaim.Note, String(note).trim());
+  }
+
+  public getNote(): string | undefined {
+    return normalizeOptionalIdentifier(this.getClaim(ObservationClaim.Note));
+  }
+
+  public setVitalSignType(code: CodingDescriptor, unit?: CodingDescriptor): this {
+    this.setCategory(ObservationCategoryCodes.VitalSigns);
+    this.setStatus(this.getStatus() || 'final');
+    this.setCode(code);
+    this.setCodeSystem(code.system);
+    this.setCodeValue(code.code);
+    if (code.display) {
+      this.setCodeDisplay(code.display);
+      this.setLocalText(code.display);
+    }
+    if (unit) {
+      this.setValueQuantityUnit(unit);
+    }
+    return this;
+  }
+
+  public setHeartRate(value: number): this {
+    return this
+      .setVitalSignType(VitalSignsCodes.HeartRate, VitalSignsUnits.BeatsPerMinute)
+      .setValueQuantityNumber(value);
+  }
+
+  public getHeartRate(): number | undefined {
+    return this.getCodeValue() === VitalSignsCodes.HeartRate.code
+      ? this.getValueQuantityNumber()
+      : undefined;
+  }
+
+  public setBodyTemperature(value: number): this {
+    return this
+      .setVitalSignType(VitalSignsCodes.BodyTemperature, VitalSignsUnits.Celsius)
+      .setValueQuantityNumber(value);
+  }
+
+  public getBodyTemperature(): number | undefined {
+    return this.getCodeValue() === VitalSignsCodes.BodyTemperature.code
+      ? this.getValueQuantityNumber()
+      : undefined;
+  }
+
+  public setSystolicBloodPressure(value: number): this {
+    return this
+      .setVitalSignType(VitalSignsCodes.SystolicBloodPressure, VitalSignsUnits.MillimeterOfMercury)
+      .setValueQuantityNumber(value);
+  }
+
+  public getSystolicBloodPressure(): number | undefined {
+    return this.getCodeValue() === VitalSignsCodes.SystolicBloodPressure.code
+      ? this.getValueQuantityNumber()
+      : undefined;
+  }
+
+  public setDiastolicBloodPressure(value: number): this {
+    return this
+      .setVitalSignType(VitalSignsCodes.DiastolicBloodPressure, VitalSignsUnits.MillimeterOfMercury)
+      .setValueQuantityNumber(value);
+  }
+
+  public getDiastolicBloodPressure(): number | undefined {
+    return this.getCodeValue() === VitalSignsCodes.DiastolicBloodPressure.code
+      ? this.getValueQuantityNumber()
+      : undefined;
+  }
+}
+
+/**
+ * General Observation editor surface.
+ *
+ * This extends the Vital Sign editor so generic Observation rows can reuse the
+ * same code/date/value helpers while adding broader Observation references.
+ */
+export class ObservationEntryEditor extends VitalSignEntryEditor {
+  public setBasedOn(reference: string): this {
+    return this.setClaim(ObservationClaim.BasedOn, String(reference).trim());
+  }
+
+  public getBasedOn(): string | undefined {
+    return normalizeOptionalIdentifier(this.getClaim(ObservationClaim.BasedOn));
+  }
+
+  public setEncounter(reference: string): this {
+    return this.setClaim(ObservationClaim.Encounter, String(reference).trim());
+  }
+
+  public getEncounter(): string | undefined {
+    return normalizeOptionalIdentifier(this.getClaim(ObservationClaim.Encounter));
+  }
+
+  public setPerformer(reference: string): this {
+    return this.setClaim(ObservationClaim.Performer, String(reference).trim());
+  }
+
+  public getPerformer(): string | undefined {
+    return normalizeOptionalIdentifier(this.getClaim(ObservationClaim.Performer));
+  }
+
+  public setHasMember(reference: string): this {
+    return this.setClaim(ObservationClaim.HasMember, String(reference).trim());
+  }
+
+  public getHasMember(): string | undefined {
+    return normalizeOptionalIdentifier(this.getClaim(ObservationClaim.HasMember));
   }
 }
 

@@ -3,13 +3,19 @@
 
 import { DataspaceSectors } from '../constants/sectors';
 import { HostNetworkTypes } from '../constants/network';
+import { FhirCodeSystems } from '../constants/fhir-code-systems';
+import { Format } from '../constants/Schemas';
+import { ResourceTypesFhirR4 } from '../constants/fhir-resource-types';
 import { BirthSex, GenderIdentity } from '../constants/identity-gender';
 import { IdKind } from '../constants/identity-identifiers';
 import {
   HealthcareActorRoles,
   HealthcareBasicSections,
   HealthcareConsentPurposes,
+  HealthcareDocumentTypes,
 } from '../constants/healthcare';
+import { CommunicationCategoryCodes } from '../constants/communication';
+import { LOINC_SYSTEM_URL } from '../models/clinical-sections';
 import { CommunicationClaim } from '../models/interoperable-claims/communication-claims';
 import {
   MedicationStatementClaim,
@@ -36,6 +42,7 @@ export const EXAMPLE_ROUTE_VERSION = 'v1' as const;
 export const EXAMPLE_SECTOR = DataspaceSectors.HealthCare;
 export const EXAMPLE_EMAIL_CONTROLLER_ORG = 'controller@acme.org' as const;
 export const EXAMPLE_EMAIL_CONTROLLER_INDIVIDUAL = 'ana.parent@example.org' as const;
+export const EXAMPLE_INTEROPERABLE_CONTEXT_FHIR_API = Format.FHIR_API;
 export const EXAMPLE_SELF_REGISTERED_INDIVIDUAL_ALTERNATE_NAME = 'Jane' as const;
 export const EXAMPLE_SELF_REGISTERED_INDIVIDUAL_EMAIL = 'Jane.Doe@example.com' as const;
 export const EXAMPLE_SELF_REGISTERED_INDIVIDUAL_EMAIL_NORMALIZED = 'jane.doe@example.com' as const;
@@ -119,6 +126,10 @@ export const EXAMPLE_CONTROLLER_SAME_AS = `mailto:${EXAMPLE_CONTROLLER_EMAIL}` a
 export const EXAMPLE_API_ORGANIZATION_DID = 'did:web:api.acme.org' as const;
 export const EXAMPLE_SERVICE_PUBLIC_DID = 'did:web:public.acme.org' as const;
 export const EXAMPLE_SUBJECT_DID = 'did:web:api.acme.org:individual:123' as const;
+export const EXAMPLE_SUBJECT_DID_SECONDARY = 'did:web:api.acme.org:individual:456' as const;
+export const EXAMPLE_SUBJECT_DID_TERTIARY = 'did:web:api.acme.org:individual:789' as const;
+export const EXAMPLE_SUBJECT_DID_CONDITION = 'did:web:api.acme.org:individual:cond' as const;
+export const EXAMPLE_SUBJECT_DID_IPS = 'did:web:api.acme.org:individual:ips' as const;
 export const EXAMPLE_PROFESSIONAL_DID = 'did:web:api.acme.org:professional:1' as const;
 export const EXAMPLE_PROVIDER_ORGANIZATION_DID = 'did:web:hospital.acme.org' as const;
 export const EXAMPLE_PROVIDER_ORGANIZATION_URL = 'https://hospital.acme.org' as const;
@@ -151,6 +162,12 @@ export const EXAMPLE_PRACTITIONER_DID = 'did:web:practitioner.example' as const;
 export const EXAMPLE_GENERIC_SUBJECT_DID = 'did:web:subject.example' as const;
 export const EXAMPLE_EMAIL_PROFESSIONAL = 'doctor.oncall@example.org' as const;
 export const EXAMPLE_EMAIL_RELATED_PERSON = 'parent.guardian@example.org' as const;
+export const EXAMPLE_RELATED_PERSON_ACTIVE_NAME = 'Jose Example' as const;
+export const EXAMPLE_RELATED_PERSON_INACTIVE_IDENTIFIER = 'urn:uuid:related-person-002' as const;
+export const EXAMPLE_RELATED_PERSON_INACTIVE_EMAIL = 'caregiver.two@example.org' as const;
+export const EXAMPLE_RELATED_PERSON_INACTIVE_NAME = 'Maria Example' as const;
+export const EXAMPLE_RELATED_PERSON_INACTIVE_RELATIONSHIP =
+  'http://terminology.hl7.org/CodeSystem/v3-RoleCode|NMTH' as const;
 export const EXAMPLE_HEALTHCARE_JURISDICTION = 'ES' as const;
 export const EXAMPLE_SECONDARY_HEALTHCARE_JURISDICTION = EXAMPLE_SECONDARY_EU_COUNTRY;
 export const EXAMPLE_ORGANIZATION_CONTROLLER_ROLE = 'RESPRSN' as const;
@@ -174,12 +191,18 @@ export const EXAMPLE_CONSENT_PURPOSE_EMERGENCY_TREATMENT =
   HealthcareConsentPurposes.EmergencyTreatment;
 export const EXAMPLE_CONSENT_UUID = 'urn:uuid:consent-example-001' as const;
 export const EXAMPLE_CONSENT_IDENTIFIER = EXAMPLE_CONSENT_UUID;
+export const EXAMPLE_CONSENT_IDENTIFIER_SECONDARY = 'urn:uuid:consent-example-002' as const;
 export const EXAMPLE_CONSENT_OPERATION_IDENTIFIER = 'consent-operation-example-001' as const;
 export const EXAMPLE_CONSENT_OPERATION_THREAD_ID = 'thread-consent-example-001' as const;
 export const EXAMPLE_CONSENT_PERIOD_START = '2026-05-20T00:00:00Z' as const;
 export const EXAMPLE_COMMUNICATION_UUID = 'urn:uuid:communication-example-001' as const;
 export const EXAMPLE_COMMUNICATION_IDENTIFIER = EXAMPLE_COMMUNICATION_UUID;
 export const EXAMPLE_IPS_BUNDLE_NOTE_TEXT = 'IPS ingestion request' as const;
+export const EXAMPLE_CONTENT_TYPE_APPLICATION_JSON = 'application/json' as const;
+export const EXAMPLE_CONTENT_TYPE_FHIR_JSON = 'application/fhir+json' as const;
+export const EXAMPLE_IPS_BUNDLE_ATTACHMENT_TITLE = 'IPS Document Bundle' as const;
+export const EXAMPLE_BUNDLE_RESOURCE_TYPE = 'Bundle' as const;
+export const EXAMPLE_BUNDLE_TYPE_BATCH = 'batch' as const;
 export const EXAMPLE_MEDICATION_STATEMENT_UUID = 'urn:uuid:medication-statement-example-001' as const;
 export const EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER = EXAMPLE_MEDICATION_STATEMENT_UUID;
 export const EXAMPLE_MEDICATION_STATEMENT_STATUS = 'active' as const;
@@ -191,6 +214,15 @@ export const EXAMPLE_DOCUMENT_REFERENCE_CONTENT_TYPE_PDF = 'application/pdf' as 
 export const EXAMPLE_DOCUMENT_REFERENCE_URL = 'https://example.org/prescription.pdf' as const;
 export const EXAMPLE_DOCUMENT_REFERENCE_DESCRIPTION = 'Prescription PDF' as const;
 export const EXAMPLE_DOCUMENT_REFERENCE_DATE = '2026-06-12T10:00:00Z' as const;
+export const EXAMPLE_CLINICAL_EVENT_DATE_TIME = '2026-06-01T10:00:00Z' as const;
+export const EXAMPLE_VITAL_SIGNS_EFFECTIVE_DATE_TIME = '2026-06-11T08:30:00Z' as const;
+export const EXAMPLE_VITAL_SIGNS_PANEL_DATE_TIME = '2026-06-11T09:00:00Z' as const;
+export const EXAMPLE_VAULT_PRIMARY_DATE_TIME = '2026-06-11T10:00:00Z' as const;
+export const EXAMPLE_VAULT_SECONDARY_DATE_TIME = '2026-06-11T10:05:00Z' as const;
+export const EXAMPLE_VAULT_IPS_DATE_TIME = '2026-06-11T11:00:00Z' as const;
+export const EXAMPLE_VAULT_TERTIARY_DATE_TIME = '2026-06-11T12:00:00Z' as const;
+export const EXAMPLE_VAULT_QUATERNARY_DATE_TIME = '2026-06-11T13:00:00Z' as const;
+export const EXAMPLE_VAULT_CONDITION_DATE_TIME = '2026-06-11T14:00:00Z' as const;
 export const EXAMPLE_DOCUMENT_REFERENCE_CONTENT_HASH = 'z-document-reference-example-hash' as const;
 export const EXAMPLE_DOCUMENT_REFERENCE_LANGUAGE = 'en' as const;
 export const EXAMPLE_CONSENT_ATTACHMENT_CONTENT_TYPE = EXAMPLE_DOCUMENT_REFERENCE_CONTENT_TYPE_PDF;
@@ -203,10 +235,76 @@ export const EXAMPLE_CONTENT_ADDRESSED_SOURCE_REFERENCE =
 export const EXAMPLE_CONTENT_ADDRESSED_EVIDENCE_RECORD_IDENTIFIER =
   'zQmXh8Y3mJQ4d7MmX7o9nP5sQ2uT1vW6xY8zA3bC4dE5fG' as const;
 export const EXAMPLE_EMPLOYEE_ACTIVATION_CODE = 'ACT-001' as const;
+export const EXAMPLE_LICENSE_OFFER_ID = 'urn:offer:family-003' as const;
+export const EXAMPLE_LICENSE_INVALID_OFFER_ID = 'urn:offer:invalid-001' as const;
+export const EXAMPLE_LICENSE_ACCEPTED_OFFER_ID = EXAMPLE_LICENSE_OFFER_ID;
+export const EXAMPLE_LICENSE_AMOUNT = '9.99' as const;
+export const EXAMPLE_LICENSE_CURRENCY = 'EUR' as const;
+export const EXAMPLE_LICENSE_PLAN_NAME = 'Family starter' as const;
+export const EXAMPLE_LICENSE_SKU = 'FAM-START' as const;
+export const EXAMPLE_LICENSE_PAYMENT_METHOD_INVOICE = 'invoice' as const;
+export const EXAMPLE_LICENSE_CHECKOUT_URL = 'https://pay.example/offer-001' as const;
+export const EXAMPLE_LICENSE_PAYMENT_URL = 'https://pay.example/invoice-001' as const;
+export const EXAMPLE_LICENSE_INVOICE_ID = 'invoice-001' as const;
+export const EXAMPLE_LICENSE_PLAN_DEFAULT = 'default' as const;
+export const EXAMPLE_LICENSE_RENEWAL_CYCLE_YEARLY = '12m' as const;
+export const EXAMPLE_LICENSE_SUBJECT_ID_ACTIVE = 'urn:uuid:employee-controller-active-001' as const;
+export const EXAMPLE_LICENSE_SUBJECT_ID_AVAILABLE = 'urn:uuid:subject-license-available-001' as const;
+export const EXAMPLE_LICENSE_SEAT_UUID_ACTIVE = '8a8a5e1b-0d8e-4a7c-8c39-3b8034440001' as const;
+export const EXAMPLE_LICENSE_SEAT_UUID_SECONDARY = '8a8a5e1b-0d8e-4a7c-8c39-3b8034440002' as const;
+export const EXAMPLE_LICENSE_SEAT_UUID_AVAILABLE = '8a8a5e1b-0d8e-4a7c-8c39-3b8034440009' as const;
+export const EXAMPLE_JOB_IDENTIFIER_LICENSE_SEARCH = 'job-license-search-001' as const;
+export const EXAMPLE_THREAD_IDENTIFIER_LICENSE_SEARCH = 'thid-license-search-001' as const;
+export const EXAMPLE_RELATED_PERSON_IDENTIFIER = 'rel-001' as const;
 export const EXAMPLE_DEVICE_CLIENT_ID = 'did:web:device-001' as const;
 export const EXAMPLE_LIVE_GW_BASE_URL_LOCAL = 'http://127.0.0.1:3000' as const;
 export const EXAMPLE_LIVE_GW_BASE_URL_DOCKER = 'http://127.0.0.1:8000' as const;
 export const EXAMPLE_MEDICATION_DOSE_UNIT_MG = 'mg' as const;
+export const EXAMPLE_OBSERVATION_IDENTIFIER = 'urn:uuid:observation-example-001' as const;
+export const EXAMPLE_OBSERVATION_IDENTIFIER_IPS = 'vs-1' as const;
+export const EXAMPLE_OBSERVATION_PANEL_IDENTIFIER = 'urn:uuid:observation-panel-example-001' as const;
+export const EXAMPLE_OBSERVATION_COMPONENT_IDENTIFIER = 'urn:uuid:observation-component-example-001' as const;
+export const EXAMPLE_OBSERVATION_COMPONENT_IDENTIFIER_SECONDARY =
+  'urn:uuid:observation-component-example-002' as const;
+export const EXAMPLE_IPS_COMPOSITION_IDENTIFIER = 'ips-composition' as const;
+export const EXAMPLE_CONDITION_IDENTIFIER = 'condition-example-001' as const;
+export const EXAMPLE_VITAL_SIGNS_NOTE = 'Measured after rest.' as const;
+export const EXAMPLE_FHIR_STATUS_FINAL = 'final' as const;
+export const EXAMPLE_FHIR_STATUS_ACTIVE = 'active' as const;
+export const EXAMPLE_FHIR_VERIFICATION_STATUS_CONFIRMED = 'confirmed' as const;
+export const EXAMPLE_VITAL_SIGN_VALUE_HEART_RATE = 68 as const;
+export const EXAMPLE_VITAL_SIGN_VALUE_SYSTOLIC = 120 as const;
+export const EXAMPLE_VITAL_SIGN_VALUE_DIASTOLIC = 78 as const;
+export const EXAMPLE_VITAL_SIGN_VALUE_BODY_TEMPERATURE = 37.1 as const;
+export const EXAMPLE_VITAL_SIGN_UNIT_BEATS_PER_MINUTE = '/min' as const;
+export const EXAMPLE_OBSERVATION_CATEGORY_VITAL_SIGNS =
+  'http://terminology.hl7.org/CodeSystem/observation-category|vital-signs' as const;
+export const EXAMPLE_VITAL_SIGN_CODE_HEART_RATE = '8867-4' as const;
+export const EXAMPLE_VITAL_SIGN_CODE_BODY_TEMPERATURE = '8310-5' as const;
+export const EXAMPLE_VITAL_SIGN_CODE_BLOOD_PRESSURE_PANEL = '85354-9' as const;
+export const EXAMPLE_VITAL_SIGN_CODE_SYSTOLIC_BLOOD_PRESSURE = '8480-6' as const;
+export const EXAMPLE_VITAL_SIGN_CODE_DIASTOLIC_BLOOD_PRESSURE = '8462-4' as const;
+export const EXAMPLE_VITAL_SIGN_DISPLAY_HEART_RATE = 'Heart rate' as const;
+export const EXAMPLE_VITAL_SIGN_DISPLAY_BODY_TEMPERATURE = 'Body temperature' as const;
+export const EXAMPLE_VITAL_SIGN_DISPLAY_VITAL_SIGNS = 'Vital Signs' as const;
+export const EXAMPLE_VITAL_SIGN_DISPLAY_BLOOD_PRESSURE_PANEL = 'Blood pressure panel' as const;
+/** Shared composite tag summary used by blood-pressure parent observation indexing examples. */
+export const EXAMPLE_OBSERVATION_COMPONENT_TAGS_BLOOD_PRESSURE = 'bp-systolic,bp-diastolic' as const;
+/** Shared component code summary used by blood-pressure parent observation indexing examples. */
+export const EXAMPLE_OBSERVATION_COMPONENT_CODE_VALUES_BLOOD_PRESSURE =
+  `${EXAMPLE_VITAL_SIGN_CODE_SYSTOLIC_BLOOD_PRESSURE},${EXAMPLE_VITAL_SIGN_CODE_DIASTOLIC_BLOOD_PRESSURE}` as const;
+/** Shared human-readable component-name summary used by blood-pressure parent observation indexing examples. */
+export const EXAMPLE_OBSERVATION_COMPONENT_NAMES_BLOOD_PRESSURE =
+  'Systolic blood pressure,Diastolic blood pressure' as const;
+export const EXAMPLE_SOCIAL_HISTORY_CATEGORY = 'http://terminology.hl7.org/CodeSystem/observation-category|social-history' as const;
+export const EXAMPLE_OBSERVATION_CODE_TOBACCO_SMOKING_STATUS = '72166-2' as const;
+export const EXAMPLE_OBSERVATION_DISPLAY_TOBACCO_SMOKING_STATUS = 'Tobacco smoking status' as const;
+export const EXAMPLE_OBSERVATION_VALUE_CONCEPT_NEVER_SMOKER_CODE = '266919005' as const;
+export const EXAMPLE_OBSERVATION_VALUE_CONCEPT_NEVER_SMOKER_DISPLAY = 'Never smoker' as const;
+export const EXAMPLE_OBSERVATION_VALUE_CONCEPT_NEVER_SMOKER =
+  `${FhirCodeSystems.SnomedCt}|${EXAMPLE_OBSERVATION_VALUE_CONCEPT_NEVER_SMOKER_CODE}` as const;
+export const EXAMPLE_CONDITION_CODE = 'http://snomed.info/sct|44054006' as const;
+export const EXAMPLE_MEDICATION_CODE_RXNORM = 'http://www.nlm.nih.gov/research/umls/rxnorm|860975' as const;
 export const EXAMPLE_MEDICATION_TIMING_PERIOD_UNIT_HOURS = 'h' as const;
 export const EXAMPLE_MEDICATION_IBUPROFEN_TEXT = 'Ibuprofen 400 mg' as const;
 export const EXAMPLE_MEDICATION_IBUPROFEN_IDENTIFIER_PREFIX = 'urn:uuid:med-ibuprofen' as const;
@@ -316,33 +414,33 @@ export function buildExampleCommunicationIngestionPayload({
         {
           type: 'Communication-ingestion-request-v1.0',
           resource: {
-            resourceType: 'Communication',
+            resourceType: ResourceTypesFhirR4.Communication,
             status: 'completed',
             subject: { reference: `Patient/${subjectDid}` },
             category: [{
               coding: [{
-                system: 'http://terminology.hl7.org/CodeSystem/communication-category',
-                code: 'notification',
+                system: CommunicationCategoryCodes.Notification.system,
+                code: CommunicationCategoryCodes.Notification.code,
               }],
             }],
             payload: [
               {
                 contentAttachment: {
-                  contentType: 'application/fhir+json',
-                  title: 'IPS Document Bundle',
+                  contentType: EXAMPLE_CONTENT_TYPE_FHIR_JSON,
+                  title: EXAMPLE_IPS_BUNDLE_ATTACHMENT_TITLE,
                   data: ipsBundleBase64,
                 },
               },
             ],
-            note: [{ text: 'IPS ingestion request' }],
+            note: [{ text: EXAMPLE_IPS_BUNDLE_NOTE_TEXT }],
             meta: {
               claims: {
-                '@context': 'org.hl7.fhir.r4',
-                [CommunicationClaim.Category]: 'http://terminology.hl7.org/CodeSystem/communication-category|notification',
+                '@context': Format.FHIR_R4,
+                [CommunicationClaim.Category]: CommunicationCategoryCodes.Notification.claim,
                 [CommunicationClaim.Subject]: subjectDid,
                 [CommunicationClaim.Sent]: sent,
-                [CommunicationClaim.ContentAttachmentType]: 'application/fhir+json',
-                [CommunicationClaim.Text]: 'IPS ingestion request',
+                [CommunicationClaim.ContentAttachmentType]: EXAMPLE_CONTENT_TYPE_FHIR_JSON,
+                [CommunicationClaim.Text]: EXAMPLE_IPS_BUNDLE_NOTE_TEXT,
               },
             },
           },
@@ -417,7 +515,7 @@ export function buildExampleMedicationIpsDocumentBundle(
 ): ExampleMedicationIpsDocumentBundle {
   const subjectDid = input.subjectDid || EXAMPLE_SUBJECT_DID;
   const medicationClaims: Record<string, unknown> = {
-    '@context': 'org.hl7.fhir.api',
+    '@context': Format.FHIR_API,
     [MedicationStatementClaim.Identifier]: input.medication.identifier,
     [MedicationStatementClaim.Subject]: subjectDid,
     [MedicationStatementClaim.Status]: EXAMPLE_MEDICATION_STATEMENT_STATUS,
@@ -441,22 +539,27 @@ export function buildExampleMedicationIpsDocumentBundle(
   };
 
   return {
-    resourceType: 'Bundle',
+    resourceType: ResourceTypesFhirR4.Bundle,
     type: 'document',
     entry: [
       {
         resource: {
-          resourceType: 'Composition',
+          resourceType: ResourceTypesFhirR4.Composition,
           id: `composition-${input.medication.identifier}`,
           status: 'final',
           subject: { reference: subjectDid },
-          type: { coding: [{ system: 'http://loinc.org', code: '60591-5' }] },
+          type: {
+            coding: [{
+              system: HealthcareDocumentTypes.IPS.system,
+              code: HealthcareDocumentTypes.IPS.code,
+            }],
+          },
           section: [
             {
               code: {
                 coding: [{
-                  system: 'http://loinc.org',
-                  code: '10160-0',
+                  system: LOINC_SYSTEM_URL,
+                  code: HealthcareBasicSections.HistoryOfMedicationUse.code,
                 }],
               },
               entry: [

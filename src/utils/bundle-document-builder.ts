@@ -17,7 +17,7 @@ import {
   immunizationFlatToFhirR4,
   locationFlatToFhirR4,
   medicationStatementFlatToFhirR4,
-  observationFlatToFhirR4,
+  observationFromFlatToFhirR4,
   organizationFlatToFhirR4,
   procedureFlatToFhirR4,
   relatedPersonFlatToFhirR4,
@@ -97,6 +97,28 @@ function claimsToFlatStrings(claims: BundleDocumentClaims): FlatClaims {
   return out;
 }
 
+function ensureClaimsIdentifier(
+  claims: BundleDocumentClaims,
+  resource: Record<string, unknown>,
+): BundleDocumentClaims {
+  const resourceType = asTrimmedString(resource?.resourceType);
+  const identifierKey = resourceType ? `${resourceType}.identifier` : '';
+  if (!identifierKey) {
+    return claims;
+  }
+  if (asTrimmedString(claims[identifierKey])) {
+    return claims;
+  }
+  const resourceId = asTrimmedString(resource?.id);
+  if (!resourceId) {
+    return claims;
+  }
+  return {
+    ...claims,
+    [identifierKey]: resourceId,
+  };
+}
+
 function ensureResourceIdentifier(resource: FhirResource, claims: BundleDocumentClaims, fallbackIndex: number): void {
   const identifier = Object.entries(claims).find(([key]) => String(key).toLowerCase().endsWith('.identifier'))?.[1];
   const nextId = asTrimmedString(identifier) || `${resource.resourceType.toLowerCase()}-${fallbackIndex + 1}`;
@@ -150,7 +172,7 @@ export function convertClaimsToFhirResource(
     case 'Location':
       return locationFlatToFhirR4(flatClaims);
     case 'Observation':
-      return observationFlatToFhirR4(flatClaims);
+      return observationFromFlatToFhirR4(flatClaims);
     case 'Organization':
       return organizationFlatToFhirR4(flatClaims);
     case 'Procedure':
@@ -209,9 +231,12 @@ export function extractBundleDocumentClaimsList(
     .map((resource) => {
       const metaClaims = resource?.meta?.claims;
       if (metaClaims && typeof metaClaims === 'object' && !Array.isArray(metaClaims)) {
-        return { ...metaClaims };
+        return ensureClaimsIdentifier({ ...metaClaims }, resource);
       }
-      return convertFhirResourceToClaims(resource as FhirResource, context);
+      return ensureClaimsIdentifier(
+        convertFhirResourceToClaims(resource as FhirResource, context),
+        resource,
+      );
     });
 }
 

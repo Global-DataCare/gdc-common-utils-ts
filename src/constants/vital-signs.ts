@@ -1,11 +1,8 @@
 import { FhirCodeSystems } from './fhir-code-systems';
+import type { CodingDescriptor } from './observation-category';
 
-export type CodingDescriptor = Readonly<{
-  system: string;
-  code: string;
-  display?: string;
-  claim: string;
-}>;
+export { ObservationCategoryCodes } from './observation-category';
+export type { CodingDescriptor } from './observation-category';
 
 function defineCoding(system: string, code: string, display?: string): CodingDescriptor {
   return Object.freeze({
@@ -15,13 +12,6 @@ function defineCoding(system: string, code: string, display?: string): CodingDes
     claim: `${system}|${code}`,
   });
 }
-
-/**
- * Canonical `Observation.category` descriptors for vital-sign observations.
- */
-export const ObservationCategoryCodes = Object.freeze({
-  VitalSigns: defineCoding(FhirCodeSystems.ObservationCategory, 'vital-signs', 'Vital Signs'),
-} as const);
 
 /**
  * Canonical LOINC descriptors for the currently supported Vital Signs.

@@ -133,6 +133,10 @@ export enum ClaimsIndividualProductSchemaorg {
 }
 
 export enum ClaimsOrderSchemaorg {
+    acceptedOfferIdentifier = "org.schema.Order.acceptedOffer.identifier",
+    partOfInvoice = "org.schema.Order.partOfInvoice",
+    paymentMethod = "org.schema.Order.paymentMethod",
+    paymentUrl = "org.schema.Order.paymentUrl",
     orderedItemServiceType = "org.schema.Order.orderedItem.serviceType",
 }
 

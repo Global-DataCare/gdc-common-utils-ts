@@ -6,6 +6,10 @@ import {
 } from '../constants/schemaorg';
 import { ClaimConsent } from '../models/consent-rule';
 import {
+  IndividualOrganizationLifecycleDraft,
+  IndividualOrganizationLifecycleOperations,
+} from '../utils/individual-organization-lifecycle';
+import {
   EXAMPLE_EMAIL_CONTROLLER_INDIVIDUAL,
   EXAMPLE_EMAIL_CONTROLLER_ORG,
   EXAMPLE_CLINICAL_SECTION_ALLERGIES,
@@ -28,6 +32,9 @@ export const EXAMPLE_LIFECYCLE_OPERATIONS = {
   disable: 'disable',
   delete: 'delete',
 } as const;
+
+export const EXAMPLE_INDIVIDUAL_ORGANIZATION_DISABLE_REQUEST_TYPE = 'Family-disable-request-v1.0' as const;
+export const EXAMPLE_INDIVIDUAL_ORGANIZATION_PURGE_REQUEST_TYPE = 'Family-purge-request-v1.0' as const;
 
 /**
  * Shared placeholder values used by copy/paste examples.
@@ -207,6 +214,21 @@ export const EXAMPLE_INDIVIDUAL_DISABLE_MESSAGE = {
   },
 } as const;
 
+export const EXAMPLE_INDIVIDUAL_ORGANIZATION_DISABLE_ENTRY =
+  new IndividualOrganizationLifecycleDraft()
+    .setClaims(EXAMPLE_INDIVIDUAL_DISABLE_MESSAGE.claims)
+    .setOperation(IndividualOrganizationLifecycleOperations.Disable)
+    .setRequestType(EXAMPLE_INDIVIDUAL_ORGANIZATION_DISABLE_REQUEST_TYPE)
+    .buildCurrentGwDataEntry();
+
+export const EXAMPLE_INDIVIDUAL_ORGANIZATION_DISABLE_PAYLOAD =
+  new IndividualOrganizationLifecycleDraft()
+    .setClaims(EXAMPLE_INDIVIDUAL_DISABLE_MESSAGE.claims)
+    .setOperation(IndividualOrganizationLifecycleOperations.Disable)
+    .setRequestType(EXAMPLE_INDIVIDUAL_ORGANIZATION_DISABLE_REQUEST_TYPE)
+    .setThreadId('individual-organization-disable-example-001')
+    .buildCurrentGwPayload();
+
 export const EXAMPLE_INDIVIDUAL_DELETE_MESSAGE = {
   operation: EXAMPLE_LIFECYCLE_OPERATIONS.delete,
   resourceType: 'IndividualOrganization',
@@ -227,6 +249,21 @@ export const EXAMPLE_INDIVIDUAL_DELETE_MESSAGE = {
     keepsMinimumAuditTrailRequiredByLaw: true,
   },
 } as const;
+
+export const EXAMPLE_INDIVIDUAL_ORGANIZATION_PURGE_ENTRY =
+  new IndividualOrganizationLifecycleDraft()
+    .setClaims(EXAMPLE_INDIVIDUAL_DISABLE_MESSAGE.claims)
+    .setOperation(IndividualOrganizationLifecycleOperations.Purge)
+    .setRequestType(EXAMPLE_INDIVIDUAL_ORGANIZATION_PURGE_REQUEST_TYPE)
+    .buildCurrentGwDataEntry();
+
+export const EXAMPLE_INDIVIDUAL_ORGANIZATION_PURGE_PAYLOAD =
+  new IndividualOrganizationLifecycleDraft()
+    .setClaims(EXAMPLE_INDIVIDUAL_DISABLE_MESSAGE.claims)
+    .setOperation(IndividualOrganizationLifecycleOperations.Purge)
+    .setRequestType(EXAMPLE_INDIVIDUAL_ORGANIZATION_PURGE_REQUEST_TYPE)
+    .setThreadId('individual-organization-purge-example-001')
+    .buildCurrentGwPayload();
 
 export const EXAMPLE_CONSENT_ENABLE_MESSAGE = {
   operation: EXAMPLE_LIFECYCLE_OPERATIONS.enable,

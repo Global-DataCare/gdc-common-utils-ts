@@ -34,6 +34,7 @@ import {
   MedicationStatementClaim,
   type MedicationStatementClaimsFlat,
 } from '../models/interoperable-claims/medication-statement-claims';
+import { ObservationClaim } from '../models/interoperable-claims/observation-claims';
 
 export type CommunicationAttachedBundleSessionMode = 'strict' | 'normalize';
 
@@ -434,6 +435,28 @@ export class CommunicationAttachedBundleSession {
   }
 
   /**
+   * Observation helper for IPS-style and sectioned bundle authoring.
+   *
+   * Expected keys should come from Observation claims constants.
+   */
+  upsertActiveObservationEntry(input: Readonly<{
+    claims: Record<string, unknown>;
+    fullUrl?: string;
+    type?: string;
+    request?: BundleRequest;
+  }>): this {
+    return this.upsertActiveEntry({
+      resourceType: ResourceTypesFhirR4.Observation,
+      claims: {
+        ...input.claims,
+      },
+      fullUrl: input.fullUrl,
+      type: input.type,
+      request: input.request,
+    });
+  }
+
+  /**
    * AllergyIntolerance helper for IPS-in-Communication use cases.
    *
    * Expected keys should come from AllergyIntolerance claims constants.
@@ -666,6 +689,10 @@ export class CommunicationAttachedBundleSession {
       if (documentReferenceSubject) {
         return documentReferenceSubject;
       }
+      const observationSubject = asTrimmedString(claims[ObservationClaim.Subject] || claims[ObservationClaim.Patient]);
+      if (observationSubject) {
+        return observationSubject;
+      }
     }
 
     const fromClaims = asTrimmedString(this.communicationClaims[CommunicationClaim.Subject]);
@@ -718,6 +745,11 @@ export class CommunicationAttachedBundleSession {
       return `${ResourceTypesFhirR4.DocumentReference}:${documentReferenceIdentifier}`;
     }
 
+    const observationIdentifier = asTrimmedString(claims[ObservationClaim.Identifier]);
+    if (observationIdentifier) {
+      return `${ResourceTypesFhirR4.Observation}:${observationIdentifier}`;
+    }
+
     return '';
   }
 
@@ -765,6 +797,11 @@ export class CommunicationAttachedBundleSession {
     const documentReferenceIdentifier = asTrimmedString(claims[DocumentReferenceClaim.Identifier]);
     if (documentReferenceIdentifier) {
       return documentReferenceIdentifier;
+    }
+
+    const observationIdentifier = asTrimmedString(claims[ObservationClaim.Identifier]);
+    if (observationIdentifier) {
+      return observationIdentifier;
     }
 
     const communicationIdentifier = asTrimmedString(claims[CommunicationClaim.Identifier]);

@@ -1,6 +1,6 @@
 {
   "name": "gdc-common-utils-ts",
-  "version": "1.20.2",
+  "version": "1.21.0",
   "publishConfig": {
     "access": "public"
   },
@@ -10,6 +10,7 @@
     "@stablelib/base64": "^1.0.1",
     "@stablelib/utf8": "^1.0.2",
     "base-x": "^4.0.0",
+    "gdc-common-utils-ts": "^1.21.0",
     "pako": "^2.1.0"
   },
   "scripts": {

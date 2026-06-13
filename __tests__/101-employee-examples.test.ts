@@ -16,6 +16,8 @@ import {
   EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE,
   EXAMPLE_EMPLOYEE_DOCTOR_PURGED_HISTORICAL,
   ExampleEmployeeEmails,
+  findEmployeeSearchResult,
+  readEmployeeSearchResults,
 } from '../src';
 
 describe('101: employee examples', () => {
@@ -191,5 +193,62 @@ describe('101: employee examples', () => {
     const createBundleReader = new BundleReader(createBundle).openEntry(0);
     expect(createBundleReader.getTotalOperations()).toBe(1);
     expect(createBundleReader.getEntryResponseStatus()).toBeUndefined();
+  });
+
+  it('reads employee search results into one neutral frontend-oriented list without exposing raw claim plumbing', () => {
+    const responseBody = {
+      body: {
+        data: EXAMPLE_EMPLOYEE_DIRECTORY_RECORDS.map((record) => ({
+          id: `resource:${record.identifier}`,
+          meta: {
+            status: record.status,
+            claims: buildExampleEmployeeClaims(record),
+          },
+        })),
+      },
+    };
+
+    const records = readEmployeeSearchResults(responseBody);
+
+    expect(records).toEqual([
+      {
+        identifier: EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE.identifier,
+        email: EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE.email,
+        role: EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE.role,
+        worksFor: undefined,
+        memberOf: undefined,
+        memberOfOrgTaxId: undefined,
+        resourceId: `resource:${EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE.identifier}`,
+        status: EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE.status,
+        claims: buildExampleEmployeeClaims(EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE),
+      },
+      {
+        identifier: EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE.identifier,
+        email: EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE.email,
+        role: EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE.role,
+        worksFor: undefined,
+        memberOf: undefined,
+        memberOfOrgTaxId: undefined,
+        resourceId: `resource:${EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE.identifier}`,
+        status: EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE.status,
+        claims: buildExampleEmployeeClaims(EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE),
+      },
+      {
+        identifier: EXAMPLE_EMPLOYEE_DOCTOR_PURGED_HISTORICAL.identifier,
+        email: EXAMPLE_EMPLOYEE_DOCTOR_PURGED_HISTORICAL.email,
+        role: EXAMPLE_EMPLOYEE_DOCTOR_PURGED_HISTORICAL.role,
+        worksFor: undefined,
+        memberOf: undefined,
+        memberOfOrgTaxId: undefined,
+        resourceId: `resource:${EXAMPLE_EMPLOYEE_DOCTOR_PURGED_HISTORICAL.identifier}`,
+        status: EXAMPLE_EMPLOYEE_DOCTOR_PURGED_HISTORICAL.status,
+        claims: buildExampleEmployeeClaims(EXAMPLE_EMPLOYEE_DOCTOR_PURGED_HISTORICAL),
+      },
+    ]);
+
+    expect(findEmployeeSearchResult(
+      responseBody,
+      EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE.identifier,
+    )).toEqual(records[1]);
   });
 });

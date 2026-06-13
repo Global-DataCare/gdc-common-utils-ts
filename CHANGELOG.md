@@ -2,6 +2,131 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [1.21.0] - 2026-06-12
+
+### Added
+- Added claims-first Observation authoring, conversion, and indexing groundwork in:
+  - `src/models/interoperable-claims/observation-claims.ts`
+  - `src/convert/convert-observation.ts`
+  - `src/models/indexing.ts`
+  - `src/constants/observation-category.ts`
+  - `src/constants/vital-signs.ts`
+- Added reusable observation and vital-sign example fixtures in:
+  - `src/examples/shared.ts`
+  - `src/examples/vital-signs.ts`
+- Added an individual-local bundle vault for sectioned persistent storage in:
+  - `src/utils/individual-bundle-vault.ts`
+  - `src/constants/individual-sections.ts`
+- Added high-level vital-sign editor coverage and supporting examples in:
+  - `__tests__/101-vital-sign-entry-editor.test.ts`
+  - `__tests__/examples-vital-signs.test.ts`
+- Added observation/indexing/vault coverage in:
+  - `__tests__/convert-observation.test.ts`
+  - `__tests__/models-indexing.test.ts`
+  - `__tests__/individual-bundle-vault.test.ts`
+- Added observation and vital-sign editor documentation in:
+  - `docs/OBSERVATION.md`
+  - `docs/101-VITAL_SIGN_ENTRY_EDITOR.md`
+- Added a canonical interoperable operation helper that formalizes:
+  - `resource.identifier` as the business/interoperable locator
+  - `resource.id` as internal/runtime state
+  - `resource.meta.claims` as the canonical processing shape
+- Added shared lifecycle result readers for bundle-like responses, including:
+  - `src/utils/lifecycle-result-reader.ts`
+  - `src/utils/consent-lifecycle-result-reader.ts`
+- Added an `IndividualOrganizationLifecycleDraft` flow for hosted
+  family/individual disable and purge payload authoring in:
+  - `src/utils/individual-organization-lifecycle.ts`
+- Added shared license list/search and offer/order helpers for stable UI/SDK
+  preview and summary readback in:
+  - `src/utils/license-list-search.ts`
+  - `src/utils/license-commercial-search.ts`
+  - `src/utils/license-offer-order.ts`
+- Added a reusable GW CORE route/path builder in:
+  - `src/utils/gw-core-path.ts`
+- Added related-person helpers for active-state normalization and list readback
+  in:
+  - `src/utils/related-person-list.ts`
+- Added new shared lifecycle/interoperability constants in:
+  - `src/constants/lifecycle.ts`
+- Added new high-level lifecycle/readback 101 coverage in:
+  - `__tests__/101-consent-lifecycle-result-reader.test.ts`
+  - `__tests__/101-individual-organization-lifecycle.test.ts`
+  - `__tests__/101-interoperable-resource-operation.test.ts`
+  - `__tests__/101-license-commercial-search.test.ts`
+  - `__tests__/101-license-list-search.test.ts`
+  - `__tests__/101-license-offer-order-editor.test.ts`
+  - `__tests__/101-lifecycle-result-reader.test.ts`
+  - `__tests__/101-related-person-list-reader.test.ts`
+- Added new front-oriented 101 guides in:
+  - `docs/101-CLINICAL_READ_AND_SEARCH.md`
+  - `docs/101-CONSENT_EDITOR_AND_READBACK.md`
+  - `docs/101-INDIVIDUAL_ORGANIZATION_LIFECYCLE_EDITOR.md`
+
+### Changed
+- Centralized more shared example/runtime values so downstream repos can reuse
+  canonical fixtures instead of repeating literals in:
+  - `src/examples/license.ts`
+  - `src/examples/shared.ts`
+  - `src/constants/Schemas.ts`
+  - `src/models/urlPath.ts`
+  - `docs/101-LICENSE_OFFERS_ORDERS_AND_LISTS.md`
+  - `docs/101-RELATED_PERSON_EDITOR.md`
+  - `docs/101-RESOURCE_IDENTIFIER_AND_OPERATIONS.md`
+  - `docs/LIFECYCLE_TECHNICAL_ROADMAP.md`
+
+### Changed
+- Renamed the preferred Observation converter API so the concrete FHIR version suffix stays at the end of the helper name:
+  - `observationFromFlatToFhirR4`
+  - `observationToFlatFhirR4`
+  while keeping compatibility aliases for the older names.
+- Clarified the Observation flat-claims contract so:
+  - `Observation.category` carries classification values such as `vital-signs`
+  - `Observation.value-concept-*` carries coded result values
+  - newly added Observation quantity/composite claims use the non-contextualized form consistently.
+- Extended bundle/document conversion and bundle-session helpers with Observation-aware handling so Observation claims can be staged and rebuilt through the shared bundle infrastructure.
+- Extended `BundleEditor` with:
+  - `asVitalSign()`
+  - `asObservation()`
+  - `ObservationComponentEntryEditor`
+  - `VitalSignEntryEditor`
+  - `ObservationEntryEditor`
+- Added parent-observation composite indexing primitives for future composite Observation profiles, including:
+  - `Observation.component-tags`
+  - `Observation.component-code-values`
+  - `Observation.component-names`
+  - `Observation.score-total-number`
+  - `Observation.bp-systolic-number`
+  - `Observation.bp-diastolic-number`
+- Updated the package README examples to use the renamed Observation converter helpers.
+- Captured the current package dependency/worktree state in:
+  - `package.json`
+  - `package-lock.json`
+- Added a versioned GitLab merge-request template for this integration branch in:
+  - `.gitlab/merge_request_templates/observation-vault-vitalsigns.md`
+- Expanded shared examples, exports, docs, and 101 tests so lifecycle,
+  license, related-person, and interoperable-resource-operation flows are now
+  first-class public surfaces.
+- Clarified employee and lifecycle teaching materials in:
+  - `docs/101-BUNDLE_EDITOR_READER.md`
+  - `docs/101-EMPLOYEE_ENTRY_EDITOR.md`
+  - `docs/101-LIFECYCLE.md`
+- Extended employee/related-person shared helpers and examples in:
+  - `src/claims/claims-helpers-related-person.ts`
+  - `src/examples/lifecycle.ts`
+  - `src/examples/license.ts`
+  - `src/examples/related-person.ts`
+  - `src/examples/shared.ts`
+  - `src/utils/bundle-editor.ts`
+  - `src/utils/employee.ts`
+  - `src/utils/index.ts`
+
+### Testing
+- `npm run build`
+- `npm test -- --runTestsByPath __tests__/101-vital-sign-entry-editor.test.ts __tests__/models-indexing.test.ts`
+- `npm test -- --runTestsByPath __tests__/models-indexing.test.ts __tests__/convert-observation.test.ts __tests__/individual-bundle-vault.test.ts`
+- `npm test -- --watchman=false --runInBand __tests__/101-related-person-list-reader.test.ts __tests__/101-consent-lifecycle-result-reader.test.ts __tests__/101-lifecycle-result-reader.test.ts`
+
 ## [1.20.2] - 2026-06-11
 
 ### Added

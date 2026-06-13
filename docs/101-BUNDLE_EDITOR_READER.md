@@ -14,6 +14,15 @@ It is the canonical design note for:
 Read this after:
 
 - [101-COMMUNICATION_LAYERING.md](./101-COMMUNICATION_LAYERING.md)
+- [101-LIFECYCLE.md](./101-LIFECYCLE.md)
+
+If you are integrating from a frontend and want the shortest practical path,
+read in this order:
+
+1. `101-LIFECYCLE.md`
+2. this file
+3. one resource-specific editor guide such as `101-EMPLOYEE_ENTRY_EDITOR.md`
+4. `101-RESOURCE_IDENTIFIER_AND_OPERATIONS.md` only after that
 
 ## Goal
 
@@ -24,6 +33,12 @@ Unify bundle editing and bundle reading in one shared layer so that:
 - `ips`
 
 do not each invent their own base editor or bundle reader model.
+
+For frontend work, the key idea is simple:
+
+- use editors to build semantic bundle data locally
+- let another layer encapsulate/sign/send that data later
+- use readers to understand the returned bundle and paint UI state
 
 ## Package Boundaries
 
@@ -58,6 +73,28 @@ They should consume shared bundle helpers instead of redefining them.
 
 `BundleEditor` is the generic builder for bundle types that clients construct
 today.
+
+Important distinction:
+
+- `setBundleOperation(...)` declares the business action the editor is staging
+- it does **not** mean the same thing as FHIR `entry.request.method`
+
+Read it like:
+
+- `create`
+- `search`
+- `disable`
+- `purge`
+
+not like:
+
+- `POST`
+- `GET`
+- `DELETE`
+- `PATCH`
+
+Those lower-level request methods are transport details that may be derived
+later and may differ by backend contract.
 
 Target shape:
 

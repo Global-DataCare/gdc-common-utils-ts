@@ -48,6 +48,18 @@ export type EmployeeSearchBundleInput = Readonly<{
   resourceType?: 'Employee';
 }>;
 
+export type EmployeeSearchResultRecord = Readonly<{
+  identifier?: string;
+  email?: string;
+  role?: string;
+  worksFor?: string;
+  memberOf?: string;
+  memberOfOrgTaxId?: string;
+  resourceId?: string;
+  status?: string;
+  claims: Record<string, unknown>;
+}>;
+
 export const EmployeeBundleOperations = Object.freeze({
   create: 'create',
   search: 'search',
@@ -93,6 +105,20 @@ function normalizeEmployeeSearchClaims(
     normalized[key] = value;
   }
   return normalized;
+}
+
+function normalizeText(value: unknown): string | undefined {
+  const normalized = String(value ?? '').trim();
+  return normalized || undefined;
+}
+
+function extractEntryClaims(entry: Record<string, unknown>): Record<string, unknown> {
+  const meta = entry.meta && typeof entry.meta === 'object' ? entry.meta as Record<string, unknown> : {};
+  const resource = entry.resource && typeof entry.resource === 'object' ? entry.resource as Record<string, unknown> : {};
+  const resourceMeta = resource.meta && typeof resource.meta === 'object' ? resource.meta as Record<string, unknown> : {};
+  const metaClaims = meta.claims && typeof meta.claims === 'object' ? meta.claims as Record<string, unknown> : undefined;
+  const resourceClaims = resourceMeta.claims && typeof resourceMeta.claims === 'object' ? resourceMeta.claims as Record<string, unknown> : undefined;
+  return { ...(resourceClaims || {}), ...(metaClaims || {}) };
 }
 
 function inferEmployeeEntryType(method: EmployeeBatchMethod): string {
@@ -272,4 +298,57 @@ export function buildEmployeeSearchBundle(input: EmployeeSearchBundleInput = {})
       },
     ],
   };
+}
+
+/**
+ * Reads employee-like search/list records from one current GW-style result body
+ * without forcing frontend callers to inspect `meta.claims` manually.
+ *
+ * Accepted inputs:
+ * - direct bundle-like payloads with `entry[]` or `data[]`
+ * - wrapper objects with `body.entry[]` or `body.data[]`
+ */
+export function readEmployeeSearchResults(body: unknown): EmployeeSearchResultRecord[] {
+  const root = body && typeof body === 'object' ? body as Record<string, unknown> : {};
+  const bodyNode = root.body && typeof root.body === 'object' ? root.body as Record<string, unknown> : root;
+  const rawEntries = Array.isArray(bodyNode.entry)
+    ? bodyNode.entry
+    : (Array.isArray(bodyNode.data) ? bodyNode.data : []);
+
+  return rawEntries
+    .filter((entry): entry is Record<string, unknown> => !!entry && typeof entry === 'object')
+    .map((entry) => {
+      const claims = extractEntryClaims(entry);
+      const meta = entry.meta && typeof entry.meta === 'object' ? entry.meta as Record<string, unknown> : {};
+      const resource = entry.resource && typeof entry.resource === 'object' ? entry.resource as Record<string, unknown> : {};
+
+      return {
+        identifier: normalizeText(claims[ClaimsPersonSchemaorg.identifier]),
+        email: normalizeText(claims[ClaimsPersonSchemaorg.email]),
+        role: normalizeText(claims[ClaimsPersonSchemaorg.hasOccupationalRoleValue]),
+        worksFor: normalizeText(claims[ClaimsPersonSchemaorg.worksFor]),
+        memberOf: normalizeText(claims[ClaimsPersonSchemaorg.memberOf]),
+        memberOfOrgTaxId: normalizeText(claims[ClaimsPersonSchemaorg.memberOfOrgTaxId]),
+        resourceId: normalizeText(resource.id || entry.id),
+        status: normalizeText(meta.status),
+        claims,
+      };
+    });
+}
+
+/**
+ * Returns one employee result by canonical identifier from current search/list
+ * results.
+ */
+export function findEmployeeSearchResult(
+  body: unknown,
+  identifier: string,
+): EmployeeSearchResultRecord | undefined {
+  const normalizedIdentifier = normalizeText(identifier);
+  if (!normalizedIdentifier) {
+    return undefined;
+  }
+
+  return readEmployeeSearchResults(body)
+    .find((record) => record.identifier === normalizedIdentifier);
 }

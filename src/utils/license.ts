@@ -48,6 +48,13 @@ export const LicenseRequestMethods = Object.freeze({
 } as const);
 
 /**
+ * Canonical route fragments used by runtime/search wrappers for license flows.
+ */
+export const LicenseRoutes = Object.freeze({
+  Search: 'License/_search',
+} as const);
+
+/**
  * Runtime-facing lifecycle values commonly used when searching stored
  * `DeviceLicense` documents.
  *

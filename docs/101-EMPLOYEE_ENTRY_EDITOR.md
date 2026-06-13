@@ -18,6 +18,51 @@ For the shortest executable references, open:
 
 - [__tests__/101-employee-examples.test.ts](https://github.com/Global-DataCare/gdc-common-utils-ts/blob/main/__tests__/101-employee-examples.test.ts)
 - [__tests__/101-bundle-reader.test.ts](https://github.com/Global-DataCare/gdc-common-utils-ts/blob/main/__tests__/101-bundle-reader.test.ts)
+- [src/utils/employee.ts](https://github.com/Global-DataCare/gdc-common-utils-ts/blob/main/src/utils/employee.ts)
+
+If you are a frontend developer, this is the document that should teach you the
+actual `get...()` / `set...()` chainable editing path for employee bundle
+entries.
+
+The intended loop is:
+
+1. build one entry with chainable setters
+2. materialize the final bundle with `build()`
+3. hand that value to a lower SDK/runtime/backend layer
+4. read the response later with `BundleReader` or `readEmployeeSearchResults(...)`
+
+## One Naming Trap
+
+`setBundleOperation(...)` is easy to confuse with the lower-level
+`entry.request.method` used inside a FHIR-style bundle.
+
+They are not the same thing.
+
+- `setBundleOperation(EmployeeBundleOperations.disable)`
+  means:
+  - "this bundle is trying to disable an employee"
+- `entry.request.method`
+  means:
+  - "which lower-level request method does the current backend contract expect
+    inside the built entry?"
+
+For example, today:
+
+- employee `disable`
+  - business action: `disable`
+  - current GW entry request method: `DELETE`
+- employee `purge`
+  - business action: `purge`
+  - current GW entry request method: `POST`
+- employee `search`
+  - business action: `search`
+  - current GW entry request method: `POST` with `Parameters`
+
+So teach the concepts in this order:
+
+1. business action with `setBundleOperation(...)`
+2. semantic claims edited in the entry
+3. only later, the concrete request method emitted by the current runtime
 
 ## Goal
 
@@ -88,6 +133,16 @@ Read that example as:
 - convert to another standard
 
 It only returns the final bundle payload.
+
+For employee search/list screens, the readback path is:
+
+1. build the search request with `BundleEditor` or `buildEmployeeSearchBundle(...)`
+2. let a lower SDK/runtime/backend layer submit it
+3. read returned employee rows with `readEmployeeSearchResults(...)`
+4. optionally resolve one exact record with `findEmployeeSearchResult(...)`
+
+That keeps `resource.meta.claims` and mixed GW wrapper shapes out of the
+frontend screen code.
 
 ## Generic Entry Editing
 
