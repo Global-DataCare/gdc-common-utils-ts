@@ -6,12 +6,16 @@ import {
   EXAMPLE_EMAIL_CONTROLLER_ORG,
   EXAMPLE_HEALTHCARE_ACTOR_ROLE_GENERALIST_MEDICAL_PRACTITIONER,
   EXAMPLE_LICENSE_ACTIVE_RECORD,
+  EXAMPLE_LICENSE_AVAILABLE_RECORD,
+  EXAMPLE_LICENSE_LIST_RESPONSE_BODY,
   LicenseCategories,
   LicenseEntryOperations,
   LicenseEntryTypes,
   LicenseStatuses,
+  findLicenseListRecord,
   LicenseListSearchEditor,
   readLicenseListRecords,
+  summarizeLicenseListRecords,
 } from '../src';
 
 describe('101: license list and search', () => {
@@ -41,17 +45,9 @@ describe('101: license list and search', () => {
   });
 
   it('reads one current GW-style license list/search response into frontend-friendly records', () => {
-    const body = {
-      data: [{
-        meta: {
-          status: LicenseStatuses.Active,
-          subjectId: EXAMPLE_LICENSE_ACTIVE_RECORD.subjectId,
-          claims: EXAMPLE_LICENSE_ACTIVE_RECORD.claims,
-        },
-      }],
-    };
+    const records = readLicenseListRecords(EXAMPLE_LICENSE_LIST_RESPONSE_BODY);
 
-    expect(readLicenseListRecords(body)).toEqual([
+    expect(records).toEqual([
       expect.objectContaining({
         id: EXAMPLE_LICENSE_ACTIVE_RECORD.id,
         status: LicenseStatuses.Active,
@@ -61,6 +57,20 @@ describe('101: license list and search', () => {
         category: LicenseCategories.Professional,
         appType: DeviceAppTypes.Mobile,
       }),
+      expect.objectContaining({
+        id: EXAMPLE_LICENSE_AVAILABLE_RECORD.id,
+        status: LicenseStatuses.Available,
+      }),
     ]);
+    expect(findLicenseListRecord(EXAMPLE_LICENSE_LIST_RESPONSE_BODY, EXAMPLE_LICENSE_ACTIVE_RECORD.id)).toEqual(records[0]);
+    expect(summarizeLicenseListRecords(EXAMPLE_LICENSE_LIST_RESPONSE_BODY)).toEqual({
+      contracted: 2,
+      free: 1,
+      used: 1,
+      available: 1,
+      issued: 0,
+      active: 1,
+      inactive: 0,
+    });
   });
 });

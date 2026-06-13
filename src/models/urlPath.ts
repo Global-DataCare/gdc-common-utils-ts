@@ -36,6 +36,7 @@ export enum Format {
 export enum Resource {
   Person = 'Person',
   RelatedPerson = 'RelatedPerson',
+  License = 'License',
   Employee = 'Emloyee',
   EmployeeRole = 'EmloyeeRole',
   Practitioner = 'Practitioner',
@@ -48,7 +49,8 @@ export enum Resource {
 export enum JobAction {
   "_batch" = "_batch",
   "_create" = "_create",
-  "_discovery" = "_discovery"
+  "_discovery" = "_discovery",
+  "_search" = "_search",
 }
 
 export enum knownDomainsReversedEnum {

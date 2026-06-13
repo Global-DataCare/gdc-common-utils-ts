@@ -5,13 +5,17 @@ import { DataspaceSectors } from '../constants/sectors';
 import { HostNetworkTypes } from '../constants/network';
 import { FhirCodeSystems } from '../constants/fhir-code-systems';
 import { Format } from '../constants/Schemas';
+import { ResourceTypesFhirR4 } from '../constants/fhir-resource-types';
 import { BirthSex, GenderIdentity } from '../constants/identity-gender';
 import { IdKind } from '../constants/identity-identifiers';
 import {
   HealthcareActorRoles,
   HealthcareBasicSections,
   HealthcareConsentPurposes,
+  HealthcareDocumentTypes,
 } from '../constants/healthcare';
+import { CommunicationCategoryCodes } from '../constants/communication';
+import { LOINC_SYSTEM_URL } from '../models/clinical-sections';
 import { CommunicationClaim } from '../models/interoperable-claims/communication-claims';
 import {
   MedicationStatementClaim,
@@ -194,6 +198,11 @@ export const EXAMPLE_CONSENT_PERIOD_START = '2026-05-20T00:00:00Z' as const;
 export const EXAMPLE_COMMUNICATION_UUID = 'urn:uuid:communication-example-001' as const;
 export const EXAMPLE_COMMUNICATION_IDENTIFIER = EXAMPLE_COMMUNICATION_UUID;
 export const EXAMPLE_IPS_BUNDLE_NOTE_TEXT = 'IPS ingestion request' as const;
+export const EXAMPLE_CONTENT_TYPE_APPLICATION_JSON = 'application/json' as const;
+export const EXAMPLE_CONTENT_TYPE_FHIR_JSON = 'application/fhir+json' as const;
+export const EXAMPLE_IPS_BUNDLE_ATTACHMENT_TITLE = 'IPS Document Bundle' as const;
+export const EXAMPLE_BUNDLE_RESOURCE_TYPE = 'Bundle' as const;
+export const EXAMPLE_BUNDLE_TYPE_BATCH = 'batch' as const;
 export const EXAMPLE_MEDICATION_STATEMENT_UUID = 'urn:uuid:medication-statement-example-001' as const;
 export const EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER = EXAMPLE_MEDICATION_STATEMENT_UUID;
 export const EXAMPLE_MEDICATION_STATEMENT_STATUS = 'active' as const;
@@ -227,6 +236,7 @@ export const EXAMPLE_CONTENT_ADDRESSED_EVIDENCE_RECORD_IDENTIFIER =
   'zQmXh8Y3mJQ4d7MmX7o9nP5sQ2uT1vW6xY8zA3bC4dE5fG' as const;
 export const EXAMPLE_EMPLOYEE_ACTIVATION_CODE = 'ACT-001' as const;
 export const EXAMPLE_LICENSE_OFFER_ID = 'urn:offer:family-003' as const;
+export const EXAMPLE_LICENSE_INVALID_OFFER_ID = 'urn:offer:invalid-001' as const;
 export const EXAMPLE_LICENSE_ACCEPTED_OFFER_ID = EXAMPLE_LICENSE_OFFER_ID;
 export const EXAMPLE_LICENSE_AMOUNT = '9.99' as const;
 export const EXAMPLE_LICENSE_CURRENCY = 'EUR' as const;
@@ -236,6 +246,15 @@ export const EXAMPLE_LICENSE_PAYMENT_METHOD_INVOICE = 'invoice' as const;
 export const EXAMPLE_LICENSE_CHECKOUT_URL = 'https://pay.example/offer-001' as const;
 export const EXAMPLE_LICENSE_PAYMENT_URL = 'https://pay.example/invoice-001' as const;
 export const EXAMPLE_LICENSE_INVOICE_ID = 'invoice-001' as const;
+export const EXAMPLE_LICENSE_PLAN_DEFAULT = 'default' as const;
+export const EXAMPLE_LICENSE_RENEWAL_CYCLE_YEARLY = '12m' as const;
+export const EXAMPLE_LICENSE_SUBJECT_ID_ACTIVE = 'urn:uuid:employee-controller-active-001' as const;
+export const EXAMPLE_LICENSE_SUBJECT_ID_AVAILABLE = 'urn:uuid:subject-license-available-001' as const;
+export const EXAMPLE_LICENSE_SEAT_UUID_ACTIVE = '8a8a5e1b-0d8e-4a7c-8c39-3b8034440001' as const;
+export const EXAMPLE_LICENSE_SEAT_UUID_SECONDARY = '8a8a5e1b-0d8e-4a7c-8c39-3b8034440002' as const;
+export const EXAMPLE_LICENSE_SEAT_UUID_AVAILABLE = '8a8a5e1b-0d8e-4a7c-8c39-3b8034440009' as const;
+export const EXAMPLE_JOB_IDENTIFIER_LICENSE_SEARCH = 'job-license-search-001' as const;
+export const EXAMPLE_THREAD_IDENTIFIER_LICENSE_SEARCH = 'thid-license-search-001' as const;
 export const EXAMPLE_RELATED_PERSON_IDENTIFIER = 'rel-001' as const;
 export const EXAMPLE_DEVICE_CLIENT_ID = 'did:web:device-001' as const;
 export const EXAMPLE_LIVE_GW_BASE_URL_LOCAL = 'http://127.0.0.1:3000' as const;
@@ -395,33 +414,33 @@ export function buildExampleCommunicationIngestionPayload({
         {
           type: 'Communication-ingestion-request-v1.0',
           resource: {
-            resourceType: 'Communication',
+            resourceType: ResourceTypesFhirR4.Communication,
             status: 'completed',
             subject: { reference: `Patient/${subjectDid}` },
             category: [{
               coding: [{
-                system: 'http://terminology.hl7.org/CodeSystem/communication-category',
-                code: 'notification',
+                system: CommunicationCategoryCodes.Notification.system,
+                code: CommunicationCategoryCodes.Notification.code,
               }],
             }],
             payload: [
               {
                 contentAttachment: {
-                  contentType: 'application/fhir+json',
-                  title: 'IPS Document Bundle',
+                  contentType: EXAMPLE_CONTENT_TYPE_FHIR_JSON,
+                  title: EXAMPLE_IPS_BUNDLE_ATTACHMENT_TITLE,
                   data: ipsBundleBase64,
                 },
               },
             ],
-            note: [{ text: 'IPS ingestion request' }],
+            note: [{ text: EXAMPLE_IPS_BUNDLE_NOTE_TEXT }],
             meta: {
               claims: {
-                '@context': 'org.hl7.fhir.r4',
-                [CommunicationClaim.Category]: 'http://terminology.hl7.org/CodeSystem/communication-category|notification',
+                '@context': Format.FHIR_R4,
+                [CommunicationClaim.Category]: CommunicationCategoryCodes.Notification.claim,
                 [CommunicationClaim.Subject]: subjectDid,
                 [CommunicationClaim.Sent]: sent,
-                [CommunicationClaim.ContentAttachmentType]: 'application/fhir+json',
-                [CommunicationClaim.Text]: 'IPS ingestion request',
+                [CommunicationClaim.ContentAttachmentType]: EXAMPLE_CONTENT_TYPE_FHIR_JSON,
+                [CommunicationClaim.Text]: EXAMPLE_IPS_BUNDLE_NOTE_TEXT,
               },
             },
           },
@@ -496,7 +515,7 @@ export function buildExampleMedicationIpsDocumentBundle(
 ): ExampleMedicationIpsDocumentBundle {
   const subjectDid = input.subjectDid || EXAMPLE_SUBJECT_DID;
   const medicationClaims: Record<string, unknown> = {
-    '@context': 'org.hl7.fhir.api',
+    '@context': Format.FHIR_API,
     [MedicationStatementClaim.Identifier]: input.medication.identifier,
     [MedicationStatementClaim.Subject]: subjectDid,
     [MedicationStatementClaim.Status]: EXAMPLE_MEDICATION_STATEMENT_STATUS,
@@ -520,22 +539,27 @@ export function buildExampleMedicationIpsDocumentBundle(
   };
 
   return {
-    resourceType: 'Bundle',
+    resourceType: ResourceTypesFhirR4.Bundle,
     type: 'document',
     entry: [
       {
         resource: {
-          resourceType: 'Composition',
+          resourceType: ResourceTypesFhirR4.Composition,
           id: `composition-${input.medication.identifier}`,
           status: 'final',
           subject: { reference: subjectDid },
-          type: { coding: [{ system: 'http://loinc.org', code: '60591-5' }] },
+          type: {
+            coding: [{
+              system: HealthcareDocumentTypes.IPS.system,
+              code: HealthcareDocumentTypes.IPS.code,
+            }],
+          },
           section: [
             {
               code: {
                 coding: [{
-                  system: 'http://loinc.org',
-                  code: '10160-0',
+                  system: LOINC_SYSTEM_URL,
+                  code: HealthcareBasicSections.HistoryOfMedicationUse.code,
                 }],
               },
               entry: [

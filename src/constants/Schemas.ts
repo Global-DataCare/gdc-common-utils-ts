@@ -37,6 +37,7 @@ export type Format = typeof Format[keyof typeof Format];
 export const Resource = {
   PERSON: 'Person',
   RELATED_PERSON: 'RelatedPerson',
+  LICENSE: 'License',
   EMPLOYEE: 'Employee',
   EMPLOYEE_ROLE: 'EmployeeRole',
   PRACTITIONER: 'Practitioner',
@@ -51,6 +52,7 @@ export const JobAction = {
   BATCH: '_batch',
   CREATE: '_create',
   DISCOVERY: '_discovery',
+  SEARCH: '_search',
 } as const;
 export type JobAction = typeof JobAction[keyof typeof JobAction];
 

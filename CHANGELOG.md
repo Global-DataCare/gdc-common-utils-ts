@@ -40,7 +40,10 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 - Added shared license list/search and offer/order helpers for stable UI/SDK
   preview and summary readback in:
   - `src/utils/license-list-search.ts`
+  - `src/utils/license-commercial-search.ts`
   - `src/utils/license-offer-order.ts`
+- Added a reusable GW CORE route/path builder in:
+  - `src/utils/gw-core-path.ts`
 - Added related-person helpers for active-state normalization and list readback
   in:
   - `src/utils/related-person-list.ts`
@@ -50,6 +53,7 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
   - `__tests__/101-consent-lifecycle-result-reader.test.ts`
   - `__tests__/101-individual-organization-lifecycle.test.ts`
   - `__tests__/101-interoperable-resource-operation.test.ts`
+  - `__tests__/101-license-commercial-search.test.ts`
   - `__tests__/101-license-list-search.test.ts`
   - `__tests__/101-license-offer-order-editor.test.ts`
   - `__tests__/101-lifecycle-result-reader.test.ts`
@@ -58,6 +62,14 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
   - `docs/101-CLINICAL_READ_AND_SEARCH.md`
   - `docs/101-CONSENT_EDITOR_AND_READBACK.md`
   - `docs/101-INDIVIDUAL_ORGANIZATION_LIFECYCLE_EDITOR.md`
+
+### Changed
+- Centralized more shared example/runtime values so downstream repos can reuse
+  canonical fixtures instead of repeating literals in:
+  - `src/examples/license.ts`
+  - `src/examples/shared.ts`
+  - `src/constants/Schemas.ts`
+  - `src/models/urlPath.ts`
   - `docs/101-LICENSE_OFFERS_ORDERS_AND_LISTS.md`
   - `docs/101-RELATED_PERSON_EDITOR.md`
   - `docs/101-RESOURCE_IDENTIFIER_AND_OPERATIONS.md`

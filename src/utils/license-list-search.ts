@@ -9,6 +9,12 @@ import {
 } from './license';
 import { ClaimsIndividualProductSchemaorg, ClaimsOfferSchemaorg, ClaimsPersonSchemaorg } from '../constants/schemaorg';
 
+/**
+ * High-level filter draft for license list/search screens.
+ *
+ * This draft keeps UI semantics stable even when the runtime search transport
+ * still supports only a subset of the final portal-facing filters.
+ */
 export type LicenseListSearchDraft = Readonly<{
   serialNumbers?: readonly string[];
   email?: string;
@@ -25,6 +31,10 @@ export type LicenseListSearchDraft = Readonly<{
   additionalClaims: LicenseClaims;
 }>;
 
+/**
+ * Frontend-friendly normalized row extracted from a GW/device-license style
+ * response body.
+ */
 export type LicenseListRecord = Readonly<{
   id?: string;
   status?: string;
@@ -35,6 +45,20 @@ export type LicenseListRecord = Readonly<{
   appType?: string;
   activationCode?: string;
   claims: Record<string, unknown>;
+}>;
+
+/**
+ * Small aggregate that a frontend/BFF can show in counters without re-reading
+ * raw claims entry by entry.
+ */
+export type LicenseListSummary = Readonly<{
+  contracted: number;
+  free: number;
+  used: number;
+  available: number;
+  issued: number;
+  active: number;
+  inactive: number;
 }>;
 
 function normalizeText(value: unknown): string | undefined {
@@ -216,4 +240,53 @@ export function readLicenseListRecords(body: unknown): LicenseListRecord[] {
         claims,
       };
     });
+}
+
+/**
+ * Finds one list/search record by its canonical business seat identifier.
+ *
+ * Use this in frontend/BFF code when one row id was selected in a table and
+ * the caller wants the already-normalized record back without touching raw
+ * `meta.claims`.
+ */
+export function findLicenseListRecord(
+  body: unknown,
+  identifier: string,
+): LicenseListRecord | undefined {
+  const wanted = normalizeText(identifier);
+  if (!wanted) return undefined;
+  return readLicenseListRecords(body).find((record) => record.id === wanted);
+}
+
+/**
+ * Summarizes one license list/search response into the seat counters typically
+ * needed by portal dashboards and guards.
+ *
+ * Current meaning:
+ * - `contracted`: total seats visible in the current response
+ * - `free`: seats still `available`
+ * - `used`: seats already assigned/consumed (`issued|active|inactive`)
+ */
+export function summarizeLicenseListRecords(body: unknown): LicenseListSummary {
+  const summary = {
+    contracted: 0,
+    free: 0,
+    used: 0,
+    available: 0,
+    issued: 0,
+    active: 0,
+    inactive: 0,
+  };
+
+  for (const record of readLicenseListRecords(body)) {
+    summary.contracted += 1;
+    if (record.status === LicenseStatuses.Available) summary.available += 1;
+    if (record.status === LicenseStatuses.Issued) summary.issued += 1;
+    if (record.status === LicenseStatuses.Active) summary.active += 1;
+    if (record.status === LicenseStatuses.Inactive) summary.inactive += 1;
+  }
+
+  summary.free = summary.available;
+  summary.used = summary.issued + summary.active + summary.inactive;
+  return summary satisfies LicenseListSummary;
 }
