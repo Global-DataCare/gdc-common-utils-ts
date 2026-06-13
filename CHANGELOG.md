@@ -55,6 +55,8 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 - Captured the current package dependency/worktree state in:
   - `package.json`
   - `package-lock.json`
+- Added a versioned GitLab merge-request template for this integration branch in:
+  - `.gitlab/merge_request_templates/observation-vault-vitalsigns.md`
 
 ### Testing
 - `npm test -- --runTestsByPath __tests__/101-vital-sign-entry-editor.test.ts __tests__/models-indexing.test.ts`
