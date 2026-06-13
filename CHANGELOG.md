@@ -2,6 +2,24 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [1.22.0] - 2026-06-13
+
+### Added
+- Added a shared invoice bundle contract for commercial/order readback in:
+  - `src/utils/invoice-bundle.ts`
+  - `src/examples/invoice.ts`
+- Added canonical FHIR `Invoice` support to the shared document surface in:
+  - `src/constants/fhir-resource-types.ts`
+  - `src/models/fhir-documents.ts`
+
+### Changed
+- Re-exported the invoice bundle helpers from the public examples/utils entry
+  points so downstream GW CORE and SDK packages can reuse the same high-level
+  fixtures and readers without new literals.
+
+### Testing
+- `npm run build`
+
 ## [1.21.0] - 2026-06-12
 
 ### Added

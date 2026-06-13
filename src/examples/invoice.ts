@@ -1,0 +1,49 @@
+import {
+  EXAMPLE_API_ORGANIZATION_DID,
+  EXAMPLE_CONTENT_TYPE_APPLICATION_JSON,
+  EXAMPLE_DOCUMENT_REFERENCE_CONTENT_TYPE_PDF,
+  EXAMPLE_DOCUMENT_REFERENCE_LANGUAGE,
+  EXAMPLE_LICENSE_AMOUNT,
+  EXAMPLE_LICENSE_INVOICE_ID,
+  EXAMPLE_LICENSE_PAYMENT_METHOD_INVOICE,
+  EXAMPLE_LICENSE_PAYMENT_URL,
+  EXAMPLE_LICENSE_CURRENCY,
+  EXAMPLE_SUBJECT_DID,
+  EXAMPLE_VAULT_PRIMARY_DATE_TIME,
+} from './shared';
+import { createInvoiceBundleEditor } from '../utils/invoice-bundle';
+
+export const EXAMPLE_INVOICE_PDF_DOCUMENT = Object.freeze({
+  documentId: `${EXAMPLE_LICENSE_INVOICE_ID}-pdf`,
+  contentType: EXAMPLE_DOCUMENT_REFERENCE_CONTENT_TYPE_PDF,
+  title: `${EXAMPLE_LICENSE_INVOICE_ID}.pdf`,
+  description: 'Human-readable invoice PDF',
+  language: EXAMPLE_DOCUMENT_REFERENCE_LANGUAGE,
+  dataBase64: 'JVBERi0xLjQKJUZha2UgaW52b2ljZSBQREYK',
+  createdAt: EXAMPLE_VAULT_PRIMARY_DATE_TIME,
+} as const);
+
+export const EXAMPLE_INVOICE_JSON_DOCUMENT = Object.freeze({
+  documentId: `${EXAMPLE_LICENSE_INVOICE_ID}-json`,
+  contentType: EXAMPLE_CONTENT_TYPE_APPLICATION_JSON,
+  title: `${EXAMPLE_LICENSE_INVOICE_ID}.json`,
+  description: 'Structured invoice JSON',
+  language: EXAMPLE_DOCUMENT_REFERENCE_LANGUAGE,
+  dataBase64: 'eyJpbnZvaWNlSWQiOiJpbnZvaWNlLTAwMSJ9',
+  createdAt: EXAMPLE_VAULT_PRIMARY_DATE_TIME,
+} as const);
+
+export const EXAMPLE_INVOICE_BUNDLE = Object.freeze(
+  createInvoiceBundleEditor()
+    .setInvoiceId(EXAMPLE_LICENSE_INVOICE_ID)
+    .setSubjectReference(EXAMPLE_SUBJECT_DID)
+    .setIssuerReference(EXAMPLE_API_ORGANIZATION_DID)
+    .setIssuedAt(EXAMPLE_VAULT_PRIMARY_DATE_TIME)
+    .setAmount(EXAMPLE_LICENSE_AMOUNT)
+    .setCurrency(EXAMPLE_LICENSE_CURRENCY)
+    .setPaymentMethod(EXAMPLE_LICENSE_PAYMENT_METHOD_INVOICE)
+    .setPaymentUrl(EXAMPLE_LICENSE_PAYMENT_URL)
+    .setPdfDocument(EXAMPLE_INVOICE_PDF_DOCUMENT)
+    .setStructuredDocument(EXAMPLE_INVOICE_JSON_DOCUMENT)
+    .buildBundle(),
+);

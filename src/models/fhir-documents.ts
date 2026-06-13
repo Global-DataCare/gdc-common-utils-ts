@@ -30,6 +30,7 @@ export type FhirAttachment = {
   url?: string;
   title?: string;
   creation?: string;
+  hash?: string;
 };
 
 export interface FhirCompositionResource {
@@ -73,6 +74,21 @@ export interface FhirDocumentReferenceResource {
     attachment?: FhirAttachment;
     format?: FhirCoding;
   }>;
+}
+
+export interface FhirInvoiceResource {
+  resourceType: 'Invoice';
+  id?: string;
+  status?: string;
+  identifier?: Array<{ system?: string; value?: string }>;
+  subject?: FhirReference;
+  recipient?: FhirReference;
+  issuer?: { reference?: string; display?: string };
+  date?: string;
+  paymentTerms?: string;
+  note?: Array<{ text?: string }>;
+  totalNet?: { value?: number; currency?: string };
+  totalGross?: { value?: number; currency?: string };
 }
 
 export interface FhirCommunicationResource {

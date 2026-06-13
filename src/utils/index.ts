@@ -46,6 +46,7 @@ export * from './individual-onboarding-editor';
 export * from './individual-onboarding-document-reference';
 export * from './individual-organization-kyc';
 export * from './individual-bundle-vault';
+export * from './invoice-bundle';
 export * from './ips-bundle-claims';
 export * from './interoperable-resource-operation';
 export * from './jwt';
