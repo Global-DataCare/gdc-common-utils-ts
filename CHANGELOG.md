@@ -2,6 +2,64 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [Unreleased] - 2026-06-12
+
+### Added
+- Added claims-first Observation authoring, conversion, and indexing groundwork in:
+  - `src/models/interoperable-claims/observation-claims.ts`
+  - `src/convert/convert-observation.ts`
+  - `src/models/indexing.ts`
+  - `src/constants/observation-category.ts`
+  - `src/constants/vital-signs.ts`
+- Added reusable observation and vital-sign example fixtures in:
+  - `src/examples/shared.ts`
+  - `src/examples/vital-signs.ts`
+- Added an individual-local bundle vault for sectioned persistent storage in:
+  - `src/utils/individual-bundle-vault.ts`
+  - `src/constants/individual-sections.ts`
+- Added high-level vital-sign editor coverage and supporting examples in:
+  - `__tests__/101-vital-sign-entry-editor.test.ts`
+  - `__tests__/examples-vital-signs.test.ts`
+- Added observation/indexing/vault coverage in:
+  - `__tests__/convert-observation.test.ts`
+  - `__tests__/models-indexing.test.ts`
+  - `__tests__/individual-bundle-vault.test.ts`
+- Added observation and vital-sign editor documentation in:
+  - `docs/OBSERVATION.md`
+  - `docs/101-VITAL_SIGN_ENTRY_EDITOR.md`
+
+### Changed
+- Renamed the preferred Observation converter API so the concrete FHIR version suffix stays at the end of the helper name:
+  - `observationFromFlatToFhirR4`
+  - `observationToFlatFhirR4`
+  while keeping compatibility aliases for the older names.
+- Clarified the Observation flat-claims contract so:
+  - `Observation.category` carries classification values such as `vital-signs`
+  - `Observation.value-concept-*` carries coded result values
+  - newly added Observation quantity/composite claims use the non-contextualized form consistently.
+- Extended bundle/document conversion and bundle-session helpers with Observation-aware handling so Observation claims can be staged and rebuilt through the shared bundle infrastructure.
+- Extended `BundleEditor` with:
+  - `asVitalSign()`
+  - `asObservation()`
+  - `ObservationComponentEntryEditor`
+  - `VitalSignEntryEditor`
+  - `ObservationEntryEditor`
+- Added parent-observation composite indexing primitives for future composite Observation profiles, including:
+  - `Observation.component-tags`
+  - `Observation.component-code-values`
+  - `Observation.component-names`
+  - `Observation.score-total-number`
+  - `Observation.bp-systolic-number`
+  - `Observation.bp-diastolic-number`
+- Updated the package README examples to use the renamed Observation converter helpers.
+- Captured the current package dependency/worktree state in:
+  - `package.json`
+  - `package-lock.json`
+
+### Testing
+- `npm test -- --runTestsByPath __tests__/101-vital-sign-entry-editor.test.ts __tests__/models-indexing.test.ts`
+- `npm test -- --runTestsByPath __tests__/models-indexing.test.ts __tests__/convert-observation.test.ts __tests__/individual-bundle-vault.test.ts`
+
 ## [1.20.2] - 2026-06-11
 
 ### Added

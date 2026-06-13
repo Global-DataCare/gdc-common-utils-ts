@@ -30,6 +30,7 @@ export type Section = typeof Section[keyof typeof Section];
 export const Format = {
   SCHEMA: 'org.schema',
   FHIR_API: 'org.hl7.fhir.api',
+  FHIR_R4: 'org.hl7.fhir.r4',
 } as const;
 export type Format = typeof Format[keyof typeof Format];
 

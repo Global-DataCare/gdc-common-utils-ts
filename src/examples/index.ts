@@ -16,3 +16,4 @@ export * from './contract-examples';
 export * from './communication-attached-bundle-session';
 export * from './communication-bundle-document-request';
 export * from './ips-bundle';
+export * from './vital-signs';

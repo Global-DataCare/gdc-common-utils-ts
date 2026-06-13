@@ -41,6 +41,7 @@ export * from './individual-organization-claims';
 export * from './individual-onboarding-editor';
 export * from './individual-onboarding-document-reference';
 export * from './individual-organization-kyc';
+export * from './individual-bundle-vault';
 export * from './ips-bundle-claims';
 export * from './jwt';
 export * from './license';

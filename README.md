@@ -123,7 +123,7 @@ The `convert` export exposes resource-specific FHIR R4 conversion helpers such a
 
 - `medicationStatementFlatToFhirR4`
 - `medicationStatementFhirR4ToFlat`
-- `observationFlatToFhirR4`
+- `observationFromFlatToFhirR4`
 - `documentReferenceFlatToFhirR4`
 - `compositionFlatToFhirR4`
 
@@ -132,7 +132,7 @@ Example:
 ```ts
 import {
   medicationStatementFlatToFhirR4,
-  observationFhirR4ToFlat,
+  observationToFlatFhirR4,
 } from 'gdc-common-utils-ts/convert';
 ```
 

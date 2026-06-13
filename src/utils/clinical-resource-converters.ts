@@ -36,6 +36,8 @@ export {
   locationFhirR4ToFlat,
 } from '../convert/convert-location';
 export {
+  observationFromFlatToFhirR4,
+  observationToFlatFhirR4,
   observationFlatToFhirR4,
   observationFhirR4ToFlat,
 } from '../convert/convert-observation';
@@ -101,7 +103,10 @@ import { deviceUseStatementFhirR4ToFlat, deviceUseStatementFlatToFhirR4 } from '
 import { documentReferenceFhirR4ToFlat, documentReferenceFlatToFhirR4 } from '../convert/convert-document-reference';
 import { immunizationFhirR4ToFlat, immunizationFlatToFhirR4 } from '../convert/convert-immunization';
 import { locationFhirR4ToFlat, locationFlatToFhirR4 } from '../convert/convert-location';
-import { observationFhirR4ToFlat, observationFlatToFhirR4 } from '../convert/convert-observation';
+import {
+  observationFromFlatToFhirR4,
+  observationToFlatFhirR4,
+} from '../convert/convert-observation';
 import { organizationFhirR4ToFlat, organizationFlatToFhirR4 } from '../convert/convert-organization';
 import { procedureFhirR4ToFlat, procedureFlatToFhirR4 } from '../convert/convert-procedure';
 import { deviceFhirR4ToFlat, deviceFlatToFhirR4 } from '../convert/convert-device';
@@ -130,8 +135,8 @@ export const immunizationFlatToFhir = immunizationFlatToFhirR4;
 export const immunizationFhirToFlat = immunizationFhirR4ToFlat;
 export const locationFlatToFhir = locationFlatToFhirR4;
 export const locationFhirToFlat = locationFhirR4ToFlat;
-export const observationFlatToFhir = observationFlatToFhirR4;
-export const observationFhirToFlat = observationFhirR4ToFlat;
+export const observationFlatToFhir = observationFromFlatToFhirR4;
+export const observationFhirToFlat = observationToFlatFhirR4;
 export const organizationFlatToFhir = organizationFlatToFhirR4;
 export const organizationFhirToFlat = organizationFhirR4ToFlat;
 export const procedureFlatToFhir = procedureFlatToFhirR4;
@@ -184,7 +189,7 @@ export function convertFhirResourceToClaims(
     case 'Location':
       return locationFhirR4ToFlat(resource);
     case 'Observation':
-      return observationFhirR4ToFlat(resource);
+      return observationToFlatFhirR4(resource);
     case 'Organization':
       return organizationFhirR4ToFlat(resource);
     case 'Procedure':

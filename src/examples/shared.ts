@@ -3,6 +3,7 @@
 
 import { DataspaceSectors } from '../constants/sectors';
 import { HostNetworkTypes } from '../constants/network';
+import { FhirCodeSystems } from '../constants/fhir-code-systems';
 import { BirthSex, GenderIdentity } from '../constants/identity-gender';
 import { IdKind } from '../constants/identity-identifiers';
 import {
@@ -119,6 +120,10 @@ export const EXAMPLE_CONTROLLER_SAME_AS = `mailto:${EXAMPLE_CONTROLLER_EMAIL}` a
 export const EXAMPLE_API_ORGANIZATION_DID = 'did:web:api.acme.org' as const;
 export const EXAMPLE_SERVICE_PUBLIC_DID = 'did:web:public.acme.org' as const;
 export const EXAMPLE_SUBJECT_DID = 'did:web:api.acme.org:individual:123' as const;
+export const EXAMPLE_SUBJECT_DID_SECONDARY = 'did:web:api.acme.org:individual:456' as const;
+export const EXAMPLE_SUBJECT_DID_TERTIARY = 'did:web:api.acme.org:individual:789' as const;
+export const EXAMPLE_SUBJECT_DID_CONDITION = 'did:web:api.acme.org:individual:cond' as const;
+export const EXAMPLE_SUBJECT_DID_IPS = 'did:web:api.acme.org:individual:ips' as const;
 export const EXAMPLE_PROFESSIONAL_DID = 'did:web:api.acme.org:professional:1' as const;
 export const EXAMPLE_PROVIDER_ORGANIZATION_DID = 'did:web:hospital.acme.org' as const;
 export const EXAMPLE_PROVIDER_ORGANIZATION_URL = 'https://hospital.acme.org' as const;
@@ -174,6 +179,7 @@ export const EXAMPLE_CONSENT_PURPOSE_EMERGENCY_TREATMENT =
   HealthcareConsentPurposes.EmergencyTreatment;
 export const EXAMPLE_CONSENT_UUID = 'urn:uuid:consent-example-001' as const;
 export const EXAMPLE_CONSENT_IDENTIFIER = EXAMPLE_CONSENT_UUID;
+export const EXAMPLE_CONSENT_IDENTIFIER_SECONDARY = 'urn:uuid:consent-example-002' as const;
 export const EXAMPLE_CONSENT_OPERATION_IDENTIFIER = 'consent-operation-example-001' as const;
 export const EXAMPLE_CONSENT_OPERATION_THREAD_ID = 'thread-consent-example-001' as const;
 export const EXAMPLE_CONSENT_PERIOD_START = '2026-05-20T00:00:00Z' as const;
@@ -191,6 +197,15 @@ export const EXAMPLE_DOCUMENT_REFERENCE_CONTENT_TYPE_PDF = 'application/pdf' as 
 export const EXAMPLE_DOCUMENT_REFERENCE_URL = 'https://example.org/prescription.pdf' as const;
 export const EXAMPLE_DOCUMENT_REFERENCE_DESCRIPTION = 'Prescription PDF' as const;
 export const EXAMPLE_DOCUMENT_REFERENCE_DATE = '2026-06-12T10:00:00Z' as const;
+export const EXAMPLE_CLINICAL_EVENT_DATE_TIME = '2026-06-01T10:00:00Z' as const;
+export const EXAMPLE_VITAL_SIGNS_EFFECTIVE_DATE_TIME = '2026-06-11T08:30:00Z' as const;
+export const EXAMPLE_VITAL_SIGNS_PANEL_DATE_TIME = '2026-06-11T09:00:00Z' as const;
+export const EXAMPLE_VAULT_PRIMARY_DATE_TIME = '2026-06-11T10:00:00Z' as const;
+export const EXAMPLE_VAULT_SECONDARY_DATE_TIME = '2026-06-11T10:05:00Z' as const;
+export const EXAMPLE_VAULT_IPS_DATE_TIME = '2026-06-11T11:00:00Z' as const;
+export const EXAMPLE_VAULT_TERTIARY_DATE_TIME = '2026-06-11T12:00:00Z' as const;
+export const EXAMPLE_VAULT_QUATERNARY_DATE_TIME = '2026-06-11T13:00:00Z' as const;
+export const EXAMPLE_VAULT_CONDITION_DATE_TIME = '2026-06-11T14:00:00Z' as const;
 export const EXAMPLE_DOCUMENT_REFERENCE_CONTENT_HASH = 'z-document-reference-example-hash' as const;
 export const EXAMPLE_DOCUMENT_REFERENCE_LANGUAGE = 'en' as const;
 export const EXAMPLE_CONSENT_ATTACHMENT_CONTENT_TYPE = EXAMPLE_DOCUMENT_REFERENCE_CONTENT_TYPE_PDF;
@@ -207,6 +222,51 @@ export const EXAMPLE_DEVICE_CLIENT_ID = 'did:web:device-001' as const;
 export const EXAMPLE_LIVE_GW_BASE_URL_LOCAL = 'http://127.0.0.1:3000' as const;
 export const EXAMPLE_LIVE_GW_BASE_URL_DOCKER = 'http://127.0.0.1:8000' as const;
 export const EXAMPLE_MEDICATION_DOSE_UNIT_MG = 'mg' as const;
+export const EXAMPLE_OBSERVATION_IDENTIFIER = 'urn:uuid:observation-example-001' as const;
+export const EXAMPLE_OBSERVATION_IDENTIFIER_IPS = 'vs-1' as const;
+export const EXAMPLE_OBSERVATION_PANEL_IDENTIFIER = 'urn:uuid:observation-panel-example-001' as const;
+export const EXAMPLE_OBSERVATION_COMPONENT_IDENTIFIER = 'urn:uuid:observation-component-example-001' as const;
+export const EXAMPLE_OBSERVATION_COMPONENT_IDENTIFIER_SECONDARY =
+  'urn:uuid:observation-component-example-002' as const;
+export const EXAMPLE_IPS_COMPOSITION_IDENTIFIER = 'ips-composition' as const;
+export const EXAMPLE_CONDITION_IDENTIFIER = 'condition-example-001' as const;
+export const EXAMPLE_VITAL_SIGNS_NOTE = 'Measured after rest.' as const;
+export const EXAMPLE_FHIR_STATUS_FINAL = 'final' as const;
+export const EXAMPLE_FHIR_STATUS_ACTIVE = 'active' as const;
+export const EXAMPLE_FHIR_VERIFICATION_STATUS_CONFIRMED = 'confirmed' as const;
+export const EXAMPLE_VITAL_SIGN_VALUE_HEART_RATE = 68 as const;
+export const EXAMPLE_VITAL_SIGN_VALUE_SYSTOLIC = 120 as const;
+export const EXAMPLE_VITAL_SIGN_VALUE_DIASTOLIC = 78 as const;
+export const EXAMPLE_VITAL_SIGN_VALUE_BODY_TEMPERATURE = 37.1 as const;
+export const EXAMPLE_VITAL_SIGN_UNIT_BEATS_PER_MINUTE = '/min' as const;
+export const EXAMPLE_OBSERVATION_CATEGORY_VITAL_SIGNS =
+  'http://terminology.hl7.org/CodeSystem/observation-category|vital-signs' as const;
+export const EXAMPLE_VITAL_SIGN_CODE_HEART_RATE = '8867-4' as const;
+export const EXAMPLE_VITAL_SIGN_CODE_BODY_TEMPERATURE = '8310-5' as const;
+export const EXAMPLE_VITAL_SIGN_CODE_BLOOD_PRESSURE_PANEL = '85354-9' as const;
+export const EXAMPLE_VITAL_SIGN_CODE_SYSTOLIC_BLOOD_PRESSURE = '8480-6' as const;
+export const EXAMPLE_VITAL_SIGN_CODE_DIASTOLIC_BLOOD_PRESSURE = '8462-4' as const;
+export const EXAMPLE_VITAL_SIGN_DISPLAY_HEART_RATE = 'Heart rate' as const;
+export const EXAMPLE_VITAL_SIGN_DISPLAY_BODY_TEMPERATURE = 'Body temperature' as const;
+export const EXAMPLE_VITAL_SIGN_DISPLAY_VITAL_SIGNS = 'Vital Signs' as const;
+export const EXAMPLE_VITAL_SIGN_DISPLAY_BLOOD_PRESSURE_PANEL = 'Blood pressure panel' as const;
+/** Shared composite tag summary used by blood-pressure parent observation indexing examples. */
+export const EXAMPLE_OBSERVATION_COMPONENT_TAGS_BLOOD_PRESSURE = 'bp-systolic,bp-diastolic' as const;
+/** Shared component code summary used by blood-pressure parent observation indexing examples. */
+export const EXAMPLE_OBSERVATION_COMPONENT_CODE_VALUES_BLOOD_PRESSURE =
+  `${EXAMPLE_VITAL_SIGN_CODE_SYSTOLIC_BLOOD_PRESSURE},${EXAMPLE_VITAL_SIGN_CODE_DIASTOLIC_BLOOD_PRESSURE}` as const;
+/** Shared human-readable component-name summary used by blood-pressure parent observation indexing examples. */
+export const EXAMPLE_OBSERVATION_COMPONENT_NAMES_BLOOD_PRESSURE =
+  'Systolic blood pressure,Diastolic blood pressure' as const;
+export const EXAMPLE_SOCIAL_HISTORY_CATEGORY = 'http://terminology.hl7.org/CodeSystem/observation-category|social-history' as const;
+export const EXAMPLE_OBSERVATION_CODE_TOBACCO_SMOKING_STATUS = '72166-2' as const;
+export const EXAMPLE_OBSERVATION_DISPLAY_TOBACCO_SMOKING_STATUS = 'Tobacco smoking status' as const;
+export const EXAMPLE_OBSERVATION_VALUE_CONCEPT_NEVER_SMOKER_CODE = '266919005' as const;
+export const EXAMPLE_OBSERVATION_VALUE_CONCEPT_NEVER_SMOKER_DISPLAY = 'Never smoker' as const;
+export const EXAMPLE_OBSERVATION_VALUE_CONCEPT_NEVER_SMOKER =
+  `${FhirCodeSystems.SnomedCt}|${EXAMPLE_OBSERVATION_VALUE_CONCEPT_NEVER_SMOKER_CODE}` as const;
+export const EXAMPLE_CONDITION_CODE = 'http://snomed.info/sct|44054006' as const;
+export const EXAMPLE_MEDICATION_CODE_RXNORM = 'http://www.nlm.nih.gov/research/umls/rxnorm|860975' as const;
 export const EXAMPLE_MEDICATION_TIMING_PERIOD_UNIT_HOURS = 'h' as const;
 export const EXAMPLE_MEDICATION_IBUPROFEN_TEXT = 'Ibuprofen 400 mg' as const;
 export const EXAMPLE_MEDICATION_IBUPROFEN_IDENTIFIER_PREFIX = 'urn:uuid:med-ibuprofen' as const;
