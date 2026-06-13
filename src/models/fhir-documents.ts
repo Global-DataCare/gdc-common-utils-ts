@@ -33,6 +33,10 @@ export type FhirAttachment = {
   hash?: string;
 };
 
+export type FhirMeta = {
+  claims?: Record<string, unknown>;
+};
+
 export interface FhirCompositionResource {
   resourceType: 'Composition';
   id?: string;
@@ -53,6 +57,7 @@ export interface FhirCompositionResource {
 export interface FhirDocumentReferenceResource {
   resourceType: 'DocumentReference';
   id?: string;
+  meta?: FhirMeta;
   status?: string;
   identifier?: Array<{ system?: string; value?: string }>;
   type?: FhirCodeableConcept;
@@ -79,6 +84,7 @@ export interface FhirDocumentReferenceResource {
 export interface FhirInvoiceResource {
   resourceType: 'Invoice';
   id?: string;
+  meta?: FhirMeta;
   status?: string;
   identifier?: Array<{ system?: string; value?: string }>;
   subject?: FhirReference;
@@ -94,6 +100,7 @@ export interface FhirInvoiceResource {
 export interface FhirCommunicationResource {
   resourceType: 'Communication';
   id?: string;
+  meta?: FhirMeta;
   status?: string;
   category?: FhirCodeableConcept[];
   subject?: FhirReference;

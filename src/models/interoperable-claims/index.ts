@@ -25,3 +25,4 @@ export * from './related-person-claims';
 export * from './coverage-claims';
 export * from './clinical-impression-claims';
 export * from './task-claims';
+export * from './invoice-claims';

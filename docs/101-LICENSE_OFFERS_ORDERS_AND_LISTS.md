@@ -15,7 +15,8 @@ Read in this order:
 
 1. [101-LIFECYCLE.md](./101-LIFECYCLE.md)
 2. this file
-3. the executable tests linked below
+3. [101-INVOICE_AND_CHARGEITEM_CLAIMS.md](./101-INVOICE_AND_CHARGEITEM_CLAIMS.md)
+4. the executable tests linked below
 
 ## What This Layer Is For
 
@@ -162,12 +163,14 @@ Executable teaching references:
 Shared examples:
 
 - [src/examples/license.ts](../src/examples/license.ts)
+- [src/examples/invoice.ts](../src/examples/invoice.ts)
 
 Shared helpers:
 
 - [src/utils/license-offer-order.ts](../src/utils/license-offer-order.ts)
 - [src/utils/license.ts](../src/utils/license.ts)
 - [src/utils/license-list-search.ts](../src/utils/license-list-search.ts)
+- [src/utils/invoice-bundle.ts](../src/utils/invoice-bundle.ts)
 
 ## Boundary Reminder
 

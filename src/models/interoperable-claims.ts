@@ -6,4 +6,4 @@
  * Keep this separated from strict FHIR resource typings.
  */
 
-export * from './interoperable-claims';
+export * from './interoperable-claims/index';

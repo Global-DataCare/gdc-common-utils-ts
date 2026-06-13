@@ -1,4 +1,16 @@
 import { ResourceTypesFhirR4 } from '../constants/fhir-resource-types';
+import {
+  ChargeItemClaim,
+  ChargeItemClaims,
+  ChargeItemClaimsContextualized,
+  ChargeItemClaimsFhirApiExtended,
+  InvoiceClaim,
+  InvoiceClaims,
+  InvoiceClaimsContextualized,
+  InvoiceClaimsFhirApiExtended,
+  contextualizeChargeItemClaims,
+  contextualizeInvoiceClaims,
+} from '../models/interoperable-claims/invoice-claims';
 import type {
   FhirDocumentReferenceResource,
   FhirInvoiceResource,
@@ -16,6 +28,23 @@ export type InvoiceBundleDocument = Readonly<{
   createdAt?: string;
 }>;
 
+export type InvoiceChargeItemDraft = Readonly<{
+  identifier?: string;
+  status?: string;
+  partOf?: string;
+  code?: string;
+  codeText?: string;
+  category?: string;
+  supplierProductCode?: string;
+  quantity?: string;
+  quantityNumber?: string;
+  quantityUnit?: string;
+  itemsPerUnit?: string;
+  itemsQuantity?: string;
+  itemsQuantityNumber?: string;
+  itemsQuantityUnit?: string;
+}>;
+
 export type InvoiceBundleDraft = Readonly<{
   invoiceId?: string;
   subjectReference?: string;
@@ -29,6 +58,7 @@ export type InvoiceBundleDraft = Readonly<{
   paymentUrl?: string;
   pdfDocument?: InvoiceBundleDocument;
   structuredDocument?: InvoiceBundleDocument;
+  chargeItems?: readonly InvoiceChargeItemDraft[];
 }>;
 
 export type InvoiceBundleSummary = Readonly<{
@@ -54,8 +84,14 @@ export interface InvoiceBundleEditor {
   setPaymentUrl(value: string): InvoiceBundleEditor;
   setPdfDocument(value: InvoiceBundleDocument): InvoiceBundleEditor;
   setStructuredDocument(value: InvoiceBundleDocument): InvoiceBundleEditor;
+  setChargeItems(value: readonly InvoiceChargeItemDraft[]): InvoiceBundleEditor;
+  addChargeItem(value: InvoiceChargeItemDraft): InvoiceBundleEditor;
   getDraft(): InvoiceBundleDraft;
   buildBundle(): Record<string, unknown>;
+  buildInvoiceClaims(): InvoiceClaims;
+  buildInvoiceClaimsContextualized(): InvoiceClaimsContextualized;
+  buildChargeItemClaimRows(): Array<InvoiceClaims & ChargeItemClaims>;
+  buildChargeItemClaimRowsContextualized(): ChargeItemClaimsContextualized[];
   getSummary(): InvoiceBundleSummary;
   readBundleFromResponseBody(body: unknown): Record<string, unknown> | undefined;
 }
@@ -96,7 +132,70 @@ function cloneDraft(draft?: Partial<InvoiceBundleDraft>): InvoiceBundleDraft {
     paymentUrl: normalizeText(draft?.paymentUrl),
     pdfDocument: normalizeDocument(draft?.pdfDocument),
     structuredDocument: normalizeDocument(draft?.structuredDocument),
+    chargeItems: Array.isArray(draft?.chargeItems)
+      ? draft?.chargeItems.map((item) => ({
+        identifier: normalizeText(item?.identifier),
+        status: normalizeText(item?.status),
+        partOf: normalizeText(item?.partOf),
+        code: normalizeText(item?.code),
+        codeText: normalizeText(item?.codeText),
+        category: normalizeText(item?.category),
+        supplierProductCode: normalizeText(item?.supplierProductCode),
+        quantity: normalizeText(item?.quantity),
+        quantityNumber: normalizeText(item?.quantityNumber),
+        quantityUnit: normalizeText(item?.quantityUnit),
+        itemsPerUnit: normalizeText(item?.itemsPerUnit),
+        itemsQuantity: normalizeText(item?.itemsQuantity),
+        itemsQuantityNumber: normalizeText(item?.itemsQuantityNumber),
+        itemsQuantityUnit: normalizeText(item?.itemsQuantityUnit),
+      }))
+      : [],
   };
+}
+
+export function buildInvoiceFhirClaims(
+  draftInput: Partial<InvoiceBundleDraft>,
+): InvoiceClaims {
+  const draft = cloneDraft(draftInput);
+  return {
+    ...(draft.invoiceId ? { [InvoiceClaim.Identifier]: draft.invoiceId } : {}),
+    ...(draft.issuedAt ? { [InvoiceClaim.Date]: draft.issuedAt } : {}),
+    [InvoiceClaim.Status]: 'issued',
+    ...(draft.subjectReference ? { [InvoiceClaim.Subject]: draft.subjectReference } : {}),
+    ...(draft.recipientReference ? { [InvoiceClaim.Recipient]: draft.recipientReference } : {}),
+    ...(draft.issuerReference ? { [InvoiceClaim.Issuer]: draft.issuerReference } : {}),
+    ...(draft.issuerDisplay ? { [InvoiceClaim.IssuerDisplay]: draft.issuerDisplay } : {}),
+    ...(draft.paymentMethod ? { [InvoiceClaim.PaymentTerms]: draft.paymentMethod } : {}),
+    ...(draft.paymentUrl ? { [InvoiceClaim.PaymentUrl]: draft.paymentUrl } : {}),
+    ...(draft.amount ? { [InvoiceClaim.TotalNetValue]: draft.amount } : {}),
+    ...(draft.currency ? { [InvoiceClaim.TotalNetCurrency]: draft.currency } : {}),
+    ...(draft.amount ? { [InvoiceClaim.TotalGrossValue]: draft.amount } : {}),
+    ...(draft.currency ? { [InvoiceClaim.TotalGrossCurrency]: draft.currency } : {}),
+  };
+}
+
+export function buildInvoiceChargeItemClaimRows(
+  draftInput: Partial<InvoiceBundleDraft>,
+): Array<InvoiceClaims & ChargeItemClaims> {
+  const draft = cloneDraft(draftInput);
+  const invoiceClaims = buildInvoiceFhirClaims(draft);
+  return (draft.chargeItems || []).map((item) => ({
+    ...invoiceClaims,
+    ...(item.identifier ? { [ChargeItemClaim.Identifier]: item.identifier } : {}),
+    ...((item.status || 'billable') ? { [ChargeItemClaim.Status]: item.status || 'billable' } : {}),
+    ...((item.partOf || draft.invoiceId) ? { [ChargeItemClaim.PartOf]: item.partOf || draft.invoiceId } : {}),
+    ...(item.code ? { [ChargeItemClaim.Code]: item.code } : {}),
+    ...(item.codeText ? { [ChargeItemClaim.CodeText]: item.codeText } : {}),
+    ...(item.category ? { [ChargeItemClaim.Category]: item.category } : {}),
+    ...(item.supplierProductCode ? { [ChargeItemClaim.SupplierProductCode]: item.supplierProductCode } : {}),
+    ...(item.quantity ? { [ChargeItemClaim.Quantity]: item.quantity } : {}),
+    ...(item.quantityNumber ? { [ChargeItemClaim.QuantityNumber]: item.quantityNumber } : {}),
+    ...(item.quantityUnit ? { [ChargeItemClaim.QuantityUnit]: item.quantityUnit } : {}),
+    ...(item.itemsPerUnit ? { [ChargeItemClaim.ItemsPerUnit]: item.itemsPerUnit } : {}),
+    ...(item.itemsQuantity ? { [ChargeItemClaim.ItemsQuantity]: item.itemsQuantity } : {}),
+    ...(item.itemsQuantityNumber ? { [ChargeItemClaim.ItemsQuantityNumber]: item.itemsQuantityNumber } : {}),
+    ...(item.itemsQuantityUnit ? { [ChargeItemClaim.ItemsQuantityUnit]: item.itemsQuantityUnit } : {}),
+  }));
 }
 
 function asRecord(value: unknown): Record<string, unknown> | undefined {
@@ -138,6 +237,7 @@ export function buildInvoiceBundle(draftInput: Partial<InvoiceBundleDraft>): Rec
   const invoiceResource: FhirInvoiceResource = {
     resourceType: ResourceTypesFhirR4.Invoice,
     id: draft.invoiceId,
+    meta: { claims: buildInvoiceFhirClaims(draft) as Record<string, unknown> },
     status: 'issued',
     identifier: draft.invoiceId ? [{ value: draft.invoiceId }] : undefined,
     subject: draft.subjectReference ? { reference: draft.subjectReference } : undefined,
@@ -239,8 +339,19 @@ export function createInvoiceBundleEditor(
     setPaymentUrl(value) { draft = cloneDraft({ ...draft, paymentUrl: value }); return editor; },
     setPdfDocument(value) { draft = cloneDraft({ ...draft, pdfDocument: value }); return editor; },
     setStructuredDocument(value) { draft = cloneDraft({ ...draft, structuredDocument: value }); return editor; },
+    setChargeItems(value) { draft = cloneDraft({ ...draft, chargeItems: value }); return editor; },
+    addChargeItem(value) { draft = cloneDraft({ ...draft, chargeItems: [...(draft.chargeItems || []), value] }); return editor; },
     getDraft() { return cloneDraft(draft); },
     buildBundle() { return buildInvoiceBundle(draft); },
+    buildInvoiceClaims() { return buildInvoiceFhirClaims(draft); },
+    buildInvoiceClaimsContextualized() { return contextualizeInvoiceClaims(buildInvoiceFhirClaims(draft)); },
+    buildChargeItemClaimRows() { return buildInvoiceChargeItemClaimRows(draft); },
+    buildChargeItemClaimRowsContextualized() {
+      return buildInvoiceChargeItemClaimRows(draft).map((row) => ({
+        ...contextualizeInvoiceClaims(row),
+        ...contextualizeChargeItemClaims(row),
+      }));
+    },
     getSummary() { return readInvoiceBundleSummaryFromResponseBody({ data: [{ resource: buildInvoiceBundle(draft) }] }); },
     readBundleFromResponseBody(body) { return extractInvoiceBundleFromResponseBody(body); },
   };

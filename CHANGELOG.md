@@ -2,6 +2,38 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [1.23.0] - 2026-06-13
+
+### Added
+- Added canonical claims-first invoice and charge-item contracts in:
+  - `src/models/interoperable-claims/invoice-claims.ts`
+- Added invoice editor support for invoice-level claims and repeated charge-item
+  claim rows, including contextualized variants, in:
+  - `src/utils/invoice-bundle.ts`
+- Added shared invoice/charge-item fixtures and executable teaching coverage in:
+  - `src/examples/invoice.ts`
+  - `src/examples/shared.ts`
+  - `__tests__/101-invoice-claims.test.ts`
+- Added a frontend-oriented guide for invoice and charge-item claims in:
+  - `docs/101-INVOICE_AND_CHARGEITEM_CLAIMS.md`
+
+### Changed
+- Embedded canonical `meta.claims` into generated FHIR invoice resources and
+  widened shared FHIR document typings so invoice/document/communication
+  resources can carry claims metadata in:
+  - `src/models/fhir-documents.ts`
+  - `src/utils/invoice-bundle.ts`
+- Re-exported interoperable claims through the package index and linked the new
+  invoice guide from the existing license/order/invoice teaching materials in:
+  - `src/models/interoperable-claims.ts`
+  - `src/models/interoperable-claims/index.ts`
+  - `docs/101-LICENSE_OFFERS_ORDERS_AND_LISTS.md`
+
+### Testing
+- `npm run typecheck`
+- `npm test -- --watchman=false --runInBand __tests__/101-invoice-claims.test.ts`
+- `npm run build`
+
 ## [1.22.0] - 2026-06-13
 
 ### Added
