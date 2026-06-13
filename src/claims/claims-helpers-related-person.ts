@@ -45,3 +45,33 @@ export function getRelatedPersonIdentifier(claims: RelatedPersonInteroperableCla
 export function setRelatedPersonIdentifier(claims: RelatedPersonInteroperableClaims, value: string): RelatedPersonInteroperableClaims {
   return { ...claims, [RelatedPersonClaim.Identifier]: normalizeClaimScalar(value) };
 }
+
+/**
+ * Returns the current active flag as a boolean when present.
+ *
+ * Interoperability note:
+ * some callers persist the flag as a real boolean while others may carry the
+ * transport value as `"true"` / `"false"`. This helper normalizes both
+ * shapes.
+ */
+export function getRelatedPersonActive(claims: RelatedPersonInteroperableClaims): boolean | undefined {
+  const value = claims[RelatedPersonClaim.Active];
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === 'true') return true;
+    if (normalized === 'false') return false;
+  }
+  return undefined;
+}
+
+/**
+ * Sets the canonical active flag used by the current `RelatedPerson` lifecycle
+ * helpers.
+ */
+export function setRelatedPersonActive(
+  claims: RelatedPersonInteroperableClaims,
+  value: boolean,
+): RelatedPersonInteroperableClaims {
+  return { ...claims, [RelatedPersonClaim.Active]: value };
+}

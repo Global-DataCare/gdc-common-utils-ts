@@ -4,6 +4,7 @@
 import { DataspaceSectors } from '../constants/sectors';
 import { HostNetworkTypes } from '../constants/network';
 import { FhirCodeSystems } from '../constants/fhir-code-systems';
+import { Format } from '../constants/Schemas';
 import { BirthSex, GenderIdentity } from '../constants/identity-gender';
 import { IdKind } from '../constants/identity-identifiers';
 import {
@@ -37,6 +38,7 @@ export const EXAMPLE_ROUTE_VERSION = 'v1' as const;
 export const EXAMPLE_SECTOR = DataspaceSectors.HealthCare;
 export const EXAMPLE_EMAIL_CONTROLLER_ORG = 'controller@acme.org' as const;
 export const EXAMPLE_EMAIL_CONTROLLER_INDIVIDUAL = 'ana.parent@example.org' as const;
+export const EXAMPLE_INTEROPERABLE_CONTEXT_FHIR_API = Format.FHIR_API;
 export const EXAMPLE_SELF_REGISTERED_INDIVIDUAL_ALTERNATE_NAME = 'Jane' as const;
 export const EXAMPLE_SELF_REGISTERED_INDIVIDUAL_EMAIL = 'Jane.Doe@example.com' as const;
 export const EXAMPLE_SELF_REGISTERED_INDIVIDUAL_EMAIL_NORMALIZED = 'jane.doe@example.com' as const;
@@ -156,6 +158,12 @@ export const EXAMPLE_PRACTITIONER_DID = 'did:web:practitioner.example' as const;
 export const EXAMPLE_GENERIC_SUBJECT_DID = 'did:web:subject.example' as const;
 export const EXAMPLE_EMAIL_PROFESSIONAL = 'doctor.oncall@example.org' as const;
 export const EXAMPLE_EMAIL_RELATED_PERSON = 'parent.guardian@example.org' as const;
+export const EXAMPLE_RELATED_PERSON_ACTIVE_NAME = 'Jose Example' as const;
+export const EXAMPLE_RELATED_PERSON_INACTIVE_IDENTIFIER = 'urn:uuid:related-person-002' as const;
+export const EXAMPLE_RELATED_PERSON_INACTIVE_EMAIL = 'caregiver.two@example.org' as const;
+export const EXAMPLE_RELATED_PERSON_INACTIVE_NAME = 'Maria Example' as const;
+export const EXAMPLE_RELATED_PERSON_INACTIVE_RELATIONSHIP =
+  'http://terminology.hl7.org/CodeSystem/v3-RoleCode|NMTH' as const;
 export const EXAMPLE_HEALTHCARE_JURISDICTION = 'ES' as const;
 export const EXAMPLE_SECONDARY_HEALTHCARE_JURISDICTION = EXAMPLE_SECONDARY_EU_COUNTRY;
 export const EXAMPLE_ORGANIZATION_CONTROLLER_ROLE = 'RESPRSN' as const;
@@ -218,6 +226,17 @@ export const EXAMPLE_CONTENT_ADDRESSED_SOURCE_REFERENCE =
 export const EXAMPLE_CONTENT_ADDRESSED_EVIDENCE_RECORD_IDENTIFIER =
   'zQmXh8Y3mJQ4d7MmX7o9nP5sQ2uT1vW6xY8zA3bC4dE5fG' as const;
 export const EXAMPLE_EMPLOYEE_ACTIVATION_CODE = 'ACT-001' as const;
+export const EXAMPLE_LICENSE_OFFER_ID = 'urn:offer:family-003' as const;
+export const EXAMPLE_LICENSE_ACCEPTED_OFFER_ID = EXAMPLE_LICENSE_OFFER_ID;
+export const EXAMPLE_LICENSE_AMOUNT = '9.99' as const;
+export const EXAMPLE_LICENSE_CURRENCY = 'EUR' as const;
+export const EXAMPLE_LICENSE_PLAN_NAME = 'Family starter' as const;
+export const EXAMPLE_LICENSE_SKU = 'FAM-START' as const;
+export const EXAMPLE_LICENSE_PAYMENT_METHOD_INVOICE = 'invoice' as const;
+export const EXAMPLE_LICENSE_CHECKOUT_URL = 'https://pay.example/offer-001' as const;
+export const EXAMPLE_LICENSE_PAYMENT_URL = 'https://pay.example/invoice-001' as const;
+export const EXAMPLE_LICENSE_INVOICE_ID = 'invoice-001' as const;
+export const EXAMPLE_RELATED_PERSON_IDENTIFIER = 'rel-001' as const;
 export const EXAMPLE_DEVICE_CLIENT_ID = 'did:web:device-001' as const;
 export const EXAMPLE_LIVE_GW_BASE_URL_LOCAL = 'http://127.0.0.1:3000' as const;
 export const EXAMPLE_LIVE_GW_BASE_URL_DOCKER = 'http://127.0.0.1:8000' as const;

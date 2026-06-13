@@ -1,227 +1,179 @@
 # Lifecycle 101
 
-This document is the canonical `v1` lifecycle guide for GW, SDKs, Swagger examples, and portal/front integrations.
+This document is the entry-level lifecycle guide.
 
-If you are new, use only these three operation names:
+It is intentionally for:
+
+- frontend developers
+- portal/backend integrators
+- SDK consumers learning the domain
+
+It is intentionally not the place for current GW CORE payload wiring, route
+details, or `body.data[]` transport envelopes.
+
+Read the technical details later in:
+
+- `docs/LIFECYCLE_TECHNICAL_ROADMAP.md`
+- `docs/101-RESOURCE_IDENTIFIER_AND_OPERATIONS.md`
+- `docs/101-BUNDLE_EDITOR_READER.md`
+- `docs/101-EMPLOYEE_ENTRY_EDITOR.md`
+
+## If You Are Integrating From Front
+
+Read in this order:
+
+1. this file
+   - understand the business meaning of `enable`, `disable`, `delete`
+2. `docs/101-BUNDLE_EDITOR_READER.md`
+   - learn how to build one bundle and how to read a returned bundle
+3. one resource-specific editor guide such as:
+   - `docs/101-EMPLOYEE_ENTRY_EDITOR.md`
+   - `docs/101-INDIVIDUAL_ORGANIZATION_LIFECYCLE_EDITOR.md`
+   - `docs/101-RELATED_PERSON_EDITOR.md`
+   - `docs/101-LICENSE_OFFERS_ORDERS_AND_LISTS.md`
+   - `docs/101-CONSENT_EDITOR_AND_READBACK.md`
+   - `docs/101-CLINICAL_READ_AND_SEARCH.md`
+   - learn the chainable `set...()` / `get...()` methods for that domain
+4. `docs/101-RESOURCE_IDENTIFIER_AND_OPERATIONS.md`
+   - only when you need to understand how the built resource is later wrapped
+     into search/disable/purge style operations
+
+The intended frontend path is:
+
+- build semantic data locally with chainable editors
+- hand the built bundle or built entry to the SDK/runtime/backend layer
+- let that lower layer encapsulate/sign/submit it
+- read the returned bundle with `BundleReader` to paint the UI
+
+## Start Here
+
+When teaching lifecycle to application developers, use only these business
+ideas first:
 
 - `enable`
 - `disable`
 - `delete`
 
-Do not start with `revoke`, `suspend`, `purge`, or product-specific synonyms in public examples.
+Do not start from:
+
+- `/_disable`
+- `/_purge`
+- `request.method = POST`
+- `body.data[]`
+- `meta.claims`
+
+Those are transport details. They belong to SDK/runtime plumbing.
 
 ## What Each Operation Means
 
 ### `enable`
 
-Use `enable` when the identity already exists and must become active again.
+Use `enable` when an existing identity or record must become active again.
 
-Examples:
+Typical examples:
 
-- reactivate an `employee` with the same `email + role`
-- reactivate a `tenant` with the same `taxId`
-- reactivate an `individual` after a local suspension
-- reactivate a previously disabled `consent`
+- reactivate an employee with the same role
+- reactivate an individual context after a temporary suspension
+- reactivate a consent that should grant access again
 
 ### `disable`
 
-Use `disable` when the record must remain auditable but operationally suspended.
+Use `disable` when the record must stop being operational but must remain
+auditable.
 
-Examples:
+Typical examples:
 
-- suspend an `employee` without deleting history
-- suspend a `tenant` without purging its trace
-- suspend an `individual` without erasing all records
-- suspend a `consent` so it no longer grants access
+- suspend an employee without erasing history
+- suspend an individual/family record without deleting all trace
+- suspend a consent so it stops granting access
 
-Important `v1` rule:
+Important rule:
 
-- `disable` does **not** automatically release the reserved employee license seat
-- `disable` does **not** mean VC revocation by itself
-- authoritative VC suspension/revocation still belongs to ICA + ledger `credentialStatus`
+- `disable` is not the same thing as VC revocation
+- `disable` does not automatically mean license release
 
 ### `delete`
 
-Use `delete` when the business/legal intent is real deletion, not just suspension.
+Use `delete` when the business/legal intent is removal, not just suspension.
 
-Examples:
+Typical examples:
 
-- `individual`: right to be forgotten or equivalent privacy workflow
-- `consent`: delete when your legal model requires removal instead of simple suspension
-- `employee` and `tenant`: exceptional flow, usually not the first business operation
+- privacy-driven deletion workflow for an individual
+- consent removal when suspension is not enough
+- exceptional cleanup flows
 
-Important `v1` rule:
+Important rule:
 
-- `delete` does not have to mean immediate physical purge in every backend
-- retention, legal hold, and minimum audit trail may still apply
+- `delete` does not force one immediate physical storage purge in every backend
+- retention and audit obligations may still apply
 
-## Copy/Paste Placeholders
+## Mental Model By Domain
 
-Use these placeholders in examples, Swagger docs, and tutorials instead of personal data:
+### Employee
 
-```json
-{
-  "tenantId": "acme-id",
-  "tenantTaxId": "{{tenantTaxId}}",
-  "tenantDid": "{{tenantDid}}",
-  "employeeIdentifier": "{{employeeIdentifier}}",
-  "employeeEmail": "{{employeeEmail}}",
-  "employeeRole": "{{employeeRole}}",
-  "individualIdentifier": "{{individualIdentifier}}",
-  "individualAlternateName": "{{individualAlternateName}}",
-  "individualSubjectDid": "{{individualSubjectDid}}",
-  "consentIdentifier": "{{consentIdentifier}}",
-  "consentActorIdentifier": "{{consentActorIdentifier}}",
-  "deleteReason": "{{deleteReason}}",
-  "icaCredentialStatus": "{{icaCredentialStatus}}"
-}
-```
+- create or reactivate the employee identity
+- disable if the person should stop operating
+- delete/purge only when the business/legal flow really requires it
 
-## Employee Examples
+### Individual organization
 
-### Enable employee
+- start the individual/family organization
+- confirm the returned order/offer
+- disable when the hosted subject context must stop operating
+- delete/purge only when the privacy/legal workflow requires it
 
-```json
-{
-  "operation": "enable",
-  "resourceType": "Employee",
-  "routeContext": {
-    "tenantId": "acme-id",
-    "jurisdiction": "ES",
-    "sector": "health-care"
-  },
-  "claims": {
-    "@context": "org.schema",
-    "org.schema.Person.identifier": "{{employeeIdentifier}}",
-    "org.schema.Person.email": "{{employeeEmail}}",
-    "org.schema.Person.hasOccupation.identifier.value": "{{employeeRole}}"
-  }
-}
-```
+### Related person
 
-### Disable employee
+- this is not the same as employee lifecycle
+- it models caregiver/guardian/family relationship records
+- its lifecycle must stay separate from the individual organization lifecycle
 
-```json
-{
-  "operation": "disable",
-  "resourceType": "Employee",
-  "routeContext": {
-    "tenantId": "acme-id",
-    "jurisdiction": "ES",
-    "sector": "health-care"
-  },
-  "claims": {
-    "@context": "org.schema",
-    "org.schema.Person.identifier": "{{employeeIdentifier}}",
-    "org.schema.Person.email": "{{employeeEmail}}",
-    "org.schema.Person.hasOccupation.identifier.value": "{{employeeRole}}"
-  }
-}
-```
+### Consent
 
-### Delete employee
+- consent lifecycle is about whether access is currently granted
+- it is not the same as employee lifecycle or subject lifecycle
 
-```json
-{
-  "operation": "delete",
-  "resourceType": "Employee",
-  "routeContext": {
-    "tenantId": "acme-id",
-    "jurisdiction": "ES",
-    "sector": "health-care"
-  },
-  "claims": {
-    "@context": "org.schema",
-    "org.schema.Person.identifier": "{{employeeIdentifier}}",
-    "org.schema.Person.email": "{{employeeEmail}}",
-    "org.schema.Person.hasOccupation.identifier.value": "{{employeeRole}}"
-  },
-  "deleteReason": "{{deleteReason}}"
-}
-```
+## What Frontend Developers Usually Need
 
-## Tenant Examples
+A frontend developer usually needs to understand:
 
-### Disable tenant
+- what business action they are triggering
+- whether the action is reversible
+- whether it affects access immediately
+- whether it releases licenses or not
+- whether the result is expected to stay visible in history
 
-```json
-{
-  "operation": "disable",
-  "resourceType": "Organization",
-  "routeContext": {
-    "tenantId": "host",
-    "jurisdiction": "ES",
-    "sector": "health-care"
-  },
-  "claims": {
-    "@context": "org.schema",
-    "org.schema.Organization.identifier.value": "{{tenantTaxId}}",
-    "org.schema.Organization.taxID": "{{tenantTaxId}}",
-    "org.schema.Organization.identifier": "{{tenantDid}}"
-  }
-}
-```
+They usually do not need to know:
 
-## Individual Examples
+- the current GW route name
+- the exact payload envelope
+- how submit/poll is wired
+- where claims are normalized
 
-### Delete individual
+## Source Of Truth Split
 
-This is the place where privacy workflows such as right to be forgotten typically belong.
+Use this split consistently:
 
-```json
-{
-  "operation": "delete",
-  "resourceType": "IndividualOrganization",
-  "routeContext": {
-    "tenantId": "acme-id",
-    "jurisdiction": "ES",
-    "sector": "health-care"
-  },
-  "claims": {
-    "@context": "org.schema",
-    "org.schema.Organization.identifier": "{{individualIdentifier}}",
-    "org.schema.Organization.alternateName": "{{individualAlternateName}}",
-    "org.schema.Organization.owner.email": "ana.parent@example.org"
-  },
-  "deleteReason": "right-to-be-forgotten"
-}
-```
+- `101-LIFECYCLE.md`
+  - business meaning
+  - actor/use-case explanation
+  - frontend/integrator mental model
+- technical shared helpers in `src/utils/...`
+  - builders/editors/readers
+  - reusable examples
+  - canonical test fixtures
+- runtime SDK docs
+  - current GW route/path behavior
+  - submit/poll plumbing
+  - live integration notes
 
-## Consent Examples
+## Practical Rule
 
-### Disable consent
+If a lifecycle explanation starts looking like transport wiring, it probably
+does not belong in this `101` guide.
 
-```json
-{
-  "operation": "disable",
-  "resourceType": "Consent",
-  "routeContext": {
-    "tenantId": "acme-id",
-    "jurisdiction": "ES",
-    "sector": "health-care"
-  },
-  "claims": {
-    "@context": "org.hl7.fhir.api",
-    "Consent.identifier": "{{consentIdentifier}}",
-    "Consent.subject": "{{individualSubjectDid}}",
-    "Consent.actor-identifier": "{{consentActorIdentifier}}",
-    "Consent.actor-role": "ISCO-08|2211",
-    "Consent.purpose": "TREAT",
-    "Consent.action": "LOINC|48765-2",
-    "Consent.decision": "permit"
-  }
-}
-```
+Move that detail to:
 
-## Source Of Truth
-
-These examples are exported from:
-
-- `gdc-common-utils-ts/examples/lifecycle`
-
-Other repositories should import and reuse them instead of copying payloads by hand:
-
-- `gwtemplate-node-ts`
-- `gdc-sdk-core-ts`
-- `gdc-sdk-node-ts`
-- `gdc-sdk-front-ts`
+- shared helper docs
+- runtime integration docs
+- tests/examples close to the code

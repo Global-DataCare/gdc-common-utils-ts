@@ -25,3 +25,4 @@ export * from './verifiable-credentials';
 export * from './identity-gender';
 export * from './identity-identifiers';
 export * from './individual-sections';
+export * from './lifecycle';

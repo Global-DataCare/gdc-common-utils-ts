@@ -120,13 +120,36 @@ export class BundleEditor {
   private allowedResourceType: AllowedResourceType | null = null;
   private readonly entries: BuiltBundleEntry[] = [];
 
-  /** Declares which business operation this bundle is staging. */
+  /**
+   * Declares which business action this in-memory bundle is staging.
+   *
+   * Important distinction:
+   * - this is **not** the same concept as FHIR `Bundle.entry.request.method`
+   * - this is the higher-level action the editor is helping to assemble, for
+   *   example `create`, `search`, `disable`, or `purge`
+   * - the lower-level transport/request method may later be derived from that
+   *   action, and may differ by backend contract
+   *
+   * Example:
+   * - bundle operation `disable`
+   * - current employee GW contract -> inner `entry.request.method = DELETE`
+   * - current individual organization GW contract -> explicit `/_disable`
+   *   route with inner `entry.request.method = POST`
+   */
   public setBundleOperation(operation: BundleOperation): this {
     this.bundleOperation = operation;
     return this;
   }
 
-  /** Returns the current business operation assigned to the bundle. */
+  /**
+   * Returns the current high-level business action assigned to the bundle.
+   *
+   * Read this as:
+   * - "what am I trying to do?"
+   *
+   * not as:
+   * - "which HTTP/FHIR request method will the final entry use?"
+   */
   public getBundleOperation(): BundleOperation | null {
     return this.bundleOperation;
   }
