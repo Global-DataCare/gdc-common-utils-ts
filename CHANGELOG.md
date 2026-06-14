@@ -2,6 +2,22 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [1.24.1] - 2026-06-14
+
+### Changed
+- Extended the shared confidential-storage contract with lightweight public
+  runtime metadata that can stay outside encrypted `content` when a runtime
+  needs safe lookup or lifecycle hints without hydrating the protected JWE:
+  - `AuditInfo.disposition`
+  - `PublicInfo`
+  - `ConfidentialStorageDoc.public`
+- Documented the intended use of that public projection directly in the shared
+  model JSDoc so downstream runtimes do not treat it as a second canonical
+  payload and only use it for deployment-safe routing/gating markers.
+
+### Testing
+- `npm version 1.24.1 --no-git-tag-version`
+
 ## [1.24.0] - 2026-06-13
 
 ### Added

@@ -45,12 +45,46 @@ export interface AuditInfo {
   updated?: string;
   /** True if removed/deactivated (deactivation time is typically `updated`). */
   deactivated?: boolean;
+  /**
+   * Optional lightweight lifecycle disposition copied outside encrypted
+   * content, for example `purged`.
+   */
+  disposition?: string;
   /** Name of the channel/network where the data is audited/anchored. */
   channel?: string;
   /** Base58/Base64Url transaction identifier, depending on the attestation layer. */
   txId?: string;
   /** Transaction timestamp (ISO 8601). */
   txTime?: string;
+}
+
+/**
+ * Public runtime projection kept outside encrypted `content`.
+ *
+ * These values are not the canonical business payload. They are copied or
+ * generated from the protected content so runtime flows can answer lightweight
+ * queries without hydrating the confidential JWE blob.
+ *
+ * Rules:
+ * - Keep this object strictly minimal.
+ * - Only place data here when it is intentionally public or deployment-safe.
+ * - Never treat these fields as the source of truth if the encrypted content
+ *   carries the canonical value.
+ */
+export interface PublicInfo {
+  /**
+   * Optional lightweight role or technical marker copied outside encrypted
+   * content for routing, gating, or lifecycle inspection.
+   *
+   * This is a convenience projection for lookup. The canonical role still
+   * belongs to the protected business payload and/or indexed attributes.
+   *
+   * Example:
+   * - hosting may copy a synthetic bootstrap-controller marker here so tenant
+   *   lifecycle scans can ignore that technical employee without hydrating the
+   *   confidential JWE payload.
+   */
+  role?: string;
 }
 
 /**
@@ -181,6 +215,20 @@ export interface ConfidentialStorageDoc {
 
     /** Policy-dependent research/analytics metadata, kept outside encrypted `content`. */
     research?: ResearchInfo;
+
+    /**
+     * Optional public runtime projection copied or generated for lightweight
+     * reads outside encrypted `content`.
+     *
+     * This object is intended for lookup, routing, and operational gating.
+     * It must not become a second canonical payload.
+     *
+     * Typical usage:
+     * - copy a small public or deployment-safe value out of protected content
+     * - or generate a technical marker needed for lightweight runtime scans
+     * - never treat this object as the source of truth for business semantics
+     */
+    public?: PublicInfo;
 }
 
 /**
