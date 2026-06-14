@@ -87,6 +87,32 @@ export interface IndexedData {
  * This is the canonical format for all documents persisted in a vault.
  * @see https://identity.foundation/confidential-storage/#structureddocument
  */
+export interface ConfidentialBlobInfo {
+    /**
+     * Logical provider label used by the deployment.
+     * Examples: `gcs`, `supabase`, `mem`, `mongodb`.
+     */
+    provider?: string;
+
+    /**
+     * Canonical blob identifier inside the blob store.
+     * In current adapters this is the deterministic multihash-derived object key.
+     */
+    blobRef: string;
+
+    /**
+     * Optional URL or provider-specific locator kept for diagnostics and migration.
+     * The repository should not rely exclusively on this field for reads.
+     */
+    locator?: string;
+
+    /**
+     * MIME type of the blob payload stored outside the index database.
+     * For persisted confidential JWE documents this should normally be `application/jose+json`.
+     */
+    contentType?: string;
+}
+
 export interface ConfidentialStorageDoc {
     // 'id' is inherited from RecordBase
     id: string;
@@ -112,8 +138,22 @@ export interface ConfidentialStorageDoc {
     /** The main, potentially encrypted, content of the document. */
     content?: Record<string, any>;
 
-    /** The JWE representation of the encrypted content. It could be a URL in case of a bucket is used to store the JWE or chunks */
+    /**
+     * Inline JWE representation of the encrypted content.
+     *
+     * Keep this field only for in-memory workflows or backends that intentionally persist
+     * the protected payload inline. Index-oriented repositories such as Firestore or
+     * PostgreSQL should externalize this payload into `blob` before persistence.
+     */
     jwe?: Record<string, any>;
+
+    /**
+     * Pointer to an external confidential blob that stores the serialized JWE payload.
+     *
+     * This field allows index repositories to keep searchable metadata in the database
+     * while placing large encrypted payloads in a dedicated blob backend.
+     */
+    blob?: ConfidentialBlobInfo;
 
     /**
      * Document-level created timestamp (outside encrypted `content`).

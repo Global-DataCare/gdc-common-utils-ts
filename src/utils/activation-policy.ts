@@ -1,17 +1,38 @@
+import {
+  parseServiceCategories,
+  parseServiceTypeClaims,
+} from './dataspace-discovery';
+
 export type ActivationRepresentativePolicyErrorCode =
   | 'MISSING_REPRESENTATIVE_DID_WEB'
   | 'MISSING_REPRESENTATIVE_ROLE_RESPRSN'
   | 'MISSING_REPRESENTATIVE_CREDENTIAL_BINDING'
   | 'REPRESENTATIVE_TAXID_MISMATCH';
 
+export type ActivationServiceAuthorizationPolicyErrorCode =
+  | 'MISSING_ORGANIZATION_SERVICE_CATEGORY'
+  | 'MISSING_ORGANIZATION_SERVICE_TYPE'
+  | 'UNAUTHORIZED_ORGANIZATION_SERVICE_CATEGORY'
+  | 'UNAUTHORIZED_ORGANIZATION_SERVICE_TYPE';
+
 export type ActivationRepresentativePolicyError = {
   code: ActivationRepresentativePolicyErrorCode;
+  message: string;
+};
+
+export type ActivationServiceAuthorizationPolicyError = {
+  code: ActivationServiceAuthorizationPolicyErrorCode;
   message: string;
 };
 
 function asObject(value: unknown): Record<string, unknown> | undefined {
   if (!value || typeof value !== 'object') return undefined;
   return value as Record<string, unknown>;
+}
+
+function getCredentialSubjectMakesOffer(credential: unknown): Record<string, unknown> | undefined {
+  const subject = extractCredentialSubject(credential);
+  return asObject(subject?.makesOffer);
 }
 
 /**
@@ -162,6 +183,110 @@ export function extractDidWebFromCredential(credential: unknown): string | undef
   const subject = extractCredentialSubject(obj);
   const didCandidate = String(subject?.id || obj.id || '').trim();
   return didCandidate.startsWith('did:web:') ? didCandidate : undefined;
+}
+
+/**
+ * Extracts the categories authorized by an ICA-issued organization credential.
+ *
+ * Canonical contract:
+ * - `credentialSubject.makesOffer.category`
+ *
+ * Compatibility fallback:
+ * - `credentialSubject.category`
+ *
+ * Host/operator credentials may authorize every business sector by publishing
+ * `*` in the category list.
+ */
+export function extractAuthorizedServiceCategoriesFromCredential(
+  organizationCredential: unknown,
+): string[] {
+  const subject = extractCredentialSubject(organizationCredential) || {};
+  const makesOffer = getCredentialSubjectMakesOffer(organizationCredential) || {};
+  return parseServiceCategories(makesOffer.category ?? subject.category);
+}
+
+/**
+ * Extracts the service capability tokens authorized by an ICA-issued
+ * organization credential.
+ *
+ * Canonical contract:
+ * - `credentialSubject.makesOffer.serviceType`
+ *
+ * Compatibility fallbacks:
+ * - `credentialSubject.serviceType`
+ * - `credentialSubject.additionalType`
+ * - `credentialSubject.makesOffer.additionalType`
+ */
+export function extractAuthorizedServiceTypesFromCredential(
+  organizationCredential: unknown,
+): string[] {
+  const subject = extractCredentialSubject(organizationCredential) || {};
+  const makesOffer = getCredentialSubjectMakesOffer(organizationCredential) || {};
+  return parseServiceTypeClaims(
+    makesOffer.serviceType ?? subject.serviceType,
+    makesOffer.additionalType ?? subject.additionalType,
+  );
+}
+
+/**
+ * Validates that the ICA-issued organization credential authorizes the sector
+ * and service capability that GW is about to activate/publish.
+ *
+ * Contract:
+ * - `requiredCategory` must be present in
+ *   `credentialSubject.makesOffer.category`
+ * - `*` authorizes any requested category
+ * - every `requiredServiceType` must be present in the credential capability set
+ * - a missing authorization dimension is treated as a hard error because GW
+ *   must not activate or publish an unsupported operator/provider profile
+ */
+export function validateActivationServiceAuthorizationPolicy(input: {
+  organizationCredential?: unknown;
+  requiredCategory?: string;
+  requiredServiceTypes?: ReadonlyArray<string | undefined | null>;
+}): ActivationServiceAuthorizationPolicyError[] {
+  const errors: ActivationServiceAuthorizationPolicyError[] = [];
+  const authorizedCategories = extractAuthorizedServiceCategoriesFromCredential(input.organizationCredential);
+  const authorizedServiceTypes = extractAuthorizedServiceTypesFromCredential(input.organizationCredential);
+  const requiredCategory = String(input.requiredCategory || '').trim();
+  const requiredServiceTypes = Array.from(new Set(
+    (input.requiredServiceTypes || [])
+      .map((value) => String(value || '').trim())
+      .filter(Boolean),
+  ));
+
+  if (requiredCategory) {
+    if (!authorizedCategories.length) {
+      errors.push({
+        code: 'MISSING_ORGANIZATION_SERVICE_CATEGORY',
+        message: 'ICA-issued organization credential is missing credentialSubject.makesOffer.category authorization.',
+      });
+    } else if (!authorizedCategories.includes(requiredCategory) && !authorizedCategories.includes('*')) {
+      errors.push({
+        code: 'UNAUTHORIZED_ORGANIZATION_SERVICE_CATEGORY',
+        message: `ICA-issued organization credential does not authorize service category '${requiredCategory}'.`,
+      });
+    }
+  }
+
+  if (requiredServiceTypes.length) {
+    if (!authorizedServiceTypes.length) {
+      errors.push({
+        code: 'MISSING_ORGANIZATION_SERVICE_TYPE',
+        message: 'ICA-issued organization credential is missing credentialSubject.makesOffer.serviceType authorization.',
+      });
+    } else {
+      const unauthorized = requiredServiceTypes.filter((serviceType) => !authorizedServiceTypes.includes(serviceType));
+      if (unauthorized.length > 0) {
+        errors.push({
+          code: 'UNAUTHORIZED_ORGANIZATION_SERVICE_TYPE',
+          message: `ICA-issued organization credential does not authorize serviceType '${unauthorized[0]}'.`,
+        });
+      }
+    }
+  }
+
+  return errors;
 }
 
 /**

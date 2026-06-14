@@ -7,6 +7,8 @@ import {
   W3cCredentialTypes,
 } from '../constants/verifiable-credentials';
 import { UrnPrefixes } from '../constants/urn';
+import { ServiceCapability } from '../constants/service-capabilities';
+import { DataspaceSectors } from '../constants/sectors';
 
 /**
  * Shared synthetic ICA activation-proof fixtures reused by docs/tests.
@@ -36,6 +38,10 @@ export const EXAMPLE_PRESENTATION_AUDIENCE_HOST_ID = 'host:node-operator-es' as 
 export const EXAMPLE_ORGANIZATION_TAX_ID = 'ESB00112233' as const;
 export const EXAMPLE_REPRESENTATIVE_ROLE_CODE = 'RESPRSN' as const;
 export const EXAMPLE_ORGANIZATION_ID = EXAMPLE_ORGANIZATION_TAX_ID;
+export const EXAMPLE_ACTIVATION_AUTHORIZED_CATEGORY = DataspaceSectors.HealthCare;
+export const EXAMPLE_ACTIVATION_AUTHORIZED_SERVICE_TYPE = ServiceCapability.IndexProvider;
+export const EXAMPLE_HOST_ACTIVATION_AUTHORIZED_CATEGORY = 'system' as const;
+export const EXAMPLE_HOST_ACTIVATION_AUTHORIZED_SERVICE_TYPE = ServiceCapability.OrganizationRegistryProvider;
 
 export const EXAMPLE_ORG_ACTIVATION_ORGANIZATION_CREDENTIAL = Object.freeze({
   '@context': [W3cCredentialContexts.V2, 'https://schema.org'],
@@ -46,6 +52,10 @@ export const EXAMPLE_ORG_ACTIVATION_ORGANIZATION_CREDENTIAL = Object.freeze({
   credentialSubject: {
     id: EXAMPLE_ORGANIZATION_ID,
     taxID: EXAMPLE_ORGANIZATION_TAX_ID,
+    makesOffer: {
+      category: EXAMPLE_ACTIVATION_AUTHORIZED_CATEGORY,
+      serviceType: EXAMPLE_ACTIVATION_AUTHORIZED_SERVICE_TYPE,
+    },
   },
 });
 

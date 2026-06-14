@@ -6,6 +6,34 @@ import { encodeMultibaseSha384 } from './multibasehash';
 import { HL7_CLAIMS_CODING_SYSTEM, HL7_DEFAULT_ROLE_HEALTH } from '../constants/hl7-roles';
 
 /**
+ * Canonical DID path markers for hosted/provider individual identities.
+ *
+ * These markers are intentionally centralized because both SDKs and backend
+ * repositories parse them heuristically in tests and route helpers.
+ */
+export const IndividualDidMarkers = {
+  Individual: 'individual',
+  Multibase: 'multibase',
+  Member: 'member',
+  Role: 'role',
+} as const;
+
+/**
+ * Removes any coding-system prefix from a role claim when building a member DID.
+ *
+ * Example:
+ * - `v3-RoleCode|RESPRSN` -> `RESPRSN`
+ * - `ISCO-08|2211` -> `2211`
+ * - `ONESELF` -> `ONESELF`
+ */
+export function toDidMemberRoleCode(role: string): string {
+  const normalized = String(role || '').trim();
+  if (!normalized) throw new Error('toDidMemberRoleCode requires role.');
+  const parts = normalized.split('|');
+  return String(parts[parts.length - 1] || '').trim();
+}
+
+/**
  * Generates a DID Service ID fragment from a selector object.
  * The format is always `#<section>:<format>:<resourceType>:<action>`.
  *
@@ -97,6 +125,47 @@ export function createHostedDidWeb(
   // The path in a did:web uses colons as separators.
   const didPath = `cds-${context.jurisdiction}:${context.version}:${context.sector}`;
   return `did:web:${hostPart}:${tenantId}:${didPath}`;
+}
+
+/**
+ * Builds the canonical hosted provider DID root used by hosted tenant services.
+ *
+ * Canonical form:
+ * `did:web:<host.domain>:<sector>;organization:taxid:<provider-tax-id>`
+ *
+ * This is the provider-scoped DID root under which hosted individual and member
+ * identities are published. Downstream individual DIDs extend this root with
+ * `:individual:multibase:<individualId>`.
+ */
+export function buildHostedProviderDidWeb(input: {
+  hostDomain: string;
+  sector: string;
+  providerTaxId: string;
+}): string {
+  const hostDomain = String(input.hostDomain || '').trim().toLowerCase();
+  const sector = String(input.sector || '').trim().toLowerCase();
+  const providerTaxId = String(input.providerTaxId || '').trim();
+  if (!hostDomain) throw new Error('buildHostedProviderDidWeb requires hostDomain.');
+  if (!sector) throw new Error('buildHostedProviderDidWeb requires sector.');
+  if (!providerTaxId) throw new Error('buildHostedProviderDidWeb requires providerTaxId.');
+  return `did:web:${hostDomain}:${sector};organization:taxid:${providerTaxId}`;
+}
+
+/**
+ * Builds the canonical public provider DID root used by an external provider domain.
+ *
+ * Canonical form:
+ * `did:web:<sector.provider.domain>`
+ *
+ * This is the external DID root that may later publish hosted DID artifacts for
+ * the same subject identity.
+ */
+export function buildProviderSectorDidWeb(input: {
+  providerSectorDomain: string;
+}): string {
+  const providerSectorDomain = String(input.providerSectorDomain || '').trim().toLowerCase();
+  if (!providerSectorDomain) throw new Error('buildProviderSectorDidWeb requires providerSectorDomain.');
+  return `did:web:${providerSectorDomain}`;
 }
 
 
@@ -225,30 +294,62 @@ export function buildProfessionalDidWeb(input: {
 }
 
 /**
- * Builds an individual/family DID under a hosted organization DID.
+ * Builds the canonical individual DID under either a hosted-provider DID root
+ * or an external provider-sector DID root.
  *
- * `subjectId` should already be a stable logical subject identifier. If no
- * relationship role is provided, the health-sector default (`ONESELF`) is used.
+ * Canonical supported forms:
+ * - hosted:
+ *   `did:web:<host.domain>:<sector>;organization:taxid:<provider-tax-id>:individual:multibase:<individualId>`
+ * - external/provider-domain:
+ *   `did:web:<sector.provider.domain>:individual:multibase:<individualId>`
  *
- * @param input.organizationDidWeb Canonical hosted organization DID.
- * @param input.subjectId Stable logical subject identifier.
- * @param input.relationshipRole Optional HL7 relationship role claim.
- * @param input.deviceId Optional per-device suffix for device-bound identities.
+ * Important semantics:
+ * - `individualId` must be the canonical stable identity of the individual
+ * - `individualId` should already be serialized in multibase form, typically
+ *   `zBase58(UUID-bytes)`
+ * - role is not part of the canonical individual DID; roles are only appended
+ *   in member DIDs via `:member:role:<role-code-no-coding-system>`
+ *
+ * Backward-compatibility:
+ * - `subjectId` is accepted as a legacy alias for `individualId`
  */
 export function buildIndividualDidWeb(input: {
-  organizationDidWeb: string;
-  subjectId: string;
-  relationshipRole?: string;
-  deviceId?: string;
+  providerDidWeb: string;
+  individualId?: string;
+  subjectId?: string;
 }): string {
-  const subjectId = String(input.subjectId || '').trim();
-  if (!subjectId) throw new Error('buildIndividualDidWeb requires subjectId.');
-  const role = String(input.relationshipRole || `${HL7_CLAIMS_CODING_SYSTEM}|${HL7_DEFAULT_ROLE_HEALTH}`).trim();
+  const providerDidWeb = String(input.providerDidWeb || '').trim();
+  const individualId = String(input.individualId || input.subjectId || '').trim();
+  if (!providerDidWeb) throw new Error('buildIndividualDidWeb requires providerDidWeb.');
+  if (!individualId) throw new Error('buildIndividualDidWeb requires individualId.');
   return [
-    String(input.organizationDidWeb).trim(),
-    'family',
-    subjectId,
-    role,
-    input.deviceId ? String(input.deviceId).trim() : undefined,
+    providerDidWeb,
+    IndividualDidMarkers.Individual,
+    IndividualDidMarkers.Multibase,
+    individualId,
   ].filter(Boolean).join(':');
+}
+
+/**
+ * Builds the canonical member DID under an individual DID.
+ *
+ * Canonical form:
+ * `did:web:...:individual:multibase:<individualId>:member:role:<role-code-no-coding-system>`
+ *
+ * The DID suffix intentionally strips coding-system prefixes because the DID is
+ * a compact routing/identity string, while the full coded role still belongs in
+ * the claims layer.
+ */
+export function buildIndividualMemberDidWeb(input: {
+  individualDidWeb: string;
+  role: string;
+}): string {
+  const individualDidWeb = String(input.individualDidWeb || '').trim();
+  if (!individualDidWeb) throw new Error('buildIndividualMemberDidWeb requires individualDidWeb.');
+  return [
+    individualDidWeb,
+    IndividualDidMarkers.Member,
+    IndividualDidMarkers.Role,
+    toDidMemberRoleCode(input.role),
+  ].join(':');
 }

@@ -2,6 +2,71 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [1.24.0] - 2026-06-13
+
+### Added
+- Added canonical actor-capability documentation and metadata helpers in:
+  - `src/constants/actor-session.ts`
+  - `__tests__/actor-session-capabilities.test.ts`
+- Added canonical data-authorization capability vocabulary and examples in:
+  - `src/constants/data-capabilities.ts`
+  - `__tests__/data-capabilities.test.ts`
+- Added activation-policy authorization helpers for ICA-issued service
+  `category` and `serviceType` checks in:
+  - `src/utils/activation-policy.ts`
+  - `src/examples/ica-activation-proof.ts`
+  - `__tests__/utils-activation-policy.test.ts`
+- Added hosted provider, provider-sector, individual, and member DID helpers in:
+  - `src/utils/did.ts`
+  - `__tests__/utils-did-extra.test.ts`
+  - `__tests__/utils-did-resolution.test.ts`
+- Added confidential-storage blob persistence contracts, hydration helpers, and
+  deterministic fixtures in:
+  - `src/models/confidential-storage.ts`
+  - `src/utils/confidential-storage-persistence.ts`
+  - `src/utils/confidential-storage-test-data.ts`
+  - `__tests__/confidential-storage-persistence.test.ts`
+  - `__tests__/confidential-storage-test-data.test.ts`
+- Added family-registration test-data builders and deep undefined sanitization
+  helpers in:
+  - `src/utils/family-registration-test-data.ts`
+  - `src/utils/object-sanitize.ts`
+  - `__tests__/family-registration-test-data.test.ts`
+  - `__tests__/object-sanitize.test.ts`
+- Added tenant lifecycle request constants and organization-registry service
+  capability tokens in:
+  - `src/constants/lifecycle.ts`
+  - `src/constants/service-capabilities.ts`
+  - `src/examples/lifecycle.ts`
+  - `__tests__/service-capabilities.test.ts`
+
+### Changed
+- Renamed host capability tokens to the canonical `Hosting...` family, expanded
+  tenant and host lifecycle capabilities, and exposed shared per-capability
+  programming hints in:
+  - `src/constants/actor-session.ts`
+- Aligned related-person claims and readers around the canonical
+  `RelatedPerson.identifier.value` key while keeping the legacy
+  `RelatedPerson.identifier` alias for backward compatibility in:
+  - `src/models/interoperable-claims/related-person-claims.ts`
+  - `src/claims/claims-helpers-related-person.ts`
+  - `src/utils/related-person-list.ts`
+  - `src/examples/related-person.ts`
+  - `__tests__/101-related-person-list-reader.test.ts`
+- Clarified interoperable claim examples so Observation and Invoice subject
+  references use the new hosted individual DID shape in:
+  - `src/models/interoperable-claims/observation-claims.ts`
+  - `src/models/interoperable-claims/invoice-claims.ts`
+- Re-exported the new persistence, test-data, and sanitization helpers from the
+  public utils surface in:
+  - `src/utils/index.ts`
+  - `src/constants/index.ts`
+
+### Testing
+- `npm run typecheck`
+- `npm test -- --watchman=false`
+- `npm run build`
+
 ## [1.23.0] - 2026-06-13
 
 ### Added

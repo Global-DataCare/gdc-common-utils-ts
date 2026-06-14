@@ -3,9 +3,12 @@ import {
   buildMemberDidWeb,
   extractDidWebFromCredential,
   isMemberDidWebUnderOwner,
+  validateActivationServiceAuthorizationPolicy,
   validateActivationRepresentativePolicy,
 } from '../src/utils/activation-policy';
 import {
+  EXAMPLE_ACTIVATION_AUTHORIZED_CATEGORY,
+  EXAMPLE_ACTIVATION_AUTHORIZED_SERVICE_TYPE,
   EXAMPLE_ORGANIZATION_TAX_ID,
   EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID,
   EXAMPLE_ORG_ACTIVATION_LEGAL_REPRESENTATIVE_CREDENTIAL,
@@ -94,5 +97,47 @@ describe('Activation Policy Utils', () => {
     expect(extractDidWebFromCredential(representativeCredential)).toBe(
       'did:web:provider.example:organization:taxid:ESB00112233:member:zabc:RESPRSN',
     );
+  });
+
+  it('validates service category and serviceType authorization from the organization credential', () => {
+    const errors = validateActivationServiceAuthorizationPolicy({
+      organizationCredential,
+      requiredCategory: EXAMPLE_ACTIVATION_AUTHORIZED_CATEGORY,
+      requiredServiceTypes: [EXAMPLE_ACTIVATION_AUTHORIZED_SERVICE_TYPE],
+    });
+    expect(errors).toHaveLength(0);
+  });
+
+  it('reports missing or unauthorized service category and serviceType authorization', () => {
+    const errors = validateActivationServiceAuthorizationPolicy({
+      organizationCredential: {
+        credentialSubject: {
+          id: EXAMPLE_ORGANIZATION_TAX_ID,
+        },
+      },
+      requiredCategory: EXAMPLE_ACTIVATION_AUTHORIZED_CATEGORY,
+      requiredServiceTypes: [EXAMPLE_ACTIVATION_AUTHORIZED_SERVICE_TYPE],
+    });
+    expect(errors.map((error) => error.code)).toEqual([
+      'MISSING_ORGANIZATION_SERVICE_CATEGORY',
+      'MISSING_ORGANIZATION_SERVICE_TYPE',
+    ]);
+  });
+
+  it('accepts wildcard category authorization for host-style credentials', () => {
+    const errors = validateActivationServiceAuthorizationPolicy({
+      organizationCredential: {
+        credentialSubject: {
+          id: EXAMPLE_ORGANIZATION_TAX_ID,
+          makesOffer: {
+            category: '*',
+            serviceType: [EXAMPLE_ACTIVATION_AUTHORIZED_SERVICE_TYPE],
+          },
+        },
+      },
+      requiredCategory: EXAMPLE_ACTIVATION_AUTHORIZED_CATEGORY,
+      requiredServiceTypes: [EXAMPLE_ACTIVATION_AUTHORIZED_SERVICE_TYPE],
+    });
+    expect(errors).toHaveLength(0);
   });
 });

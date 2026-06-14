@@ -149,7 +149,7 @@ export function getSmartTokenEndpoint(didDocument: DidDocument): string | undefi
  * uses the current data-space member suffix conventions.
  */
 export function getOrganizationDidFromIndividualDid(did: string): string {
-  const markers = [':family:', ':employee:', ':member:'];
+  const markers = [':individual:multibase:', ':employee:', ':member:'];
   for (const marker of markers) {
     const index = did.indexOf(marker);
     if (index > -1) {
@@ -180,8 +180,8 @@ export function getActorKindFromDid(did: string): ActorKind | 'unknown' {
       ? ActorKinds.OrganizationController
       : ActorKinds.Professional;
   }
-  if (normalized.includes(':family:') || normalized.includes(':member:')) {
-    return normalized.includes('oneself') || normalized.includes('controller')
+  if (normalized.includes(':individual:multibase:') || normalized.includes(':member:role:')) {
+    return normalized.includes(':member:role:oneself') || normalized.includes('controller')
       ? ActorKinds.IndividualController
       : ActorKinds.IndividualMember;
   }

@@ -42,7 +42,7 @@ export const EXAMPLE_RELATED_PERSON_DISPLAY_NAME = EXAMPLE_RELATED_PERSON_ACTIVE
 export const EXAMPLE_RELATED_PERSON_DISABLE_INPUT = {
   memberClaims: {
     '@context': EXAMPLE_INTEROPERABLE_CONTEXT_FHIR_API,
-    [RelatedPersonClaim.Identifier]: EXAMPLE_RELATED_PERSON_IDENTIFIER,
+    [RelatedPersonClaim.IdentifierValue]: EXAMPLE_RELATED_PERSON_IDENTIFIER,
     [RelatedPersonClaim.Patient]: EXAMPLE_SUBJECT_DID,
     [RelatedPersonClaim.Telecom]: `mailto:${EXAMPLE_EMAIL_RELATED_PERSON}`,
     [RelatedPersonClaim.Relationship]: EXAMPLE_RELATED_PERSON_ROLE,
@@ -57,8 +57,8 @@ export const EXAMPLE_RELATED_PERSON_DISABLE_INPUT = {
 export const EXAMPLE_RELATED_PERSON_DISABLE_LIFECYCLE_RESOURCE =
   createInteroperableResourceOperationEditor()
     .setResourceType(EXAMPLE_RELATED_PERSON_RESOURCE_TYPE)
-    .setIdentifierClaimKey(RelatedPersonClaim.Identifier)
-    .setBusinessIdentifier(EXAMPLE_RELATED_PERSON_DISABLE_INPUT.memberClaims[RelatedPersonClaim.Identifier])
+    .setIdentifierClaimKey(RelatedPersonClaim.IdentifierValue)
+    .setBusinessIdentifier(EXAMPLE_RELATED_PERSON_DISABLE_INPUT.memberClaims[RelatedPersonClaim.IdentifierValue])
     .setClaims({ ...EXAMPLE_RELATED_PERSON_DISABLE_INPUT.memberClaims })
     .setLifecycleStatus(InteroperableLifecycleStatuses.Inactive)
     .buildLifecycleResource();
@@ -93,8 +93,8 @@ export const EXAMPLE_RELATED_PERSON_DISABLE_BUNDLE_PAYLOAD = {
 export const EXAMPLE_RELATED_PERSON_PURGE_LIFECYCLE_RESOURCE =
   createInteroperableResourceOperationEditor()
     .setResourceType(EXAMPLE_RELATED_PERSON_RESOURCE_TYPE)
-    .setIdentifierClaimKey(RelatedPersonClaim.Identifier)
-    .setBusinessIdentifier(EXAMPLE_RELATED_PERSON_DISABLE_INPUT.memberClaims[RelatedPersonClaim.Identifier])
+    .setIdentifierClaimKey(RelatedPersonClaim.IdentifierValue)
+    .setBusinessIdentifier(EXAMPLE_RELATED_PERSON_DISABLE_INPUT.memberClaims[RelatedPersonClaim.IdentifierValue])
     .setClaims({ ...EXAMPLE_RELATED_PERSON_DISABLE_INPUT.memberClaims })
     .setLifecycleStatus(InteroperableLifecycleStatuses.Purged)
     .buildLifecycleResource();
@@ -187,7 +187,7 @@ export const EXAMPLE_RELATED_PERSON_LIST_RECORD_ACTIVE = {
     meta: {
       claims: {
         '@context': EXAMPLE_INTEROPERABLE_CONTEXT_FHIR_API,
-        [RelatedPersonClaim.Identifier]: EXAMPLE_RELATED_PERSON_IDENTIFIER,
+        [RelatedPersonClaim.IdentifierValue]: EXAMPLE_RELATED_PERSON_IDENTIFIER,
         [RelatedPersonClaim.Patient]: EXAMPLE_SUBJECT_DID,
         [RelatedPersonClaim.Telecom]: `mailto:${EXAMPLE_EMAIL_RELATED_PERSON}`,
         [RelatedPersonClaim.Relationship]: EXAMPLE_RELATED_PERSON_ROLE,
@@ -209,7 +209,7 @@ export const EXAMPLE_RELATED_PERSON_LIST_RECORD_INACTIVE = {
     meta: {
       claims: {
         '@context': EXAMPLE_INTEROPERABLE_CONTEXT_FHIR_API,
-        [RelatedPersonClaim.Identifier]: EXAMPLE_RELATED_PERSON_INACTIVE_IDENTIFIER,
+        [RelatedPersonClaim.IdentifierValue]: EXAMPLE_RELATED_PERSON_INACTIVE_IDENTIFIER,
         [RelatedPersonClaim.Patient]: EXAMPLE_SUBJECT_DID,
         [RelatedPersonClaim.Telecom]: `mailto:${EXAMPLE_RELATED_PERSON_INACTIVE_EMAIL}`,
         [RelatedPersonClaim.Relationship]: EXAMPLE_RELATED_PERSON_INACTIVE_RELATIONSHIP,

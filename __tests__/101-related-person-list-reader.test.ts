@@ -32,7 +32,7 @@ describe('101: related person list reader', () => {
     });
 
     expect(records[1]).toEqual({
-      identifier: inactiveClaims['RelatedPerson.identifier'],
+      identifier: inactiveClaims['RelatedPerson.identifier.value'] || inactiveClaims['RelatedPerson.identifier'],
       patient: inactiveClaims['RelatedPerson.patient'],
       relationship: inactiveClaims['RelatedPerson.relationship'],
       name: inactiveClaims['RelatedPerson.name'],

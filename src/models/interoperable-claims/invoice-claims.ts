@@ -16,7 +16,7 @@ export const InvoiceClaim = {
   Date: 'Invoice.date',
   /** Invoice lifecycle status. Example: `issued`. */
   Status: 'Invoice.status',
-  /** Subject or tenant context reference. Example: `did:web:api.acme.org:individual:123`. */
+  /** Subject or tenant context reference. Example: `did:web:host.example.com:health-care;organization:taxid:VATES-B00112233:individual:multibase:zExampleIndividualId`. */
   Subject: 'Invoice.subject',
   /** Billed recipient reference. Example: `did:web:portal.example.org:billing`. */
   Recipient: 'Invoice.recipient',
@@ -228,7 +228,11 @@ export const InvoiceClaimSpecs: ClaimSpec[] = [
   { key: InvoiceClaim.Identifier, meaning: 'Stable business invoice identifier.', example: 'invoice-001' },
   { key: InvoiceClaim.Date, meaning: 'Invoice issue date/time.', example: '2026-06-11T10:00:00Z' },
   { key: InvoiceClaim.Status, meaning: 'Invoice lifecycle status.', example: 'issued' },
-  { key: InvoiceClaim.Subject, meaning: 'Subject or tenant context reference.', example: 'did:web:api.acme.org:individual:123' },
+  {
+    key: InvoiceClaim.Subject,
+    meaning: 'Subject or tenant context reference.',
+    example: 'did:web:host.example.com:health-care;organization:taxid:VATES-B00112233:individual:multibase:zExampleIndividualId',
+  },
   { key: InvoiceClaim.Recipient, meaning: 'Billed recipient reference.', example: 'did:web:portal.example.org:billing' },
   { key: InvoiceClaim.Issuer, meaning: 'Invoice issuer reference.', example: 'did:web:api.acme.org' },
   { key: InvoiceClaim.IssuerDisplay, meaning: 'Human-readable issuer label.', example: 'Gateway Host Services' },

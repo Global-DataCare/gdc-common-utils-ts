@@ -17,4 +17,7 @@ export const InteroperableContext = Object.freeze({
 export const LifecycleRequestType = Object.freeze({
   RelatedPersonDisable: 'RelatedPerson-disable-request-v1.0',
   RelatedPersonPurge: 'RelatedPerson-purge-request-v1.0',
+  TenantEnable: 'Organization-enable-request-v1.0',
+  TenantDisable: 'Organization-disable-request-v1.0',
+  TenantPurge: 'Organization-purge-request-v1.0',
 } as const);

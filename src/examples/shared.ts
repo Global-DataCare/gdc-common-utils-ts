@@ -18,6 +18,13 @@ import { CommunicationCategoryCodes } from '../constants/communication';
 import { LOINC_SYSTEM_URL } from '../models/clinical-sections';
 import { CommunicationClaim } from '../models/interoperable-claims/communication-claims';
 import {
+  buildHostedProviderDidWeb,
+  buildIndividualDidWeb,
+  buildIndividualMemberDidWeb,
+  buildProviderSectorDidWeb,
+} from '../utils/did';
+import { encodeHexToMultibase58btc } from '../utils/multibase58';
+import {
   MedicationStatementClaim,
   MedicationStatementClaimsFhirApiExtended,
 } from '../models/interoperable-claims/medication-statement-claims';
@@ -125,16 +132,65 @@ export const EXAMPLE_CONTROLLER_EMAIL = EXAMPLE_EMAIL_CONTROLLER_ORG;
 export const EXAMPLE_CONTROLLER_SAME_AS = `mailto:${EXAMPLE_CONTROLLER_EMAIL}` as const;
 export const EXAMPLE_API_ORGANIZATION_DID = 'did:web:api.acme.org' as const;
 export const EXAMPLE_SERVICE_PUBLIC_DID = 'did:web:public.acme.org' as const;
-export const EXAMPLE_SUBJECT_DID = 'did:web:api.acme.org:individual:123' as const;
-export const EXAMPLE_SUBJECT_DID_SECONDARY = 'did:web:api.acme.org:individual:456' as const;
-export const EXAMPLE_SUBJECT_DID_TERTIARY = 'did:web:api.acme.org:individual:789' as const;
-export const EXAMPLE_SUBJECT_DID_CONDITION = 'did:web:api.acme.org:individual:cond' as const;
-export const EXAMPLE_SUBJECT_DID_IPS = 'did:web:api.acme.org:individual:ips' as const;
 export const EXAMPLE_PROFESSIONAL_DID = 'did:web:api.acme.org:professional:1' as const;
 export const EXAMPLE_PROVIDER_ORGANIZATION_DID = 'did:web:hospital.acme.org' as const;
 export const EXAMPLE_PROVIDER_ORGANIZATION_URL = 'https://hospital.acme.org' as const;
 export const EXAMPLE_GATEWAY_PUBLIC_ORIGIN = 'https://gateway.example.com' as const;
 export const EXAMPLE_HOST_PUBLIC_HOSTNAME = 'host.example.com' as const;
+export const EXAMPLE_PROVIDER_TAX_ID = 'VATES-B00112233' as const;
+export const EXAMPLE_PROVIDER_DOMAIN = 'health-care.provider.example.org' as const;
+export const EXAMPLE_INDIVIDUAL_MULTIBASE_ID =
+  encodeHexToMultibase58btc('a87e5b15aea444759c7c40aa88354b6f');
+export const EXAMPLE_INDIVIDUAL_MULTIBASE_ID_SECONDARY =
+  encodeHexToMultibase58btc('b98f6c24bfb545849d8d51bb99465c7e');
+export const EXAMPLE_INDIVIDUAL_MULTIBASE_ID_TERTIARY =
+  encodeHexToMultibase58btc('c39f7d35c0c65695ae9e62cca0576d8f');
+export const EXAMPLE_INDIVIDUAL_MULTIBASE_ID_CONDITION =
+  encodeHexToMultibase58btc('d4a08e46d1d767a6bfaf73ddb1687ea0');
+export const EXAMPLE_INDIVIDUAL_MULTIBASE_ID_IPS =
+  encodeHexToMultibase58btc('e5b19f57e2e878b7c0b084eec2798fb1');
+export const EXAMPLE_HOSTED_PROVIDER_DID = buildHostedProviderDidWeb({
+  hostDomain: EXAMPLE_HOST_PUBLIC_HOSTNAME,
+  sector: EXAMPLE_SECTOR,
+  providerTaxId: EXAMPLE_PROVIDER_TAX_ID,
+});
+export const EXAMPLE_PROVIDER_DOMAIN_DID = buildProviderSectorDidWeb({
+  providerSectorDomain: EXAMPLE_PROVIDER_DOMAIN,
+});
+/** @deprecated Use `EXAMPLE_PROVIDER_DOMAIN_DID`. */
+export const EXAMPLE_PROVIDER_SECTOR_DID = EXAMPLE_PROVIDER_DOMAIN_DID;
+/**
+ * Canonical individual DID fixtures reused by docs, tests, and SDK examples.
+ *
+ * There are two valid base roots:
+ * - hosted provider root:
+ *   `did:web:<host.domain>:<sector>;organization:taxid:<provider-tax-id>`
+ * - external provider custom-domain root:
+ *   `did:web:<sector.provider.domain>`
+ *
+ * The individual DID itself must always extend one of those roots as:
+ * `:individual:multibase:<individualId>`
+ */
+export const EXAMPLE_SUBJECT_DID = buildIndividualDidWeb({
+  providerDidWeb: EXAMPLE_HOSTED_PROVIDER_DID,
+  individualId: EXAMPLE_INDIVIDUAL_MULTIBASE_ID,
+});
+export const EXAMPLE_SUBJECT_DID_SECONDARY = buildIndividualDidWeb({
+  providerDidWeb: EXAMPLE_HOSTED_PROVIDER_DID,
+  individualId: EXAMPLE_INDIVIDUAL_MULTIBASE_ID_SECONDARY,
+});
+export const EXAMPLE_SUBJECT_DID_TERTIARY = buildIndividualDidWeb({
+  providerDidWeb: EXAMPLE_HOSTED_PROVIDER_DID,
+  individualId: EXAMPLE_INDIVIDUAL_MULTIBASE_ID_TERTIARY,
+});
+export const EXAMPLE_SUBJECT_DID_CONDITION = buildIndividualDidWeb({
+  providerDidWeb: EXAMPLE_HOSTED_PROVIDER_DID,
+  individualId: EXAMPLE_INDIVIDUAL_MULTIBASE_ID_CONDITION,
+});
+export const EXAMPLE_SUBJECT_DID_IPS = buildIndividualDidWeb({
+  providerDidWeb: EXAMPLE_PROVIDER_DOMAIN_DID,
+  individualId: EXAMPLE_INDIVIDUAL_MULTIBASE_ID_IPS,
+});
 export const EXAMPLE_DEFAULT_ICA_URL = 'https://ica.example.org' as const;
 export const EXAMPLE_DEFAULT_ICA_DID = 'did:web:ica.example.org' as const;
 export const EXAMPLE_HOSTING_OPERATOR_DID = 'did:web:host.example.org' as const;
@@ -177,6 +233,10 @@ export const EXAMPLE_HEALTHCARE_ACTOR_ROLE_GENERALIST_MEDICAL_PRACTITIONER =
 export const EXAMPLE_HEALTHCARE_ACTOR_ROLE_RECEPTIONIST = 'ISCO-08|4226' as const;
 export const EXAMPLE_HEALTHCARE_ROLE_PHYSICIAN_TEXT = 'physician' as const;
 export const EXAMPLE_RELATED_PERSON_ROLE = 'v3-RoleCode|RESPRSN' as const;
+export const EXAMPLE_RELATED_PERSON_MEMBER_DID = buildIndividualMemberDidWeb({
+  individualDidWeb: EXAMPLE_SUBJECT_DID,
+  role: EXAMPLE_RELATED_PERSON_ROLE,
+});
 export const EXAMPLE_CLINICAL_SECTION_RESULTS = 'LOINC|30954-2' as const;
 export const EXAMPLE_CLINICAL_SECTION_PATIENT_SUMMARY = 'LOINC|60591-5' as const;
 export const EXAMPLE_CLINICAL_SECTION_HISTORY_MEDICATION = 'LOINC|10160-0' as const;

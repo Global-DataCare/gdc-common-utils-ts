@@ -39,11 +39,19 @@ export function removeRelatedPersonClaimList(
 }
 
 export function getRelatedPersonIdentifier(claims: RelatedPersonInteroperableClaims): string {
-  return normalizeClaimScalar(claims[RelatedPersonClaim.Identifier]);
+  return normalizeClaimScalar(
+    claims[RelatedPersonClaim.IdentifierValue]
+    ?? claims[RelatedPersonClaim.Identifier],
+  );
 }
 
 export function setRelatedPersonIdentifier(claims: RelatedPersonInteroperableClaims, value: string): RelatedPersonInteroperableClaims {
-  return { ...claims, [RelatedPersonClaim.Identifier]: normalizeClaimScalar(value) };
+  const normalizedValue = normalizeClaimScalar(value);
+  return {
+    ...claims,
+    [RelatedPersonClaim.IdentifierValue]: normalizedValue,
+    [RelatedPersonClaim.Identifier]: normalizedValue,
+  };
 }
 
 /**

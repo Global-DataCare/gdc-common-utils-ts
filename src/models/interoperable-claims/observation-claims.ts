@@ -72,7 +72,7 @@ export const ObservationClaim = {
   Language: 'Observation.language',
   /** Observation method token. Example: `http://snomed.info/sct|252465000`. */
   Method: 'Observation.method',
-  /** Optional compatibility alias of `Observation.subject`. Example: `did:web:patient.example.org:individual:123`. */
+  /** Optional compatibility alias of `Observation.subject`. Example: `did:web:host.example.com:health-care;organization:taxid:VATES-B00112233:individual:multibase:zExampleIndividualId`. */
   Patient: 'Observation.patient',
   /** Performer reference list. Example: `Practitioner/prac-1`. */
   Performer: 'Observation.performer',
@@ -80,7 +80,7 @@ export const ObservationClaim = {
   Specimen: 'Observation.specimen',
   /** Observation status. Presence marks one visible/searchable main observation. Example: `final`. */
   Status: 'Observation.status',
-  /** Canonical subject reference. Example: `did:web:patient.example.org:individual:123`. */
+  /** Canonical subject reference. Example: `did:web:host.example.com:health-care;organization:taxid:VATES-B00112233:individual:multibase:zExampleIndividualId`. */
   Subject: 'Observation.subject',
   /** Value as coded concept token. Example: `http://terminology.hl7.org/CodeSystem/data-absent-reason|not-performed`. */
   ValueConcept: 'Observation.value-concept',

@@ -1,11 +1,15 @@
 import {
+  buildHostedProviderDidWeb,
   buildIndividualDidWeb,
+  buildIndividualMemberDidWeb,
   buildHostedDidDetails,
   buildOrganizationDidWeb,
   buildProfessionalDidWeb,
+  buildProviderSectorDidWeb,
   createHostedDidWeb,
   getBaseUrlFromDidWeb,
   normalizeDidWeb,
+  toDidMemberRoleCode,
 } from '../src/utils/did.js';
 import { HealthcareActorRoles } from '../src/constants/healthcare.js';
 
@@ -52,10 +56,38 @@ describe('did utilities', () => {
     expect(professionalDid).toContain(`${organizationDid}:employee:`);
     expect(professionalDid.endsWith(`:${HealthcareActorRoles.Physician}`)).toBe(true);
 
-    const individualDid = buildIndividualDidWeb({
-      organizationDidWeb: organizationDid,
-      subjectId: 'subject-001',
+    const hostedProviderDid = buildHostedProviderDidWeb({
+      hostDomain: 'host.example.org',
+      sector: 'health-care',
+      providerTaxId: 'VATES-B00112233',
     });
-    expect(individualDid).toBe(`${organizationDid}:family:subject-001:org.hl7.v3.RoleCode|ONESELF`);
+    expect(hostedProviderDid).toBe('did:web:host.example.org:health-care;organization:taxid:VATES-B00112233');
+
+    const providerDomainDid = buildProviderSectorDidWeb({
+      providerSectorDomain: 'health-care.provider.example.org',
+    });
+    expect(providerDomainDid).toBe('did:web:health-care.provider.example.org');
+
+    const individualDid = buildIndividualDidWeb({
+      providerDidWeb: hostedProviderDid,
+      individualId: 'z6MkhYExampleIndividualId',
+    });
+    expect(individualDid).toBe(
+      'did:web:host.example.org:health-care;organization:taxid:VATES-B00112233:individual:multibase:z6MkhYExampleIndividualId',
+    );
+
+    const memberDid = buildIndividualMemberDidWeb({
+      individualDidWeb: individualDid,
+      role: 'v3-RoleCode|RESPRSN',
+    });
+    expect(memberDid).toBe(
+      'did:web:host.example.org:health-care;organization:taxid:VATES-B00112233:individual:multibase:z6MkhYExampleIndividualId:member:role:RESPRSN',
+    );
+  });
+
+  it('strips coding-system prefixes from member role suffixes', () => {
+    expect(toDidMemberRoleCode('v3-RoleCode|RESPRSN')).toBe('RESPRSN');
+    expect(toDidMemberRoleCode(HealthcareActorRoles.Physician)).toBe('2211');
+    expect(toDidMemberRoleCode('ONESELF')).toBe('ONESELF');
   });
 });

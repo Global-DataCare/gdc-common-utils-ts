@@ -15,6 +15,7 @@ import {
 describe('service capability constants', () => {
   it('exposes the canonical public capability values through ServiceCapability', () => {
     expect(ServiceCapability).toEqual({
+      OrganizationRegistryProvider: 'organization/Organization.cruds',
       IndexReader: 'organization/Composition.rs',
       IndexProvider: 'organization/Composition.cruds',
       DigitalTwinReader: 'organization/ResearchSubject.rs',
@@ -24,25 +25,33 @@ describe('service capability constants', () => {
 
   it('normalizes deprecated indexing and digitaltwin tokens into the canonical values', () => {
     expect(parseServiceCapabilityTokens(
-      `${DeprecatedServiceCapabilityToken.IndexProvider},${DeprecatedServiceCapabilityToken.DigitalTwinReader}`,
+      `${DeprecatedServiceCapabilityToken.OrganizationRegistryProvider},${DeprecatedServiceCapabilityToken.IndexProvider},${DeprecatedServiceCapabilityToken.DigitalTwinReader}`,
     )).toEqual([
+      ServiceCapability.OrganizationRegistryProvider,
       ServiceCapability.IndexProvider,
       ServiceCapability.DigitalTwinReader,
     ]);
     expect(serializeServiceCapabilityTokens([
+      DeprecatedServiceCapabilityToken.OrganizationRegistryProvider,
       DeprecatedServiceCapabilityToken.IndexProvider,
       DeprecatedServiceCapabilityToken.DigitalTwinReader,
-    ])).toBe(`${ServiceCapability.IndexProvider},${ServiceCapability.DigitalTwinReader}`);
-    expect(normalizeServiceCapability(DeprecatedServiceCapabilityToken.IndexProvider)).toBe(ServiceCapability.IndexProvider);
+    ])).toBe(`${ServiceCapability.OrganizationRegistryProvider},${ServiceCapability.IndexProvider},${ServiceCapability.DigitalTwinReader}`);
+    expect(normalizeServiceCapability(DeprecatedServiceCapabilityToken.OrganizationRegistryProvider)).toBe(ServiceCapability.OrganizationRegistryProvider);
   });
 
   it('derives canonical families and provider role from normalized capability values', () => {
+    expect(getServiceCapabilityKind(ServiceCapability.OrganizationRegistryProvider)).toBe(ServiceCapabilityKind.OrganizationRegistry);
     expect(getServiceCapabilityKind(ServiceCapability.IndexProvider)).toBe(ServiceCapabilityKind.Indexing);
     expect(getServiceCapabilityKind(ServiceCapability.DigitalTwinReader)).toBe(ServiceCapabilityKind.DigitalTwin);
+    expect(hasServiceCapabilityKind(
+      DeprecatedServiceCapabilityToken.OrganizationRegistryProvider,
+      ServiceCapabilityKind.OrganizationRegistry,
+    )).toBe(true);
     expect(hasServiceCapabilityKind(
       DeprecatedServiceCapabilityToken.IndexProvider,
       ServiceCapabilityKind.Indexing,
     )).toBe(true);
+    expect(isProviderServiceCapability(ServiceCapability.OrganizationRegistryProvider)).toBe(true);
     expect(isProviderServiceCapability(ServiceCapability.IndexProvider)).toBe(true);
     expect(isProviderServiceCapability(ServiceCapability.IndexReader)).toBe(false);
     expect(isKnownServiceCapability(ServiceCapability.IndexProvider)).toBe(true);

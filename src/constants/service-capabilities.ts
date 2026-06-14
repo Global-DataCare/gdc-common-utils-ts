@@ -6,6 +6,13 @@
  * `org.schema.Service.serviceType`.
  */
 export const ServiceCapability = {
+  /**
+   * Hosting/operator capability to manage hosted tenant organizations.
+   *
+   * This is the canonical service authorization that allows a hosting operator
+   * to activate, disable, and purge hosted legal organizations.
+   */
+  OrganizationRegistryProvider: 'organization/Organization.cruds',
   IndexReader: 'organization/Composition.rs',
   IndexProvider: 'organization/Composition.cruds',
   DigitalTwinReader: 'organization/ResearchSubject.rs',
@@ -20,6 +27,7 @@ export type ServiceCapabilityValue =
  * values.
  */
 export const ServiceCapabilityKind = {
+  OrganizationRegistry: 'organization/organization',
   Indexing: 'organization/composition',
   DigitalTwin: 'organization/researchsubject',
 } as const;
@@ -31,6 +39,7 @@ export type ServiceCapabilityKindValue =
  * @deprecated Legacy serviceType values accepted for backward compatibility.
  */
 export const DeprecatedServiceCapabilityToken = {
+  OrganizationRegistryProvider: 'organization-registry.cruds',
   IndexReader: 'indexing.rs',
   IndexProvider: 'indexing.cruds',
   DigitalTwinReader: 'digitaltwin.rs',
@@ -47,10 +56,15 @@ export type DeprecatedServiceCapabilityTokenValue =
  * `ServiceCapabilityToken`.
  */
 export const ServiceCapabilityToken = {
+  OrganizationRegistryProvider: ServiceCapability.OrganizationRegistryProvider,
   IndexReader: ServiceCapability.IndexReader,
   IndexProvider: ServiceCapability.IndexProvider,
   DigitalTwinReader: ServiceCapability.DigitalTwinReader,
   DigitalTwinProvider: ServiceCapability.DigitalTwinProvider,
+  /**
+   * @deprecated Prefer `OrganizationRegistryProvider`.
+   */
+  OrganizationRegistryCruds: ServiceCapability.OrganizationRegistryProvider,
   /**
    * @deprecated Prefer `IndexReader`.
    */
@@ -67,6 +81,12 @@ export const ServiceCapabilityToken = {
    * @deprecated Prefer `DigitalTwinProvider`.
    */
   DigitalTwinCruds: ServiceCapability.DigitalTwinProvider,
+  /**
+   * @deprecated Prefer `ServiceCapability.OrganizationRegistryProvider`.
+   * Legacy persisted value kept for compatibility while external payloads
+   * still emit `organization-registry.cruds`.
+   */
+  LegacyOrganizationRegistryProvider: DeprecatedServiceCapabilityToken.OrganizationRegistryProvider,
   /**
    * @deprecated Prefer `ServiceCapability.IndexReader`.
    * Legacy persisted value kept for compatibility while external payloads
@@ -100,10 +120,12 @@ export type ServiceCapabilityTokenValue =
   typeof ServiceCapabilityToken[keyof typeof ServiceCapabilityToken];
 
 const CANONICAL_SERVICE_CAPABILITY_BY_VALUE = new Map<string, string>([
+  [String(ServiceCapability.OrganizationRegistryProvider).toLowerCase(), ServiceCapability.OrganizationRegistryProvider],
   [String(ServiceCapability.IndexReader).toLowerCase(), ServiceCapability.IndexReader],
   [String(ServiceCapability.IndexProvider).toLowerCase(), ServiceCapability.IndexProvider],
   [String(ServiceCapability.DigitalTwinReader).toLowerCase(), ServiceCapability.DigitalTwinReader],
   [String(ServiceCapability.DigitalTwinProvider).toLowerCase(), ServiceCapability.DigitalTwinProvider],
+  [String(DeprecatedServiceCapabilityToken.OrganizationRegistryProvider).toLowerCase(), ServiceCapability.OrganizationRegistryProvider],
   [String(DeprecatedServiceCapabilityToken.IndexReader).toLowerCase(), ServiceCapability.IndexReader],
   [String(DeprecatedServiceCapabilityToken.IndexProvider).toLowerCase(), ServiceCapability.IndexProvider],
   [String(DeprecatedServiceCapabilityToken.DigitalTwinReader).toLowerCase(), ServiceCapability.DigitalTwinReader],
@@ -203,6 +225,7 @@ export function hasServiceCapabilityKind(
  */
 export function isProviderServiceCapability(value: string | undefined | null): boolean {
   const normalized = normalizeServiceCapability(value);
-  return normalized === ServiceCapability.IndexProvider
+  return normalized === ServiceCapability.OrganizationRegistryProvider
+    || normalized === ServiceCapability.IndexProvider
     || normalized === ServiceCapability.DigitalTwinProvider;
 }

@@ -4,7 +4,9 @@
 import type { ClaimSpec } from './types';
 
 export const RelatedPersonClaim = {
+  /** @deprecated Prefer `RelatedPerson.identifier.value` for canonical exactness. */
   Identifier: 'RelatedPerson.identifier',
+  IdentifierValue: 'RelatedPerson.identifier.value',
   Active: 'RelatedPerson.active',
   Patient: 'RelatedPerson.patient',
   Relationship: 'RelatedPerson.relationship',
@@ -18,7 +20,8 @@ export const RelatedPersonClaim = {
 export type RelatedPersonClaimKey = typeof RelatedPersonClaim[keyof typeof RelatedPersonClaim];
 
 export const RelatedPersonClaimSpecs: ClaimSpec[] = [
-  { key: RelatedPersonClaim.Identifier, meaning: 'Business identifier.', example: 'rel-001' },
+  { key: RelatedPersonClaim.IdentifierValue, meaning: 'Business identifier value.', example: 'rel-001' },
+  { key: RelatedPersonClaim.Identifier, meaning: 'Legacy business identifier alias.', example: 'rel-001' },
   { key: RelatedPersonClaim.Active, meaning: 'Active flag.', example: 'true' },
   { key: RelatedPersonClaim.Patient, meaning: 'Linked patient reference.', example: 'did:web:patient.example.org' },
   { key: RelatedPersonClaim.Relationship, meaning: 'Relationship token.', example: 'http://terminology.hl7.org/CodeSystem/v3-RoleCode|MTH' },

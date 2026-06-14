@@ -4,6 +4,7 @@ import {
   ClaimsOrganizationSchemaorg,
   ClaimsPersonSchemaorg,
 } from '../constants/schemaorg';
+import { LifecycleRequestType } from '../constants/lifecycle';
 import { ClaimConsent } from '../models/consent-rule';
 import {
   IndividualOrganizationLifecycleDraft,
@@ -35,6 +36,9 @@ export const EXAMPLE_LIFECYCLE_OPERATIONS = {
 
 export const EXAMPLE_INDIVIDUAL_ORGANIZATION_DISABLE_REQUEST_TYPE = 'Family-disable-request-v1.0' as const;
 export const EXAMPLE_INDIVIDUAL_ORGANIZATION_PURGE_REQUEST_TYPE = 'Family-purge-request-v1.0' as const;
+export const EXAMPLE_TENANT_ENABLE_REQUEST_TYPE = LifecycleRequestType.TenantEnable;
+export const EXAMPLE_TENANT_DISABLE_REQUEST_TYPE = LifecycleRequestType.TenantDisable;
+export const EXAMPLE_TENANT_PURGE_REQUEST_TYPE = LifecycleRequestType.TenantPurge;
 
 /**
  * Shared placeholder values used by copy/paste examples.

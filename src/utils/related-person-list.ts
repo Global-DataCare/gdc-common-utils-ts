@@ -47,7 +47,7 @@ export function readRelatedPersonListRecords(body: unknown): RelatedPersonListRe
       const resource = entry.resource && typeof entry.resource === 'object' ? entry.resource as Record<string, unknown> : {};
 
       return {
-        identifier: normalizeText(claims[RelatedPersonClaim.Identifier]),
+        identifier: normalizeText(claims[RelatedPersonClaim.IdentifierValue] ?? claims[RelatedPersonClaim.Identifier]),
         patient: normalizeText(claims[RelatedPersonClaim.Patient]),
         relationship: normalizeText(claims[RelatedPersonClaim.Relationship]),
         name: normalizeText(claims[RelatedPersonClaim.Name]),
