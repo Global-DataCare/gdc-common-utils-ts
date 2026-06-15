@@ -8,6 +8,21 @@ export type SearchParameterPrimitive =
 
 export type SearchRequestEncoding = 'get-query' | 'post-parameters';
 
+/**
+ * Canonical business-level bundle types used by search request/response flows.
+ */
+export const SearchBundleTypes = Object.freeze({
+  Search: 'search',
+  SearchResponse: 'search-response',
+} as const);
+
+export type SearchBundleOptions = Readonly<{
+  resourceType: string;
+  searchParams?: Readonly<Record<string, SearchParameterPrimitive | undefined>>;
+  encoding?: SearchRequestEncoding;
+  bundleType?: (typeof SearchBundleTypes)[keyof typeof SearchBundleTypes];
+}>;
+
 export type FhirParametersParameter = {
   name: string;
   valueString?: string;
@@ -123,5 +138,58 @@ export function buildFhirParametersResourceFromParameterData(
     parameter: parameters
       .map((parameter) => flattenParameterDataValue(parameter))
       .filter((parameter): parameter is FhirParametersParameter => Boolean(parameter)),
+  };
+}
+
+/**
+ * Builds one search bundle entry using either GET query parameters or POST
+ * `Parameters`.
+ */
+export function buildSearchBundleEntry(input: SearchBundleOptions): {
+  request: {
+    method: 'GET' | 'POST';
+    url: string;
+  };
+  resource?: FhirParametersResource;
+} {
+  const resourceType = String(input.resourceType || '').trim();
+  const encoding = input.encoding || 'post-parameters';
+  const searchParams = input.searchParams || {};
+
+  if (!resourceType) {
+    throw new Error('buildSearchBundleEntry requires resourceType.');
+  }
+
+  if (encoding === 'get-query') {
+    const query = buildSearchQueryString(searchParams);
+    return {
+      request: {
+        method: 'GET',
+        url: query ? `${resourceType}?${query}` : resourceType,
+      },
+    };
+  }
+
+  return {
+    request: {
+      method: 'POST',
+      url: `${resourceType}/_search`,
+    },
+    resource: buildFhirParametersResourceFromSearchParams(searchParams),
+  };
+}
+
+/**
+ * Builds a one-entry batch bundle for runtime-neutral search operations.
+ */
+export function buildSearchBundle(input: SearchBundleOptions): {
+  resourceType: 'Bundle';
+  type: (typeof SearchBundleTypes)[keyof typeof SearchBundleTypes];
+  entry: Array<ReturnType<typeof buildSearchBundleEntry>>;
+} {
+  return {
+    resourceType: 'Bundle',
+    type: input.bundleType || SearchBundleTypes.Search,
+    entry: [buildSearchBundleEntry(input)],
   };
 }

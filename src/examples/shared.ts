@@ -257,6 +257,16 @@ export const EXAMPLE_CONSENT_OPERATION_THREAD_ID = 'thread-consent-example-001' 
 export const EXAMPLE_CONSENT_PERIOD_START = '2026-05-20T00:00:00Z' as const;
 export const EXAMPLE_COMMUNICATION_UUID = 'urn:uuid:communication-example-001' as const;
 export const EXAMPLE_COMMUNICATION_IDENTIFIER = EXAMPLE_COMMUNICATION_UUID;
+export const EXAMPLE_COMMUNICATION_THREAD_ID = 'thread-communication-example-001' as const;
+export const EXAMPLE_COMMUNICATION_PARTICIPANT_SEARCH_SUBJECT_DID = EXAMPLE_SUBJECT_DID;
+export const EXAMPLE_COMMUNICATION_PARTICIPANT_SENDER_DID = EXAMPLE_TENANT_SERVICE_DID;
+export const EXAMPLE_COMMUNICATION_PARTICIPANT_USER_DID = EXAMPLE_RELATED_PERSON_MEMBER_DID;
+export const EXAMPLE_COMMUNICATION_PARTICIPANT_EMAIL_USER = 'family.owner@example.org' as const;
+export const EXAMPLE_COMMUNICATION_PARTICIPANT_EMAIL_RECIPIENT = 'nurse.oncall@example.org' as const;
+export const EXAMPLE_COMMUNICATION_PARTICIPANT_TEL_RECIPIENT = '+34600111222' as const;
+export const EXAMPLE_COMMUNICATION_SEARCH_CATEGORY =
+  CommunicationCategoryCodes.Notification.attributeValue;
+export const EXAMPLE_COMMUNICATION_SEARCH_TOPIC = 'care-plan-follow-up' as const;
 export const EXAMPLE_IPS_BUNDLE_NOTE_TEXT = 'IPS ingestion request' as const;
 export const EXAMPLE_CONTENT_TYPE_APPLICATION_JSON = 'application/json' as const;
 export const EXAMPLE_CONTENT_TYPE_FHIR_JSON = 'application/fhir+json' as const;
