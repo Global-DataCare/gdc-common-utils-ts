@@ -1,6 +1,7 @@
 // Always create JSDoc, do not use strings inline in keys nor values, use types instead, and reuse the data test examples.
 import {
   buildMemberDidWeb,
+  extractRepresentativeSubjectId,
   extractDidWebFromCredential,
   isMemberDidWebUnderOwner,
   validateActivationServiceAuthorizationPolicy,
@@ -13,8 +14,11 @@ import {
   EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID,
   EXAMPLE_ORG_ACTIVATION_LEGAL_REPRESENTATIVE_CREDENTIAL,
   EXAMPLE_ORG_ACTIVATION_ORGANIZATION_CREDENTIAL,
+  EXAMPLE_REPRESENTATIVE_IDENTIFIER,
+  EXAMPLE_REPRESENTATIVE_SUBJECT_URN,
   EXAMPLE_REPRESENTATIVE_ROLE_CODE,
 } from '../src/examples/ica-activation-proof';
+import { cloneExample } from '../src/examples/shared';
 
 describe('Activation Policy Utils', () => {
   // This suite must reuse the shared synthetic ICA activation fixtures unless a
@@ -22,10 +26,9 @@ describe('Activation Policy Utils', () => {
   const organizationCredential = EXAMPLE_ORG_ACTIVATION_ORGANIZATION_CREDENTIAL;
 
   const representativeCredential = {
-    ...EXAMPLE_ORG_ACTIVATION_LEGAL_REPRESENTATIVE_CREDENTIAL,
+    ...cloneExample(EXAMPLE_ORG_ACTIVATION_LEGAL_REPRESENTATIVE_CREDENTIAL),
     credentialSubject: {
-      ...EXAMPLE_ORG_ACTIVATION_LEGAL_REPRESENTATIVE_CREDENTIAL.credentialSubject,
-      id: 'did:web:provider.example:organization:taxid:ESB00112233:member:zabc:RESPRSN',
+      ...cloneExample(EXAMPLE_ORG_ACTIVATION_LEGAL_REPRESENTATIVE_CREDENTIAL.credentialSubject),
       memberOf: { taxID: EXAMPLE_ORGANIZATION_TAX_ID.toLowerCase() },
       hasCredential: { material: EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID },
     },
@@ -44,7 +47,7 @@ describe('Activation Policy Utils', () => {
       organizationCredential,
       representativeCredential: {
         credentialSubject: {
-          id: 'did:web:provider.example:organization:taxid:OTHER:member:zabc:OTHER',
+          id: EXAMPLE_REPRESENTATIVE_SUBJECT_URN,
           memberOf: { taxID: 'ES999' },
           hasOccupation: { identifier: { value: 'OTHER' } },
         },
@@ -60,7 +63,7 @@ describe('Activation Policy Utils', () => {
       organizationCredential,
       representativeCredential: {
         credentialSubject: {
-          id: 'did:web:provider.example:organization:taxid:ESB00112233:member:zabc:RESPRSN',
+          id: EXAMPLE_REPRESENTATIVE_SUBJECT_URN,
           memberOf: { taxID: EXAMPLE_ORGANIZATION_TAX_ID },
           hasOccupation: { identifier: `v3-RoleCode|${EXAMPLE_REPRESENTATIVE_ROLE_CODE}` },
           hasCredential: { material: EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID },
@@ -75,12 +78,20 @@ describe('Activation Policy Utils', () => {
       organizationCredential,
       representativeCredential: {
         credentialSubject: {
-          id: 'did:web:provider.example:organization:taxid:ESB00112233:member:zabc:RESPRSN',
+          id: EXAMPLE_REPRESENTATIVE_SUBJECT_URN,
           memberOf: { taxID: EXAMPLE_ORGANIZATION_TAX_ID },
           hasOccupation: { identifier: { value: EXAMPLE_REPRESENTATIVE_ROLE_CODE } },
           hasCredential: { identifier: { value: EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID } },
         },
       },
+    });
+    expect(errors).toHaveLength(0);
+  });
+
+  it('accepts ICA-style representative urn subject ids and ISCO role identifiers', () => {
+    const errors = validateActivationRepresentativePolicy({
+      organizationCredential,
+      representativeCredential,
     });
     expect(errors).toHaveLength(0);
   });
@@ -94,9 +105,16 @@ describe('Activation Policy Utils', () => {
   });
 
   it('extracts did:web from credential subject', () => {
-    expect(extractDidWebFromCredential(representativeCredential)).toBe(
-      'did:web:provider.example:organization:taxid:ESB00112233:member:zabc:RESPRSN',
-    );
+    expect(extractDidWebFromCredential(representativeCredential)).toBeUndefined();
+  });
+
+  it('extracts representative subject ids from ICA person credentials', () => {
+    expect(extractRepresentativeSubjectId(representativeCredential)).toBe(EXAMPLE_REPRESENTATIVE_SUBJECT_URN);
+    expect(extractRepresentativeSubjectId({
+      credentialSubject: {
+        id: `urn:person:identifier:${EXAMPLE_REPRESENTATIVE_IDENTIFIER}`,
+      },
+    })).toBe(EXAMPLE_REPRESENTATIVE_SUBJECT_URN);
   });
 
   it('validates service category and serviceType authorization from the organization credential', () => {

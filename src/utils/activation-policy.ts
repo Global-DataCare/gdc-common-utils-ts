@@ -4,7 +4,7 @@ import {
 } from './dataspace-discovery';
 
 export type ActivationRepresentativePolicyErrorCode =
-  | 'MISSING_REPRESENTATIVE_DID_WEB'
+  | 'MISSING_REPRESENTATIVE_SUBJECT_ID'
   | 'MISSING_REPRESENTATIVE_ROLE_RESPRSN'
   | 'MISSING_REPRESENTATIVE_CREDENTIAL_BINDING'
   | 'REPRESENTATIVE_TAXID_MISMATCH';
@@ -173,6 +173,24 @@ function extractCredentialBindingValue(value: unknown): string | undefined {
 }
 
 /**
+ * Extracts the representative subject identifier from `credentialSubject.id`.
+ *
+ * ICA currently models the natural person with a stable person URN while the
+ * controller/bootstrap continuity is carried in sibling claims such as
+ * `sameAs` and `hasCredential`. Activation policy must therefore accept the
+ * canonical person URN form and must not require a representative `did:web`.
+ *
+ * @param representativeCredential Candidate representative credential.
+ */
+export function extractRepresentativeSubjectId(representativeCredential: unknown): string | undefined {
+  const obj = asObject(representativeCredential);
+  if (!obj) return undefined;
+  const subject = extractCredentialSubject(obj);
+  const subjectId = String(subject?.id || '').trim();
+  return subjectId || undefined;
+}
+
+/**
  * Extracts a `did:web:` identifier from a VC-like credential.
  *
  * @param credential Candidate credential.
@@ -183,6 +201,26 @@ export function extractDidWebFromCredential(credential: unknown): string | undef
   const subject = extractCredentialSubject(obj);
   const didCandidate = String(subject?.id || obj.id || '').trim();
   return didCandidate.startsWith('did:web:') ? didCandidate : undefined;
+}
+
+/**
+ * Checks whether the representative role expresses the activation-controller
+ * semantics accepted by GW.
+ *
+ * Compatibility rules:
+ * - historical GW payloads may still use HL7/FHIR `RESPRSN`
+ * - current ICA person credentials may encode the legal representative role as
+ *   ISCO-08 `1120`, either tokenized (`ISCO-08|1120`) or as the canonical
+ *   ILO URN (`urn:ilo:ilostat:isco-08:1120`)
+ *
+ * @param roleCode Candidate role token extracted from the credential.
+ * @param requiredCode Required GW compatibility code, defaults to `RESPRSN`.
+ */
+export function hasActivationRepresentativeRole(roleCode: string | undefined, requiredCode = 'RESPRSN'): boolean {
+  if (hasRoleCode(roleCode, requiredCode)) return true;
+  const normalized = String(roleCode || '').trim().toUpperCase();
+  if (!normalized) return false;
+  return /(?:^|[|:])1120$/.test(normalized);
 }
 
 /**
@@ -326,14 +364,14 @@ export function validateActivationRepresentativePolicy(input: {
   requiredRoleCode?: string;
 }): ActivationRepresentativePolicyError[] {
   const errors: ActivationRepresentativePolicyError[] = [];
-  const representativeDid = input.representativeCredential
-    ? extractDidWebFromCredential(input.representativeCredential)
+  const representativeSubjectId = input.representativeCredential
+    ? extractRepresentativeSubjectId(input.representativeCredential)
     : undefined;
 
-  if (input.representativeCredential && !representativeDid) {
+  if (input.representativeCredential && !representativeSubjectId) {
     errors.push({
-      code: 'MISSING_REPRESENTATIVE_DID_WEB',
-      message: 'ICA-issued representative credential is missing credentialSubject.id did:web.',
+      code: 'MISSING_REPRESENTATIVE_SUBJECT_ID',
+      message: 'ICA-issued representative credential is missing credentialSubject.id.',
     });
   }
 
@@ -349,10 +387,10 @@ export function validateActivationRepresentativePolicy(input: {
   }
 
   const roleCode = extractRepresentativeRoleCode(input.representativeCredential);
-  if (!hasRoleCode(roleCode, input.requiredRoleCode || 'RESPRSN')) {
+  if (!hasActivationRepresentativeRole(roleCode, input.requiredRoleCode || 'RESPRSN')) {
     errors.push({
       code: 'MISSING_REPRESENTATIVE_ROLE_RESPRSN',
-      message: 'ICA-issued representative credential must include Responsible Party role (RESPRSN) in credentialSubject.hasOccupation.',
+      message: 'ICA-issued representative credential must include legal representative role semantics (RESPRSN or ISCO-08 1120) in credentialSubject.hasOccupation.',
     });
   }
 

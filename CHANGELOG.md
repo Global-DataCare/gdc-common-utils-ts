@@ -2,6 +2,47 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- Added reusable `Communication/_search` helpers, fixtures, and step-by-step
+  tests so GW/SDK callers can reuse one canonical shared contract instead of
+  handcrafting `Parameters` rows:
+  - `src/utils/communication-participant-search.ts`
+  - `src/utils/communication-participant-search-test-data.ts`
+  - `__tests__/utils-communication-participant-search.test.ts`
+- Added a high-level `CommunicationSearchEditor` that can build:
+  - `buildRequest()`
+  - `buildEntry()`
+  - `buildBundle()`
+  while keeping app-facing semantics at the fluent-editor layer:
+  - `src/utils/communication-search-editor.ts`
+  - `__tests__/101-communication-search-editor.test.ts`
+  - `docs/101-COMMUNICATION_SEARCH_EDITOR.md`
+- Added reusable communication-retention policy helpers centered on the
+  conservative default `COMMUNICATION_RETENTION_DISABLED=false`:
+  - `src/utils/communication-retention-policy.ts`
+
+### Changed
+- Tightened activation-policy validation so hosted activation proofs can reject
+  verifiable credentials that are semantically present but not authorized for
+  the requested category/service-type combination, and refreshed the shared ICA
+  proof examples/tests accordingly:
+  - `src/utils/activation-policy.ts`
+  - `src/examples/ica-activation-proof.ts`
+  - `src/examples/shared.ts`
+  - `__tests__/utils-activation-policy.test.ts`
+- Extended the shared search transport helper so search bundles can declare
+  canonical business-level bundle types such as `search` and
+  `search-response` instead of always defaulting to `batch`:
+  - `src/utils/fhir-search.ts`
+- Re-exported the new communication search editor and retention-policy helpers
+  from the public utils surface:
+  - `src/utils/index.ts`
+
+### Validation
+- `npm test -- --watchman=false 101-communication-search-editor.test.ts utils-communication-participant-search.test.ts`
+
 ## [1.24.1] - 2026-06-14
 
 ### Changed

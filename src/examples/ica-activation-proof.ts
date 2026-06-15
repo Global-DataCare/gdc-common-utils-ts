@@ -37,6 +37,15 @@ export const EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID =
 export const EXAMPLE_PRESENTATION_AUDIENCE_HOST_ID = 'host:node-operator-es' as const;
 export const EXAMPLE_ORGANIZATION_TAX_ID = 'ESB00112233' as const;
 export const EXAMPLE_REPRESENTATIVE_ROLE_CODE = 'RESPRSN' as const;
+export const EXAMPLE_REPRESENTATIVE_ISCO08_ROLE_CODE = '1120' as const;
+export const EXAMPLE_REPRESENTATIVE_ISCO08_ROLE_IDENTIFIER = 'urn:ilo:ilostat:isco-08:1120' as const;
+export const EXAMPLE_REPRESENTATIVE_IDENTIFIER = 'IDCES-99999999R' as const;
+export const EXAMPLE_REPRESENTATIVE_EMAIL = 'legal.rep@example.org' as const;
+export const EXAMPLE_REPRESENTATIVE_SUBJECT_URN =
+  `urn:person:identifier:${EXAMPLE_REPRESENTATIVE_IDENTIFIER}` as const;
+export const EXAMPLE_REPRESENTATIVE_SAME_AS = 'urn:multibase:zControllerHash' as const;
+export const EXAMPLE_ORG_ACTIVATION_ORGANIZATION_DID =
+  'did:web:provider.example:health-care:organization:taxid:VATES-ESB00112233' as const;
 export const EXAMPLE_ORGANIZATION_ID = EXAMPLE_ORGANIZATION_TAX_ID;
 export const EXAMPLE_ACTIVATION_AUTHORIZED_CATEGORY = DataspaceSectors.HealthCare;
 export const EXAMPLE_ACTIVATION_AUTHORIZED_SERVICE_TYPE = ServiceCapability.IndexProvider;
@@ -66,18 +75,18 @@ export const EXAMPLE_ORG_ACTIVATION_LEGAL_REPRESENTATIVE_CREDENTIAL = Object.fre
     ActivationCredentialTypes.LegalRepresentativeCredential,
   ],
   credentialSubject: {
-    id: EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID,
+    id: EXAMPLE_REPRESENTATIVE_SUBJECT_URN,
     memberOf: {
       taxID: EXAMPLE_ORGANIZATION_TAX_ID,
     },
     hasOccupation: {
-      identifier: {
-        value: EXAMPLE_REPRESENTATIVE_ROLE_CODE,
-      },
+      identifier: EXAMPLE_REPRESENTATIVE_ISCO08_ROLE_IDENTIFIER,
     },
     hasCredential: {
       material: EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID,
     },
+    identifier: EXAMPLE_REPRESENTATIVE_IDENTIFIER,
+    sameAs: EXAMPLE_REPRESENTATIVE_SAME_AS,
   },
 });
 
