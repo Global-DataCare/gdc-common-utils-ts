@@ -1,5 +1,6 @@
 export * from './shared';
 export * from './ica-activation-proof';
+export * from './ica-verify-response';
 export * from './dataspace-discovery';
 export * from './organization-controller';
 export * from './individual-controller';

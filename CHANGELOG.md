@@ -4,6 +4,22 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.0.2] - 2026-06-16
+
+### Added
+- Added a canonical ICA `_verify-response` success example module so Swagger,
+  SDK tests, and downstream docs can import one shared response shape instead
+  of re-hardcoding response payload fragments inline:
+  - `src/examples/ica-verify-response.ts`
+
+### Changed
+- Re-exported the new ICA `_verify-response` example from the shared examples
+  surface:
+  - `src/examples/index.ts`
+- Documented the representative controller key-binding continuity example using
+  `credentialSubject.hasCredential.material` in the shared ICA response
+  fixtures, aligned with the RFC 7638 / RFC 9278 thumbprint helper contract.
+
 ## [2.0.1] - 2026-06-16
 
 ### Added
