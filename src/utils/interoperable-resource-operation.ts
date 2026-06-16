@@ -27,7 +27,7 @@ export type InteroperableLifecycleStatus =
 
 export type InteroperableSearchParams = Readonly<Record<string, SearchParameterPrimitive | undefined>>;
 
-export type InteroperableResourceOperationDraft = Readonly<{
+export type InteroperableResourceOperationState = Readonly<{
   resourceType: string;
   identifierClaimKey: string;
   identifierValue?: string;
@@ -57,7 +57,7 @@ export interface InteroperableResourceOperationEditor {
   mergeClaims(claims: Record<string, unknown>): InteroperableResourceOperationEditor;
   setLifecycleStatus(value: InteroperableLifecycleStatus): InteroperableResourceOperationEditor;
   importFhirResource(resource: FhirResource): InteroperableResourceOperationEditor;
-  getDraft(): InteroperableResourceOperationDraft;
+  getState(): InteroperableResourceOperationState;
   getBusinessIdentifier(): string | undefined;
   getClaims(): Record<string, unknown>;
   buildLifecycleResource(): {
@@ -96,28 +96,28 @@ function resolveDefaultIdentifierClaimKey(resourceType: string): string {
 }
 
 function normalizeDraft(
-  draft?: Partial<InteroperableResourceOperationDraft>,
-): InteroperableResourceOperationDraft {
-  const resourceType = normalizeText(draft?.resourceType) || 'Resource';
+  state?: Partial<InteroperableResourceOperationState>,
+): InteroperableResourceOperationState {
+  const resourceType = normalizeText(state?.resourceType) || 'Resource';
   return {
     resourceType,
-    identifierClaimKey: normalizeText(draft?.identifierClaimKey) || resolveDefaultIdentifierClaimKey(resourceType),
-    identifierValue: normalizeText(draft?.identifierValue),
-    identifierSystem: normalizeText(draft?.identifierSystem),
-    resourceId: normalizeText(draft?.resourceId),
-    claims: cloneClaims(draft?.claims),
-    lifecycleStatus: draft?.lifecycleStatus,
+    identifierClaimKey: normalizeText(state?.identifierClaimKey) || resolveDefaultIdentifierClaimKey(resourceType),
+    identifierValue: normalizeText(state?.identifierValue),
+    identifierSystem: normalizeText(state?.identifierSystem),
+    resourceId: normalizeText(state?.resourceId),
+    claims: cloneClaims(state?.claims),
+    lifecycleStatus: state?.lifecycleStatus,
   };
 }
 
 function patchDraft(
-  draft: InteroperableResourceOperationDraft,
-  patch: Partial<InteroperableResourceOperationDraft>,
-): InteroperableResourceOperationDraft {
+  state: InteroperableResourceOperationState,
+  patch: Partial<InteroperableResourceOperationState>,
+): InteroperableResourceOperationState {
   return normalizeDraft({
-    ...draft,
+    ...state,
     ...patch,
-    claims: patch.claims ? cloneClaims(patch.claims) : cloneClaims(draft.claims),
+    claims: patch.claims ? cloneClaims(patch.claims) : cloneClaims(state.claims),
   });
 }
 
@@ -206,30 +206,30 @@ export function buildInteroperableSearchPath(resourceType: string): string {
  *   resource-specific FHIR fields such as `status` or `active`
  */
 export function buildLifecycleOperationResource(
-  draft: InteroperableResourceOperationDraft,
+  state: InteroperableResourceOperationState,
 ): {
   resourceType: string;
   id?: string;
   identifier?: Array<{ value: string; system?: string }>;
   meta: { claims: Record<string, unknown>; status?: InteroperableLifecycleStatus };
 } {
-  const claims = cloneClaims(draft.claims);
-  if (draft.identifierValue && !normalizeText(claims[draft.identifierClaimKey])) {
-    claims[draft.identifierClaimKey] = draft.identifierValue;
+  const claims = cloneClaims(state.claims);
+  if (state.identifierValue && !normalizeText(claims[state.identifierClaimKey])) {
+    claims[state.identifierClaimKey] = state.identifierValue;
   }
 
   return {
-    resourceType: draft.resourceType,
-    ...(draft.resourceId ? { id: draft.resourceId } : {}),
-    ...(draft.identifierValue ? {
+    resourceType: state.resourceType,
+    ...(state.resourceId ? { id: state.resourceId } : {}),
+    ...(state.identifierValue ? {
       identifier: [{
-        value: draft.identifierValue,
-        ...(draft.identifierSystem ? { system: draft.identifierSystem } : {}),
+        value: state.identifierValue,
+        ...(state.identifierSystem ? { system: state.identifierSystem } : {}),
       }],
     } : {}),
     meta: {
       claims,
-      ...(draft.lifecycleStatus ? { status: draft.lifecycleStatus } : {}),
+      ...(state.lifecycleStatus ? { status: state.lifecycleStatus } : {}),
     },
   };
 }
@@ -238,7 +238,7 @@ export function buildLifecycleOperationResource(
  * Creates the shared chainable editor for search/disable/purge request shapes.
  */
 export function createInteroperableResourceOperationEditor(
-  initial?: Partial<InteroperableResourceOperationDraft>,
+  initial?: Partial<InteroperableResourceOperationState>,
 ): InteroperableResourceOperationEditor {
   let draft = normalizeDraft(initial);
 
@@ -291,7 +291,7 @@ export function createInteroperableResourceOperationEditor(
       });
       return editor;
     },
-    getDraft() {
+    getState() {
       return normalizeDraft(draft);
     },
     getBusinessIdentifier() {

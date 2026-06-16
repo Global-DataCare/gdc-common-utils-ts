@@ -27,7 +27,7 @@ export type LicenseOrderSummary = Readonly<{
   seats?: number;
 }>;
 
-export type LicenseOfferOrderDraft = Readonly<{
+export type LicenseOfferOrderState = Readonly<{
   offer: LicenseOfferPreview;
   order: LicenseOrderSummary;
   baseClaims: LicenseClaims;
@@ -41,25 +41,25 @@ export type LicenseOfferOrderDraft = Readonly<{
  * serialization without keeping mutable editor state.
  */
 export interface LicenseOfferOrderFacade {
-  createDraft(initial?: Partial<LicenseOfferOrderDraft>): LicenseOfferOrderDraft;
-  setOfferId(draft: LicenseOfferOrderDraft, value: string): LicenseOfferOrderDraft;
-  setAmount(draft: LicenseOfferOrderDraft, value: string): LicenseOfferOrderDraft;
-  setCurrency(draft: LicenseOfferOrderDraft, value: string): LicenseOfferOrderDraft;
-  setSeats(draft: LicenseOfferOrderDraft, value: number): LicenseOfferOrderDraft;
-  setPlanName(draft: LicenseOfferOrderDraft, value: string): LicenseOfferOrderDraft;
-  setSku(draft: LicenseOfferOrderDraft, value: string): LicenseOfferOrderDraft;
-  setPaymentMethod(draft: LicenseOfferOrderDraft, value: string): LicenseOfferOrderDraft;
-  setCheckoutUrl(draft: LicenseOfferOrderDraft, value: string): LicenseOfferOrderDraft;
-  setAcceptedOfferId(draft: LicenseOfferOrderDraft, value: string): LicenseOfferOrderDraft;
-  setPaymentUrl(draft: LicenseOfferOrderDraft, value: string): LicenseOfferOrderDraft;
-  setInvoiceId(draft: LicenseOfferOrderDraft, value: string): LicenseOfferOrderDraft;
-  setActivationCode(draft: LicenseOfferOrderDraft, value: string): LicenseOfferOrderDraft;
-  setBaseClaims(draft: LicenseOfferOrderDraft, claims: LicenseClaims): LicenseOfferOrderDraft;
-  buildOfferClaims(draft: LicenseOfferOrderDraft): LicenseClaims;
-  buildOrderClaims(draft: LicenseOfferOrderDraft): LicenseClaims;
+  createState(initial?: Partial<LicenseOfferOrderState>): LicenseOfferOrderState;
+  setOfferId(state: LicenseOfferOrderState, value: string): LicenseOfferOrderState;
+  setAmount(state: LicenseOfferOrderState, value: string): LicenseOfferOrderState;
+  setCurrency(state: LicenseOfferOrderState, value: string): LicenseOfferOrderState;
+  setSeats(state: LicenseOfferOrderState, value: number): LicenseOfferOrderState;
+  setPlanName(state: LicenseOfferOrderState, value: string): LicenseOfferOrderState;
+  setSku(state: LicenseOfferOrderState, value: string): LicenseOfferOrderState;
+  setPaymentMethod(state: LicenseOfferOrderState, value: string): LicenseOfferOrderState;
+  setCheckoutUrl(state: LicenseOfferOrderState, value: string): LicenseOfferOrderState;
+  setAcceptedOfferId(state: LicenseOfferOrderState, value: string): LicenseOfferOrderState;
+  setPaymentUrl(state: LicenseOfferOrderState, value: string): LicenseOfferOrderState;
+  setInvoiceId(state: LicenseOfferOrderState, value: string): LicenseOfferOrderState;
+  setActivationCode(state: LicenseOfferOrderState, value: string): LicenseOfferOrderState;
+  setBaseClaims(state: LicenseOfferOrderState, claims: LicenseClaims): LicenseOfferOrderState;
+  buildOfferClaims(state: LicenseOfferOrderState): LicenseClaims;
+  buildOrderClaims(state: LicenseOfferOrderState): LicenseClaims;
   readOfferPreviewFromResponseBody(body: unknown): LicenseOfferPreview;
   readOrderSummaryFromResponseBody(body: unknown): LicenseOrderSummary;
-  createEditor(initial?: Partial<LicenseOfferOrderDraft>): LicenseOfferOrderEditor;
+  createEditor(initial?: Partial<LicenseOfferOrderState>): LicenseOfferOrderEditor;
 }
 
 /**
@@ -135,14 +135,14 @@ function cloneOrder(order?: Partial<LicenseOrderSummary>): LicenseOrderSummary {
   };
 }
 
-function patchDraft(
-  draft: LicenseOfferOrderDraft,
-  patch: Partial<LicenseOfferOrderDraft>,
-): LicenseOfferOrderDraft {
+function patchState(
+  state: LicenseOfferOrderState,
+  patch: Partial<LicenseOfferOrderState>,
+): LicenseOfferOrderState {
   return {
-    offer: patch.offer ? cloneOffer({ ...draft.offer, ...patch.offer }) : draft.offer,
-    order: patch.order ? cloneOrder({ ...draft.order, ...patch.order }) : draft.order,
-    baseClaims: patch.baseClaims ? cloneClaims(patch.baseClaims) : cloneClaims(draft.baseClaims),
+    offer: patch.offer ? cloneOffer({ ...state.offer, ...patch.offer }) : state.offer,
+    order: patch.order ? cloneOrder({ ...state.order, ...patch.order }) : state.order,
+    baseClaims: patch.baseClaims ? cloneClaims(patch.baseClaims) : cloneClaims(state.baseClaims),
   };
 }
 
@@ -203,83 +203,83 @@ export function readLicenseOrderSummaryFromResponseBody(body: unknown): LicenseO
 
 function createEditorFromFacade(
   facade: Omit<LicenseOfferOrderFacade, 'createEditor'>,
-  initial?: Partial<LicenseOfferOrderDraft>,
+  initial?: Partial<LicenseOfferOrderState>,
 ): LicenseOfferOrderEditor {
-  let draft = facade.createDraft(initial);
+  let state = facade.createState(initial);
 
   const editor: LicenseOfferOrderEditor = {
     setOfferId(value) {
-      draft = facade.setOfferId(draft, value);
+      state = facade.setOfferId(state, value);
       return editor;
     },
     setAmount(value) {
-      draft = facade.setAmount(draft, value);
+      state = facade.setAmount(state, value);
       return editor;
     },
     setCurrency(value) {
-      draft = facade.setCurrency(draft, value);
+      state = facade.setCurrency(state, value);
       return editor;
     },
     setSeats(value) {
-      draft = facade.setSeats(draft, value);
+      state = facade.setSeats(state, value);
       return editor;
     },
     setPlanName(value) {
-      draft = facade.setPlanName(draft, value);
+      state = facade.setPlanName(state, value);
       return editor;
     },
     setSku(value) {
-      draft = facade.setSku(draft, value);
+      state = facade.setSku(state, value);
       return editor;
     },
     setPaymentMethod(value) {
-      draft = facade.setPaymentMethod(draft, value);
+      state = facade.setPaymentMethod(state, value);
       return editor;
     },
     setCheckoutUrl(value) {
-      draft = facade.setCheckoutUrl(draft, value);
+      state = facade.setCheckoutUrl(state, value);
       return editor;
     },
     setAcceptedOfferId(value) {
-      draft = facade.setAcceptedOfferId(draft, value);
+      state = facade.setAcceptedOfferId(state, value);
       return editor;
     },
     setPaymentUrl(value) {
-      draft = facade.setPaymentUrl(draft, value);
+      state = facade.setPaymentUrl(state, value);
       return editor;
     },
     setInvoiceId(value) {
-      draft = facade.setInvoiceId(draft, value);
+      state = facade.setInvoiceId(state, value);
       return editor;
     },
     setActivationCode(value) {
-      draft = facade.setActivationCode(draft, value);
+      state = facade.setActivationCode(state, value);
       return editor;
     },
     setBaseClaims(claims) {
-      draft = facade.setBaseClaims(draft, claims);
+      state = facade.setBaseClaims(state, claims);
       return editor;
     },
     getOfferPreview() {
-      return cloneOffer(draft.offer);
+      return cloneOffer(state.offer);
     },
     getOrderSummary() {
-      return cloneOrder(draft.order);
+      return cloneOrder(state.order);
     },
     buildOfferClaims() {
-      return facade.buildOfferClaims(draft);
+      return facade.buildOfferClaims(state);
     },
     buildOrderClaims() {
-      return facade.buildOrderClaims(draft);
+      return facade.buildOrderClaims(state);
     },
     readOfferPreviewFromResponseBody(body) {
       const preview = facade.readOfferPreviewFromResponseBody(body);
-      draft = patchDraft(draft, { offer: preview });
+      state = patchState(state, { offer: preview });
       return preview;
     },
     readOrderSummaryFromResponseBody(body) {
       const summary = facade.readOrderSummaryFromResponseBody(body);
-      draft = patchDraft(draft, { order: summary });
+      state = patchState(state, { order: summary });
       return summary;
     },
   };
@@ -293,48 +293,48 @@ function createEditorFromFacade(
  */
 export function createLicenseOfferOrderFacade(): LicenseOfferOrderFacade {
   const facade: Omit<LicenseOfferOrderFacade, 'createEditor'> = {
-    createDraft(initial = {}) {
+    createState(initial = {}) {
       return {
         offer: cloneOffer(initial.offer),
         order: cloneOrder(initial.order),
         baseClaims: cloneClaims(initial.baseClaims),
       };
     },
-    setOfferId(draft, value) { return patchDraft(draft, { offer: { offerId: value } }); },
-    setAmount(draft, value) { return patchDraft(draft, { offer: { amount: value }, order: { amount: value } }); },
-    setCurrency(draft, value) { return patchDraft(draft, { offer: { currency: value }, order: { currency: value } }); },
-    setSeats(draft, value) { return patchDraft(draft, { offer: { seats: value }, order: { seats: value } }); },
-    setPlanName(draft, value) { return patchDraft(draft, { offer: { planName: value } }); },
-    setSku(draft, value) { return patchDraft(draft, { offer: { sku: value } }); },
-    setPaymentMethod(draft, value) { return patchDraft(draft, { offer: { paymentMethod: value }, order: { paymentMethod: value } }); },
-    setCheckoutUrl(draft, value) { return patchDraft(draft, { offer: { checkoutUrl: value } }); },
-    setAcceptedOfferId(draft, value) { return patchDraft(draft, { order: { acceptedOfferId: value } }); },
-    setPaymentUrl(draft, value) { return patchDraft(draft, { order: { paymentUrl: value } }); },
-    setInvoiceId(draft, value) { return patchDraft(draft, { order: { invoiceId: value } }); },
-    setActivationCode(draft, value) { return patchDraft(draft, { order: { activationCode: value } }); },
-    setBaseClaims(draft, claims) { return patchDraft(draft, { baseClaims: claims }); },
-    buildOfferClaims(draft) {
+    setOfferId(state, value) { return patchState(state, { offer: { offerId: value } }); },
+    setAmount(state, value) { return patchState(state, { offer: { amount: value }, order: { amount: value } }); },
+    setCurrency(state, value) { return patchState(state, { offer: { currency: value }, order: { currency: value } }); },
+    setSeats(state, value) { return patchState(state, { offer: { seats: value }, order: { seats: value } }); },
+    setPlanName(state, value) { return patchState(state, { offer: { planName: value } }); },
+    setSku(state, value) { return patchState(state, { offer: { sku: value } }); },
+    setPaymentMethod(state, value) { return patchState(state, { offer: { paymentMethod: value }, order: { paymentMethod: value } }); },
+    setCheckoutUrl(state, value) { return patchState(state, { offer: { checkoutUrl: value } }); },
+    setAcceptedOfferId(state, value) { return patchState(state, { order: { acceptedOfferId: value } }); },
+    setPaymentUrl(state, value) { return patchState(state, { order: { paymentUrl: value } }); },
+    setInvoiceId(state, value) { return patchState(state, { order: { invoiceId: value } }); },
+    setActivationCode(state, value) { return patchState(state, { order: { activationCode: value } }); },
+    setBaseClaims(state, claims) { return patchState(state, { baseClaims: claims }); },
+    buildOfferClaims(state) {
       const claims: LicenseClaims = {
         '@context': LicenseClaimContext.SchemaOrg,
-        ...cloneClaims(draft.baseClaims),
+        ...cloneClaims(state.baseClaims),
       };
-      if (draft.offer.offerId) claims[ClaimsOfferSchemaorg.identifier] = draft.offer.offerId;
-      if (draft.offer.amount) claims[ClaimsOfferSchemaorg.price] = draft.offer.amount;
-      if (draft.offer.currency) claims[ClaimsOfferSchemaorg.priceCurrency] = draft.offer.currency;
-      if (typeof draft.offer.seats === 'number') claims[ClaimsOfferSchemaorg.eligibleQuantityValue] = draft.offer.seats;
-      if (draft.offer.planName) claims[ClaimsOfferSchemaorg.itemOfferedName] = draft.offer.planName;
-      if (draft.offer.sku) claims[ClaimsOfferSchemaorg.itemOfferedSku] = draft.offer.sku;
-      if (draft.offer.paymentMethod) claims[ClaimsOfferSchemaorg.acceptedPaymentMethod] = draft.offer.paymentMethod;
-      if (draft.offer.checkoutUrl) claims[ClaimsOfferSchemaorg.checkoutPageURLTemplate] = draft.offer.checkoutUrl;
+      if (state.offer.offerId) claims[ClaimsOfferSchemaorg.identifier] = state.offer.offerId;
+      if (state.offer.amount) claims[ClaimsOfferSchemaorg.price] = state.offer.amount;
+      if (state.offer.currency) claims[ClaimsOfferSchemaorg.priceCurrency] = state.offer.currency;
+      if (typeof state.offer.seats === 'number') claims[ClaimsOfferSchemaorg.eligibleQuantityValue] = state.offer.seats;
+      if (state.offer.planName) claims[ClaimsOfferSchemaorg.itemOfferedName] = state.offer.planName;
+      if (state.offer.sku) claims[ClaimsOfferSchemaorg.itemOfferedSku] = state.offer.sku;
+      if (state.offer.paymentMethod) claims[ClaimsOfferSchemaorg.acceptedPaymentMethod] = state.offer.paymentMethod;
+      if (state.offer.checkoutUrl) claims[ClaimsOfferSchemaorg.checkoutPageURLTemplate] = state.offer.checkoutUrl;
       return claims;
     },
-    buildOrderClaims(draft) {
-      const claims = facade.buildOfferClaims(draft);
-      if (draft.order.acceptedOfferId) claims[ClaimsOrderSchemaorg.acceptedOfferIdentifier] = draft.order.acceptedOfferId;
-      if (draft.order.paymentUrl) claims[ClaimsOrderSchemaorg.paymentUrl] = draft.order.paymentUrl;
-      if (draft.order.invoiceId) claims[ClaimsOrderSchemaorg.partOfInvoice] = draft.order.invoiceId;
-      if (draft.order.paymentMethod) claims[ClaimsOrderSchemaorg.paymentMethod] = draft.order.paymentMethod;
-      if (draft.order.activationCode) claims[ClaimsIndividualProductSchemaorg.serialNumber] = draft.order.activationCode;
+    buildOrderClaims(state) {
+      const claims = facade.buildOfferClaims(state);
+      if (state.order.acceptedOfferId) claims[ClaimsOrderSchemaorg.acceptedOfferIdentifier] = state.order.acceptedOfferId;
+      if (state.order.paymentUrl) claims[ClaimsOrderSchemaorg.paymentUrl] = state.order.paymentUrl;
+      if (state.order.invoiceId) claims[ClaimsOrderSchemaorg.partOfInvoice] = state.order.invoiceId;
+      if (state.order.paymentMethod) claims[ClaimsOrderSchemaorg.paymentMethod] = state.order.paymentMethod;
+      if (state.order.activationCode) claims[ClaimsIndividualProductSchemaorg.serialNumber] = state.order.activationCode;
       return claims;
     },
     readOfferPreviewFromResponseBody(body) { return readLicenseOfferPreviewFromResponseBody(body); },
@@ -353,7 +353,7 @@ export function createLicenseOfferOrderFacade(): LicenseOfferOrderFacade {
  * Creates the chainable editor shown in the 101 tests.
  */
 export function createLicenseOfferOrderEditor(
-  initial?: Partial<LicenseOfferOrderDraft>,
+  initial?: Partial<LicenseOfferOrderState>,
 ): LicenseOfferOrderEditor {
   return createLicenseOfferOrderFacade().createEditor(initial);
 }

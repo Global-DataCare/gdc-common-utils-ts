@@ -45,7 +45,7 @@ describe('101: interoperable resource operation contract', () => {
 
     expect(editor.getBusinessIdentifier()).toBe(EXAMPLE_RELATED_PERSON_IDENTIFIER);
     expect(editor.getClaims()[RelatedPersonClaim.Identifier]).toBe(EXAMPLE_RELATED_PERSON_IDENTIFIER);
-    expect(editor.getDraft().resourceId).toBe(EXAMPLE_RELATED_PERSON_INTERNAL_RESOURCE_ID);
+    expect(editor.getState().resourceId).toBe(EXAMPLE_RELATED_PERSON_INTERNAL_RESOURCE_ID);
 
     // Step 3.
     // Build lifecycle entries. The operation status lives in resource.meta.status

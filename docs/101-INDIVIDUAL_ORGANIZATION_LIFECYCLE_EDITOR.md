@@ -1,7 +1,7 @@
 # Individual Organization Lifecycle Editor 101
 
 This is the frontend/integrator guide for the shared
-`IndividualOrganizationLifecycleDraft`.
+`IndividualOrganizationLifecycleEditor`.
 
 Use this when you need to understand:
 
@@ -26,13 +26,13 @@ route name. The important part is:
 - whether the action is `disable` or `purge`
 - which claims identify the hosted individual context
 
-The shared draft lets you build that semantic intent first.
+The shared editor lets you build that semantic intent first.
 
-## The Draft
+## The Editor
 
 Use:
 
-- `IndividualOrganizationLifecycleDraft`
+- `IndividualOrganizationLifecycleEditor`
 
 It is a chainable builder for the business input:
 
@@ -57,11 +57,11 @@ import {
   EXAMPLE_INDIVIDUAL_DISABLE_MESSAGE,
 } from 'gdc-common-utils-ts/examples';
 import {
-  IndividualOrganizationLifecycleDraft,
+  IndividualOrganizationLifecycleEditor,
   IndividualOrganizationLifecycleOperations,
 } from 'gdc-common-utils-ts';
 
-const draft = new IndividualOrganizationLifecycleDraft()
+const editor = new IndividualOrganizationLifecycleEditor()
   .setClaims(EXAMPLE_INDIVIDUAL_DISABLE_MESSAGE.claims)
   .setIdentifier(
     String(EXAMPLE_INDIVIDUAL_DISABLE_MESSAGE.claims[ClaimsOrganizationSchemaorg.identifier]),
@@ -74,7 +74,7 @@ const draft = new IndividualOrganizationLifecycleDraft()
   )
   .setOperation(IndividualOrganizationLifecycleOperations.Disable);
 
-const semanticMessage = draft.toSemanticMessage();
+const semanticMessage = editor.toSemanticMessage();
 ```
 
 Read that example as:
@@ -107,13 +107,13 @@ semanticMessage.claims[ClaimsOrganizationSchemaorg.ownerEmail];
 
 ## What Happens Later
 
-Later, a lower SDK/runtime layer may wrap that semantic draft into the current
+Later, a lower SDK/runtime layer may wrap that semantic editor into the current
 GW contract.
 
 That lower-level wrapping is intentionally not the first thing a frontend
 developer needs to learn.
 
-When you do need that detail, the same draft can also materialize the current
+When you do need that detail, the same editor can also materialize the current
 GW payload shape through:
 
 - `buildCurrentGwDataEntry()`

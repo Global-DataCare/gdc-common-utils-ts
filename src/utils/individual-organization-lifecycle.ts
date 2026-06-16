@@ -52,7 +52,7 @@ export type IndividualOrganizationLifecyclePayload = Readonly<{
   };
 }>;
 
-export type IndividualOrganizationLifecycleDraftState = Readonly<{
+export type IndividualOrganizationLifecycleEditorState = Readonly<{
   operation: IndividualOrganizationLifecycleOperation;
   claims: IndividualOrganizationLifecycleClaims;
   resourceId?: string;
@@ -70,11 +70,14 @@ function normalizeText(value: unknown): string | undefined {
 }
 
 function normalizeDraft(
-  draft?: Partial<IndividualOrganizationLifecycleDraftState>,
-): IndividualOrganizationLifecycleDraftState {
+  draft?: Partial<IndividualOrganizationLifecycleEditorState>,
+): IndividualOrganizationLifecycleEditorState {
   return {
     operation: draft?.operation || IndividualOrganizationLifecycleOperations.Disable,
-    claims: cloneClaims(draft?.claims),
+    claims: {
+      '@context': 'org.schema',
+      ...cloneClaims(draft?.claims),
+    },
     resourceId: normalizeText(draft?.resourceId),
     requestType: normalizeText(draft?.requestType),
     thid: normalizeText(draft?.thid),
@@ -82,9 +85,9 @@ function normalizeDraft(
 }
 
 function patchDraft(
-  draft: IndividualOrganizationLifecycleDraftState,
-  patch: Partial<IndividualOrganizationLifecycleDraftState>,
-): IndividualOrganizationLifecycleDraftState {
+  draft: IndividualOrganizationLifecycleEditorState,
+  patch: Partial<IndividualOrganizationLifecycleEditorState>,
+): IndividualOrganizationLifecycleEditorState {
   return normalizeDraft({
     ...draft,
     ...patch,
@@ -144,7 +147,7 @@ export function buildCurrentIndividualOrganizationLifecyclePayload(
 }
 
 /**
- * High-level chainable draft for hosted individual/family lifecycle work.
+ * High-level chainable editor for hosted individual/family lifecycle work.
  *
  * Teaching goal:
  * - authors one canonical flat `org.schema.Organization.*` claim set
@@ -152,10 +155,10 @@ export function buildCurrentIndividualOrganizationLifecyclePayload(
  * - can emit either a semantic lifecycle message or the current GW CORE
  *   payload shape used by `sdk-node`
  */
-export class IndividualOrganizationLifecycleDraft {
-  private draft: IndividualOrganizationLifecycleDraftState;
+export class IndividualOrganizationLifecycleEditor {
+  private draft: IndividualOrganizationLifecycleEditorState;
 
-  constructor(initial?: Partial<IndividualOrganizationLifecycleDraftState>) {
+  constructor(initial?: Partial<IndividualOrganizationLifecycleEditorState>) {
     this.draft = normalizeDraft(initial);
   }
 
@@ -166,6 +169,16 @@ export class IndividualOrganizationLifecycleDraft {
 
   setClaims(claims: IndividualOrganizationLifecycleClaims): this {
     this.draft = patchDraft(this.draft, { claims });
+    return this;
+  }
+
+  setContext(context: string): this {
+    this.draft = patchDraft(this.draft, {
+      claims: {
+        ...this.draft.claims,
+        '@context': String(context).trim(),
+      },
+    });
     return this;
   }
 
@@ -219,12 +232,56 @@ export class IndividualOrganizationLifecycleDraft {
     return this;
   }
 
+  getIdentifier(): string | undefined {
+    const value = this.draft.claims[ClaimsOrganizationSchemaorg.identifier];
+    const normalized = normalizeText(value);
+    return normalized || undefined;
+  }
+
+  getContext(): string | undefined {
+    const value = this.draft.claims['@context'];
+    const normalized = normalizeText(value);
+    return normalized || undefined;
+  }
+
+  getAlternateName(): string | undefined {
+    const value = this.draft.claims[ClaimsOrganizationSchemaorg.alternateName];
+    const normalized = normalizeText(value);
+    return normalized || undefined;
+  }
+
+  getOwnerEmail(): string | undefined {
+    const value = this.draft.claims[ClaimsOrganizationSchemaorg.ownerEmail];
+    const normalized = normalizeText(value);
+    return normalized || undefined;
+  }
+
+  getOperation(): IndividualOrganizationLifecycleOperation {
+    return this.draft.operation;
+  }
+
+  getResourceId(): string | undefined {
+    return normalizeText(this.draft.resourceId) || undefined;
+  }
+
+  getRequestType(): string | undefined {
+    return normalizeText(this.draft.requestType) || undefined;
+  }
+
+  getThreadId(): string | undefined {
+    return normalizeText(this.draft.thid) || undefined;
+  }
+
   getClaims(): IndividualOrganizationLifecycleClaims {
     return cloneClaims(this.draft.claims);
   }
 
-  getDraft(): IndividualOrganizationLifecycleDraftState {
+  getState(): IndividualOrganizationLifecycleEditorState {
     return normalizeDraft(this.draft);
+  }
+
+  getEditorState(): IndividualOrganizationLifecycleEditorState {
+    return this.getState();
   }
 
   toSemanticMessage(): IndividualOrganizationLifecycleSemanticMessage {
@@ -239,7 +296,7 @@ export class IndividualOrganizationLifecycleDraft {
   buildCurrentGwDataEntry(): IndividualOrganizationLifecycleDataEntry {
     const requestType = normalizeText(this.draft.requestType);
     if (!requestType) {
-      throw new Error('IndividualOrganizationLifecycleDraft.buildCurrentGwDataEntry requires requestType.');
+      throw new Error('IndividualOrganizationLifecycleEditor.buildCurrentGwDataEntry requires requestType.');
     }
     return buildCurrentIndividualOrganizationLifecycleDataEntry({
       claims: this.getClaims(),
@@ -251,7 +308,7 @@ export class IndividualOrganizationLifecycleDraft {
   buildCurrentGwPayload(): IndividualOrganizationLifecyclePayload {
     const requestType = normalizeText(this.draft.requestType);
     if (!requestType) {
-      throw new Error('IndividualOrganizationLifecycleDraft.buildCurrentGwPayload requires requestType.');
+      throw new Error('IndividualOrganizationLifecycleEditor.buildCurrentGwPayload requires requestType.');
     }
     return {
       thid: this.draft.thid || createLifecycleThreadId(this.draft.operation),

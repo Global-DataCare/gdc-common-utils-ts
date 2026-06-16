@@ -1,5 +1,9 @@
 # gdc-common-utils-ts
 
+See [ARCHITECTURE.md](./ARCHITECTURE.md) and
+[CONTRIBUTING.md](./CONTRIBUTING.md) before adding new shared helpers,
+fixtures, or high-level tests.
+
 Employee shared examples live in `src/examples/employee.ts`.
 Employee pure helper functions live in `src/utils/employee.ts`.
 

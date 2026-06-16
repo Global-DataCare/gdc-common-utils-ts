@@ -4,6 +4,51 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-06-15
+
+### Added
+- Added canonical architecture and contribution rules for the v2 shared layer,
+  including:
+  - `ARCHITECTURE.md`
+  - `CONTRIBUTING.md`
+- Added a dedicated organization lifecycle helper surface in:
+  - `src/utils/organization-lifecycle.ts`
+  - `__tests__/101-organization-lifecycle.test.ts`
+
+### Changed
+- Standardized the shared lifecycle surface around canonical high-level
+  `Editor` and `State` terminology instead of `Draft` for non-provisional
+  lifecycle semantics:
+  - `src/utils/individual-organization-lifecycle.ts`
+  - `src/examples/lifecycle.ts`
+  - `docs/101-INDIVIDUAL_ORGANIZATION_LIFECYCLE_EDITOR.md`
+  - `__tests__/101-individual-organization-lifecycle.test.ts`
+- Standardized shared operation/search helpers so technical internal state uses
+  `State` and `getState()` instead of `Draft` and `getDraft()` where the domain
+  is not modeling a provisional artifact:
+  - `src/utils/interoperable-resource-operation.ts`
+  - `src/utils/communication-search-editor.ts`
+  - `src/utils/license-commercial-search.ts`
+  - `src/utils/license-list-search.ts`
+  - `src/utils/license-offer-order.ts`
+  - `src/utils/index.ts`
+  - `__tests__/101-interoperable-resource-operation.test.ts`
+  - `__tests__/101-license-list-search.test.ts`
+- Documented the v2 ownership rule that canonical high-level `get...` /
+  `set...` methods on shared semantic classes must be introduced in
+  `gdc-common-utils-ts` before being wrapped by downstream SDK layers.
+- Documented the v2 naming rule that operation families keep the operation
+  prefix first and specialize toward the end, e.g. `prepareSearch...` and
+  `prepareLifecycle...`.
+
+### Breaking
+- Lifecycle and shared helper callers must consume the v2 `Editor` / `State`
+  surface rather than the old `Draft` naming when the domain is not
+  semantically provisional.
+- Downstream SDK layers should now treat `gdc-common-utils-ts` as the canonical
+  source of high-level shared `get...` / `set...` methods before introducing
+  role/profile/runtime wrappers.
+
 ## [1.24.3] - 2026-06-15
 
 ### Changed

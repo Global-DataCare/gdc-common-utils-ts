@@ -27,6 +27,38 @@ Deprecated compatibility still tolerated by shared readers:
 
 New writers should emit only the canonical `resource.meta.claims` shape.
 
+## Naming Convention
+
+For shared helpers and SDK facades, function names must keep the operation
+prefix first and push the concrete domain/type detail to the end.
+
+Use:
+
+- `prepareSearchLicenseList`
+- `prepareSearchLicenseOffer`
+- `prepareSearchLicenseOrder`
+- `prepareLifecycleIndividualOrganization`
+- `prepareLifecycleIndividualOrganizationDisable`
+- `prepareLifecycleIndividualOrganizationPurge`
+
+Do not mix:
+
+- constructor-like prefixes such as `new...`
+- CRUD-looking prefixes such as `create...` for non-create operations
+- synonyms that blur intent such as `edit`, `update`, `patch` when the helper
+  is not performing that operation
+
+Rule of thumb:
+
+- preparing a helper/editor for a search operation: `prepareSearch...`
+- executing a real search: `search...`
+- preparing a helper/editor for a lifecycle operation: `prepareLifecycle...`
+- keep the common operation prefix first and push the resource/specialization
+  detail to the end
+
+This rule exists to avoid repeated renaming churn across `common-utils`,
+`sdk-core`, `sdk-node`, and `sdk-front`.
+
 ## Layer Order
 
 Build lifecycle support in this order:

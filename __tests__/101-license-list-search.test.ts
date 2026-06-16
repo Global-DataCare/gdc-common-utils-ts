@@ -19,7 +19,7 @@ import {
 } from '../src';
 
 describe('101: license list and search', () => {
-  it('builds one high-level semantic search draft and maps the supported subset to the current search entry', () => {
+  it('builds one high-level semantic search state and maps the supported subset to the current search entry', () => {
     const editor = new LicenseListSearchEditor()
       .setSerialNumbers([EXAMPLE_LICENSE_ACTIVE_RECORD.id])
       .setUserClass(DeviceUserClasses.Employee)
@@ -30,10 +30,10 @@ describe('101: license list and search', () => {
       .setAssigned(true)
       .setPeriod('2026-01-01', '2026-12-31');
 
-    const draft = editor.getDraft();
+    const state = editor.getState();
     const entry = editor.buildSearchEntry();
 
-    expect(draft).toEqual(expect.objectContaining({
+    expect(state).toEqual(expect.objectContaining({
       active: true,
       assigned: true,
       periodStart: '2026-01-01',

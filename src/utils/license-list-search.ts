@@ -10,12 +10,12 @@ import {
 import { ClaimsIndividualProductSchemaorg, ClaimsOfferSchemaorg, ClaimsPersonSchemaorg } from '../constants/schemaorg';
 
 /**
- * High-level filter draft for license list/search screens.
+ * High-level filter state for license list/search screens.
  *
- * This draft keeps UI semantics stable even when the runtime search transport
+ * This state keeps UI semantics stable even when the runtime search transport
  * still supports only a subset of the final portal-facing filters.
  */
-export type LicenseListSearchDraft = Readonly<{
+export type LicenseListSearchState = Readonly<{
   serialNumbers?: readonly string[];
   email?: string;
   role?: string;
@@ -70,46 +70,46 @@ function cloneClaims(claims?: LicenseClaims): LicenseClaims {
   return { ...(claims || {}) };
 }
 
-function cloneDraft(draft?: Partial<LicenseListSearchDraft>): LicenseListSearchDraft {
+function cloneDraft(state?: Partial<LicenseListSearchState>): LicenseListSearchState {
   return {
-    serialNumbers: Array.isArray(draft?.serialNumbers) ? [...draft!.serialNumbers!] : undefined,
-    email: normalizeText(draft?.email),
-    role: normalizeText(draft?.role),
-    status: draft?.status,
-    subjectId: normalizeText(draft?.subjectId),
-    userClass: normalizeText(draft?.userClass),
-    type: normalizeText(draft?.type),
-    active: typeof draft?.active === 'boolean' ? draft.active : undefined,
-    assigned: typeof draft?.assigned === 'boolean' ? draft.assigned : undefined,
-    unused: typeof draft?.unused === 'boolean' ? draft.unused : undefined,
-    periodStart: normalizeText(draft?.periodStart),
-    periodEnd: normalizeText(draft?.periodEnd),
-    additionalClaims: cloneClaims(draft?.additionalClaims),
+    serialNumbers: Array.isArray(state?.serialNumbers) ? [...state!.serialNumbers!] : undefined,
+    email: normalizeText(state?.email),
+    role: normalizeText(state?.role),
+    status: state?.status,
+    subjectId: normalizeText(state?.subjectId),
+    userClass: normalizeText(state?.userClass),
+    type: normalizeText(state?.type),
+    active: typeof state?.active === 'boolean' ? state.active : undefined,
+    assigned: typeof state?.assigned === 'boolean' ? state.assigned : undefined,
+    unused: typeof state?.unused === 'boolean' ? state.unused : undefined,
+    periodStart: normalizeText(state?.periodStart),
+    periodEnd: normalizeText(state?.periodEnd),
+    additionalClaims: cloneClaims(state?.additionalClaims),
   };
 }
 
-function resolveStatus(draft: LicenseListSearchDraft): LicenseStatus | undefined {
-  if (draft.status) return draft.status;
-  if (draft.active === true) return LicenseStatuses.Active;
-  if (draft.active === false) return LicenseStatuses.Inactive;
-  if (draft.unused === true) return LicenseStatuses.Available;
+function resolveStatus(state: LicenseListSearchState): LicenseStatus | undefined {
+  if (state.status) return state.status;
+  if (state.active === true) return LicenseStatuses.Active;
+  if (state.active === false) return LicenseStatuses.Inactive;
+  if (state.unused === true) return LicenseStatuses.Available;
   return undefined;
 }
 
 /**
- * High-level chainable draft for frontend/backend license list/search filters.
+ * High-level chainable editor state for frontend/backend license list/search filters.
  *
  * Intent:
  * - keep UI-level filters (`active`, `unused`, `assigned`, `period`) visible at
  *   the semantic layer
  * - map the currently supported subset to the existing canonical search entry
- * - preserve the rest in a neutral draft until the final backend facade is
+ * - preserve the rest in a neutral state until the final backend facade is
  *   fully converged
  */
 export class LicenseListSearchEditor {
-  private draft: LicenseListSearchDraft;
+  private draft: LicenseListSearchState;
 
-  constructor(initial?: Partial<LicenseListSearchDraft>) {
+  constructor(initial?: Partial<LicenseListSearchState>) {
     this.draft = cloneDraft(initial);
   }
 
@@ -176,7 +176,7 @@ export class LicenseListSearchEditor {
     return this;
   }
 
-  getDraft(): LicenseListSearchDraft {
+  getState(): LicenseListSearchState {
     return cloneDraft(this.draft);
   }
 

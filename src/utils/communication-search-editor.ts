@@ -16,7 +16,7 @@ export const CommunicationSearchOperationTypes = Object.freeze({
   Search: 'search',
 } as const);
 
-export type CommunicationSearchDraft = Readonly<{
+export type CommunicationSearchState = Readonly<{
   searchParams: Readonly<Record<string, string | number | boolean | readonly (string | number | boolean)[] | undefined>>;
   periodStart?: string;
   periodEnd?: string;
@@ -61,8 +61,8 @@ function normalizeSearchParamValue(
 }
 
 function cloneDraft(
-  draft?: Partial<CommunicationSearchDraft>,
-): CommunicationSearchDraft {
+  draft?: Partial<CommunicationSearchState>,
+): CommunicationSearchState {
   const searchParams: Record<string, string | number | boolean | readonly (string | number | boolean)[] | undefined> = {};
   for (const [key, value] of Object.entries(draft?.searchParams || {})) {
     const normalizedKey = normalizeText(key);
@@ -99,9 +99,9 @@ function isParticipantClaimKey(claimKey: string): boolean {
  *   the claim bag because they are search controls, not resource claims
  */
 export class CommunicationSearchEditor {
-  private draft: CommunicationSearchDraft;
+  private draft: CommunicationSearchState;
 
-  constructor(initial?: Partial<CommunicationSearchDraft>) {
+  constructor(initial?: Partial<CommunicationSearchState>) {
     this.draft = cloneDraft(initial);
   }
 
@@ -166,7 +166,7 @@ export class CommunicationSearchEditor {
     return this;
   }
 
-  getDraft(): CommunicationSearchDraft {
+  getState(): CommunicationSearchState {
     return cloneDraft(this.draft);
   }
 

@@ -1,0 +1,131 @@
+# Architecture
+
+## Purpose
+
+`gdc-common-utils-ts` owns the shared high-level, runtime-neutral building
+blocks reused by downstream consumer layers.
+
+This package is the canonical home for:
+
+- `Editor`, `Reader`, `Builder`, and `State` abstractions
+- high-level `get...` / `set...` methods on shared semantic classes
+- shared examples and fixtures
+- reusable claim normalization and readback helpers
+- didactic `101` tests that define the intended high-level contract
+
+This package is not the place for:
+
+- actor-runtime orchestration
+- role-specific UX flows
+- frontend session semantics
+- runtime transport orchestration
+- gateway route binding or polling behavior
+
+## Ownership Rules
+
+Put code here when it is:
+
+- reusable across browser, node, and other consumer/runtime contexts
+- semantically high-level but still runtime-neutral
+- not tied to one user role, sector, or execution environment
+
+If a high-level semantic class needs `get...` / `set...` methods, define those
+methods here before exposing or consuming that class through downstream facade,
+profile, or runtime layers.
+
+Do not put code here when it:
+
+- requires token/session/runtime context
+- represents one concrete actor profile runtime
+- depends on HTTP routes, polling, retries, storage adapters, job managers, or credential plumbing
+
+## Naming Rules
+
+Use these conventions consistently:
+
+- `Editor`: mutable high-level helper for assembling or refining a semantic payload
+- `Reader`: readback/helper over a returned payload
+- `Builder`: construction helper where edit semantics are not the focus
+- `State`: normalized serializable state behind an editor/helper
+- `Draft`: only when the domain genuinely models a provisional artifact, not just an internal helper state
+
+For helper/facade methods, keep the operation prefix first and the specific
+target later.
+
+Examples:
+
+- `prepareSearchLicenseList`
+- `prepareSearchLicenseOffer`
+- `prepareLifecycleIndividualOrganizationDisable`
+
+Avoid mixing:
+
+- `new...`
+- CRUD-looking `create...` names for non-create operations
+- ambiguous synonyms such as `edit`, `update`, or `patch` when the function is not performing those actions
+
+## Layer Boundary
+
+This package feeds:
+
+- `gdc-sdk-core-ts`
+- `gdc-sdk-node-ts`
+- `gdc-sdk-front-ts`
+- other downstream consumers where shared neutral semantics are needed
+
+The expected dependency direction is:
+
+1. `gdc-common-utils-ts`
+2. `gdc-sdk-core-ts`
+3. `gdc-sdk-node-ts` / `gdc-sdk-front-ts`
+4. downstream route-specific or runtime-specific surfaces
+
+## Test And Example Policy
+
+High-level tests in this repository are the canonical executable contract.
+
+They should be:
+
+- step by step
+- high-level
+- free of runtime plumbing
+- free of ad-hoc literals when a shared example already exists
+- backed by shared fixtures/examples in this repository
+
+Preferred anchors:
+
+- [__tests__/101-bundle-reader.test.ts](/Users/fernando/GITS/gdc-workspace/gdc-common-utils-ts/__tests__/101-bundle-reader.test.ts:1)
+- [__tests__/101-employee-examples.test.ts](/Users/fernando/GITS/gdc-workspace/gdc-common-utils-ts/__tests__/101-employee-examples.test.ts:1)
+- [__tests__/101-individual-organization-lifecycle.test.ts](/Users/fernando/GITS/gdc-workspace/gdc-common-utils-ts/__tests__/101-individual-organization-lifecycle.test.ts:1)
+- [__tests__/101-interoperable-resource-operation.test.ts](/Users/fernando/GITS/gdc-workspace/gdc-common-utils-ts/__tests__/101-interoperable-resource-operation.test.ts:1)
+- [__tests__/101-license-list-search.test.ts](/Users/fernando/GITS/gdc-workspace/gdc-common-utils-ts/__tests__/101-license-list-search.test.ts:1)
+- [__tests__/101-license-offer-order-editor.test.ts](/Users/fernando/GITS/gdc-workspace/gdc-common-utils-ts/__tests__/101-license-offer-order-editor.test.ts:1)
+- [__tests__/101-communication-search-editor.test.ts](/Users/fernando/GITS/gdc-workspace/gdc-common-utils-ts/__tests__/101-communication-search-editor.test.ts:1)
+
+## JSDoc Policy
+
+Every exported high-level helper should have JSDoc that explains:
+
+- what semantic layer it belongs to
+- what it does not do
+- whether it is editor/reader/builder/state
+- how it is expected to be consumed by downstream layers
+
+For shared semantic classes with `get...` / `set...` methods, JSDoc should make
+clear that the canonical high-level surface lives in `gdc-common-utils-ts`.
+
+## Shared Data Rule
+
+Shared test/examples data must originate here and be reused by SDK/runtime
+tests whenever possible.
+
+SDK repositories should prefer importing examples and fixtures from
+`gdc-common-utils-ts` instead of redefining inline literals.
+
+## Acceptance Rule
+
+If a high-level reusable helper can live in `gdc-common-utils-ts`, it should be
+introduced here before being wrapped or specialized elsewhere.
+
+The same rule applies to high-level `get...` / `set...` methods on shared
+semantic classes.

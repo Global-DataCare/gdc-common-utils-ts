@@ -7,7 +7,7 @@ import {
 import { LifecycleRequestType } from '../constants/lifecycle';
 import { ClaimConsent } from '../models/consent-rule';
 import {
-  IndividualOrganizationLifecycleDraft,
+  IndividualOrganizationLifecycleEditor,
   IndividualOrganizationLifecycleOperations,
 } from '../utils/individual-organization-lifecycle';
 import {
@@ -219,14 +219,14 @@ export const EXAMPLE_INDIVIDUAL_DISABLE_MESSAGE = {
 } as const;
 
 export const EXAMPLE_INDIVIDUAL_ORGANIZATION_DISABLE_ENTRY =
-  new IndividualOrganizationLifecycleDraft()
+  new IndividualOrganizationLifecycleEditor()
     .setClaims(EXAMPLE_INDIVIDUAL_DISABLE_MESSAGE.claims)
     .setOperation(IndividualOrganizationLifecycleOperations.Disable)
     .setRequestType(EXAMPLE_INDIVIDUAL_ORGANIZATION_DISABLE_REQUEST_TYPE)
     .buildCurrentGwDataEntry();
 
 export const EXAMPLE_INDIVIDUAL_ORGANIZATION_DISABLE_PAYLOAD =
-  new IndividualOrganizationLifecycleDraft()
+  new IndividualOrganizationLifecycleEditor()
     .setClaims(EXAMPLE_INDIVIDUAL_DISABLE_MESSAGE.claims)
     .setOperation(IndividualOrganizationLifecycleOperations.Disable)
     .setRequestType(EXAMPLE_INDIVIDUAL_ORGANIZATION_DISABLE_REQUEST_TYPE)
@@ -255,14 +255,14 @@ export const EXAMPLE_INDIVIDUAL_DELETE_MESSAGE = {
 } as const;
 
 export const EXAMPLE_INDIVIDUAL_ORGANIZATION_PURGE_ENTRY =
-  new IndividualOrganizationLifecycleDraft()
+  new IndividualOrganizationLifecycleEditor()
     .setClaims(EXAMPLE_INDIVIDUAL_DISABLE_MESSAGE.claims)
     .setOperation(IndividualOrganizationLifecycleOperations.Purge)
     .setRequestType(EXAMPLE_INDIVIDUAL_ORGANIZATION_PURGE_REQUEST_TYPE)
     .buildCurrentGwDataEntry();
 
 export const EXAMPLE_INDIVIDUAL_ORGANIZATION_PURGE_PAYLOAD =
-  new IndividualOrganizationLifecycleDraft()
+  new IndividualOrganizationLifecycleEditor()
     .setClaims(EXAMPLE_INDIVIDUAL_DISABLE_MESSAGE.claims)
     .setOperation(IndividualOrganizationLifecycleOperations.Purge)
     .setRequestType(EXAMPLE_INDIVIDUAL_ORGANIZATION_PURGE_REQUEST_TYPE)

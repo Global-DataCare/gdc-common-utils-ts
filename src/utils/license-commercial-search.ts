@@ -21,7 +21,7 @@ export const LicenseCommercialSearchOperation = Object.freeze({
   Order: 'Order:Search',
 } as const);
 
-export type LicenseOfferSearchDraft = Readonly<{
+export type LicenseOfferSearchState = Readonly<{
   offerId?: string;
   status?: string;
   category?: string;
@@ -29,7 +29,7 @@ export type LicenseOfferSearchDraft = Readonly<{
   additionalClaims: LicenseClaims;
 }>;
 
-export type LicenseOrderSearchDraft = Readonly<{
+export type LicenseOrderSearchState = Readonly<{
   acceptedOfferId?: string;
   invoiceId?: string;
   paymentMethod?: string;
@@ -60,7 +60,7 @@ function cloneClaims(claims?: LicenseClaims): LicenseClaims {
   return { ...(claims || {}) };
 }
 
-function cloneOfferSearchDraft(draft?: Partial<LicenseOfferSearchDraft>): LicenseOfferSearchDraft {
+function cloneOfferSearchDraft(draft?: Partial<LicenseOfferSearchState>): LicenseOfferSearchState {
   return {
     offerId: normalizeText(draft?.offerId),
     status: normalizeText(draft?.status),
@@ -70,7 +70,7 @@ function cloneOfferSearchDraft(draft?: Partial<LicenseOfferSearchDraft>): Licens
   };
 }
 
-function cloneOrderSearchDraft(draft?: Partial<LicenseOrderSearchDraft>): LicenseOrderSearchDraft {
+function cloneOrderSearchDraft(draft?: Partial<LicenseOrderSearchState>): LicenseOrderSearchState {
   return {
     acceptedOfferId: normalizeText(draft?.acceptedOfferId),
     invoiceId: normalizeText(draft?.invoiceId),
@@ -88,9 +88,9 @@ function cloneOrderSearchDraft(draft?: Partial<LicenseOrderSearchDraft>): Licens
  * caller to handcraft flat `Offer.*` claims.
  */
 export class LicenseOfferSearchEditor {
-  private draft: LicenseOfferSearchDraft;
+  private draft: LicenseOfferSearchState;
 
-  constructor(initial?: Partial<LicenseOfferSearchDraft>) {
+  constructor(initial?: Partial<LicenseOfferSearchState>) {
     this.draft = cloneOfferSearchDraft(initial);
   }
 
@@ -122,7 +122,7 @@ export class LicenseOfferSearchEditor {
     return this;
   }
 
-  getDraft(): LicenseOfferSearchDraft {
+  getState(): LicenseOfferSearchState {
     return cloneOfferSearchDraft(this.draft);
   }
 
@@ -165,9 +165,9 @@ export class LicenseOfferSearchEditor {
  * license orders and payment materialization.
  */
 export class LicenseOrderSearchEditor {
-  private draft: LicenseOrderSearchDraft;
+  private draft: LicenseOrderSearchState;
 
-  constructor(initial?: Partial<LicenseOrderSearchDraft>) {
+  constructor(initial?: Partial<LicenseOrderSearchState>) {
     this.draft = cloneOrderSearchDraft(initial);
   }
 
@@ -199,7 +199,7 @@ export class LicenseOrderSearchEditor {
     return this;
   }
 
-  getDraft(): LicenseOrderSearchDraft {
+  getState(): LicenseOrderSearchState {
     return cloneOrderSearchDraft(this.draft);
   }
 

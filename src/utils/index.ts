@@ -48,6 +48,7 @@ export * from './fhir-validator';
 export * from './family-registration-test-data';
 export * from './individual-form-pdf';
 export * from './individual-organization-claims';
+export * from './organization-lifecycle';
 export * from './individual-organization-lifecycle';
 export * from './individual-onboarding-editor';
 export * from './individual-onboarding-document-reference';
