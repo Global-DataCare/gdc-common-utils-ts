@@ -35,7 +35,17 @@ export type AlgMlDsa5 ="ML-DSA-87";
 
 export type MldsaAlg = AlgMlDsa2 | AlgMlDsa3 | AlgMlDsa5;
 
-// Base JWKs used for RFC 7638 thumbprint calculation
+/**
+ * Base JWKs used for RFC 7638 thumbprint calculation.
+ *
+ * Mapping used by this codebase:
+ * - ML-KEM uses `OKP` with `crv`
+ * - ML-DSA uses `AKP` with `alg` and `pub`
+ * - classical EC uses `EC` with `crv`, `x`, `y`
+ *
+ * Note that ML-DSA does not use `crv` here. The algorithm family/strength is
+ * captured by `alg` instead, for example `ML-DSA-44`.
+ */
 export type MlkemBaseJwk = { kty: "OKP"; crv: MlkemCurve; x: string };
 export type MldsaBaseJwk = { kty: "AKP"; alg: MldsaAlg; pub: string };
 export type EcBaseJwk = { kty: "EC"; crv: string; x: string; y: string };
@@ -51,10 +61,14 @@ export interface MldsaPublicJwk extends MldsaBaseJwk {
 
 /**
  * Represents a public key for classic cryptography algorithms like Elliptic Curve.
+ *
+ * The RFC 7638 thumbprint for these keys is derived from `kty`, `crv`, `x`,
+ * and `y`. This means curves such as `P-256`, `P-384`, and `secp256k1` are
+ * covered through the `crv` field.
  */
 export interface ClassicPublicJwk {
     kty: "EC";
-    crv: string; // e.g., "P-256"
+    crv: string; // e.g., "P-256", "P-384", "secp256k1"
     x: string;
     y: string;
     kid?: string;

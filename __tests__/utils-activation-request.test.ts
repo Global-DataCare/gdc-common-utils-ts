@@ -1,5 +1,6 @@
 import {
   ClaimsPersonSchemaorg,
+  buildDidcommPlaintextTransportMetadata,
   buildControllerBindingInput,
   buildOrganizationBindingInput,
   buildOrganizationActivationRequest,
@@ -85,6 +86,49 @@ describe('activation-request utilities', () => {
     expect(binding.url).toBe('https://provider.example.org');
     expect(binding.publicKeyJwk).toEqual({ kid: 'org-sig-1', kty: 'EC' });
     expect(binding.jwks?.keys).toEqual([{ kid: 'org-enc-1', kty: 'EC', use: 'enc' }]);
+  });
+
+  it('builds plaintext DIDComm technical metadata from controller binding keys', () => {
+    const controller = buildControllerBindingInput({
+      did: 'did:web:people.example.org:controllers:primary',
+      publicSignKey: {
+        kid: 'controller-sig-001',
+        kty: 'EC',
+        crv: 'P-384',
+        x: 'x',
+        y: 'y',
+        alg: 'ES384',
+        use: 'sig',
+      },
+      publicKeys: [
+        {
+          kid: 'controller-enc-001',
+          kty: 'EC',
+          crv: 'P-384',
+          x: 'enc-x',
+          y: 'enc-y',
+          use: 'enc',
+          purposes: ['didcomm-enc'],
+        },
+      ],
+    });
+
+    const metadata = buildDidcommPlaintextTransportMetadata({
+      controller,
+    });
+
+    expect(metadata?.jws?.protected).toEqual({
+      alg: 'ES384',
+      kid: 'controller-sig-001',
+      cty: 'application/didcomm-plaintext+json',
+      jwk: controller.publicKeyJwk,
+    });
+    expect(metadata?.jwe?.header).toEqual({
+      alg: 'P-384',
+      enc: 'A256GCM',
+      skid: 'controller-enc-001',
+      jwk: controller.jwks?.keys[0],
+    });
   });
 
   it('documents the BFF activation pattern when ICA VC/PDF did not include representative sameAs/email', () => {

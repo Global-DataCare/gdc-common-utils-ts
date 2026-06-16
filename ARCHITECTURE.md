@@ -9,6 +9,8 @@ This package is the canonical home for:
 
 - `Editor`, `Reader`, `Builder`, and `State` abstractions
 - high-level `get...` / `set...` methods on shared semantic classes
+- runtime-neutral models for profile state, outbox items, queue items, and
+  vault payload shapes when they are reusable across runtimes
 - shared examples and fixtures
 - reusable claim normalization and readback helpers
 - didactic `101` tests that define the intended high-level contract
@@ -19,6 +21,7 @@ This package is not the place for:
 - role-specific UX flows
 - frontend session semantics
 - runtime transport orchestration
+- concrete `JobManager`, `Outbox`, `Queue`, or `Vault` implementations
 - gateway route binding or polling behavior
 
 ## Ownership Rules
@@ -37,7 +40,25 @@ Do not put code here when it:
 
 - requires token/session/runtime context
 - represents one concrete actor profile runtime
-- depends on HTTP routes, polling, retries, storage adapters, job managers, or credential plumbing
+- depends on HTTP routes, polling, retries, storage adapters, concrete job managers, or credential plumbing
+
+## Runtime State Model Rule
+
+When runtime state concepts must be shared across node/front runtimes, this
+package may own their neutral data shapes, for example:
+
+- outbox item payload shapes
+- queue item payload shapes
+- vault document shapes
+- high-level profile/session state records
+
+But this package must not own concrete runtime behavior such as:
+
+- `createJobManagerInMemory(...)`
+- `createServerQueueInMemory(...)`
+- `VaultSqlite`
+- `VaultFirestore`
+- `closeProfile(...)` orchestration
 
 ## Naming Rules
 

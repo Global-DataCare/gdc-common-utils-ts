@@ -11,6 +11,7 @@ export * from './related-person';
 export * from './consent-access';
 export * from './relationship-access';
 export * from './frontend-session';
+export * from './profile-runtime';
 export * from './lifecycle';
 export * from './api-flow-examples';
 export * from './contract-examples';
