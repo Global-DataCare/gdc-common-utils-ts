@@ -4,6 +4,63 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-06-16
+
+### Added
+- Added canonical RFC 7638 / RFC 9278 JWK thumbprint helpers to the public
+  shared utils surface so GW and SDK layers can derive the exact same
+  representative/controller key-binding material without local reimplementation:
+  - `src/utils/jwk-thumbprint.ts`
+  - `src/utils/index.ts`
+- Added a shared `DidcommPlaintextTransportMetadata` type plus the
+  `buildDidcommPlaintextTransportMetadata(...)` helper so high-level SDK/BFF
+  layers can build the exact plaintext transport fallback shape that GW
+  consumes in demo flows:
+  - `src/models/identity-bootstrap.ts`
+  - `src/utils/activation-request.ts`
+- Added reusable legal-organization onboarding validation/schema helpers so SDK
+  forms, assistants, and BFF preparation flows can enforce the canonical
+  `identifier.value` / `taxID` requirement and optional
+  `allowExplicitAlternateNameForTenantId` rule before calling GW:
+  - `src/utils/legal-organization-onboarding.ts`
+  - `__tests__/utils-legal-organization-onboarding.test.ts`
+- Added shared profile-runtime constants/examples so downstream SDKs stop
+  re-inlining app-type, runtime-class, key-access, and connection-secret test
+  values:
+  - `src/constants/profile-runtime.ts`
+  - `src/examples/profile-runtime.ts`
+
+### Changed
+- Documented and tested the plaintext activation transport fallback so high-level
+  activation helpers can mirror controller communication key metadata into
+  `meta.jws.protected` / `meta.jwe.header` only when no real JOSE envelope is
+  present on the wire:
+  - `src/utils/activation-request.ts`
+  - `__tests__/utils-activation-request.test.ts`
+- Clarified that `meta.jws.protected` in plaintext is technical transport
+  compatibility fallback and does not replace the canonical activation-time
+  `controller.publicKeyJwk` / `controller.jwks` contract.
+- Re-exported the new profile-runtime constants/examples and aligned
+  organization-controller/frontend-session examples with the canonical shared
+  activation and profile-runtime vocabulary:
+  - `src/constants/index.ts`
+  - `src/examples/index.ts`
+  - `src/examples/frontend-session.ts`
+  - `src/examples/organization-controller.ts`
+- Expanded shared JWK typing/JSDoc so RFC 7638 thumbprint behavior is explicit
+  for ML-DSA, ML-KEM, classic EC, and `secp256k1`-style curves:
+  - `src/interfaces/Cryptography.types.ts`
+- Refined shared package architecture/contribution docs so runtime-neutral
+  profile/outbox/queue/vault shapes stay in `common-utils` while concrete
+  runtime behavior remains downstream:
+  - `ARCHITECTURE.md`
+  - `CONTRIBUTING.md`
+  - `README.md`
+
+### Validation
+- `npm run build`
+- `npm test -- --runInBand __tests__/utils-activation-request.test.ts`
+
 ## [2.0.0] - 2026-06-15
 
 ### Added

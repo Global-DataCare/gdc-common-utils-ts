@@ -58,6 +58,8 @@ export * from './invoice-bundle';
 export * from './ips-bundle-claims';
 export * from './interoperable-resource-operation';
 export * from './jwt';
+export * from './jwk-thumbprint';
+export * from './legal-organization-onboarding';
 export * from './license';
 export * from './license-commercial-search';
 export * from './license-list-search';

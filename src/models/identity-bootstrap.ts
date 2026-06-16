@@ -3,6 +3,7 @@
 import { PublicJwk } from '../interfaces/Cryptography.types';
 import { type IssueSeverityAttentionCode } from './issue';
 import { JwkSet } from './jwk';
+import { DidCommDecodedMetadata } from './confidential-message';
 
 /**
  * Public key binding for a human actor/controller identity.
@@ -85,6 +86,15 @@ export interface OrganizationActivationRequest extends ActivationProofInput {
    */
   representativeCredential?: unknown;
 }
+
+/**
+ * Technical metadata mirrored into plaintext DIDComm payloads when no real
+ * outer JWS/JWE envelope is present on the wire.
+ *
+ * This must be treated as transport compatibility metadata only. It does not
+ * replace canonical activation fields such as `vp_token` or `controller.*`.
+ */
+export type DidcommPlaintextTransportMetadata = DidCommDecodedMetadata;
 
 /**
  * Structured validation issue emitted by bootstrap validators.

@@ -14,6 +14,7 @@ export * from './schemaorg';
 export * from './hl7-roles';
 export * from './healthcare';
 export * from './permission-templates';
+export * from './profile-runtime';
 export * from './vital-signs';
 export * from './network';
 export * from './observation-category';

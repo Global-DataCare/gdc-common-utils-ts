@@ -16,13 +16,14 @@ import {
   EXAMPLE_PROFILE_ORGANIZATION_DID,
   EXAMPLE_PROFILE_PROVIDER_DID,
 } from './shared';
+import { EXAMPLE_PROFILE_APP_TYPE_FAMILY } from './profile-runtime';
 
 export const EXAMPLE_PROFILE_SESSION_INPUT = {
   profileId: ` ${EXAMPLE_PROFILE_ID} `,
   email: ` ${EXAMPLE_PROFILE_EMAIL} `,
   role: ' controller ',
   providerDid: ` ${EXAMPLE_PROFILE_ORGANIZATION_DID} `,
-  appType: 'Family',
+  appType: EXAMPLE_PROFILE_APP_TYPE_FAMILY,
 } as const;
 
 export const EXAMPLE_PROFILE_REGISTRY_ENTRY = {

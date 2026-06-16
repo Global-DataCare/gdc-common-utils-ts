@@ -4,6 +4,12 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) and
 [CONTRIBUTING.md](./CONTRIBUTING.md) before adding new shared helpers,
 fixtures, or high-level tests.
 
+Short rule:
+
+- if a test/example can reuse a shared type or fixture, it must do so
+- do not add ad hoc literals in `101` tests when `gdc-common-utils-ts` can own
+  the reusable value instead
+
 Employee shared examples live in `src/examples/employee.ts`.
 Employee pure helper functions live in `src/utils/employee.ts`.
 

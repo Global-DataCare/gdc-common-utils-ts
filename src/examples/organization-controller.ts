@@ -34,7 +34,6 @@ export const EXAMPLE_ACTIVATE_ORGANIZATION_FROM_ICA_PROOF_INPUT = {
   vpToken: '<ica-proof-token>',
   controller: EXAMPLE_CONTROLLER_BINDING,
   additionalClaims: {
-    [ClaimsOrganizationSchemaorg.alternateName]: 'acme',
     [ClaimsOrganizationSchemaorg.legalName]: 'ACME HEALTH SL',
     [ClaimsOrganizationSchemaorg.identifierType]: 'taxID',
     [ClaimsOrganizationSchemaorg.identifierValue]: 'VATES-B00112233',
