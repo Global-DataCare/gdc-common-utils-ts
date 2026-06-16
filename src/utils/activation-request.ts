@@ -85,6 +85,12 @@ function normalizeJwkSet(
  *
  * so the caller does not have to manually shape `controller.publicKeyJwk` and
  * `controller.jwks`.
+ *
+ * ICA/GW interoperability note:
+ * - callers that start from a raw email should first normalize it with
+ *   `normalizeSameAsHash(...)` before assigning `sameAs`
+ * - keep the raw email separately in activation claims when GW still needs it
+ *   for internal admin/bootstrap records
  */
 export function buildControllerBindingInput(
   input: BuildControllerBindingInputInput,

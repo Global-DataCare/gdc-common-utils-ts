@@ -1,9 +1,11 @@
 import {
+  ClaimsPersonSchemaorg,
   buildControllerBindingInput,
   buildOrganizationBindingInput,
   buildOrganizationActivationRequest,
+  normalizeSameAsHash,
   validateOrganizationActivationRequest,
-} from '../src/utils/activation-request';
+} from '../src';
 
 describe('activation-request utilities', () => {
   it('builds canonical activation payload with vp_token first and controller binding second', () => {
@@ -81,5 +83,37 @@ describe('activation-request utilities', () => {
     expect(binding.url).toBe('https://provider.example.org');
     expect(binding.publicKeyJwk).toEqual({ kid: 'org-sig-1', kty: 'EC' });
     expect(binding.jwks?.keys).toEqual([{ kid: 'org-enc-1', kty: 'EC', use: 'enc' }]);
+  });
+
+  it('documents the BFF activation pattern when ICA VC/PDF did not include representative sameAs/email', () => {
+    const controllerEmail = 'controller@example.org';
+    const controllerSameAs = normalizeSameAsHash(controllerEmail);
+
+    const payload = buildOrganizationActivationRequest({
+      vpToken: 'header.payload.signature',
+      controller: buildControllerBindingInput({
+        sameAs: controllerSameAs,
+        publicSignKey: { kid: 'sig-1', kty: 'EC' },
+      }),
+      data: [
+        {
+          type: 'Organization-activation-request-v1.0',
+          meta: {
+            claims: {
+              '@context': 'org.schema',
+              [ClaimsPersonSchemaorg.email]: controllerEmail,
+            },
+          },
+        },
+      ],
+    });
+
+    // BFF rule:
+    // - pass controller.sameAs already normalized for ICA/GW interoperability
+    // - keep the raw email in claims when GW must bootstrap the internal admin
+    //   profile even if the ICA VC/PDF omitted that contact value
+    const claims = ((payload.data?.[0] as any)?.meta?.claims || {}) as Record<string, unknown>;
+    expect(payload.controller?.sameAs).toBe(controllerSameAs);
+    expect(claims[ClaimsPersonSchemaorg.email]).toBe(controllerEmail);
   });
 });

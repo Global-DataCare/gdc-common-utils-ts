@@ -4,7 +4,14 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [1.24.2] - 2026-06-15
+
 ### Added
+- Added shared ICA-compatible `sameAs` helpers copied and synchronized from
+  `dataspace-ica-ts` so BFF/backend callers can compute the exact same
+  controller alias normalization before calling GW/ICA:
+  - `src/utils/same-as.ts`
+  - `__tests__/utils-same-as.test.ts`
 - Added reusable `Communication/_search` helpers, fixtures, and step-by-step
   tests so GW/SDK callers can reuse one canonical shared contract instead of
   handcrafting `Parameters` rows:
@@ -24,6 +31,12 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
   - `src/utils/communication-retention-policy.ts`
 
 ### Changed
+- Documented the canonical BFF activation pattern for hosted organization
+  onboarding when the ICA PDF/VC omitted representative email/`sameAs`:
+  normalize `controller.sameAs` with the shared helper and keep the raw email
+  in activation claims for GW admin bootstrap:
+  - `src/utils/activation-request.ts`
+  - `__tests__/utils-activation-request.test.ts`
 - Tightened activation-policy validation so hosted activation proofs can reject
   verifiable credentials that are semantically present but not authorized for
   the requested category/service-type combination, and refreshed the shared ICA
