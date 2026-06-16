@@ -45,11 +45,12 @@ describe('activation-request utilities', () => {
   });
 
   it('rejects incomplete controller binding when did/sameAs is present without public key material', () => {
+    const controllerSameAs = normalizeSameAsHash('controller@example.org');
     const validation = validateOrganizationActivationRequest({
       vp_token: 'header.payload.signature',
       controller: {
         did: 'did:web:people.example.org:controllers:primary',
-        sameAs: 'mailto:controller@example.org',
+        sameAs: controllerSameAs,
       },
     });
 
@@ -58,15 +59,16 @@ describe('activation-request utilities', () => {
   });
 
   it('maps semantic controller variables to canonical controller binding fields', () => {
+    const controllerSameAs = normalizeSameAsHash('controller@example.org');
     const binding = buildControllerBindingInput({
       did: 'did:web:people.example.org:controllers:primary',
-      sameAs: 'mailto:controller@example.org',
+      sameAs: controllerSameAs,
       publicSignKey: { kid: 'sig-1', kty: 'EC' },
       publicKeys: [{ kid: 'enc-1', kty: 'EC', use: 'enc' }],
     });
 
     expect(binding.did).toBe('did:web:people.example.org:controllers:primary');
-    expect(binding.sameAs).toBe('mailto:controller@example.org');
+    expect(binding.sameAs).toBe(controllerSameAs);
     expect(binding.publicKeyJwk).toEqual({ kid: 'sig-1', kty: 'EC' });
     expect(binding.jwks?.keys).toEqual([{ kid: 'enc-1', kty: 'EC', use: 'enc' }]);
   });
@@ -112,6 +114,9 @@ describe('activation-request utilities', () => {
     // - pass controller.sameAs already normalized for ICA/GW interoperability
     // - keep the raw email in claims when GW must bootstrap the internal admin
     //   profile even if the ICA VC/PDF omitted that contact value
+    // - this fallback is only for demo/local bootstrap; production should send
+    //   `person.email` in the signed ICA PDF annex so the VC itself carries the
+    //   canonical representative sameAs
     const claims = ((payload.data?.[0] as any)?.meta?.claims || {}) as Record<string, unknown>;
     expect(payload.controller?.sameAs).toBe(controllerSameAs);
     expect(claims[ClaimsPersonSchemaorg.email]).toBe(controllerEmail);

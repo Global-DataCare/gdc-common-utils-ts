@@ -33,7 +33,18 @@ export interface BuildOrganizationActivationRequestInput {
 export interface BuildControllerBindingInputInput {
   /** Public DID to publish or bind for the controller/person. */
   did?: string;
-  /** Additional public alias such as `mailto:`. */
+  /**
+   * Additional public alias for the controller/person.
+   *
+   * Canonical examples:
+   * - `urn:multibase:z...` for an email-derived ICA/GW binding
+   * - `tel:+34600111222` for a phone identifier
+   * - `did:web:...` or another stable public identifier
+   *
+   * Do not use `mailto:` when the source value is an email for ICA/GW
+   * interoperability. Start from the plain email and normalize it first with
+   * `normalizeSameAsHash(...)`.
+   */
   sameAs?: string;
   /** Primary controller signing key. */
   publicSignKey?: Record<string, unknown>;
@@ -91,6 +102,8 @@ function normalizeJwkSet(
  *   `normalizeSameAsHash(...)` before assigning `sameAs`
  * - keep the raw email separately in activation claims when GW still needs it
  *   for internal admin/bootstrap records
+ * - do not send `mailto:` as the canonical controller alias when the binding
+ *   source is an email address
  */
 export function buildControllerBindingInput(
   input: BuildControllerBindingInputInput,

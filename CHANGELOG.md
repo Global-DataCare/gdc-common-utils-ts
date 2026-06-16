@@ -4,6 +4,18 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [1.24.3] - 2026-06-15
+
+### Changed
+- Clarified controller binding examples so email-based `sameAs` values use the
+  canonical ICA/GW hash form `urn:multibase:z...` instead of `mailto:...`:
+  - `src/utils/activation-request.ts`
+  - `__tests__/utils-activation-request.test.ts`
+- Added an explicit security note around the hosted activation fallback:
+  claims-side raw email is only a demo/local bootstrap convenience; production
+  flows should send signed `person.email` to ICA so the issued representative
+  VC already carries the canonical hashed `credentialSubject.sameAs`.
+
 ## [1.24.2] - 2026-06-15
 
 ### Added
