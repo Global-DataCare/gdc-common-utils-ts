@@ -136,6 +136,14 @@ export function hasRoleCode(roleCode: string | undefined, requiredCode = 'RESPRS
 /**
  * Extracts representative signing/binding continuity data from `credentialSubject.hasCredential`.
  *
+ * Security note:
+ * - this field proves continuity of the controller signing/binding key
+ * - it is intentionally different from `credentialSubject.sameAs`, which
+ *   proves continuity of the representative public identity alias (for example
+ *   email-derived `urn:multibase:z...`)
+ * - production-grade activation flows are strongest when both dimensions are
+ *   present in the ICA-issued representative VC
+ *
  * Compatibility rules:
  * - legacy VC payloads may still carry `hasCredential.material`
  * - newer payloads may carry the same semantic value in `hasCredential.value`
@@ -176,9 +184,12 @@ function extractCredentialBindingValue(value: unknown): string | undefined {
  * Extracts the representative subject identifier from `credentialSubject.id`.
  *
  * ICA currently models the natural person with a stable person URN while the
- * controller/bootstrap continuity is carried in sibling claims such as
- * `sameAs` and `hasCredential`. Activation policy must therefore accept the
- * canonical person URN form and must not require a representative `did:web`.
+ * controller/bootstrap continuity is carried in sibling claims:
+ * - `sameAs` for public identity continuity
+ * - `hasCredential` for key-binding continuity
+ *
+ * Activation policy must therefore accept the canonical person URN form and
+ * must not require a representative `did:web`.
  *
  * @param representativeCredential Candidate representative credential.
  */
@@ -353,6 +364,14 @@ export function isMemberDidWebUnderOwner(memberDidWeb: string, ownerDidWeb: stri
 
 /**
  * Validates the activation representative policy against organization and representative credentials.
+ *
+ * The representative proof model is intentionally two-dimensional:
+ * - `credentialSubject.sameAs` expresses public identity continuity
+ * - `credentialSubject.hasCredential.material` expresses signing-key continuity
+ *
+ * For GW activation, the key-binding dimension is the hard requirement
+ * enforced here. The public-identity dimension may still be used by higher
+ * layers for stronger demo/production matching and auditability.
  *
  * @param input.organizationCredential Candidate organization credential.
  * @param input.representativeCredential Candidate representative credential.

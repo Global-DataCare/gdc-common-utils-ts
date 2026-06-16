@@ -30,6 +30,35 @@ boundaries used in `gdc-common-utils-ts`.
 - `resource.meta.claims` is the canonical project-specific claims container and must be preserved across conversions/transports.
 - `resource.meta.claims` is not part of base FHIR; it is a claims-first extension carried by FHIR-like resources in GDC contracts.
 
+## Identity Continuity
+
+For ICA-backed organization activation, the representative/controller proof is
+intentionally split into two complementary dimensions:
+
+- `credentialSubject.sameAs`
+  public identity continuity, typically an email-derived
+  `urn:multibase:z...`
+- `credentialSubject.hasCredential.material`
+  signing-key continuity, ideally an RFC 9278 JWK-thumbprint URN bound to the
+  controller key that signs the VP or was captured during ICA verification
+
+They are not interchangeable:
+
+- `sameAs` does not prove possession of the signing key
+- `hasCredential.material` does not by itself prove the expected public alias
+  or email continuity
+
+Production-grade flows should prefer ICA-issued representative VCs that carry
+both dimensions.
+
+Step by step:
+
+1. ICA verifies the signed PDF and emits the representative VC.
+2. ICA projects `credentialSubject.sameAs` from signed email evidence when available.
+3. ICA projects `credentialSubject.hasCredential.material` from the captured controller binding key.
+4. GW/common-utils enforce key-binding continuity as the hard activation requirement.
+5. Higher layers may additionally compare `sameAs` for stronger identity/audit continuity.
+
 ## 101 Test Convention
 
 Every `101` test in this repo is expected to be a didactic executable tutorial,

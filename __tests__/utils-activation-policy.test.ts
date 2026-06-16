@@ -15,6 +15,7 @@ import {
   EXAMPLE_ORG_ACTIVATION_LEGAL_REPRESENTATIVE_CREDENTIAL,
   EXAMPLE_ORG_ACTIVATION_ORGANIZATION_CREDENTIAL,
   EXAMPLE_REPRESENTATIVE_IDENTIFIER,
+  EXAMPLE_REPRESENTATIVE_SAME_AS,
   EXAMPLE_REPRESENTATIVE_SUBJECT_URN,
   EXAMPLE_REPRESENTATIVE_ROLE_CODE,
 } from '../src/examples/ica-activation-proof';
@@ -94,6 +95,34 @@ describe('Activation Policy Utils', () => {
       representativeCredential,
     });
     expect(errors).toHaveLength(0);
+  });
+
+  it('treats sameAs and hasCredential as complementary proof dimensions', () => {
+    const missingBindingErrors = validateActivationRepresentativePolicy({
+      organizationCredential,
+      representativeCredential: {
+        credentialSubject: {
+          id: EXAMPLE_REPRESENTATIVE_SUBJECT_URN,
+          memberOf: { taxID: EXAMPLE_ORGANIZATION_TAX_ID },
+          hasOccupation: { identifier: EXAMPLE_REPRESENTATIVE_ROLE_CODE },
+          sameAs: EXAMPLE_REPRESENTATIVE_SAME_AS,
+        },
+      },
+    });
+    expect(missingBindingErrors.map((error) => error.code)).toContain('MISSING_REPRESENTATIVE_CREDENTIAL_BINDING');
+
+    const bindingOnlyErrors = validateActivationRepresentativePolicy({
+      organizationCredential,
+      representativeCredential: {
+        credentialSubject: {
+          id: EXAMPLE_REPRESENTATIVE_SUBJECT_URN,
+          memberOf: { taxID: EXAMPLE_ORGANIZATION_TAX_ID },
+          hasOccupation: { identifier: EXAMPLE_REPRESENTATIVE_ROLE_CODE },
+          hasCredential: { material: EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID },
+        },
+      },
+    });
+    expect(bindingOnlyErrors).toHaveLength(0);
   });
 
   it('builds and validates member did:web hierarchy', () => {

@@ -12,6 +12,7 @@ import {
   EXAMPLE_ORG_ACTIVATION_LEGAL_REPRESENTATIVE_CREDENTIAL,
   EXAMPLE_ORG_ACTIVATION_ORGANIZATION_CREDENTIAL,
   EXAMPLE_ORG_ACTIVATION_PROOF_VP_PAYLOAD,
+  EXAMPLE_REPRESENTATIVE_SUBJECT_URN,
 } from '../src/examples/ica-activation-proof.js';
 import {
   addVC,
@@ -163,7 +164,7 @@ describe('vp token utilities', () => {
       taxID: EXAMPLE_ORGANIZATION_TAX_ID,
     });
     expect(getLegalRepresentativeCredentialFromVpToken(compact)?.credentialSubject).toMatchObject({
-      id: EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID,
+      id: EXAMPLE_REPRESENTATIVE_SUBJECT_URN,
     });
   });
 
