@@ -7,6 +7,7 @@ import {
   W3cCredentialTypes,
 } from '../constants/verifiable-credentials';
 import { ResourceTypesFhirR4 } from '../constants/fhir-resource-types';
+import { DataspaceSectors } from '../constants/sectors';
 import { IssueSeverity, IssueType } from '../models/issue';
 import {
   EXAMPLE_DEFAULT_ICA_DID,
@@ -196,6 +197,8 @@ export const EXAMPLE_VERIFY_RESPONSE_PERSON_PUBLIC_KEY_JWK = Object.freeze({
   kid: EXAMPLE_VERIFY_RESPONSE_PERSON_KID,
 });
 
+export const EXAMPLE_VERIFY_RESPONSE_ORG_AUTHORIZED_CATEGORY = DataspaceSectors.HealthCare;
+
 export const EXAMPLE_VERIFY_RESPONSE_ORG_CREDENTIAL = Object.freeze({
   id: EXAMPLE_VERIFY_RESPONSE_ORG_VC_ID,
   '@context': [W3cCredentialContexts.V2, EXAMPLE_VERIFY_RESPONSE_SCHEMA_ORG_CONTEXT],
@@ -214,6 +217,10 @@ export const EXAMPLE_VERIFY_RESPONSE_ORG_CREDENTIAL = Object.freeze({
     url: EXAMPLE_PROVIDER_DOMAIN,
     alternateName: 'example-provider',
     additionalType: EXAMPLE_VERIFY_RESPONSE_ORG_ADDITIONAL_TYPE,
+    makesOffer: {
+      '@type': 'Offer',
+      category: EXAMPLE_VERIFY_RESPONSE_ORG_AUTHORIZED_CATEGORY,
+    },
     address: {
       '@type': EXAMPLE_VERIFY_RESPONSE_ADDRESS_TYPE,
       addressCountry: EXAMPLE_VERIFY_RESPONSE_ADDRESS_COUNTRY,

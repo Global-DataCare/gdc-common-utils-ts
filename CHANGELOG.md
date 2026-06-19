@@ -4,6 +4,97 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.0.5] - 2026-06-18
+
+### Added
+- Added shared legal-organization onboarding utilities so host/BFF/GW flows
+  can reuse one canonical contract for:
+  - verification transaction request/entry extraction
+  - onboarding editor helpers
+  - organization DID binding examples
+  - family/organization summary projections
+  - professional SMART profile helpers
+  in:
+  - `src/utils/legal-organization-verification-transaction.ts`
+  - `src/utils/legal-organization-onboarding-editor.ts`
+  - `src/utils/organization-did-binding.ts`
+  - `src/utils/family-organization-summary.ts`
+  - `src/utils/professional-smart.ts`
+  - `src/examples/legal-organization-verification-transaction.ts`
+  - `src/examples/organization-did-binding.ts`
+  - `__tests__/utils-legal-organization-verification-transaction.test.ts`
+  - `__tests__/utils-legal-organization-onboarding-editor.test.ts`
+  - `__tests__/utils-organization-did-binding.test.ts`
+  - `__tests__/101-family-organization-summary.test.ts`
+  - `__tests__/utils-professional-smart.test.ts`
+- Added shared clinical/response bundle inspection helpers so downstream SDKs
+  stop reimplementing common bundle traversal and response parsing:
+  - `src/utils/clinical-bundle-summary.ts`
+  - `src/utils/bundle-reader.ts`
+  - `__tests__/utils-clinical-bundle-summary.test.ts`
+  - `__tests__/utils-bundle-reader-response.test.ts`
+
+### Changed
+- Centralized DIDComm submit vocabulary under shared constants/types so submit
+  kind, communication mode, submission reason, and content type can be derived
+  from one source of truth instead of local string literals:
+  - `src/utils/didcomm-submit-policy.ts`
+  - `src/utils/didcomm-submit.ts`
+- Expanded the shared example/export surface for employee/controller/ICA
+  response fixtures and related-person readers:
+  - `src/examples/employee.ts`
+  - `src/examples/ica-verify-response.ts`
+  - `src/examples/individual-controller.ts`
+  - `src/examples/shared.ts`
+  - `src/examples/index.ts`
+  - `src/utils/related-person-list.ts`
+  - `src/constants/verifiable-credentials.ts`
+  - `src/utils/index.ts`
+- Updated the package guidance so consumers know these onboarding/profile
+  builders belong in shared utilities while transport/runtime execution stays
+  in SDK/GW packages:
+  - `README.md`
+
+### Testing
+- `npm run build`
+
+## [2.0.4] - 2026-06-18
+
+### Changed
+- Extended the shared ICA `_verify-response` success example so the emitted
+  OrganizationCredential includes canonical sector authorization in
+  `credentialSubject.makesOffer.category`:
+  - `src/examples/ica-verify-response.ts`
+
+## [2.0.3] - 2026-06-17
+
+### Added
+- Added a canonical shared bundle contract for the first legal-organization
+  onboarding transaction that asks GW CORE to forward signed PDF evidence to
+  ICA `_verify`, including the explicit controller business binding key,
+  optional organization signing key, and representative payload:
+  - `src/utils/legal-organization-verification-transaction.ts`
+  - `src/examples/legal-organization-verification-transaction.ts`
+  - `__tests__/utils-legal-organization-verification-transaction.test.ts`
+- Added reusable shared example constants for legal-organization verification
+  transaction fixtures so downstream SDKs and GW examples stop re-inventing
+  legal name, tax id, and signed-PDF attachment URLs:
+  - `src/examples/shared.ts`
+
+### Changed
+- Re-exported the new legal-organization verification transaction helpers and
+  examples from the public shared surfaces:
+  - `src/utils/index.ts`
+  - `src/examples/index.ts`
+- Clarified in the package guidance that shared onboarding builders own the
+  business payload contract, while runtime packages own the transport-specific
+  `fetch`, polling, and crypto execution layers:
+  - `README.md`
+
+### Validation
+- `npm run typecheck`
+- `npm test -- --watchman=false --runInBand __tests__/utils-legal-organization-verification-transaction.test.ts`
+
 ## [2.0.2] - 2026-06-16
 
 ### Added

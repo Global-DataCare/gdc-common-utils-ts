@@ -36,6 +36,13 @@ export const ActivationCredentialTypes = Object.freeze({
   PersonCredential: 'PersonCredential',
 });
 
+/**
+ * Canonical credential subtype names used by professional/member access flows.
+ */
+export const ProfessionalCredentialTypes = Object.freeze({
+  EmployeeCredential: 'EmployeeCredential',
+});
+
 export const ORGANIZATION_ACTIVATION_VC_TYPES = Object.freeze([
   ActivationCredentialTypes.OrganizationCredential,
   ActivationCredentialTypes.LegalOrganizationCredential,

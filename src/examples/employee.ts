@@ -61,3 +61,19 @@ export function buildExampleEmployeeClaims(
     [ClaimsPersonSchemaorg.hasOccupationalRoleValue]: record.role,
   });
 }
+
+/**
+ * Canonical employee search/list response body reused by runtime and doc tests.
+ *
+ * This keeps one stable GW-style envelope for high-level tutorials that want
+ * to show employee directory flows without reauthoring `meta.claims` by hand.
+ */
+export const EXAMPLE_EMPLOYEE_SEARCH_RESPONSE_BODY = Object.freeze({
+  data: EXAMPLE_EMPLOYEE_DIRECTORY_RECORDS.map((record) => ({
+    id: record.identifier,
+    meta: {
+      status: record.status,
+      claims: buildExampleEmployeeClaims(record),
+    },
+  })),
+} as const);

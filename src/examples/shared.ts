@@ -48,6 +48,8 @@ export const EXAMPLE_NETWORK_TYPE = HostNetworkTypes.Test;
 export const EXAMPLE_ROUTE_VERSION = 'v1' as const;
 export const EXAMPLE_SECTOR = DataspaceSectors.HealthCare;
 export const EXAMPLE_EMAIL_CONTROLLER_ORG = 'controller@acme.org' as const;
+export const EXAMPLE_ORGANIZATION_LEGAL_NAME = 'ACME HEALTH SL' as const;
+export const EXAMPLE_LEGAL_ORGANIZATION_TAX_ID = 'VATES-B00112233' as const;
 export const EXAMPLE_EMAIL_CONTROLLER_INDIVIDUAL = 'ana.parent@example.org' as const;
 export const EXAMPLE_INTEROPERABLE_CONTEXT_FHIR_API = Format.FHIR_API;
 export const EXAMPLE_SELF_REGISTERED_INDIVIDUAL_ALTERNATE_NAME = 'Jane' as const;
@@ -58,6 +60,8 @@ export const EXAMPLE_SELF_REGISTERED_INDIVIDUAL_BIRTH_YEAR = '1980' as const;
 export const EXAMPLE_REGISTERED_SUBJECT_ALTERNATE_NAME = 'Doraemon' as const;
 export const EXAMPLE_REGISTERED_SUBJECT_BIRTH_YEAR = '2020' as const;
 export const EXAMPLE_PDF_CONSENT_DATE = '2026-06-08' as const;
+export const EXAMPLE_SIGNED_TERMS_PDF_URL =
+  'https://portal.example.org/files/legal-organization-signed-terms.pdf' as const;
 /**
  * Public provider domain selected during autodiscovery.
  *
@@ -124,7 +128,14 @@ export const EXAMPLE_TENANT_ROUTE_CONTEXT = {
 export const EXAMPLE_HOST_ROUTE_CONTEXT = {
   hostCoverageScope: EXAMPLE_HOST_COVERAGE_SCOPE,
   jurisdiction: EXAMPLE_JURISDICTION,
-  sector: HostNetworkTypes.Test,
+  /**
+   * Host route segment used in `/host/cds-{hostCoverageScope}/v1/{hostNetwork}/...`.
+   *
+   * This is intentionally not the tenant business sector.
+   */
+  hostNetwork: EXAMPLE_NETWORK_TYPE,
+  /** @deprecated Use `hostNetwork`. */
+  sector: EXAMPLE_NETWORK_TYPE,
 } as const;
 
 export const EXAMPLE_CONTROLLER_DID = 'did:web:people.acme.org:controllers:primary' as const;

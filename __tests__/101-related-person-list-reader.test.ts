@@ -11,6 +11,7 @@ import {
   EXAMPLE_SUBJECT_DID,
   findRelatedPersonListRecord,
   readRelatedPersonListRecords,
+  selectRelatedPersonListRecord,
 } from '../src';
 
 describe('101: related person list reader', () => {
@@ -46,6 +47,16 @@ describe('101: related person list reader', () => {
     expect(findRelatedPersonListRecord(
       EXAMPLE_RELATED_PERSON_LIST_RESPONSE_BODY,
       EXAMPLE_RELATED_PERSON_IDENTIFIER,
+    )).toEqual(records[0]);
+
+    expect(selectRelatedPersonListRecord(
+      EXAMPLE_RELATED_PERSON_LIST_RESPONSE_BODY,
+      { index: 0, activeOnly: true },
+    )).toEqual(records[0]);
+
+    expect(selectRelatedPersonListRecord(
+      EXAMPLE_RELATED_PERSON_LIST_RESPONSE_BODY,
+      { name: EXAMPLE_RELATED_PERSON_ACTIVE_NAME },
     )).toEqual(records[0]);
   });
 });
