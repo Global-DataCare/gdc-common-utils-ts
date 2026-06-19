@@ -4,6 +4,18 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.0.6] - 2026-06-19
+
+### Changed
+- Renamed the shared DIDComm plaintext transport media type from
+  `application/didcomm-plaintext+json` to the canonical
+  `application/didcomm-plain+json` in:
+  - `src/utils/didcomm-submit.ts`
+  - `src/utils/activation-request.ts`
+- Updated the shared tests to assert the canonical media type:
+  - `__tests__/utils-didcomm-submit.test.ts`
+  - `__tests__/utils-activation-request.test.ts`
+
 ## [2.0.5] - 2026-06-18
 
 ### Added
