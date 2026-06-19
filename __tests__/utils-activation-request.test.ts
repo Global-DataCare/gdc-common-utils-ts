@@ -120,7 +120,7 @@ describe('activation-request utilities', () => {
     expect(metadata?.jws?.protected).toEqual({
       alg: 'ES384',
       kid: 'controller-sig-001',
-      cty: 'application/didcomm-plaintext+json',
+      cty: 'application/didcomm-plain+json',
       jwk: controller.publicKeyJwk,
     });
     expect(metadata?.jwe?.header).toEqual({

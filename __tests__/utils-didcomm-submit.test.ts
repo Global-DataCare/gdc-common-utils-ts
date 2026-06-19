@@ -22,7 +22,7 @@ describe('submitDidcomm', () => {
       expect.objectContaining({
         method: 'POST',
         headers: expect.objectContaining({
-          'Content-Type': 'application/didcomm-plaintext+json',
+          'Content-Type': 'application/didcomm-plain+json',
           Authorization: 'Bearer abc',
           'x-test': '1',
         }),
