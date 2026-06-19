@@ -78,7 +78,7 @@ export interface BuildDidcommPlaintextTransportMetadataInput {
    * Optional explicit content type copied into the mirrored technical JWS
    * header.
    *
-   * Defaults to `application/didcomm-plaintext+json`.
+   * Defaults to `application/didcomm-plain+json`.
    */
   contentType?: string;
 }
@@ -177,7 +177,7 @@ export function buildOrganizationBindingInput(
  * Transport rule:
  * - in secure JOSE transport, these values belong in the protected JWS/JWE
  *   headers of the real envelope
- * - in `application/didcomm-plaintext+json`, there is no signed outer
+ * - in `application/didcomm-plain+json`, there is no signed outer
  *   envelope on the wire, so high-level SDK/BFF helpers may mirror the same
  *   technical key identifiers and public JWKs into `meta.jws.protected` and
  *   `meta.jwe.header`
@@ -204,7 +204,7 @@ export function buildDidcommPlaintextTransportMetadata(
           protected: {
             alg: String(signingKey.alg || '').trim() || 'none',
             kid: String(signingKey.kid || '').trim() || 'none',
-            cty: String(input.contentType || '').trim() || 'application/didcomm-plaintext+json',
+            cty: String(input.contentType || '').trim() || 'application/didcomm-plain+json',
             jwk: signingKey as any,
           },
         },
@@ -235,7 +235,7 @@ export function buildDidcommPlaintextTransportMetadata(
  * Transport note:
  * - secure JOSE submission should place technical signing/encryption metadata
  *   in the protected headers of the real JWS/JWE envelope
- * - demo `application/didcomm-plaintext+json` flows may mirror those same
+ * - demo `application/didcomm-plain+json` flows may mirror those same
  *   values into plaintext `meta.jws.protected` / `meta.jwe.header` as a
  *   technical fallback expected by GW-compatible backends
  * - that plaintext transport metadata must not replace the canonical

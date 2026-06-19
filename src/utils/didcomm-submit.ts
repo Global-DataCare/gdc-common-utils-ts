@@ -5,7 +5,7 @@ import {
   resolveDidcommSubmissionPlan,
 } from './didcomm-submit-policy';
 
-export const DIDCOMM_PLAINTEXT_JSON_MEDIA_TYPE = 'application/didcomm-plaintext+json' as const;
+export const DIDCOMM_PLAINTEXT_JSON_MEDIA_TYPE = 'application/didcomm-plain+json' as const;
 export const DIDCOMM_ENCRYPTED_JSON_MEDIA_TYPE = 'application/didcomm-encrypted+json' as const;
 export const DIDCOMM_DEFAULT_ACCEPT_HEADER =
   `application/json, ${DIDCOMM_PLAINTEXT_JSON_MEDIA_TYPE}, */*` as const;
