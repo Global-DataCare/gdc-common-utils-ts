@@ -1,4 +1,18 @@
-import { CommunicationMode, resolveDidcommSubmissionPlan } from './didcomm-submit-policy';
+import {
+  CommunicationMode,
+  DIDCOMM_SUBMIT_KINDS,
+  type DidcommSubmitKind,
+  resolveDidcommSubmissionPlan,
+} from './didcomm-submit-policy';
+
+export const DIDCOMM_PLAINTEXT_JSON_MEDIA_TYPE = 'application/didcomm-plaintext+json' as const;
+export const DIDCOMM_ENCRYPTED_JSON_MEDIA_TYPE = 'application/didcomm-encrypted+json' as const;
+export const DIDCOMM_DEFAULT_ACCEPT_HEADER =
+  `application/json, ${DIDCOMM_PLAINTEXT_JSON_MEDIA_TYPE}, */*` as const;
+export const DIDCOMM_CONTENT_TYPE_BY_SUBMIT_KIND = Object.freeze({
+  [DIDCOMM_SUBMIT_KINDS.Plain]: DIDCOMM_PLAINTEXT_JSON_MEDIA_TYPE,
+  [DIDCOMM_SUBMIT_KINDS.Encrypted]: DIDCOMM_ENCRYPTED_JSON_MEDIA_TYPE,
+} as const);
 
 export type DidcommFetchInit = {
   method: 'POST';
@@ -31,8 +45,10 @@ export type DidcommSubmitResult = {
   status: number;
   location?: string;
   body: unknown;
-  submitKind: 'plain' | 'encrypted';
-  contentType: 'application/didcomm-plaintext+json' | 'application/didcomm-encrypted+json';
+  submitKind: DidcommSubmitKind;
+  contentType:
+    typeof DIDCOMM_PLAINTEXT_JSON_MEDIA_TYPE
+    | typeof DIDCOMM_ENCRYPTED_JSON_MEDIA_TYPE;
 };
 
 function getHeaderValue(
@@ -80,14 +96,14 @@ export async function submitDidcomm(input: DidcommSubmitInput): Promise<DidcommS
 
   const headers: Record<string, string> = {
     ...(input.defaultHeaders ?? {}),
-    Accept: 'application/json, application/didcomm-plaintext+json, */*',
+    Accept: DIDCOMM_DEFAULT_ACCEPT_HEADER,
   };
 
   let body: string;
   let contentType: DidcommSubmitResult['contentType'];
 
-  if (plan.submitKind === 'plain') {
-    contentType = 'application/didcomm-plaintext+json';
+  if (plan.submitKind === DIDCOMM_SUBMIT_KINDS.Plain) {
+    contentType = DIDCOMM_CONTENT_TYPE_BY_SUBMIT_KIND[DIDCOMM_SUBMIT_KINDS.Plain];
     body = JSON.stringify(input.payload);
   } else {
     if (!input.signCompactJws) {
@@ -102,7 +118,7 @@ export async function submitDidcomm(input: DidcommSubmitInput): Promise<DidcommS
 
     const compactJws = await input.signCompactJws(input.payload);
     body = await input.encryptCompactJwe(compactJws, input.recipientEncryptionJwk);
-    contentType = 'application/didcomm-encrypted+json';
+    contentType = DIDCOMM_CONTENT_TYPE_BY_SUBMIT_KIND[DIDCOMM_SUBMIT_KINDS.Encrypted];
   }
 
   headers['Content-Type'] = contentType;

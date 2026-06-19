@@ -14,6 +14,15 @@ export type RelatedPersonListRecord = Readonly<{
   claims: Record<string, unknown>;
 }>;
 
+export type RelatedPersonListSelection = Readonly<{
+  index?: number;
+  identifier?: string;
+  name?: string;
+  telecom?: string;
+  patient?: string;
+  activeOnly?: boolean;
+}>;
+
 function normalizeText(value: unknown): string | undefined {
   const normalized = String(value ?? '').trim();
   return normalized || undefined;
@@ -74,4 +83,45 @@ export function findRelatedPersonListRecord(
 
   return readRelatedPersonListRecords(body)
     .find((record) => record.identifier === normalizedIdentifier);
+}
+
+/**
+ * Selects one related-person record from one neutralized list/body using the
+ * same high-level criteria that channel apps usually expose to users:
+ * list position, identifier, display name, contact value, or linked patient.
+ */
+export function selectRelatedPersonListRecord(
+  body: unknown,
+  selection: RelatedPersonListSelection,
+): RelatedPersonListRecord | undefined {
+  const records = readRelatedPersonListRecords(body);
+  const candidates = selection.activeOnly
+    ? records.filter((record) => record.active === 'true')
+    : records;
+
+  if (typeof selection.index === 'number' && Number.isInteger(selection.index)) {
+    return candidates[selection.index];
+  }
+
+  const identifier = normalizeText(selection.identifier);
+  if (identifier) {
+    return candidates.find((record) => record.identifier === identifier);
+  }
+
+  const name = normalizeText(selection.name)?.toLowerCase();
+  if (name) {
+    return candidates.find((record) => normalizeText(record.name)?.toLowerCase() === name);
+  }
+
+  const telecom = normalizeText(selection.telecom)?.toLowerCase();
+  if (telecom) {
+    return candidates.find((record) => normalizeText(record.telecom)?.toLowerCase() === telecom);
+  }
+
+  const patient = normalizeText(selection.patient);
+  if (patient) {
+    return candidates.find((record) => record.patient === patient);
+  }
+
+  return undefined;
 }

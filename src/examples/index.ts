@@ -3,6 +3,8 @@ export * from './ica-activation-proof';
 export * from './ica-verify-response';
 export * from './dataspace-discovery';
 export * from './organization-controller';
+export * from './organization-did-binding';
+export * from './legal-organization-verification-transaction';
 export * from './individual-controller';
 export * from './professional';
 export * from './employee';

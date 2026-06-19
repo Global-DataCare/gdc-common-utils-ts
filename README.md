@@ -10,6 +10,26 @@ Short rule:
 - do not add ad hoc literals in `101` tests when `gdc-common-utils-ts` can own
   the reusable value instead
 
+## Shared Workspace
+
+Recommended local layout for the shared ICA/GDC repos and fixture PDFs:
+
+```text
+~/GITS/gdc-workspace/
+  dataspace-ica-ts/
+  ica-client-sdk-ts/
+  gdc-common-utils-ts/
+  examples/
+    <example-pdf-1>.pdf
+    <example-pdf-2>.pdf
+```
+
+This is recommended because:
+
+- cross-repo docs and fixture-based tests often refer to sibling repos
+- real PDF examples are expected under `~/GITS/gdc-workspace/examples/`
+- keeping a single shared workspace reduces path drift between repos
+
 Employee shared examples live in `src/examples/employee.ts`.
 Employee pure helper functions live in `src/utils/employee.ts`.
 
@@ -60,6 +80,31 @@ They are not interchangeable:
 
 Production-grade flows should prefer ICA-issued representative VCs that carry
 both dimensions.
+
+## Legal Organization Verification Transaction
+
+The first host-side legal-organization onboarding step now has one canonical
+shared payload builder in this package:
+
+- `buildLegalOrganizationVerificationTransactionBundle(...)`
+- `EXAMPLE_LEGAL_ORGANIZATION_VERIFICATION_TRANSACTION_BUNDLE`
+
+This builder owns the business payload only:
+
+- signed PDF evidence attachment references
+- `controller.publicKeyJwk` as the controller business binding key
+- optional `organization.publicKeyJwk`
+- legal representative payload
+- `meta.claims` business claims
+
+It intentionally does not own:
+
+- `fetch`
+- polling
+- JOSE transport execution
+- BFF/frontend runtime crypto
+
+Those runtime concerns belong in `gdc-sdk-node-ts`, `gdc-sdk-front-ts`, or GW.
 
 Step by step:
 

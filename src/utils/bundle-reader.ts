@@ -308,3 +308,19 @@ export class BundleReader {
 function normalizeOptionalString(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim() ? value.trim() : undefined;
 }
+
+export function unwrapBundleLikeResponseBody(input: unknown): Record<string, unknown> {
+  const body = input && typeof input === 'object' ? input as Record<string, unknown> : {};
+  const nested = body.body && typeof body.body === 'object' ? body.body as Record<string, unknown> : undefined;
+  const candidate = nested && (Array.isArray(nested.data) || Array.isArray(nested.entry))
+    ? nested
+    : body;
+  return candidate && typeof candidate === 'object' ? candidate : {};
+}
+
+export function readFirstBundleResourceFromResponseBody(input: unknown): Record<string, unknown> | undefined {
+  const reader = new BundleReader(unwrapBundleLikeResponseBody(input));
+  const first = reader.getEntries()[0] as Record<string, unknown> | undefined;
+  const resource = first?.resource;
+  return resource && typeof resource === 'object' ? resource as Record<string, unknown> : undefined;
+}
