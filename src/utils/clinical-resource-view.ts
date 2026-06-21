@@ -12,10 +12,13 @@ import {
   ConditionClaim,
   ConditionClaimsFhirApi,
 } from '../models/interoperable-claims/condition-claims.js';
+import { ImmunizationClaim } from '../models/interoperable-claims/immunization-claims.js';
 import {
   MedicationStatementClaim,
   MedicationStatementClaimsFhirApi,
+  MedicationStatementClaimsFhirApiExtended,
 } from '../models/interoperable-claims/medication-statement-claims.js';
+import { ObservationClaim } from '../models/interoperable-claims/observation-claims.js';
 
 const CONSENT_ACTOR_REFERENCE_CLAIM = 'Consent.actor-reference';
 const GENERIC_CREATOR_CLAIM_SUFFIX = '.creator';
@@ -66,6 +69,31 @@ export type ClinicalResourceExpandedView = Readonly<{
   common: ClinicalResourceCommonView;
   xhtml?: string;
   notes: string[];
+}>;
+
+export type ClinicalResourceLike = Readonly<{
+  resourceType?: string;
+  text?: {
+    div?: unknown;
+  };
+  meta?: {
+    claims?: Record<string, unknown>;
+  };
+  note?: unknown;
+  code?: unknown;
+  valueQuantity?: unknown;
+  [key: string]: unknown;
+}>;
+
+export type LocalTextAndIntDisplay = Readonly<{
+  localText?: string;
+  internationalDisplay?: string;
+  combined?: string;
+}>;
+
+export type NarrativeResult = Readonly<{
+  xhtml?: string;
+  source: 'resource.text.div' | 'derived-from-claims' | 'missing';
 }>;
 
 export type ClinicalResourceEntryLike = Readonly<{
@@ -148,6 +176,82 @@ export function toClinicalResourceExpandedView(entry: ClinicalResourceEntryLike)
  */
 export function toClinicalResourceExpandedViews(bundle: ClinicalResourceBundleLike): ClinicalResourceExpandedView[] {
   return readBundleEntries(bundle).map((entry) => toClinicalResourceExpandedView(entry));
+}
+
+/**
+ * Returns the most useful local text plus international display pair that can
+ * be inferred from one FHIR-like resource and its `meta.claims`.
+ */
+export function getLocalTextAndIntDisplay(resource: ClinicalResourceLike): LocalTextAndIntDisplay {
+  const claims = asRecord(resource?.meta?.claims);
+  const resourceType = resolveResourceType({ resource }, claims);
+
+  const localText = firstDefinedText([
+    resolveResourceCodeText(resource),
+    findBySuffix(claims, '.code-text'),
+    findBySuffix(claims, '.medication-text'),
+    findBySuffix(claims, '.vaccine-code-text'),
+    findBySuffix(claims, '.value-concept-text'),
+  ]) || resolveTitle(resourceType, claims);
+
+  const internationalDisplay = firstDefinedText([
+    resolveResourceCodeDisplay(resource),
+    findBySuffix(claims, '.code-display'),
+    findBySuffix(claims, '.vaccine-code-display'),
+    findBySuffix(claims, '.value-concept-display'),
+  ]);
+
+  const combined = buildCombinedLabel(localText, internationalDisplay);
+  return {
+    ...(localText ? { localText } : {}),
+    ...(internationalDisplay ? { internationalDisplay } : {}),
+    ...(combined ? { combined } : {}),
+  };
+}
+
+/**
+ * Returns XHTML narrative for one FHIR-like resource, preferring
+ * `resource.text.div` and otherwise deriving a deterministic fallback from
+ * canonical `meta.claims`.
+ */
+export function getXhtmlOrDerived(resource: ClinicalResourceLike): string | undefined {
+  return getNarrative(resource).xhtml;
+}
+
+/**
+ * Returns XHTML plus the source used to obtain it.
+ */
+export function getNarrative(resource: ClinicalResourceLike): NarrativeResult {
+  const fromFhirNarrative = trimValue(asRecord(resource?.text).div);
+  if (fromFhirNarrative) {
+    return {
+      xhtml: fromFhirNarrative,
+      source: 'resource.text.div',
+    };
+  }
+
+  const claims = asRecord(resource?.meta?.claims);
+  const fromSpecificClaim = findBySuffix(claims, '.xhtml')
+    || findBySuffix(claims, '.text-div');
+  if (fromSpecificClaim) {
+    return {
+      xhtml: fromSpecificClaim,
+      source: 'derived-from-claims',
+    };
+  }
+
+  const resourceType = resolveResourceType({ resource }, claims);
+  const lines = buildNarrativeLines(resourceType, claims, resource);
+  if (lines.length === 0) {
+    return {
+      source: 'missing',
+    };
+  }
+
+  return {
+    xhtml: `<div xmlns="http://www.w3.org/1999/xhtml">${lines.map((line) => `<p>${escapeHtml(line)}</p>`).join('')}</div>`,
+    source: 'derived-from-claims',
+  };
 }
 
 function readClaims(entry: ClinicalResourceEntryLike): ClinicalViewClaims {
@@ -395,14 +499,16 @@ function resolveActors(resourceType: string, claims: ClinicalViewClaims): Clinic
 }
 
 function resolveXhtml(entry: ClinicalResourceEntryLike, claims: ClinicalViewClaims): string | undefined {
-  const fromFhirNarrative = trimValue(asRecord(entry?.resource?.text).div);
-  if (fromFhirNarrative) {
-    return fromFhirNarrative;
+  if (!entry?.resource) {
+    return undefined;
   }
-
-  const fromSpecificClaim = findBySuffix(claims, '.xhtml')
-    || findBySuffix(claims, '.text-div');
-  return fromSpecificClaim || undefined;
+  const mergedResource: ClinicalResourceLike = {
+    ...entry.resource,
+    meta: {
+      claims,
+    },
+  };
+  return getXhtmlOrDerived(mergedResource);
 }
 
 function resolveNotes(entry: ClinicalResourceEntryLike, resourceType: string, claims: ClinicalViewClaims): string[] {
@@ -512,6 +618,251 @@ function findBySuffix(claims: ClinicalViewClaims, keySuffix: string): string | u
   return undefined;
 }
 
+function resolveResourceCodeText(resource: ClinicalResourceLike): string | undefined {
+  return trimValue(asRecord(resource?.code).text) || undefined;
+}
+
+function resolveResourceCodeDisplay(resource: ClinicalResourceLike): string | undefined {
+  const coding = asArray(asRecord(resource?.code).coding);
+  for (const item of coding) {
+    const display = trimValue(asRecord(item).display);
+    if (display) {
+      return display;
+    }
+  }
+  return undefined;
+}
+
+function firstDefinedText(values: Array<string | undefined>): string | undefined {
+  for (const value of values) {
+    const normalized = trimValue(value);
+    if (normalized) {
+      return normalized;
+    }
+  }
+  return undefined;
+}
+
+function buildCombinedLabel(localText?: string, internationalDisplay?: string): string | undefined {
+  const local = trimValue(localText);
+  const intl = trimValue(internationalDisplay);
+  if (local && intl && local !== intl) {
+    return `${local} (${intl})`;
+  }
+  return local || intl || undefined;
+}
+
+function buildNarrativeLines(
+  resourceType: string,
+  claims: ClinicalViewClaims,
+  resource: ClinicalResourceLike,
+): string[] {
+  const lines: string[] = [];
+  const label = getLocalTextAndIntDisplay(resource).combined || resolveTitle(resourceType, claims) || resourceType;
+  if (label) {
+    lines.push(label);
+  }
+
+  const date = resolveDate(resourceType, claims);
+  if (date) {
+    lines.push(`Date: ${date}`);
+  }
+
+  const periodStart = resolvePeriodStart(resourceType, claims);
+  const periodEnd = resolvePeriodEnd(resourceType, claims);
+  if (periodStart) {
+    lines.push(`Start: ${periodStart}`);
+    if (periodEnd) {
+      lines.push(`End: ${periodEnd}`);
+    }
+  }
+
+  appendFamilySpecificNarrativeLines(lines, resourceType, claims, resource);
+  return uniqueTokens(lines);
+}
+
+function appendFamilySpecificNarrativeLines(
+  lines: string[],
+  resourceType: string,
+  claims: ClinicalViewClaims,
+  resource: ClinicalResourceLike,
+): void {
+  if (resourceType === ResourceTypesFhirR4.AllergyIntolerance) {
+    pushLine(lines, 'Clinical status', firstClaimValue(claims, [
+      AllergyIntoleranceClaim.ClinicalStatus,
+      AllergyIntoleranceClaimsFhirApi.ClinicalStatus,
+    ]));
+    pushLine(lines, 'Verification status', firstClaimValue(claims, [
+      AllergyIntoleranceClaim.VerificationStatus,
+      AllergyIntoleranceClaimsFhirApi.VerificationStatus,
+    ]));
+    pushLine(lines, 'Criticality', firstClaimValue(claims, [
+      AllergyIntoleranceClaim.Criticality,
+      AllergyIntoleranceClaimsFhirApi.Criticality,
+    ]));
+    pushLine(lines, 'Category', firstClaimCsvValue(claims, [
+      AllergyIntoleranceClaim.Category,
+      AllergyIntoleranceClaimsFhirApi.Category,
+    ]));
+    return;
+  }
+
+  if (resourceType === ResourceTypesFhirR4.Condition) {
+    pushLine(lines, 'Clinical status', firstClaimValue(claims, [
+      ConditionClaim.ClinicalStatus,
+      ConditionClaimsFhirApi.ClinicalStatus,
+    ]));
+    pushLine(lines, 'Verification status', firstClaimValue(claims, [
+      ConditionClaim.VerificationStatus,
+      ConditionClaimsFhirApi.VerificationStatus,
+    ]));
+    pushLine(lines, 'Severity', firstClaimValue(claims, [
+      ConditionClaim.Severity,
+      ConditionClaimsFhirApi.Severity,
+    ]));
+    pushLine(lines, 'Category', firstClaimCsvValue(claims, [
+      ConditionClaim.Category,
+      ConditionClaimsFhirApi.Category,
+    ]));
+    return;
+  }
+
+  if (resourceType === ResourceTypesFhirR4.MedicationStatement) {
+    pushLine(lines, 'Status', firstClaimValue(claims, [
+      MedicationStatementClaim.Status,
+      MedicationStatementClaimsFhirApi.Status,
+    ]));
+    pushLine(lines, 'Dose', buildQuantityLabel(
+      firstDefinedText([
+        normalizeNumericValue(claims[MedicationStatementClaimsFhirApiExtended.DoseQuantityValue]),
+        normalizeNumericValue(claims['MedicationStatement.dose-quantity-value']),
+      ]),
+      firstDefinedText([
+        trimValue(claims[MedicationStatementClaimsFhirApiExtended.DoseQuantityUnit]),
+        trimValue(claims['MedicationStatement.dose-quantity-unit']),
+      ]),
+    ));
+    pushLine(lines, 'Timing', buildMedicationTimingLabel(claims));
+    pushLine(lines, 'Note', firstClaimValue(claims, [MedicationStatementClaim.Note]));
+    return;
+  }
+
+  if (resourceType === ResourceTypesFhirR4.Immunization) {
+    pushLine(lines, 'Status', trimValue(claims[ImmunizationClaim.Status]));
+    pushLine(lines, 'Vaccine', firstDefinedText([
+      findBySuffix(claims, '.vaccine-code-text'),
+      findBySuffix(claims, '.vaccine-code-display'),
+      trimValue(claims[ImmunizationClaim.VaccineCode]),
+    ]));
+    pushLine(lines, 'Performer', trimValue(claims[ImmunizationClaim.Performer]));
+    pushLine(lines, 'Note', trimValue(claims[ImmunizationClaim.Note]));
+    return;
+  }
+
+  if (resourceType === ResourceTypesFhirR4.Observation) {
+    appendObservationNarrativeLines(lines, claims, resource);
+  }
+}
+
+function appendObservationNarrativeLines(
+  lines: string[],
+  claims: ClinicalViewClaims,
+  resource: ClinicalResourceLike,
+): void {
+  const codeValue = firstDefinedText([
+    trimValue(claims[ObservationClaim.CodeValue]),
+    splitTokenCode(claims[ObservationClaim.Code]),
+  ]);
+
+  const systolic = normalizeNumericValue(claims[ObservationClaim.BloodPressureSystolicNumber]);
+  const diastolic = normalizeNumericValue(claims[ObservationClaim.BloodPressureDiastolicNumber]);
+  const unit = firstDefinedText([
+    trimValue(claims[ObservationClaim.ValueQuantityUnit]),
+    resolveObservationUnitFromResource(resource),
+  ]);
+
+  if (codeValue === '85354-9' || systolic || diastolic) {
+    if (systolic) {
+      pushLine(lines, 'Systolic', buildQuantityLabel(systolic, unit));
+    }
+    if (diastolic) {
+      pushLine(lines, 'Diastolic', buildQuantityLabel(diastolic, unit));
+    }
+    return;
+  }
+
+  const numericValue = normalizeNumericValue(claims[ObservationClaim.ValueQuantityNumber]);
+  if (numericValue || unit) {
+    pushLine(lines, 'Value', buildQuantityLabel(numericValue, unit));
+  }
+  pushLine(lines, 'Note', trimValue(claims[ObservationClaim.Note]));
+}
+
+function buildMedicationTimingLabel(claims: ClinicalViewClaims): string | undefined {
+  const frequency = firstDefinedText([
+    normalizeNumericValue(claims[MedicationStatementClaimsFhirApiExtended.TimingFrequency]),
+    normalizeNumericValue(claims['MedicationStatement.timing-frequency']),
+  ]);
+  const period = firstDefinedText([
+    normalizeNumericValue(claims[MedicationStatementClaimsFhirApiExtended.TimingPeriod]),
+    normalizeNumericValue(claims['MedicationStatement.timing-period']),
+  ]);
+  const unit = firstDefinedText([
+    trimValue(claims[MedicationStatementClaimsFhirApiExtended.TimingPeriodUnit]),
+    trimValue(claims['MedicationStatement.timing-period-unit']),
+  ]);
+  if (!frequency && !period && !unit) {
+    return undefined;
+  }
+  return [frequency ? `${frequency}x` : undefined, period ? `every ${period}` : undefined, unit].filter(Boolean).join(' ');
+}
+
+function buildQuantityLabel(value?: string, unit?: string): string | undefined {
+  const normalizedValue = trimValue(value);
+  const normalizedUnit = trimValue(unit);
+  if (normalizedValue && normalizedUnit) {
+    return `${normalizedValue} ${normalizedUnit}`;
+  }
+  return normalizedValue || normalizedUnit || undefined;
+}
+
+function resolveObservationUnitFromResource(resource: ClinicalResourceLike): string | undefined {
+  const valueQuantity = asRecord(resource?.valueQuantity);
+  return trimValue(valueQuantity.unit) || trimValue(valueQuantity.code) || undefined;
+}
+
+function normalizeNumericValue(value: unknown): string | undefined {
+  const normalized = trimValue(value);
+  return normalized || undefined;
+}
+
+function splitTokenCode(value: unknown): string | undefined {
+  const normalized = trimValue(value);
+  if (!normalized) {
+    return undefined;
+  }
+  if (!normalized.includes('|')) {
+    return normalized;
+  }
+  const parts = normalized.split('|');
+  return trimValue(parts[parts.length - 1]) || undefined;
+}
+
+function pushLine(lines: string[], label: string, value?: string): void {
+  const normalized = trimValue(value);
+  if (!normalized) {
+    return;
+  }
+  lines.push(`${label}: ${normalized}`);
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;');
+}
+
 function pushActor(out: ClinicalResourceActorView[], actor: ClinicalResourceActorView): void {
   const identifier = trimValue(actor.identifier);
   if (!identifier) {
@@ -552,4 +903,8 @@ function asRecord(value: unknown): Record<string, unknown> {
     return {};
   }
   return value as Record<string, unknown>;
+}
+
+function asArray(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
 }

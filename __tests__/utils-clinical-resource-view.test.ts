@@ -6,6 +6,9 @@ import { CommunicationClaim } from '../src/models/interoperable-claims/communica
 import { ConditionClaim } from '../src/models/interoperable-claims/condition-claims.js';
 import { MedicationStatementClaim } from '../src/models/interoperable-claims/medication-statement-claims.js';
 import {
+  getLocalTextAndIntDisplay,
+  getNarrative,
+  getXhtmlOrDerived,
   toClinicalResourceCardView,
   toClinicalResourceCardViews,
   toClinicalResourceCommonView,
@@ -307,5 +310,67 @@ describe('clinical resource common view', () => {
         actorsCount: 1,
       },
     ]);
+  });
+
+  it('builds combined local text plus international display when both are present', () => {
+    const labels = getLocalTextAndIntDisplay({
+      resourceType: ResourceTypesFhirR4.Observation,
+      meta: {
+        claims: {
+          [ConditionClaim.Code]: 'http://loinc.org|85354-9',
+          'Observation.code-text': 'Tension arterial',
+          'Observation.code-display': 'Blood pressure',
+        },
+      },
+    });
+
+    expect(labels.localText).toBe('Tension arterial');
+    expect(labels.internationalDisplay).toBe('Blood pressure');
+    expect(labels.combined).toBe('Tension arterial (Blood pressure)');
+  });
+
+  it('derives xhtml from medication claims when no resource.text.div exists', () => {
+    const xhtml = getXhtmlOrDerived({
+      resourceType: ResourceTypesFhirR4.MedicationStatement,
+      meta: {
+        claims: {
+          [MedicationStatementClaim.MedicationText]: 'Ibuprofen 400 mg',
+          [MedicationStatementClaim.Effective]: '2026-06-20',
+          [MedicationStatementClaim.Status]: 'active',
+          'MedicationStatement.dose-quantity-value': 400,
+          'MedicationStatement.dose-quantity-unit': 'mg',
+          'MedicationStatement.timing-frequency': 1,
+          'MedicationStatement.timing-period': 8,
+          'MedicationStatement.timing-period-unit': 'h',
+        },
+      },
+    });
+
+    expect(xhtml).toContain('Ibuprofen 400 mg');
+    expect(xhtml).toContain('Date: 2026-06-20');
+    expect(xhtml).toContain('Dose: 400 mg');
+    expect(xhtml).toContain('Timing: 1x every 8 h');
+  });
+
+  it('derives blood pressure xhtml with systolic and diastolic lines', () => {
+    const narrative = getNarrative({
+      resourceType: ResourceTypesFhirR4.Observation,
+      meta: {
+        claims: {
+          'Observation.code-text': 'Presion arterial',
+          'Observation.code-display': 'Blood pressure',
+          'Observation.code': 'http://loinc.org|85354-9',
+          'Observation.date': '2026-06-20T10:00:00Z',
+          'Observation.bp-systolic-number': 120,
+          'Observation.bp-diastolic-number': 80,
+          'Observation.value-quantity-unit': 'mmHg',
+        },
+      },
+    });
+
+    expect(narrative.source).toBe('derived-from-claims');
+    expect(narrative.xhtml).toContain('Presion arterial (Blood pressure)');
+    expect(narrative.xhtml).toContain('Systolic: 120 mmHg');
+    expect(narrative.xhtml).toContain('Diastolic: 80 mmHg');
   });
 });

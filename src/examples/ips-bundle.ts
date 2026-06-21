@@ -92,6 +92,7 @@ export function buildIpsClinicalHistoryBundleExample(): IpsClinicalHistoryBundle
       '@context': 'org.hl7.fhir.api',
       [MedicationStatementClaim.Identifier]: EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER,
       [MedicationStatementClaim.Subject]: EXAMPLE_SUBJECT_DID,
+      [MedicationStatementClaim.Category]: HealthcareBasicSections.HistoryOfMedicationUse.attributeValue,
       [MedicationStatementClaim.Status]: EXAMPLE_MEDICATION_STATEMENT_STATUS,
       [MedicationStatementClaim.MedicationText]: EXAMPLE_MEDICATION_STATEMENT_TEXT,
       [MedicationStatementClaim.Effective]: '2026-05-05',

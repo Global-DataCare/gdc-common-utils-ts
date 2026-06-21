@@ -18,7 +18,7 @@ describe('summarizeClinicalBundle', () => {
     const summary = summarizeClinicalBundle(example.bundleInMemory);
 
     expect(summary.totalEntries).toBe(4);
-    expect(summary.xhtmlEntries).toBe(1);
+    expect(summary.xhtmlEntries).toBe(4);
     expect(summary.notedEntries).toBe(0);
     expect(summary.resourceTypes).toEqual([
       { resourceType: ResourceTypesFhirR4.AllergyIntolerance, count: 1 },

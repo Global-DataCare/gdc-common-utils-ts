@@ -5,7 +5,7 @@ import {
   toVersionAgnosticMetaClaimKey,
   withDerivedFhirMetaTagsFromClaims,
 } from '../src/utils/ips-bundle-claims';
-import { buildIpsClinicalHistoryBundleExample } from '../src/examples/ips-bundle';
+import { buildIpsBundleFrontCardsExample, buildIpsClinicalHistoryBundleExample } from '../src/examples/ips-bundle';
 
 describe('101 IPS bundle meta.claims extraction', () => {
   it('extracts all resource.meta.claims blocks from an IPS bundle and derives version-agnostic FHIR tags', () => {
@@ -67,5 +67,13 @@ describe('101 IPS bundle meta.claims extraction', () => {
         }),
       ]),
     );
+  });
+
+  it('keeps the shared medication example section-addressable for front-card readers', () => {
+    const example = buildIpsBundleFrontCardsExample();
+
+    expect(example.medicationEntryIds).toEqual(['urn:uuid:medication-statement-example-001']);
+    expect(example.allergyEntryIds).toEqual(['allergy-1']);
+    expect(example.conditionEntryIds).toEqual(['condition-1']);
   });
 });
