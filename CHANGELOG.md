@@ -4,6 +4,25 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- Reframed the shared clinical/IPS onboarding docs so the `101` path teaches
+  high-level `ipsBundleReader` and chainable editor flows instead of technical
+  persistence plumbing, and centralized the canonical IPS claim/method matrix
+  in:
+  - `docs/101-CLINICAL-IPS.md`
+  - `docs/101-IPS_BUNDLE.md`
+  - `docs/REFERENCE-CLINICAL-IPS-API.md`
+  - `docs/101-BUNDLE_EDITOR_READER.md`
+  - `README.md`
+- Removed `upsert...` terminology from the `101` onboarding narrative in the
+  shared docs where frontend/integrator readers should learn create/update
+  flows first, keeping those lower-level names in code/JSDoc/tests instead:
+  - `docs/101-CLINICAL_READ_AND_SEARCH.md`
+  - `docs/101-CONSENT_EDITOR_AND_READBACK.md`
+  - `docs/101-CONSENT_ACCESS.md`
+  - `docs/101-CONSENT_PERMISSION_TEMPLATES.md`
+  - `docs/101-RELATED_PERSON_EDITOR.md`
+
 ## [2.0.6] - 2026-06-19
 
 ### Changed

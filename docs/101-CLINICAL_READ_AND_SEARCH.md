@@ -52,16 +52,23 @@ The shortest teaching reference is:
 
 That test shows the intended editor path:
 
-1. create a communication-attached bundle session
+1. create or load one bundle editor
 2. build one medication statement with semantic setters
-3. upsert it into the bundle
-4. save and release the entry
-5. later inspect the carried bundle content
+3. persist the edited entry into the carried bundle
+4. later inspect the carried bundle content
 
 This is the same broad pattern as other frontend flows:
 
 - semantic editing first
 - lower-level transport later
+
+For the main onboarding story, use the high-level docs:
+
+- [101-CLINICAL-IPS.md](./101-CLINICAL-IPS.md)
+- [101-IPS_BUNDLE.md](./101-IPS_BUNDLE.md)
+
+Leave technical persistence method names and plumbing details in code/JSDoc and
+focused tests.
 
 ## What The Frontend Usually Needs To Keep
 

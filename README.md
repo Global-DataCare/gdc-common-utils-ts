@@ -138,6 +138,8 @@ read first:
 
 - [`docs/101-COMMUNICATION_LAYERING.md`](docs/101-COMMUNICATION_LAYERING.md)
 - [`docs/101-BUNDLE_EDITOR_READER.md`](docs/101-BUNDLE_EDITOR_READER.md)
+- [`docs/101-CLINICAL-IPS.md`](docs/101-CLINICAL-IPS.md)
+- [`docs/REFERENCE-CLINICAL-IPS-API.md`](docs/REFERENCE-CLINICAL-IPS-API.md)
 - [`docs/101-CONSENT_PERMISSION_TEMPLATES.md`](docs/101-CONSENT_PERMISSION_TEMPLATES.md)
 
 ## Install
@@ -270,6 +272,12 @@ import { JweObject, JwtCompactParts } from 'gdc-common-utils-ts/models';
     planning
 - [docs/101-IPS_BUNDLE.md](docs/101-IPS_BUNDLE.md)
   - canonical 101 for requesting IPS, editing IPS-style bundles in `Communication.content-attachment-data`, and reading resources by section
+- [docs/101-CLINICAL-IPS.md](docs/101-CLINICAL-IPS.md)
+  - shortest high-level onboarding for `ipsBundleReader`, section summaries,
+    family queries, and UI-ready narrative helpers
+- [docs/REFERENCE-CLINICAL-IPS-API.md](docs/REFERENCE-CLINICAL-IPS-API.md)
+  - canonical claim/method matrix with `TODO` coverage for missing typed
+    `get...` / `set...` helpers
 
 ## Dataspace Protocol And Discovery
 

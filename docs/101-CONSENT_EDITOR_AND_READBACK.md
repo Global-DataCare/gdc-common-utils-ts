@@ -45,7 +45,7 @@ This is the high-level shared editor for the consent bundle carried inside a
 The intended frontend loop is:
 
 1. create or load the bundle editor
-2. open or upsert one active consent entry
+2. open or create one active consent entry
 3. edit that active consent
 4. save and release it
 5. reload it later as a frontend-facing view model

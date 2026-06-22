@@ -40,6 +40,12 @@ For frontend work, the key idea is simple:
 - let another layer encapsulate/sign/send that data later
 - use readers to understand the returned bundle and paint UI state
 
+Editorial rule for this 101:
+
+- teach chainable `get...` / `set...` editor and reader flows first
+- keep technical persistence/import/export/plumbing method names out of the
+  primary onboarding story
+
 ## Package Boundaries
 
 ### `gdc-common-utils-ts`

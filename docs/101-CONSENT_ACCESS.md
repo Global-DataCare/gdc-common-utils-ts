@@ -105,10 +105,8 @@ consentClaims = setConsentDecision(
   ConsentDecisions.Permit,
 );
 
-bundleEditor.upsertActiveConsentEntry({
-  claims: consentClaims,
-  fullUrl: `urn:uuid:${EXAMPLE_CONSENT_IDENTIFIER}`,
-});
+// Persist the selected consent entry through the editor and then reopen the
+// same active consent claims for further semantic editing.
 
 const activeConsentClaims = {
   ...(bundleEditor.getActiveEntry()?.resource?.meta?.claims || {}),
@@ -192,7 +190,6 @@ Important:
   - `importPermissionTemplate(...)`
   - `exportConsentEntry(...)`
   - `createConsentAccessEditor(...)`
-  - `upsertActiveConsentEntry(...)`
   - classified readback helpers such as `getActorsClassified()` and
     `getSelectedPurposes()`
 
@@ -248,15 +245,10 @@ import {
 
 const bundleEditor = createConsentAccessEditor();
 
-bundleEditor.upsertActiveConsentEntry({
-  claims: {
-    '@context': 'org.hl7.fhir.api',
-    [ClaimConsent.identifier]: EXAMPLE_CONSENT_IDENTIFIER,
-    [ClaimConsent.subject]: EXAMPLE_SUBJECT_DID,
-  },
-  fullUrl: `urn:uuid:${EXAMPLE_CONSENT_IDENTIFIER}`,
-});
-
+// Assume the active consent entry has already been created or selected by the
+// editor flow.
+bundleEditor.setActiveEntryClaim(ClaimConsent.identifier, EXAMPLE_CONSENT_IDENTIFIER);
+bundleEditor.setActiveEntryClaim(ClaimConsent.subject, EXAMPLE_SUBJECT_DID);
 bundleEditor.setActiveEntryClaim(ClaimConsent.decision, ConsentDecisions.Permit);
 
 console.log(bundleEditor.getActiveEntryClaim(ClaimConsent.decision));

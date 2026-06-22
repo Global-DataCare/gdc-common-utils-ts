@@ -5,8 +5,8 @@ This is the frontend/integrator guide for subject-side relationship records.
 Use this when you need to understand:
 
 - how to think about a `RelatedPerson` from the frontend
-- how to prepare one upsert bundle payload
-- how to think about disable separately from upsert
+- how to prepare one create/update bundle payload
+- how to think about disable separately from create/update
 - where to look for the lower-level operation wrapping only when you really
   need it
 
@@ -39,7 +39,7 @@ Keep those domains separate in the UI and in the mental model.
 The intended path for a frontend is:
 
 1. gather or edit the relationship data
-2. build one semantic bundle payload for upsert
+2. build one semantic bundle payload for create/update
 3. hand that payload to a lower SDK/runtime/backend layer
 4. let that lower layer encapsulate/sign/submit it
 5. read the returned bundle or operation result later with shared readers
@@ -71,25 +71,21 @@ row shape with:
 - lifecycle status
 - internal resource id when present
 
-## Upsert Example
+## Create/Update Example
 
 For create/update, the shared canonical example lives in:
 
 - [src/examples/related-person.ts](../src/examples/related-person.ts)
 
-Use:
-
-- `EXAMPLE_RELATED_PERSON_UPSERT_BUNDLE_PAYLOAD`
-
 Example:
 
 ```ts
-import {
-  EXAMPLE_RELATED_PERSON_UPSERT_BUNDLE_PAYLOAD,
-  cloneExample,
-} from 'gdc-common-utils-ts/examples';
+import { cloneExample } from 'gdc-common-utils-ts/examples';
+import * as relatedPersonExamples from 'gdc-common-utils-ts/examples/related-person';
 
-const relatedPersonPayload = cloneExample(EXAMPLE_RELATED_PERSON_UPSERT_BUNDLE_PAYLOAD);
+const relatedPersonPayload = cloneExample(
+  relatedPersonExamples.EXAMPLE_RELATED_PERSON_UPSERT_BUNDLE_PAYLOAD,
+);
 ```
 
 Read that as:
@@ -101,7 +97,7 @@ Read that as:
 
 ## Disable Example
 
-Disable is a different concern from upsert.
+Disable is a different concern from create/update.
 
 The frontend should usually think of it as:
 
@@ -149,7 +145,7 @@ Executable teaching references:
 - [__tests__/101-related-person-list-reader.test.ts](../__tests__/101-related-person-list-reader.test.ts)
   - shows how one frontend can read returned related-person rows back into a list
 - [src/examples/related-person.ts](../src/examples/related-person.ts)
-  - shared upsert and disable fixtures
+  - shared create/update and disable fixtures
 
 If you later need the runtime-oriented wrapping details, continue with:
 

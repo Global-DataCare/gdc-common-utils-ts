@@ -501,7 +501,6 @@ using the same public APIs frontend/backend code is expected to call:
 - `importPermissionTemplate(...)`
 - `exportConsentEntry(...)`
 - `createConsentAccessEditor(...)`
-- `upsertActiveConsentEntry(...)`
 
 That test documents the frontend case where permissions are edited
 independently and then stored together in the same bundle:
