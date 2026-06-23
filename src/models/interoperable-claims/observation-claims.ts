@@ -46,6 +46,11 @@ export const ObservationClaim = {
   CodeValue: 'Observation.code-value',
   /** Local-language label used by UI/forms. Example: `Heart rate`. */
   CodeText: 'Observation.code-text',
+  /**
+   * Naming alias for `Observation.code-text` when the caller wants the
+   * setter/getter name to make the local-text intent explicit.
+   */
+  CodeTextLocal: 'Observation.code-text',
   /** Canonical English/international display. Example: `Heart rate`. */
   CodeDisplay: 'Observation.code-display',
   /** Observation or component code as `system|code`. Example: `http://loinc.org|8867-4`. */

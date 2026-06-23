@@ -762,6 +762,9 @@ describe('101: IPS family entry editors', () => {
 
     // Step 2.
     // The same bundle can also carry one laboratory panel plus child blood-test results.
+    // In Observation:
+    // - `setCodeTextLocal(...)` is the local/UI label the app wants to show
+    // - `setCodeDisplay(...)` is the canonical English/international display
     bundleEditor
       .newEntry(EXAMPLE_LAB_PANEL_IDENTIFIER)
       .asObservation()
@@ -771,7 +774,7 @@ describe('101: IPS family entry editors', () => {
       .setStatus(EXAMPLE_FHIR_STATUS_FINAL)
       .setCategory(ObservationCategoryCodes.Laboratory)
       .setCode(EXAMPLE_LAB_PANEL_CODE_COMPLETE_BLOOD_COUNT)
-      .setLocalText(EXAMPLE_LAB_PANEL_DISPLAY_COMPLETE_BLOOD_COUNT)
+      .setCodeTextLocal(EXAMPLE_LAB_PANEL_DISPLAY_COMPLETE_BLOOD_COUNT)
       .setCodeDisplay(EXAMPLE_LAB_PANEL_DISPLAY_COMPLETE_BLOOD_COUNT)
       .setHasMemberList([
         `${ResourceTypesFhirR4.Observation}/${EXAMPLE_LAB_RESULT_HEMOGLOBIN_IDENTIFIER}`,
@@ -786,7 +789,7 @@ describe('101: IPS family entry editors', () => {
       .setStatus(EXAMPLE_FHIR_STATUS_FINAL)
       .setCategory(ObservationCategoryCodes.Laboratory)
       .setCode(EXAMPLE_LAB_RESULT_HEMOGLOBIN_CODE)
-      .setLocalText(EXAMPLE_LAB_RESULT_HEMOGLOBIN_DISPLAY)
+      .setCodeTextLocal(EXAMPLE_LAB_RESULT_HEMOGLOBIN_DISPLAY)
       .setCodeDisplay(EXAMPLE_LAB_RESULT_HEMOGLOBIN_DISPLAY)
       .setValueQuantityNumber(EXAMPLE_LAB_RESULT_HEMOGLOBIN_VALUE)
       .setValueQuantityUnit(EXAMPLE_LAB_RESULT_HEMOGLOBIN_UNIT)
@@ -799,7 +802,7 @@ describe('101: IPS family entry editors', () => {
       .setStatus(EXAMPLE_FHIR_STATUS_FINAL)
       .setCategory(ObservationCategoryCodes.Laboratory)
       .setCode(EXAMPLE_LAB_RESULT_PLATELET_CODE)
-      .setLocalText(EXAMPLE_LAB_RESULT_PLATELET_DISPLAY)
+      .setCodeTextLocal(EXAMPLE_LAB_RESULT_PLATELET_DISPLAY)
       .setCodeDisplay(EXAMPLE_LAB_RESULT_PLATELET_DISPLAY)
       .setValueQuantityNumber(EXAMPLE_LAB_RESULT_PLATELET_VALUE)
       .setValueQuantityUnit(EXAMPLE_LAB_RESULT_PLATELET_UNIT)
@@ -843,6 +846,8 @@ describe('101: IPS family entry editors', () => {
       [ObservationClaim.Subject]: EXAMPLE_SUBJECT_DID,
       [ObservationClaim.Category]: ObservationCategoryCodes.Laboratory.claim,
       [ObservationClaim.Code]: EXAMPLE_LAB_RESULT_HEMOGLOBIN_CODE,
+      [ObservationClaim.CodeTextLocal]: EXAMPLE_LAB_RESULT_HEMOGLOBIN_DISPLAY,
+      [ObservationClaim.CodeDisplay]: EXAMPLE_LAB_RESULT_HEMOGLOBIN_DISPLAY,
       [ObservationClaim.ValueQuantityNumber]: String(EXAMPLE_LAB_RESULT_HEMOGLOBIN_VALUE + 0.1),
       [ObservationClaim.ValueQuantityUnit]: EXAMPLE_LAB_RESULT_HEMOGLOBIN_UNIT,
     });
@@ -851,6 +856,8 @@ describe('101: IPS family entry editors', () => {
       [ObservationClaim.Subject]: EXAMPLE_SUBJECT_DID,
       [ObservationClaim.Category]: ObservationCategoryCodes.Laboratory.claim,
       [ObservationClaim.Code]: EXAMPLE_LAB_RESULT_PLATELET_CODE,
+      [ObservationClaim.CodeTextLocal]: EXAMPLE_LAB_RESULT_PLATELET_DISPLAY,
+      [ObservationClaim.CodeDisplay]: EXAMPLE_LAB_RESULT_PLATELET_DISPLAY,
       [ObservationClaim.ValueQuantityNumber]: String(EXAMPLE_LAB_RESULT_PLATELET_VALUE),
       [ObservationClaim.ValueQuantityUnit]: EXAMPLE_LAB_RESULT_PLATELET_UNIT,
     });
@@ -863,6 +870,7 @@ describe('101: IPS family entry editors', () => {
       [ObservationClaim.Subject]: EXAMPLE_SUBJECT_DID,
       [ObservationClaim.Category]: ObservationCategoryCodes.Laboratory.claim,
       [ObservationClaim.Code]: EXAMPLE_LAB_PANEL_CODE_COMPLETE_BLOOD_COUNT,
+      [ObservationClaim.CodeTextLocal]: EXAMPLE_LAB_PANEL_DISPLAY_COMPLETE_BLOOD_COUNT,
       [ObservationClaim.CodeDisplay]: EXAMPLE_LAB_PANEL_DISPLAY_COMPLETE_BLOOD_COUNT,
       [ObservationClaim.HasMember]: EXAMPLE_LAB_PANEL_MEMBER_REFERENCES,
     });

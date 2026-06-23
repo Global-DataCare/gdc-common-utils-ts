@@ -21,6 +21,13 @@ import { ObservationClaim } from '../src/models/interoperable-claims/observation
 
 describe('101: vital sign entry editor', () => {
   it('builds a bundle through bundle.newEntry().asVitalSign() with heart-rate helpers', () => {
+    /*
+     * Teaching goal:
+     * - vital-sign examples should expose explicit coded-label semantics
+     * - `CodeTextLocal` is the label shown by the local app/UI
+     * - `CodeDisplay` is the canonical English/international display
+     */
+
     const bundle = new BundleEditor()
       .setBundleOperation(EmployeeBundleOperations.create)
       .setAllowedResourceType(BundleEditableResourceTypes.vitalSign);
@@ -39,7 +46,8 @@ describe('101: vital sign entry editor', () => {
     expect(vitalEntry.getCode()).toBe(VitalSignsCodes.HeartRate.claim);
     expect(vitalEntry.getCodeValue()).toBe(VitalSignsCodes.HeartRate.code);
     expect(vitalEntry.getCategory()).toBe(ObservationCategoryCodes.VitalSigns.claim);
-    expect(vitalEntry.getLocalText()).toBe(VitalSignsCodes.HeartRate.display);
+    expect(vitalEntry.getCodeTextLocal()).toBe(VitalSignsCodes.HeartRate.display);
+    expect(vitalEntry.getCodeDisplay()).toBe(VitalSignsCodes.HeartRate.display);
     expect(vitalEntry.getHeartRate()).toBe(EXAMPLE_VITAL_SIGN_VALUE_HEART_RATE);
     expect(vitalEntry.getValueQuantityUnit()).toBe(VitalSignsUnits.BeatsPerMinute.claim);
 
@@ -55,6 +63,8 @@ describe('101: vital sign entry editor', () => {
             [ObservationClaim.Subject]: EXAMPLE_SUBJECT_DID,
             [ObservationClaim.Category]: ObservationCategoryCodes.VitalSigns.claim,
             [ObservationClaim.Code]: VitalSignsCodes.HeartRate.claim,
+            [ObservationClaim.CodeTextLocal]: VitalSignsCodes.HeartRate.display,
+            [ObservationClaim.CodeDisplay]: VitalSignsCodes.HeartRate.display,
             [ObservationClaim.ValueQuantityNumber]: String(EXAMPLE_VITAL_SIGN_VALUE_HEART_RATE),
             [ObservationClaim.ValueQuantityUnit]: VitalSignsUnits.BeatsPerMinute.claim,
           },

@@ -857,13 +857,34 @@ export class ObservationComponentEntryEditor extends BundleEntryEditor {
     return normalizeOptionalIdentifier(this.getClaim(ObservationClaim.CodeDisplay));
   }
 
-  /** Local-language label intended for forms and local UI. */
-  public setLocalText(text: string): this {
+  /**
+   * Stores the local-language label used by forms and local UI copy.
+   *
+   * Keep this distinct from `setCodeDisplay(...)`, which is the canonical
+   * English/international display carried by the coded concept.
+   */
+  public setCodeTextLocal(text: string): this {
     return this.setClaim(ObservationClaim.CodeText, String(text).trim());
   }
 
-  public getLocalText(): string | undefined {
+  /**
+   * Returns the local-language label used by forms and local UI copy.
+   *
+   * Keep this distinct from `getCodeDisplay()`, which returns the canonical
+   * English/international display when present.
+   */
+  public getCodeTextLocal(): string | undefined {
     return normalizeOptionalIdentifier(this.getClaim(ObservationClaim.CodeText));
+  }
+
+  /** Compatibility alias for older examples/tests. Prefer `setCodeTextLocal(...)`. */
+  public setLocalText(text: string): this {
+    return this.setCodeTextLocal(text);
+  }
+
+  /** Compatibility alias for older examples/tests. Prefer `getCodeTextLocal()`. */
+  public getLocalText(): string | undefined {
+    return this.getCodeTextLocal();
   }
 
   public setValueQuantityNumber(value: number): this {
@@ -1001,7 +1022,7 @@ export class VitalSignEntryEditor extends ObservationComponentEntryEditor {
     this.setCodeValue(code.code);
     if (code.display) {
       this.setCodeDisplay(code.display);
-      this.setLocalText(code.display);
+      this.setCodeTextLocal(code.display);
     }
     if (unit) {
       this.setValueQuantityUnit(unit);
