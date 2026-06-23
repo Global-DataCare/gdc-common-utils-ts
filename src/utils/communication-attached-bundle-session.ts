@@ -228,6 +228,11 @@ export class CommunicationAttachedBundleSession {
     return this.activeEntryIndex;
   }
 
+  /** Alias of `getActiveEntryIndex()` with entry-selection wording. */
+  getSelectedEntryIndex(): number | null {
+    return this.getActiveEntryIndex();
+  }
+
   /** Returns a deep copy of the active entry when selected. */
   getActiveEntry(): BundleEntry | null {
     if (this.activeEntryIndex === null) {
@@ -236,16 +241,31 @@ export class CommunicationAttachedBundleSession {
     return cloneEntry(this.bundleInMemory.data[this.activeEntryIndex]);
   }
 
+  /** Alias of `getActiveEntry()` with entry-selection wording. */
+  getSelectedEntry(): BundleEntry | null {
+    return this.getActiveEntry();
+  }
+
   /** Returns one claim from the currently selected active entry. */
   getActiveEntryClaim(key: string): unknown {
     const claims = this.getRequiredActiveEntryClaims();
     return cloneUnknownValue(claims[key]);
   }
 
+  /** Alias of `getActiveEntryClaim()` with entry-selection wording. */
+  getSelectedEntryClaim(key: string): unknown {
+    return this.getActiveEntryClaim(key);
+  }
+
   /** Returns whether the currently selected active entry carries one claim key. */
   hasActiveEntryClaim(key: string): boolean {
     const claims = this.getRequiredActiveEntryClaims();
     return Object.prototype.hasOwnProperty.call(claims, key);
+  }
+
+  /** Alias of `hasActiveEntryClaim()` with entry-selection wording. */
+  hasSelectedEntryClaim(key: string): boolean {
+    return this.hasActiveEntryClaim(key);
   }
 
   /** Sets one claim on the currently selected active entry and syncs the bundle attachment. */
@@ -261,6 +281,11 @@ export class CommunicationAttachedBundleSession {
     this.bundleInMemory.data[this.activeEntryIndex as number] = current;
     this.syncAttachmentFromBundle();
     return this;
+  }
+
+  /** Alias of `setActiveEntryClaim()` with entry-selection wording. */
+  setSelectedEntryClaim(key: string, value: unknown): this {
+    return this.setActiveEntryClaim(key, value);
   }
 
   /** Appends one claim value on the currently selected active entry and syncs the bundle attachment. */
@@ -321,6 +346,11 @@ export class CommunicationAttachedBundleSession {
     }
 
     throw new Error('selectActiveEntry requires either index or fullUrl.');
+  }
+
+  /** Alias of `selectActiveEntry()` with entry-selection wording. */
+  selectEntry(selection: ActiveEntrySelection): this {
+    return this.selectActiveEntry(selection);
   }
 
   /** Clears active entry selection from memory. */

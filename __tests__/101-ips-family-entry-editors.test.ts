@@ -5,6 +5,9 @@ import {
   AllergyIntoleranceVerificationStatuses,
   BundleEditableResourceTypes,
   BundleEditor,
+  BundleQuery,
+  BundleReader,
+  CommunicationAttachedBundleSession,
   ConditionClinicalStatuses,
   ConditionVerificationStatuses,
   EmployeeBundleOperations,
@@ -874,5 +877,41 @@ describe('101: IPS family entry editors', () => {
       [ObservationClaim.CodeDisplay]: EXAMPLE_LAB_PANEL_DISPLAY_COMPLETE_BLOOD_COUNT,
       [ObservationClaim.HasMember]: EXAMPLE_LAB_PANEL_MEMBER_REFERENCES,
     });
+
+    // Step 6.
+    // The same generated bundle can later be loaded back from JSON through one
+    // generic clinical-bundle reader, then refined with query helpers when the
+    // app needs resource-type/date filters before reopening one selected entry.
+    const draftBundle = bundleEditor.buildJsonApi();
+    const clinicalBundleReader = new BundleReader(draftBundle as unknown as Record<string, unknown>);
+    const clinicalBundleQuery = new BundleQuery(draftBundle);
+    const hemoglobinEntryIndex = clinicalBundleReader.getEntryIndexByIdentifier(
+      EXAMPLE_LAB_RESULT_HEMOGLOBIN_IDENTIFIER,
+    );
+    const observationIds = clinicalBundleQuery.getResourceIds({
+      resourceTypes: [ResourceTypesFhirR4.Observation],
+      dateFrom: EXAMPLE_VITAL_SIGNS_EFFECTIVE_DATE_TIME,
+      dateTo: EXAMPLE_VITAL_SIGNS_EFFECTIVE_DATE_TIME,
+    });
+    const hemoglobinFullUrl = clinicalBundleQuery.getEntryUrl(EXAMPLE_LAB_RESULT_HEMOGLOBIN_IDENTIFIER);
+
+    expect(clinicalBundleReader.getEntries()).toHaveLength(6);
+    expect(hemoglobinEntryIndex).toBe(4);
+    expect(observationIds).toContain(EXAMPLE_LAB_RESULT_HEMOGLOBIN_IDENTIFIER);
+    expect(observationIds).toContain(EXAMPLE_LAB_PANEL_IDENTIFIER);
+    expect(hemoglobinFullUrl).toBe(EXAMPLE_LAB_RESULT_HEMOGLOBIN_IDENTIFIER);
+
+    const reloadedSession = new CommunicationAttachedBundleSession({
+      initialBundle: draftBundle,
+    }).selectEntry({
+      fullUrl: hemoglobinFullUrl,
+    });
+
+    expect(reloadedSession.getSelectedEntryClaim(ObservationClaim.Identifier)).toBe(EXAMPLE_LAB_RESULT_HEMOGLOBIN_IDENTIFIER);
+    expect(reloadedSession.getSelectedEntryClaim(ObservationClaim.CodeTextLocal)).toBe(EXAMPLE_LAB_RESULT_HEMOGLOBIN_DISPLAY);
+    expect(reloadedSession.getSelectedEntryClaim(ObservationClaim.CodeDisplay)).toBe(EXAMPLE_LAB_RESULT_HEMOGLOBIN_DISPLAY);
+    expect(reloadedSession.getSelectedEntryClaim(ObservationClaim.ValueQuantityNumber)).toBe(
+      String(EXAMPLE_LAB_RESULT_HEMOGLOBIN_VALUE + 0.1),
+    );
   });
 });
