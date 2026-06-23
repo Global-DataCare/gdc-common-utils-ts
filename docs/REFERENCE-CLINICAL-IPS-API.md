@@ -17,6 +17,10 @@ Rules:
 - use shared section constants, not raw LOINC literals, in code examples
 - `Exists today?` describes current public shared API availability
 - `TODO` describes what still needs to be added as typed high-level surface
+- in `101` docs, do not default every family snippet to `sections`
+- keep `sections` for explicit advanced filtering examples only
+- keep internal query objects internal; human-facing docs should show explicit
+  parameters or shared typed aliases
 
 ## Shared Entry Claim Matrix
 
@@ -130,3 +134,83 @@ The complete IPS matrix should still gain explicit rows for:
 - `Coverage`
 - `DocumentReference`
 - `Medication` when used separately from `MedicationStatement`
+
+## Context-Derived IPS Editor Rules
+
+The next agent must preserve these editor rules:
+
+- `subject` should be treated as context-derived inside one IPS editor/reader
+- `subject` should not be taught as one repeated primary setter in IPS happy
+  paths
+- `Composition.subject` or one explicit readonly constructor/open parameter
+  should own subject identity for the whole IPS
+- entry-level `setSubject(...)` may remain as low-level compatibility/fallback,
+  but not as the preferred IPS editor story
+
+That means the table above is still intentionally incomplete from the IPS
+editor perspective: some generic claim rows exist, but they must later be
+classified as:
+
+- `Primary IPS editor method`
+- `Context-derived automatically`
+- `Low-level / fallback only`
+
+## Missing Editor Matrix Work
+
+The reader matrix is now in much better shape than the editor matrix.
+
+Still missing for a complete IPS editor story:
+
+- canonical `IpsBundleEditor`
+- readonly subject context in the editor instance
+- `toFhirR4()`
+- `fromFhirR4()`
+- family-specific editor entry points such as:
+  - `asAllergy()`
+  - `asMedicationStatement()`
+  - `asCondition()`
+  - `asImmunization()`
+  - `asProcedure()`
+  - `asDiagnosticReport()`
+- explicit typed get/set coverage for the remaining IPS families:
+  - `Patient`
+  - `Practitioner`
+  - `Organization`
+  - `PractitionerRole`
+  - `Device`
+  - `DeviceUseStatement`
+  - `ImagingStudy`
+  - `Specimen`
+  - `CarePlan`
+  - `Flag`
+  - `ClinicalImpression`
+  - `Encounter`
+  - `Coverage`
+  - `DocumentReference`
+
+## Real-World IPS Example Alignment
+
+The next agent should align the snippets and remaining matrix work with these
+official HL7 IPS references:
+
+- https://build.fhir.org/ig/HL7/fhir-ips/en/examples.html
+- https://build.fhir.org/ig/HL7/fhir-ips/en/Bundle-IPS-examples-Bundle-01.html
+
+That alignment should drive:
+
+- richer high-level snippets
+- additional typed editor methods
+- additional example fixtures/tests
+- decisions about which resource families are mandatory in the first complete
+  IPS editor milestone
+
+## Preserve These Thread Decisions
+
+The next agent should not regress these choices:
+
+- prefer `ipsBundleReader` in docs over `facade`
+- prefer `getSectionCounts(...)` over `getSectionSummary(...)`
+- keep family getters entry-first, not resource-only
+- keep `fullUrl + resource` available in returned clinical entries
+- keep `subject` readonly and context-derived in IPS editor happy paths
+- keep `101` docs free of `upsert...` and other plumbing-first API stories
