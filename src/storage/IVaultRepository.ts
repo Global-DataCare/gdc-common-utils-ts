@@ -21,10 +21,10 @@ export interface VaultQuery {
 }
 
 // ---------------------------------------------------------------------------
-// Base contract — used by all channels (voice, chat, mobile)
+// Base contract — used by all channels (chat, mobile, web, backend)
 //
 // Each vault instance is scoped to a single actor/session context
-// (e.g. callSid for voice, userId for text channels).
+// (e.g. one transient session id or one user id).
 //
 // collectionName → logical bucket within the vault (e.g. 'tokens', 'session')
 // containerId    → unique record id within the bucket

@@ -105,7 +105,7 @@ function normalizeOptionalString(value: unknown): string | undefined {
  *   canonical `identifier.value`
  *
  * The result shape is intentionally assistant-friendly:
- * - `missingClaims` tells UI/voice flows what is still required
+ * - `missingClaims` tells UI/application flows what is still required
  * - `normalizedClaims` shows the post-derivation claim set
  * - `derived` explains which values were filled automatically
  */

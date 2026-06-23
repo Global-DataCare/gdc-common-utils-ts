@@ -11,7 +11,7 @@ type Collection = Map<string, RecordBase>;
  *
  * Intended for:
  * - Unit/integration tests across all packages
- * - Short-lived runtime contexts (voice calls, transient sessions)
+ * - Short-lived runtime contexts (transient sessions)
  *
  * Each instance is independent — instantiate one per actor/session context
  * (e.g. one per CallSid in uhc-unid-chat-node) and discard on cleanup.

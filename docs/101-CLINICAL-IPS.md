@@ -73,7 +73,7 @@ const vitalSignsSection =
 | `ipsBundleReader.getVitalSigns({ sections?, code?, start?, end?, count?, page?, offset? })` | read | vital-sign filter | bundle entries | vital signs | yes/target | filtered entries with `fullUrl` and `resource` |
 | `ipsBundleReader.getLocalTextAndIntDisplay(resourceOrEntry)` | render | resource or entry | label DTO | all IPS | yes | UI-ready label |
 | `ipsBundleReader.getXhtmlOrDerived(resourceOrEntry)` | render | resource or entry | xhtml | all IPS | yes | prefers stored `text.div`, derives when needed |
-| `ipsBundleReader.getNarrative(resourceOrEntry)` | render | resource or entry | narrative DTO | all IPS | yes | UI/voice-ready narrative |
+| `ipsBundleReader.getNarrative(resourceOrEntry)` | render | resource or entry | narrative DTO | all IPS | yes | UI-ready narrative |
 
 ## Read Sections And Summary
 
