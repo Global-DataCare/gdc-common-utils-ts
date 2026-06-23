@@ -29,6 +29,11 @@ describe('101: bundle reader', () => {
     // - when the user clicks one problematic operation, the UI opens its
     //   detailed diagnostics
     // - success/info-only entries usually stay hidden from the main error list
+    //
+    // Cross-reference:
+    // - `101-ips-family-entry-editors.test.ts` shows how this generic
+    //   BundleReader step connects to one real clinical bundle editing flow
+    //   before a selected entry is reopened for further mutation
 
     // Step 1.
     // Build one outgoing request bundle exactly like the app would send it.

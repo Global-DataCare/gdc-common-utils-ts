@@ -882,6 +882,11 @@ describe('101: IPS family entry editors', () => {
     // The same generated bundle can later be loaded back from JSON through one
     // generic clinical-bundle reader, then refined with query helpers when the
     // app needs resource-type/date filters before reopening one selected entry.
+    //
+    // Cross-reference:
+    // - `101-bundle-reader.test.ts` is the dedicated tutorial for BundleReader
+    // - here we only use the minimal BundleReader path needed to keep IPS
+    //   bundle editing connected to generic bundle navigation by identifier
     const draftBundle = bundleEditor.buildJsonApi();
     const clinicalBundleReader = new BundleReader(draftBundle as unknown as Record<string, unknown>);
     const clinicalBundleQuery = new BundleQuery(draftBundle);
