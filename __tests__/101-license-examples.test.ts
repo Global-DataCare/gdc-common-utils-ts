@@ -14,6 +14,7 @@ import {
   EXAMPLE_LICENSE_PURCHASE_CLAIMS,
   EXAMPLE_LICENSE_PURCHASE_EXPECTED_SERIAL_NUMBER,
   EXAMPLE_LICENSE_PURCHASE_INPUT,
+  EXAMPLE_EMPLOYEE_DEVICE_ACTIVATION_INPUT,
   LicenseCategories,
   LicenseEntryOperations,
   LicenseEntryTypes,
@@ -86,5 +87,22 @@ describe('101: license examples', () => {
     });
     expect(entry.meta.status).toBe(LicenseStatuses.Active);
     expect(entry.meta.subjectId).toBe(EXAMPLE_LICENSE_ACTIVE_RECORD.subjectId);
+  });
+
+  it('ships a minimum valid DCR payload in the shared employee device activation example', () => {
+    expect(EXAMPLE_EMPLOYEE_DEVICE_ACTIVATION_INPUT.dcrPayload).toEqual({
+      application_type: 'native',
+      client_name: 'Acme Controller App',
+      redirect_uris: ['acme-controller://callback'],
+      jwks: {
+        keys: [{ kid: 'controller-didcomm-enc-001', kty: 'EC', crv: 'P-384', x: '<enc-x>', y: '<enc-y>', use: 'enc', purposes: ['didcomm-enc'] }],
+      },
+      ext_device_info: {
+        push_token: 'ExponentPushToken[example-controller]',
+        push_provider: 'expo',
+        device_id: 'device-controller-001',
+        device_name: 'Controller iPhone',
+      },
+    });
   });
 });
