@@ -4,6 +4,17 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.0.9] - 2026-06-23
+
+### Changed
+- Updated the shared employee/controller device-activation example so the DCR payload now matches the current GW CORE contract: `application_type: native`, explicit `redirect_uris`, controller `jwks`, and minimum `ext_device_info`.
+- Added regression coverage that keeps the shared DCR example aligned with the downstream `_issue -> _exchange -> _dcr` recovery flow used by the SDK chain.
+
+### Validation
+- `npm run typecheck`
+- `npm test -- --watchman=false __tests__/101-license-examples.test.ts`
+- `npm run build`
+
 ## [2.0.8] - 2026-06-23
 
 ### Changed

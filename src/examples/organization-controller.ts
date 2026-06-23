@@ -106,7 +106,16 @@ export const EXAMPLE_EMPLOYEE_DEVICE_ACTIVATION_INPUT = {
   activationCode: EXAMPLE_EMPLOYEE_ACTIVATION_CODE,
   idToken: 'employee-id-token-001',
   dcrPayload: {
-    application_type: 'web',
+    application_type: 'native',
+    client_name: 'Acme Controller App',
+    redirect_uris: ['acme-controller://callback'],
+    jwks: EXAMPLE_CONTROLLER_BINDING.jwks,
+    ext_device_info: {
+      push_token: 'ExponentPushToken[example-controller]',
+      push_provider: 'expo',
+      device_id: 'device-controller-001',
+      device_name: 'Controller iPhone',
+    },
   },
 } as const;
 
