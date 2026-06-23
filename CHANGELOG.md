@@ -4,6 +4,8 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.0.8] - 2026-06-23
+
 ### Changed
 - Reframed the shared clinical/IPS onboarding docs so the `101` path teaches
   high-level `ipsBundleReader` and chainable editor flows instead of technical
@@ -22,6 +24,38 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
   - `docs/101-CONSENT_ACCESS.md`
   - `docs/101-CONSENT_PERMISSION_TEMPLATES.md`
   - `docs/101-RELATED_PERSON_EDITOR.md`
+- Formalized the shared IPS documentation/editorial contract around canonical
+  reusable constants, fixtures, and subject context, and documented that the
+  remaining gap is the typed IPS editor/family surface rather than onboarding
+  discipline:
+  - `src/constants/clinical-statuses.ts`
+  - `__tests__/constants-clinical-statuses.test.ts`
+  - `docs/101-IPS_BUNDLE.md`
+  - `NEXT_AGENT_HANDOFF.md`
+- Added a typed IPS bundle entry editor surface in shared `src` so tests and
+  downstream SDK flows can stage clinical resources with chainable business
+  methods instead of low-level `setClaim(...)` plumbing:
+  - `src/utils/bundle-editor.ts`
+  - `src/examples/shared.ts`
+  - `__tests__/101-ips-family-entry-editors.test.ts`
+- Expanded the typed IPS editor coverage across the main IPS family set,
+  including allergy, condition, medication, document reference, immunization,
+  procedure, diagnostic report, observation panels, and supporting resources
+  such as care plan, flag, clinical impression, device, device use statement,
+  encounter, and coverage.
+- Split canonical coded concepts from human/local labels for immunization and
+  procedure entries by adding explicit `code-text` / `code-display` claims and
+  roundtrip conversion support, while keeping clinical notes as actual FHIR
+  note content:
+  - `src/models/interoperable-claims/immunization-claims.ts`
+  - `src/models/interoperable-claims/procedure-claims.ts`
+  - `src/convert/convert-immunization.ts`
+  - `src/convert/convert-procedure.ts`
+
+### Validation
+- `npm run typecheck`
+- `npm test -- --watchman=false`
+- `npm run build`
 
 ## [2.0.6] - 2026-06-19
 

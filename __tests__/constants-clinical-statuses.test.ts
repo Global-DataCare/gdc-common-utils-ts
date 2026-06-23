@@ -23,4 +23,16 @@ describe('clinical status catalogs', () => {
     expect(DiagnosticReportStatuses.Final).toBe('final');
     expect(ObservationStatuses.Final).toBe('final');
   });
+
+  it('keeps the shared catalogs immutable so docs/tests/examples reuse one canonical source', () => {
+    expect(Object.isFrozen(AllergyIntoleranceClinicalStatuses)).toBe(true);
+    expect(Object.isFrozen(ConditionClinicalStatuses)).toBe(true);
+    expect(Object.isFrozen(MedicationStatementStatuses)).toBe(true);
+    expect(Object.isFrozen(ObservationStatuses)).toBe(true);
+
+    expect(Object.values(AllergyIntoleranceClinicalStatuses)).toContain('resolved');
+    expect(Object.values(ConditionClinicalStatuses)).not.toContain('entered-in-error');
+    expect(Object.values(ProcedureStatuses)).toContain('completed');
+    expect(Object.values(ObservationStatuses)).not.toContain('completed');
+  });
 });

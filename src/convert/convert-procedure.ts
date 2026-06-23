@@ -12,7 +12,19 @@ export function procedureFlatToFhirR4(claims: FlatClaims): FhirResource {
     identifier: claims[ProcedureClaim.Identifier] ? [{ value: claims[ProcedureClaim.Identifier] }] : undefined,
     status: claims[ProcedureClaim.Status],
     subject: subject ? { reference: subject } : undefined,
-    code: claims[ProcedureClaim.Code] ? { coding: codingFromValue(claims[ProcedureClaim.Code]) } : undefined,
+    code: claims[ProcedureClaim.Code]
+      ? {
+        coding: codingFromValue(claims[ProcedureClaim.Code])?.map((coding) => ({
+          ...coding,
+          ...(claims[ProcedureClaim.CodeDisplay]
+            ? { display: claims[ProcedureClaim.CodeDisplay] }
+            : {}),
+        })),
+        ...(claims[ProcedureClaim.CodeText]
+          ? { text: claims[ProcedureClaim.CodeText] }
+          : {}),
+      }
+      : undefined,
     performedDateTime: claims[ProcedureClaim.Date],
     note: claims[ProcedureClaim.Note] ? [{ text: claims[ProcedureClaim.Note] }] : undefined,
     basedOn: claims[ProcedureClaim.BasedOn] ? claims[ProcedureClaim.BasedOn]!.split(',').map((reference) => ({ reference: reference.trim() })) : undefined,
@@ -36,6 +48,8 @@ export function procedureFhirR4ToFlat(resource: FhirResource): FlatClaims {
     [ProcedureClaim.BasedOn]: referenceListToCsv(resource.basedOn as Array<{ reference?: string }> | undefined),
     [ProcedureClaim.BodySite]: codingToValue((resource.bodySite as Array<{ coding?: Array<{ system?: string; code?: string }> }> | undefined)?.[0]?.coding?.[0]),
     [ProcedureClaim.Code]: codingToValue((resource.code as { coding?: Array<{ system?: string; code?: string }> } | undefined)?.coding?.[0]),
+    [ProcedureClaim.CodeText]: (resource.code as { text?: string } | undefined)?.text,
+    [ProcedureClaim.CodeDisplay]: (resource.code as { coding?: Array<{ display?: string }> } | undefined)?.coding?.[0]?.display,
     [ProcedureClaim.Date]: (resource.performedDateTime as string | undefined) || (resource.performedPeriod as { start?: string } | undefined)?.start,
     [ProcedureClaim.Encounter]: referenceToValue(resource.encounter as { reference?: string } | undefined),
     [ProcedureClaim.Identifier]: (resource.identifier as Array<{ value?: string }> | undefined)?.[0]?.value,

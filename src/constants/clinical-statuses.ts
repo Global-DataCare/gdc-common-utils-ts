@@ -1,3 +1,15 @@
+/**
+ * Canonical shared FHIR R4 status vocabularies for IPS-facing clinical
+ * resource families.
+ *
+ * Use these constants in docs, examples, fixtures, and tests instead of
+ * retyping raw clinical literals when a shared catalog already exists.
+ *
+ * When a needed status is missing, add it here first following the canonical
+ * FHIR/HL7 code value for that resource family.
+ */
+
+/** Canonical `AllergyIntolerance.clinicalStatus` codes. */
 export const AllergyIntoleranceClinicalStatuses = Object.freeze({
   Active: 'active',
   Inactive: 'inactive',
@@ -7,6 +19,7 @@ export const AllergyIntoleranceClinicalStatuses = Object.freeze({
 export type AllergyIntoleranceClinicalStatus =
   typeof AllergyIntoleranceClinicalStatuses[keyof typeof AllergyIntoleranceClinicalStatuses];
 
+/** Canonical `AllergyIntolerance.verificationStatus` codes. */
 export const AllergyIntoleranceVerificationStatuses = Object.freeze({
   Unconfirmed: 'unconfirmed',
   Confirmed: 'confirmed',
@@ -17,6 +30,7 @@ export const AllergyIntoleranceVerificationStatuses = Object.freeze({
 export type AllergyIntoleranceVerificationStatus =
   typeof AllergyIntoleranceVerificationStatuses[keyof typeof AllergyIntoleranceVerificationStatuses];
 
+/** Canonical `Condition.clinicalStatus` codes. */
 export const ConditionClinicalStatuses = Object.freeze({
   Active: 'active',
   Recurrence: 'recurrence',
@@ -29,6 +43,7 @@ export const ConditionClinicalStatuses = Object.freeze({
 export type ConditionClinicalStatus =
   typeof ConditionClinicalStatuses[keyof typeof ConditionClinicalStatuses];
 
+/** Canonical `Condition.verificationStatus` codes. */
 export const ConditionVerificationStatuses = Object.freeze({
   Unconfirmed: 'unconfirmed',
   Provisional: 'provisional',
@@ -41,6 +56,7 @@ export const ConditionVerificationStatuses = Object.freeze({
 export type ConditionVerificationStatus =
   typeof ConditionVerificationStatuses[keyof typeof ConditionVerificationStatuses];
 
+/** Canonical `MedicationStatement.status` codes. */
 export const MedicationStatementStatuses = Object.freeze({
   Active: 'active',
   Completed: 'completed',
@@ -55,6 +71,7 @@ export const MedicationStatementStatuses = Object.freeze({
 export type MedicationStatementStatus =
   typeof MedicationStatementStatuses[keyof typeof MedicationStatementStatuses];
 
+/** Canonical `Immunization.status` codes. */
 export const ImmunizationStatuses = Object.freeze({
   Completed: 'completed',
   EnteredInError: 'entered-in-error',
@@ -64,6 +81,7 @@ export const ImmunizationStatuses = Object.freeze({
 export type ImmunizationStatus =
   typeof ImmunizationStatuses[keyof typeof ImmunizationStatuses];
 
+/** Canonical `Procedure.status` codes. */
 export const ProcedureStatuses = Object.freeze({
   Preparation: 'preparation',
   InProgress: 'in-progress',
@@ -78,6 +96,7 @@ export const ProcedureStatuses = Object.freeze({
 export type ProcedureStatus =
   typeof ProcedureStatuses[keyof typeof ProcedureStatuses];
 
+/** Canonical `DiagnosticReport.status` codes. */
 export const DiagnosticReportStatuses = Object.freeze({
   Registered: 'registered',
   Partial: 'partial',
@@ -94,6 +113,7 @@ export const DiagnosticReportStatuses = Object.freeze({
 export type DiagnosticReportStatus =
   typeof DiagnosticReportStatuses[keyof typeof DiagnosticReportStatuses];
 
+/** Canonical `Observation.status` codes. */
 export const ObservationStatuses = Object.freeze({
   Registered: 'registered',
   Preliminary: 'preliminary',

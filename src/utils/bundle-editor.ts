@@ -2,7 +2,25 @@ import { ClaimsPersonSchemaorg } from '../constants/schemaorg';
 import { ResourceTypesFhirR4 } from '../constants/fhir-resource-types';
 import { ObservationCategoryCodes, VitalSignsCodes, VitalSignsUnits, type CodingDescriptor } from '../constants/vital-signs';
 import { type BundleEntry, type BundleJsonApi, type BundleRequest } from '../models/bundle';
+import { AllergyIntoleranceClaim } from '../models/interoperable-claims/allergy-intolerance-claims';
+import { CarePlanClaim } from '../models/interoperable-claims/care-plan-claims';
+import { ClinicalImpressionClaim } from '../models/interoperable-claims/clinical-impression-claims';
+import { ConditionClaim } from '../models/interoperable-claims/condition-claims';
+import { CoverageClaim } from '../models/interoperable-claims/coverage-claims';
+import { DeviceClaim } from '../models/interoperable-claims/device-claims';
+import { DeviceUseStatementClaim } from '../models/interoperable-claims/device-use-statement-claims';
+import { DiagnosticReportClaim } from '../models/interoperable-claims/diagnostic-report-claims';
+import { DocumentReferenceClaim } from '../models/interoperable-claims/document-reference-claims';
+import { EncounterClaim } from '../models/interoperable-claims/encounter-claims';
+import { FlagClaim } from '../models/interoperable-claims/flag-claims';
+import { ImmunizationClaim } from '../models/interoperable-claims/immunization-claims';
+import {
+  MedicationStatementClaim,
+  MedicationStatementClaimsFhirApiExtended,
+} from '../models/interoperable-claims/medication-statement-claims';
 import { ObservationClaim } from '../models/interoperable-claims/observation-claims';
+import { ProcedureClaim } from '../models/interoperable-claims/procedure-claims';
+import { getClaimValues, setClaimValues } from '../claims/claim-list-helpers';
 import {
   buildEmployeeBatchEntry,
   buildEmployeePurgeBundle,
@@ -24,6 +42,20 @@ export const BundleEditableResourceTypes = Object.freeze({
   consent: ResourceTypesFhirR4.Consent,
   observation: ResourceTypesFhirR4.Observation,
   vitalSign: ResourceTypesFhirR4.Observation,
+  allergyIntolerance: ResourceTypesFhirR4.AllergyIntolerance,
+  condition: ResourceTypesFhirR4.Condition,
+  medicationStatement: ResourceTypesFhirR4.MedicationStatement,
+  documentReference: ResourceTypesFhirR4.DocumentReference,
+  carePlan: ResourceTypesFhirR4.CarePlan,
+  flag: ResourceTypesFhirR4.Flag,
+  clinicalImpression: ResourceTypesFhirR4.ClinicalImpression,
+  device: ResourceTypesFhirR4.Device,
+  deviceUseStatement: ResourceTypesFhirR4.DeviceUseStatement,
+  encounter: ResourceTypesFhirR4.Encounter,
+  coverage: ResourceTypesFhirR4.Coverage,
+  immunization: ResourceTypesFhirR4.Immunization,
+  procedure: ResourceTypesFhirR4.Procedure,
+  diagnosticReport: ResourceTypesFhirR4.DiagnosticReport,
 } as const);
 
 export type AllowedResourceType = string;
@@ -428,6 +460,132 @@ export class BundleEntryEditor {
     return new ObservationEntryEditor(this.bundleEditor, this.entryIndex);
   }
 
+  /** Opens the current entry as one AllergyIntolerance editor. */
+  public asAllergy(): AllergyIntoleranceEntryEditor {
+    const entry = this.getMutableEntry();
+    if (entry.resource?.resourceType !== ResourceTypesFhirR4.AllergyIntolerance) {
+      throw new Error(`BundleEntryEditor cannot open this entry as AllergyIntolerance: ${String(entry.resource?.resourceType || '')}`);
+    }
+    return new AllergyIntoleranceEntryEditor(this.bundleEditor, this.entryIndex);
+  }
+
+  /** Opens the current entry as one Condition editor. */
+  public asCondition(): ConditionEntryEditor {
+    const entry = this.getMutableEntry();
+    if (entry.resource?.resourceType !== ResourceTypesFhirR4.Condition) {
+      throw new Error(`BundleEntryEditor cannot open this entry as Condition: ${String(entry.resource?.resourceType || '')}`);
+    }
+    return new ConditionEntryEditor(this.bundleEditor, this.entryIndex);
+  }
+
+  /** Opens the current entry as one MedicationStatement editor. */
+  public asMedicationStatement(): MedicationStatementEntryEditor {
+    const entry = this.getMutableEntry();
+    if (entry.resource?.resourceType !== ResourceTypesFhirR4.MedicationStatement) {
+      throw new Error(`BundleEntryEditor cannot open this entry as MedicationStatement: ${String(entry.resource?.resourceType || '')}`);
+    }
+    return new MedicationStatementEntryEditor(this.bundleEditor, this.entryIndex);
+  }
+
+  /** Opens the current entry as one DocumentReference editor. */
+  public asDocumentReference(): DocumentReferenceEntryEditor {
+    const entry = this.getMutableEntry();
+    if (entry.resource?.resourceType !== ResourceTypesFhirR4.DocumentReference) {
+      throw new Error(`BundleEntryEditor cannot open this entry as DocumentReference: ${String(entry.resource?.resourceType || '')}`);
+    }
+    return new DocumentReferenceEntryEditor(this.bundleEditor, this.entryIndex);
+  }
+
+  /** Opens the current entry as one CarePlan editor. */
+  public asCarePlan(): CarePlanEntryEditor {
+    const entry = this.getMutableEntry();
+    if (entry.resource?.resourceType !== ResourceTypesFhirR4.CarePlan) {
+      throw new Error(`BundleEntryEditor cannot open this entry as CarePlan: ${String(entry.resource?.resourceType || '')}`);
+    }
+    return new CarePlanEntryEditor(this.bundleEditor, this.entryIndex);
+  }
+
+  /** Opens the current entry as one Flag editor. */
+  public asFlag(): FlagEntryEditor {
+    const entry = this.getMutableEntry();
+    if (entry.resource?.resourceType !== ResourceTypesFhirR4.Flag) {
+      throw new Error(`BundleEntryEditor cannot open this entry as Flag: ${String(entry.resource?.resourceType || '')}`);
+    }
+    return new FlagEntryEditor(this.bundleEditor, this.entryIndex);
+  }
+
+  /** Opens the current entry as one ClinicalImpression editor. */
+  public asClinicalImpression(): ClinicalImpressionEntryEditor {
+    const entry = this.getMutableEntry();
+    if (entry.resource?.resourceType !== ResourceTypesFhirR4.ClinicalImpression) {
+      throw new Error(`BundleEntryEditor cannot open this entry as ClinicalImpression: ${String(entry.resource?.resourceType || '')}`);
+    }
+    return new ClinicalImpressionEntryEditor(this.bundleEditor, this.entryIndex);
+  }
+
+  /** Opens the current entry as one Device editor. */
+  public asDevice(): DeviceEntryEditor {
+    const entry = this.getMutableEntry();
+    if (entry.resource?.resourceType !== ResourceTypesFhirR4.Device) {
+      throw new Error(`BundleEntryEditor cannot open this entry as Device: ${String(entry.resource?.resourceType || '')}`);
+    }
+    return new DeviceEntryEditor(this.bundleEditor, this.entryIndex);
+  }
+
+  /** Opens the current entry as one DeviceUseStatement editor. */
+  public asDeviceUseStatement(): DeviceUseStatementEntryEditor {
+    const entry = this.getMutableEntry();
+    if (entry.resource?.resourceType !== ResourceTypesFhirR4.DeviceUseStatement) {
+      throw new Error(`BundleEntryEditor cannot open this entry as DeviceUseStatement: ${String(entry.resource?.resourceType || '')}`);
+    }
+    return new DeviceUseStatementEntryEditor(this.bundleEditor, this.entryIndex);
+  }
+
+  /** Opens the current entry as one Encounter editor. */
+  public asEncounter(): EncounterEntryEditor {
+    const entry = this.getMutableEntry();
+    if (entry.resource?.resourceType !== ResourceTypesFhirR4.Encounter) {
+      throw new Error(`BundleEntryEditor cannot open this entry as Encounter: ${String(entry.resource?.resourceType || '')}`);
+    }
+    return new EncounterEntryEditor(this.bundleEditor, this.entryIndex);
+  }
+
+  /** Opens the current entry as one Coverage editor. */
+  public asCoverage(): CoverageEntryEditor {
+    const entry = this.getMutableEntry();
+    if (entry.resource?.resourceType !== ResourceTypesFhirR4.Coverage) {
+      throw new Error(`BundleEntryEditor cannot open this entry as Coverage: ${String(entry.resource?.resourceType || '')}`);
+    }
+    return new CoverageEntryEditor(this.bundleEditor, this.entryIndex);
+  }
+
+  /** Opens the current entry as one Immunization editor. */
+  public asImmunization(): ImmunizationEntryEditor {
+    const entry = this.getMutableEntry();
+    if (entry.resource?.resourceType !== ResourceTypesFhirR4.Immunization) {
+      throw new Error(`BundleEntryEditor cannot open this entry as Immunization: ${String(entry.resource?.resourceType || '')}`);
+    }
+    return new ImmunizationEntryEditor(this.bundleEditor, this.entryIndex);
+  }
+
+  /** Opens the current entry as one Procedure editor. */
+  public asProcedure(): ProcedureEntryEditor {
+    const entry = this.getMutableEntry();
+    if (entry.resource?.resourceType !== ResourceTypesFhirR4.Procedure) {
+      throw new Error(`BundleEntryEditor cannot open this entry as Procedure: ${String(entry.resource?.resourceType || '')}`);
+    }
+    return new ProcedureEntryEditor(this.bundleEditor, this.entryIndex);
+  }
+
+  /** Opens the current entry as one DiagnosticReport editor. */
+  public asDiagnosticReport(): DiagnosticReportEntryEditor {
+    const entry = this.getMutableEntry();
+    if (entry.resource?.resourceType !== ResourceTypesFhirR4.DiagnosticReport) {
+      throw new Error(`BundleEntryEditor cannot open this entry as DiagnosticReport: ${String(entry.resource?.resourceType || '')}`);
+    }
+    return new DiagnosticReportEntryEditor(this.bundleEditor, this.entryIndex);
+  }
+
   /** Reads one claim from this entry. */
   public getClaim(key: string): unknown {
     return cloneClaimValue(this.getClaims()[String(key).trim()]);
@@ -533,6 +691,121 @@ export class BundleEntryEditor {
     return {
       ...(this.getMutableEntry().resource?.meta?.claims || {}),
     };
+  }
+}
+
+/**
+ * Shared claims-first editor utilities for IPS clinical resource families.
+ *
+ * The concrete resource type changes, but the editing contract stays aligned:
+ * identifier + subject + status + date + optional CSV-backed reference lists.
+ */
+class ClinicalResourceEntryEditor extends BundleEntryEditor {
+  protected getIdentifierValue(claimKey: string): string | undefined {
+    return normalizeOptionalIdentifier(
+      this.getClaim(claimKey)
+        || this.getResourceId()
+        || this.getFullUrl(),
+    );
+  }
+
+  protected setIdentifierValue(claimKey: string, identifier?: string | null): this {
+    const normalized = normalizeOptionalIdentifier(identifier);
+    if (!normalized) {
+      this.removeClaim(claimKey);
+      this.setResourceId(undefined);
+      this.setFullUrl(undefined);
+      return this;
+    }
+    this.setClaim(claimKey, normalized);
+    this.setResourceId(normalized);
+    this.setFullUrl(normalized);
+    return this;
+  }
+
+  protected setSubjectClaims(subjectClaimKey: string, patientClaimKey: string, subject?: string | null): this {
+    const normalized = normalizeOptionalIdentifier(subject);
+    if (!normalized) {
+      this.removeClaim(subjectClaimKey);
+      this.removeClaim(patientClaimKey);
+      return this;
+    }
+    this.setClaim(subjectClaimKey, normalized);
+    this.setClaim(patientClaimKey, normalized);
+    return this;
+  }
+
+  protected getSubjectClaims(subjectClaimKey: string, patientClaimKey: string): string | undefined {
+    return normalizeOptionalIdentifier(
+      this.getClaim(subjectClaimKey)
+        || this.getClaim(patientClaimKey),
+    );
+  }
+
+  protected setScalarClaim(claimKey: string, value?: string | null): this {
+    const normalized = normalizeOptionalIdentifier(value);
+    if (!normalized) {
+      this.removeClaim(claimKey);
+      return this;
+    }
+    return this.setClaim(claimKey, normalized);
+  }
+
+  protected getScalarClaim(claimKey: string): string | undefined {
+    return normalizeOptionalIdentifier(this.getClaim(claimKey));
+  }
+
+  protected setNumberClaim(claimKey: string, value?: number | null): this {
+    if (value === undefined || value === null || Number.isNaN(value)) {
+      this.removeClaim(claimKey);
+      return this;
+    }
+    return this.setClaim(claimKey, String(value));
+  }
+
+  protected getNumberClaim(claimKey: string): number | undefined {
+    const raw = this.getClaim(claimKey);
+    if (raw === undefined || raw === null || raw === '') return undefined;
+    const numeric = Number(raw);
+    return Number.isFinite(numeric) ? numeric : undefined;
+  }
+
+  protected setBooleanClaim(claimKey: string, value?: boolean | null): this {
+    if (value === undefined || value === null) {
+      this.removeClaim(claimKey);
+      return this;
+    }
+    return this.setClaim(claimKey, value);
+  }
+
+  protected getBooleanClaim(claimKey: string): boolean | undefined {
+    const raw = this.getClaim(claimKey);
+    if (typeof raw === 'boolean') return raw;
+    if (raw === 'true') return true;
+    if (raw === 'false') return false;
+    return undefined;
+  }
+
+  protected setCsvClaimList(claimKey: string, values: readonly string[]): this {
+    const next = setClaimValues({}, claimKey, values);
+    const normalized = normalizeOptionalIdentifier(next[claimKey]);
+    if (!normalized) {
+      this.removeClaim(claimKey);
+      return this;
+    }
+    return this.setClaim(claimKey, normalized);
+  }
+
+  protected getCsvClaimList(claimKey: string): string[] {
+    return getClaimValues(this.getClaims(), claimKey);
+  }
+
+  protected ensureIdentifierValue(claimKey: string): string {
+    const existing = this.getIdentifierValue(claimKey);
+    if (existing) return existing;
+    const generated = createCanonicalIdentifierUrn();
+    this.setIdentifierValue(claimKey, generated);
+    return generated;
   }
 }
 
@@ -822,6 +1095,702 @@ export class ObservationEntryEditor extends VitalSignEntryEditor {
 
   public getHasMember(): string | undefined {
     return normalizeOptionalIdentifier(this.getClaim(ObservationClaim.HasMember));
+  }
+
+  public setHasMemberList(references: readonly string[]): this {
+    const next = setClaimValues({}, ObservationClaim.HasMember, references);
+    const normalized = normalizeOptionalIdentifier(next[ObservationClaim.HasMember]);
+    if (!normalized) {
+      this.removeClaim(ObservationClaim.HasMember);
+      return this;
+    }
+    return this.setClaim(ObservationClaim.HasMember, normalized);
+  }
+
+  public getHasMemberList(): string[] {
+    return getClaimValues(this.getClaims(), ObservationClaim.HasMember);
+  }
+}
+
+/** Claims-first editor for one staged AllergyIntolerance entry. */
+export class AllergyIntoleranceEntryEditor extends ClinicalResourceEntryEditor {
+  public setIdentifier(identifier?: string | null): this { return this.setIdentifierValue(AllergyIntoleranceClaim.Identifier, identifier); }
+  public getIdentifier(): string | undefined { return this.getIdentifierValue(AllergyIntoleranceClaim.Identifier); }
+  public ensureIdentifier(): string { return this.ensureIdentifierValue(AllergyIntoleranceClaim.Identifier); }
+  public setSubject(subject?: string | null): this { return this.setSubjectClaims(AllergyIntoleranceClaim.Subject, AllergyIntoleranceClaim.Patient, subject); }
+  public getSubject(): string | undefined { return this.getSubjectClaims(AllergyIntoleranceClaim.Subject, AllergyIntoleranceClaim.Patient); }
+  public setCode(code?: string | null): this { return this.setScalarClaim(AllergyIntoleranceClaim.Code, code); }
+  public getCode(): string | undefined { return this.getScalarClaim(AllergyIntoleranceClaim.Code); }
+  public setClinicalStatus(status?: string | null): this { return this.setScalarClaim(AllergyIntoleranceClaim.ClinicalStatus, status); }
+  public getClinicalStatus(): string | undefined { return this.getScalarClaim(AllergyIntoleranceClaim.ClinicalStatus); }
+  public setVerificationStatus(status?: string | null): this { return this.setScalarClaim(AllergyIntoleranceClaim.VerificationStatus, status); }
+  public getVerificationStatus(): string | undefined { return this.getScalarClaim(AllergyIntoleranceClaim.VerificationStatus); }
+  public setCategory(category?: string | null): this { return this.setScalarClaim(AllergyIntoleranceClaim.Category, category); }
+  public getCategory(): string | undefined { return this.getScalarClaim(AllergyIntoleranceClaim.Category); }
+  public setCriticality(criticality?: string | null): this { return this.setScalarClaim(AllergyIntoleranceClaim.Criticality, criticality); }
+  public getCriticality(): string | undefined { return this.getScalarClaim(AllergyIntoleranceClaim.Criticality); }
+  public setOnsetDateTime(value?: string | null): this { return this.setScalarClaim(AllergyIntoleranceClaim.OnsetDateTime, value); }
+  public getOnsetDateTime(): string | undefined { return this.getScalarClaim(AllergyIntoleranceClaim.OnsetDateTime); }
+  public setRecorder(reference?: string | null): this { return this.setScalarClaim(AllergyIntoleranceClaim.Recorder, reference); }
+  public getRecorder(): string | undefined { return this.getScalarClaim(AllergyIntoleranceClaim.Recorder); }
+  public setContainedDocumentIdentifierList(identifiers: readonly string[]): this { return this.setCsvClaimList(AllergyIntoleranceClaim.ContainedDocuments, identifiers); }
+  public getContainedDocumentIdentifierList(): string[] { return this.getCsvClaimList(AllergyIntoleranceClaim.ContainedDocuments); }
+}
+
+/** Claims-first editor for one staged Condition entry. */
+export class ConditionEntryEditor extends ClinicalResourceEntryEditor {
+  public setIdentifier(identifier?: string | null): this { return this.setIdentifierValue(ConditionClaim.Identifier, identifier); }
+  public getIdentifier(): string | undefined { return this.getIdentifierValue(ConditionClaim.Identifier); }
+  public ensureIdentifier(): string { return this.ensureIdentifierValue(ConditionClaim.Identifier); }
+  public setSubject(subject?: string | null): this { return this.setSubjectClaims(ConditionClaim.Subject, ConditionClaim.Subject, subject); }
+  public getSubject(): string | undefined { return this.getSubjectClaims(ConditionClaim.Subject, ConditionClaim.Subject); }
+  public setCode(code?: string | null): this { return this.setScalarClaim(ConditionClaim.Code, code); }
+  public getCode(): string | undefined { return this.getScalarClaim(ConditionClaim.Code); }
+  public setClinicalStatus(status?: string | null): this { return this.setScalarClaim(ConditionClaim.ClinicalStatus, status); }
+  public getClinicalStatus(): string | undefined { return this.getScalarClaim(ConditionClaim.ClinicalStatus); }
+  public setVerificationStatus(status?: string | null): this { return this.setScalarClaim(ConditionClaim.VerificationStatus, status); }
+  public getVerificationStatus(): string | undefined { return this.getScalarClaim(ConditionClaim.VerificationStatus); }
+  public setCategory(category?: string | null): this { return this.setScalarClaim(ConditionClaim.Category, category); }
+  public getCategory(): string | undefined { return this.getScalarClaim(ConditionClaim.Category); }
+  public setSeverity(severity?: string | null): this { return this.setScalarClaim(ConditionClaim.Severity, severity); }
+  public getSeverity(): string | undefined { return this.getScalarClaim(ConditionClaim.Severity); }
+  public setOnsetDateTime(value?: string | null): this { return this.setScalarClaim(ConditionClaim.OnsetDateTime, value); }
+  public getOnsetDateTime(): string | undefined { return this.getScalarClaim(ConditionClaim.OnsetDateTime); }
+  public setRecorder(reference?: string | null): this { return this.setScalarClaim(ConditionClaim.Recorder, reference); }
+  public getRecorder(): string | undefined { return this.getScalarClaim(ConditionClaim.Recorder); }
+  public setContainedDocumentIdentifierList(identifiers: readonly string[]): this { return this.setCsvClaimList(ConditionClaim.ContainedDocuments, identifiers); }
+  public getContainedDocumentIdentifierList(): string[] { return this.getCsvClaimList(ConditionClaim.ContainedDocuments); }
+}
+
+/** Claims-first editor for one staged MedicationStatement entry. */
+export class MedicationStatementEntryEditor extends ClinicalResourceEntryEditor {
+  public setIdentifier(identifier?: string | null): this { return this.setIdentifierValue(MedicationStatementClaim.Identifier, identifier); }
+  public getIdentifier(): string | undefined { return this.getIdentifierValue(MedicationStatementClaim.Identifier); }
+  public ensureIdentifier(): string { return this.ensureIdentifierValue(MedicationStatementClaim.Identifier); }
+  public setSubject(subject?: string | null): this { return this.setSubjectClaims(MedicationStatementClaim.Subject, MedicationStatementClaim.Patient, subject); }
+  public getSubject(): string | undefined { return this.getSubjectClaims(MedicationStatementClaim.Subject, MedicationStatementClaim.Patient); }
+  public setStatus(status?: string | null): this { return this.setScalarClaim(MedicationStatementClaim.Status, status); }
+  public getStatus(): string | undefined { return this.getScalarClaim(MedicationStatementClaim.Status); }
+  public setEffective(value?: string | null): this { return this.setScalarClaim(MedicationStatementClaim.Effective, value); }
+  public getEffective(): string | undefined { return this.getScalarClaim(MedicationStatementClaim.Effective); }
+  public setCode(code?: string | null): this { return this.setScalarClaim(MedicationStatementClaim.Code, code); }
+  public getCode(): string | undefined { return this.getScalarClaim(MedicationStatementClaim.Code); }
+  public setMedicationText(text?: string | null): this { return this.setScalarClaim(MedicationStatementClaim.MedicationText, text); }
+  public getMedicationText(): string | undefined { return this.getScalarClaim(MedicationStatementClaim.MedicationText); }
+  public setNote(note?: string | null): this { return this.setScalarClaim(MedicationStatementClaim.Note, note); }
+  public getNote(): string | undefined { return this.getScalarClaim(MedicationStatementClaim.Note); }
+  public setDosageInstruction(value?: string | null): this { return this.setScalarClaim(MedicationStatementClaim.DosageInstruction, value); }
+  public getDosageInstruction(): string | undefined { return this.getScalarClaim(MedicationStatementClaim.DosageInstruction); }
+  public setCategoryList(values: readonly string[]): this { return this.setCsvClaimList(MedicationStatementClaim.Category, values); }
+  public getCategoryList(): string[] { return this.getCsvClaimList(MedicationStatementClaim.Category); }
+  public setDoseQuantityValue(value?: number | null): this { return this.setNumberClaim(MedicationStatementClaimsFhirApiExtended.DoseQuantityValue, value); }
+  public getDoseQuantityValue(): number | undefined { return this.getNumberClaim(MedicationStatementClaimsFhirApiExtended.DoseQuantityValue); }
+  public setDoseQuantityUnit(value?: string | null): this { return this.setScalarClaim(MedicationStatementClaimsFhirApiExtended.DoseQuantityUnit, value); }
+  public getDoseQuantityUnit(): string | undefined { return this.getScalarClaim(MedicationStatementClaimsFhirApiExtended.DoseQuantityUnit); }
+  public setTimingFrequency(value?: number | null): this { return this.setNumberClaim(MedicationStatementClaimsFhirApiExtended.TimingFrequency, value); }
+  public getTimingFrequency(): number | undefined { return this.getNumberClaim(MedicationStatementClaimsFhirApiExtended.TimingFrequency); }
+  public setTimingPeriod(value?: number | null): this { return this.setNumberClaim(MedicationStatementClaimsFhirApiExtended.TimingPeriod, value); }
+  public getTimingPeriod(): number | undefined { return this.getNumberClaim(MedicationStatementClaimsFhirApiExtended.TimingPeriod); }
+  public setTimingPeriodUnit(value?: string | null): this { return this.setScalarClaim(MedicationStatementClaimsFhirApiExtended.TimingPeriodUnit, value); }
+  public getTimingPeriodUnit(): string | undefined { return this.getScalarClaim(MedicationStatementClaimsFhirApiExtended.TimingPeriodUnit); }
+  public setDosageAsNeeded(value?: boolean | null): this { return this.setBooleanClaim(MedicationStatementClaimsFhirApiExtended.DosageAsNeeded, value); }
+  public getDosageAsNeeded(): boolean | undefined { return this.getBooleanClaim(MedicationStatementClaimsFhirApiExtended.DosageAsNeeded); }
+}
+
+/** Claims-first editor for one staged DocumentReference entry. */
+export class DocumentReferenceEntryEditor extends ClinicalResourceEntryEditor {
+  public setIdentifier(identifier?: string | null): this { return this.setIdentifierValue(DocumentReferenceClaim.Identifier, identifier); }
+  public getIdentifier(): string | undefined { return this.getIdentifierValue(DocumentReferenceClaim.Identifier); }
+  public ensureIdentifier(): string { return this.ensureIdentifierValue(DocumentReferenceClaim.Identifier); }
+  public setSubject(subject?: string | null): this { return this.setScalarClaim(DocumentReferenceClaim.Subject, subject); }
+  public getSubject(): string | undefined { return this.getScalarClaim(DocumentReferenceClaim.Subject); }
+  public setType(value?: string | null): this { return this.setScalarClaim(DocumentReferenceClaim.Type, value); }
+  public getType(): string | undefined { return this.getScalarClaim(DocumentReferenceClaim.Type); }
+  public setCategory(value?: string | null): this { return this.setScalarClaim(DocumentReferenceClaim.Category, value); }
+  public getCategory(): string | undefined { return this.getScalarClaim(DocumentReferenceClaim.Category); }
+  public setContentType(value?: string | null): this { return this.setScalarClaim(DocumentReferenceClaim.ContentType, value); }
+  public getContentType(): string | undefined { return this.getScalarClaim(DocumentReferenceClaim.ContentType); }
+  public setContentData(value?: string | null): this { return this.setScalarClaim(DocumentReferenceClaim.ContentData, value); }
+  public getContentData(): string | undefined { return this.getScalarClaim(DocumentReferenceClaim.ContentData); }
+  public setContentHash(value?: string | null): this { return this.setScalarClaim(DocumentReferenceClaim.ContentHash, value); }
+  public getContentHash(): string | undefined { return this.getScalarClaim(DocumentReferenceClaim.ContentHash); }
+  public setLocation(value?: string | null): this { return this.setScalarClaim(DocumentReferenceClaim.Location, value); }
+  public getLocation(): string | undefined { return this.getScalarClaim(DocumentReferenceClaim.Location); }
+  public setDescription(value?: string | null): this { return this.setScalarClaim(DocumentReferenceClaim.Description, value); }
+  public getDescription(): string | undefined { return this.getScalarClaim(DocumentReferenceClaim.Description); }
+  public setDate(value?: string | null): this { return this.setScalarClaim(DocumentReferenceClaim.Date, value); }
+  public getDate(): string | undefined { return this.getScalarClaim(DocumentReferenceClaim.Date); }
+  public setAuthor(value?: string | null): this { return this.setScalarClaim(DocumentReferenceClaim.Author, value); }
+  public getAuthor(): string | undefined { return this.getScalarClaim(DocumentReferenceClaim.Author); }
+}
+
+/** Claims-first editor for one staged CarePlan entry. */
+export class CarePlanEntryEditor extends ClinicalResourceEntryEditor {
+  public setIdentifier(identifier?: string | null): this { return this.setIdentifierValue(CarePlanClaim.Identifier, identifier); }
+  public getIdentifier(): string | undefined { return this.getIdentifierValue(CarePlanClaim.Identifier); }
+  public ensureIdentifier(): string { return this.ensureIdentifierValue(CarePlanClaim.Identifier); }
+  public setSubject(subject?: string | null): this { return this.setSubjectClaims(CarePlanClaim.Subject, CarePlanClaim.Patient, subject); }
+  public getSubject(): string | undefined { return this.getSubjectClaims(CarePlanClaim.Subject, CarePlanClaim.Patient); }
+  public setStatus(value?: string | null): this { return this.setScalarClaim(CarePlanClaim.Status, value); }
+  public getStatus(): string | undefined { return this.getScalarClaim(CarePlanClaim.Status); }
+  public setIntent(value?: string | null): this { return this.setScalarClaim(CarePlanClaim.Intent, value); }
+  public getIntent(): string | undefined { return this.getScalarClaim(CarePlanClaim.Intent); }
+  public setCategory(value?: string | null): this { return this.setScalarClaim(CarePlanClaim.Category, value); }
+  public getCategory(): string | undefined { return this.getScalarClaim(CarePlanClaim.Category); }
+  public setEncounter(value?: string | null): this { return this.setScalarClaim(CarePlanClaim.Encounter, value); }
+  public getEncounter(): string | undefined { return this.getScalarClaim(CarePlanClaim.Encounter); }
+  public setDate(value?: string | null): this { return this.setScalarClaim(CarePlanClaim.Date, value); }
+  public getDate(): string | undefined { return this.getScalarClaim(CarePlanClaim.Date); }
+  public setNote(value?: string | null): this { return this.setScalarClaim(CarePlanClaim.Note, value); }
+  public getNote(): string | undefined { return this.getScalarClaim(CarePlanClaim.Note); }
+}
+
+/** Claims-first editor for one staged Flag entry. */
+export class FlagEntryEditor extends ClinicalResourceEntryEditor {
+  public setIdentifier(identifier?: string | null): this { return this.setIdentifierValue(FlagClaim.Identifier, identifier); }
+  public getIdentifier(): string | undefined { return this.getIdentifierValue(FlagClaim.Identifier); }
+  public ensureIdentifier(): string { return this.ensureIdentifierValue(FlagClaim.Identifier); }
+  public setSubject(subject?: string | null): this { return this.setSubjectClaims(FlagClaim.Subject, FlagClaim.Patient, subject); }
+  public getSubject(): string | undefined { return this.getSubjectClaims(FlagClaim.Subject, FlagClaim.Patient); }
+  public setStatus(value?: string | null): this { return this.setScalarClaim(FlagClaim.Status, value); }
+  public getStatus(): string | undefined { return this.getScalarClaim(FlagClaim.Status); }
+  public setCategory(value?: string | null): this { return this.setScalarClaim(FlagClaim.Category, value); }
+  public getCategory(): string | undefined { return this.getScalarClaim(FlagClaim.Category); }
+  public setCode(value?: string | null): this { return this.setScalarClaim(FlagClaim.Code, value); }
+  public getCode(): string | undefined { return this.getScalarClaim(FlagClaim.Code); }
+  public setDate(value?: string | null): this { return this.setScalarClaim(FlagClaim.Date, value); }
+  public getDate(): string | undefined { return this.getScalarClaim(FlagClaim.Date); }
+  public setEncounter(value?: string | null): this { return this.setScalarClaim(FlagClaim.Encounter, value); }
+  public getEncounter(): string | undefined { return this.getScalarClaim(FlagClaim.Encounter); }
+  public setPeriodStart(value?: string | null): this { return this.setScalarClaim(FlagClaim.PeriodStart, value); }
+  public getPeriodStart(): string | undefined { return this.getScalarClaim(FlagClaim.PeriodStart); }
+  public setPeriodEnd(value?: string | null): this { return this.setScalarClaim(FlagClaim.PeriodEnd, value); }
+  public getPeriodEnd(): string | undefined { return this.getScalarClaim(FlagClaim.PeriodEnd); }
+}
+
+/** Claims-first editor for one staged ClinicalImpression entry. */
+export class ClinicalImpressionEntryEditor extends ClinicalResourceEntryEditor {
+  public setIdentifier(identifier?: string | null): this { return this.setIdentifierValue(ClinicalImpressionClaim.Identifier, identifier); }
+  public getIdentifier(): string | undefined { return this.getIdentifierValue(ClinicalImpressionClaim.Identifier); }
+  public ensureIdentifier(): string { return this.ensureIdentifierValue(ClinicalImpressionClaim.Identifier); }
+  public setSubject(subject?: string | null): this { return this.setSubjectClaims(ClinicalImpressionClaim.Subject, ClinicalImpressionClaim.Subject, subject); }
+  public getSubject(): string | undefined { return this.getSubjectClaims(ClinicalImpressionClaim.Subject, ClinicalImpressionClaim.Subject); }
+  public setStatus(value?: string | null): this { return this.setScalarClaim(ClinicalImpressionClaim.Status, value); }
+  public getStatus(): string | undefined { return this.getScalarClaim(ClinicalImpressionClaim.Status); }
+  public setDescription(value?: string | null): this { return this.setScalarClaim(ClinicalImpressionClaim.Description, value); }
+  public getDescription(): string | undefined { return this.getScalarClaim(ClinicalImpressionClaim.Description); }
+  public setEncounter(value?: string | null): this { return this.setScalarClaim(ClinicalImpressionClaim.Encounter, value); }
+  public getEncounter(): string | undefined { return this.getScalarClaim(ClinicalImpressionClaim.Encounter); }
+  public setEffectiveDateTime(value?: string | null): this { return this.setScalarClaim(ClinicalImpressionClaim.EffectiveDateTime, value); }
+  public getEffectiveDateTime(): string | undefined { return this.getScalarClaim(ClinicalImpressionClaim.EffectiveDateTime); }
+  public setAssessor(value?: string | null): this { return this.setScalarClaim(ClinicalImpressionClaim.Assessor, value); }
+  public getAssessor(): string | undefined { return this.getScalarClaim(ClinicalImpressionClaim.Assessor); }
+  public setSummary(value?: string | null): this { return this.setScalarClaim(ClinicalImpressionClaim.Summary, value); }
+  public getSummary(): string | undefined { return this.getScalarClaim(ClinicalImpressionClaim.Summary); }
+}
+
+/** Claims-first editor for one staged Device entry. */
+export class DeviceEntryEditor extends ClinicalResourceEntryEditor {
+  public setIdentifier(identifier?: string | null): this { return this.setIdentifierValue(DeviceClaim.Identifier, identifier); }
+  public getIdentifier(): string | undefined { return this.getIdentifierValue(DeviceClaim.Identifier); }
+  public ensureIdentifier(): string { return this.ensureIdentifierValue(DeviceClaim.Identifier); }
+  public setPatient(value?: string | null): this { return this.setScalarClaim(DeviceClaim.Patient, value); }
+  public getPatient(): string | undefined { return this.getScalarClaim(DeviceClaim.Patient); }
+  public setStatus(value?: string | null): this { return this.setScalarClaim(DeviceClaim.Status, value); }
+  public getStatus(): string | undefined { return this.getScalarClaim(DeviceClaim.Status); }
+  public setType(value?: string | null): this { return this.setScalarClaim(DeviceClaim.Type, value); }
+  public getType(): string | undefined { return this.getScalarClaim(DeviceClaim.Type); }
+  public setManufacturer(value?: string | null): this { return this.setScalarClaim(DeviceClaim.Manufacturer, value); }
+  public getManufacturer(): string | undefined { return this.getScalarClaim(DeviceClaim.Manufacturer); }
+  public setModel(value?: string | null): this { return this.setScalarClaim(DeviceClaim.Model, value); }
+  public getModel(): string | undefined { return this.getScalarClaim(DeviceClaim.Model); }
+  public setDeviceName(value?: string | null): this { return this.setScalarClaim(DeviceClaim.DeviceName, value); }
+  public getDeviceName(): string | undefined { return this.getScalarClaim(DeviceClaim.DeviceName); }
+  public setSerialNumber(value?: string | null): this { return this.setScalarClaim(DeviceClaim.SerialNumber, value); }
+  public getSerialNumber(): string | undefined { return this.getScalarClaim(DeviceClaim.SerialNumber); }
+  public setOrganization(value?: string | null): this { return this.setScalarClaim(DeviceClaim.Organization, value); }
+  public getOrganization(): string | undefined { return this.getScalarClaim(DeviceClaim.Organization); }
+  public setLocation(value?: string | null): this { return this.setScalarClaim(DeviceClaim.Location, value); }
+  public getLocation(): string | undefined { return this.getScalarClaim(DeviceClaim.Location); }
+  public setUrl(value?: string | null): this { return this.setScalarClaim(DeviceClaim.Url, value); }
+  public getUrl(): string | undefined { return this.getScalarClaim(DeviceClaim.Url); }
+  public setNote(value?: string | null): this { return this.setScalarClaim(DeviceClaim.Note, value); }
+  public getNote(): string | undefined { return this.getScalarClaim(DeviceClaim.Note); }
+}
+
+/** Claims-first editor for one staged DeviceUseStatement entry. */
+export class DeviceUseStatementEntryEditor extends ClinicalResourceEntryEditor {
+  public setIdentifier(identifier?: string | null): this { return this.setIdentifierValue(DeviceUseStatementClaim.Identifier, identifier); }
+  public getIdentifier(): string | undefined { return this.getIdentifierValue(DeviceUseStatementClaim.Identifier); }
+  public ensureIdentifier(): string { return this.ensureIdentifierValue(DeviceUseStatementClaim.Identifier); }
+  public setSubject(subject?: string | null): this { return this.setSubjectClaims(DeviceUseStatementClaim.Subject, DeviceUseStatementClaim.Subject, subject); }
+  public getSubject(): string | undefined { return this.getSubjectClaims(DeviceUseStatementClaim.Subject, DeviceUseStatementClaim.Subject); }
+  public setStatus(value?: string | null): this { return this.setScalarClaim(DeviceUseStatementClaim.Status, value); }
+  public getStatus(): string | undefined { return this.getScalarClaim(DeviceUseStatementClaim.Status); }
+  public setDevice(value?: string | null): this { return this.setScalarClaim(DeviceUseStatementClaim.Device, value); }
+  public getDevice(): string | undefined { return this.getScalarClaim(DeviceUseStatementClaim.Device); }
+  public setRecordedOn(value?: string | null): this { return this.setScalarClaim(DeviceUseStatementClaim.RecordedOn, value); }
+  public getRecordedOn(): string | undefined { return this.getScalarClaim(DeviceUseStatementClaim.RecordedOn); }
+  public setTimingDateTime(value?: string | null): this { return this.setScalarClaim(DeviceUseStatementClaim.TimingDateTime, value); }
+  public getTimingDateTime(): string | undefined { return this.getScalarClaim(DeviceUseStatementClaim.TimingDateTime); }
+  public setReasonCode(value?: string | null): this { return this.setScalarClaim(DeviceUseStatementClaim.ReasonCode, value); }
+  public getReasonCode(): string | undefined { return this.getScalarClaim(DeviceUseStatementClaim.ReasonCode); }
+  public setSource(value?: string | null): this { return this.setScalarClaim(DeviceUseStatementClaim.Source, value); }
+  public getSource(): string | undefined { return this.getScalarClaim(DeviceUseStatementClaim.Source); }
+}
+
+/** Claims-first editor for one staged Encounter entry. */
+export class EncounterEntryEditor extends ClinicalResourceEntryEditor {
+  public setIdentifier(identifier?: string | null): this { return this.setIdentifierValue(EncounterClaim.Identifier, identifier); }
+  public getIdentifier(): string | undefined { return this.getIdentifierValue(EncounterClaim.Identifier); }
+  public ensureIdentifier(): string { return this.ensureIdentifierValue(EncounterClaim.Identifier); }
+  public setSubject(subject?: string | null): this { return this.setSubjectClaims(EncounterClaim.Subject, EncounterClaim.Patient, subject); }
+  public getSubject(): string | undefined { return this.getSubjectClaims(EncounterClaim.Subject, EncounterClaim.Patient); }
+  public setStatus(value?: string | null): this { return this.setScalarClaim(EncounterClaim.Status, value); }
+  public getStatus(): string | undefined { return this.getScalarClaim(EncounterClaim.Status); }
+  public setClass(value?: string | null): this { return this.setScalarClaim(EncounterClaim.Class, value); }
+  public getClass(): string | undefined { return this.getScalarClaim(EncounterClaim.Class); }
+  public setType(value?: string | null): this { return this.setScalarClaim(EncounterClaim.Type, value); }
+  public getType(): string | undefined { return this.getScalarClaim(EncounterClaim.Type); }
+  public setParticipantList(values: readonly string[]): this { return this.setCsvClaimList(EncounterClaim.Participant, values); }
+  public getParticipantList(): string[] { return this.getCsvClaimList(EncounterClaim.Participant); }
+  public setServiceProvider(value?: string | null): this { return this.setScalarClaim(EncounterClaim.ServiceProvider, value); }
+  public getServiceProvider(): string | undefined { return this.getScalarClaim(EncounterClaim.ServiceProvider); }
+  public setPeriodStart(value?: string | null): this { return this.setScalarClaim(EncounterClaim.PeriodStart, value); }
+  public getPeriodStart(): string | undefined { return this.getScalarClaim(EncounterClaim.PeriodStart); }
+  public setPeriodEnd(value?: string | null): this { return this.setScalarClaim(EncounterClaim.PeriodEnd, value); }
+  public getPeriodEnd(): string | undefined { return this.getScalarClaim(EncounterClaim.PeriodEnd); }
+  public setReasonCode(value?: string | null): this { return this.setScalarClaim(EncounterClaim.ReasonCode, value); }
+  public getReasonCode(): string | undefined { return this.getScalarClaim(EncounterClaim.ReasonCode); }
+}
+
+/** Claims-first editor for one staged Coverage entry. */
+export class CoverageEntryEditor extends ClinicalResourceEntryEditor {
+  public setIdentifier(identifier?: string | null): this { return this.setIdentifierValue(CoverageClaim.Identifier, identifier); }
+  public getIdentifier(): string | undefined { return this.getIdentifierValue(CoverageClaim.Identifier); }
+  public ensureIdentifier(): string { return this.ensureIdentifierValue(CoverageClaim.Identifier); }
+  public setStatus(value?: string | null): this { return this.setScalarClaim(CoverageClaim.Status, value); }
+  public getStatus(): string | undefined { return this.getScalarClaim(CoverageClaim.Status); }
+  public setType(value?: string | null): this { return this.setScalarClaim(CoverageClaim.Type, value); }
+  public getType(): string | undefined { return this.getScalarClaim(CoverageClaim.Type); }
+  public setPolicyHolder(value?: string | null): this { return this.setScalarClaim(CoverageClaim.PolicyHolder, value); }
+  public getPolicyHolder(): string | undefined { return this.getScalarClaim(CoverageClaim.PolicyHolder); }
+  public setSubscriber(value?: string | null): this { return this.setScalarClaim(CoverageClaim.Subscriber, value); }
+  public getSubscriber(): string | undefined { return this.getScalarClaim(CoverageClaim.Subscriber); }
+  public setBeneficiary(value?: string | null): this { return this.setScalarClaim(CoverageClaim.Beneficiary, value); }
+  public getBeneficiary(): string | undefined { return this.getScalarClaim(CoverageClaim.Beneficiary); }
+  public setRelationship(value?: string | null): this { return this.setScalarClaim(CoverageClaim.Relationship, value); }
+  public getRelationship(): string | undefined { return this.getScalarClaim(CoverageClaim.Relationship); }
+  public setPeriodStart(value?: string | null): this { return this.setScalarClaim(CoverageClaim.PeriodStart, value); }
+  public getPeriodStart(): string | undefined { return this.getScalarClaim(CoverageClaim.PeriodStart); }
+  public setPeriodEnd(value?: string | null): this { return this.setScalarClaim(CoverageClaim.PeriodEnd, value); }
+  public getPeriodEnd(): string | undefined { return this.getScalarClaim(CoverageClaim.PeriodEnd); }
+  public setPayorList(values: readonly string[]): this { return this.setCsvClaimList(CoverageClaim.Payor, values); }
+  public getPayorList(): string[] { return this.getCsvClaimList(CoverageClaim.Payor); }
+}
+
+/** Claims-first editor for one staged Immunization entry. */
+export class ImmunizationEntryEditor extends ClinicalResourceEntryEditor {
+  public setIdentifier(identifier?: string | null): this {
+    return this.setIdentifierValue(ImmunizationClaim.Identifier, identifier);
+  }
+
+  public getIdentifier(): string | undefined {
+    return this.getIdentifierValue(ImmunizationClaim.Identifier);
+  }
+
+  public ensureIdentifier(): string {
+    return this.ensureIdentifierValue(ImmunizationClaim.Identifier);
+  }
+
+  public setSubject(subject?: string | null): this {
+    return this.setSubjectClaims(ImmunizationClaim.Subject, ImmunizationClaim.Patient, subject);
+  }
+
+  public getSubject(): string | undefined {
+    return this.getSubjectClaims(ImmunizationClaim.Subject, ImmunizationClaim.Patient);
+  }
+
+  public setStatus(status?: string | null): this {
+    return this.setScalarClaim(ImmunizationClaim.Status, status);
+  }
+
+  public getStatus(): string | undefined {
+    return this.getScalarClaim(ImmunizationClaim.Status);
+  }
+
+  public setDate(date?: string | null): this {
+    return this.setScalarClaim(ImmunizationClaim.Date, date);
+  }
+
+  public getDate(): string | undefined {
+    return this.getScalarClaim(ImmunizationClaim.Date);
+  }
+
+  public setVaccineCode(code?: string | null): this {
+    return this.setScalarClaim(ImmunizationClaim.VaccineCode, code);
+  }
+
+  public getVaccineCode(): string | undefined {
+    return this.getScalarClaim(ImmunizationClaim.VaccineCode);
+  }
+
+  public setVaccineCodeTextLocal(text?: string | null): this {
+    return this.setScalarClaim(ImmunizationClaim.VaccineCodeText, text);
+  }
+
+  public getVaccineCodeTextLocal(): string | undefined {
+    return this.getScalarClaim(ImmunizationClaim.VaccineCodeText);
+  }
+
+  public setVaccineCodeDisplay(display?: string | null): this {
+    return this.setScalarClaim(ImmunizationClaim.VaccineCodeDisplay, display);
+  }
+
+  public getVaccineCodeDisplay(): string | undefined {
+    return this.getScalarClaim(ImmunizationClaim.VaccineCodeDisplay);
+  }
+
+  public setLocation(reference?: string | null): this {
+    return this.setScalarClaim(ImmunizationClaim.Location, reference);
+  }
+
+  public getLocation(): string | undefined {
+    return this.getScalarClaim(ImmunizationClaim.Location);
+  }
+
+  public setManufacturer(reference?: string | null): this {
+    return this.setScalarClaim(ImmunizationClaim.Manufacturer, reference);
+  }
+
+  public getManufacturer(): string | undefined {
+    return this.getScalarClaim(ImmunizationClaim.Manufacturer);
+  }
+
+  public setLotNumber(lotNumber?: string | null): this {
+    return this.setScalarClaim(ImmunizationClaim.LotNumber, lotNumber);
+  }
+
+  public getLotNumber(): string | undefined {
+    return this.getScalarClaim(ImmunizationClaim.LotNumber);
+  }
+
+  public setPerformerList(references: readonly string[]): this {
+    return this.setCsvClaimList(ImmunizationClaim.Performer, references);
+  }
+
+  public getPerformerList(): string[] {
+    return this.getCsvClaimList(ImmunizationClaim.Performer);
+  }
+
+  public setReasonCode(code?: string | null): this {
+    return this.setScalarClaim(ImmunizationClaim.ReasonCode, code);
+  }
+
+  public getReasonCode(): string | undefined {
+    return this.getScalarClaim(ImmunizationClaim.ReasonCode);
+  }
+
+  public setStatusReason(reason?: string | null): this {
+    return this.setScalarClaim(ImmunizationClaim.StatusReason, reason);
+  }
+
+  public getStatusReason(): string | undefined {
+    return this.getScalarClaim(ImmunizationClaim.StatusReason);
+  }
+
+  public setTargetDisease(code?: string | null): this {
+    return this.setScalarClaim(ImmunizationClaim.TargetDisease, code);
+  }
+
+  public getTargetDisease(): string | undefined {
+    return this.getScalarClaim(ImmunizationClaim.TargetDisease);
+  }
+
+  public setDoseSequence(sequence?: string | null): this {
+    return this.setScalarClaim(ImmunizationClaim.DoseSequence, sequence);
+  }
+
+  public getDoseSequence(): string | undefined {
+    return this.getScalarClaim(ImmunizationClaim.DoseSequence);
+  }
+
+  public setSeries(series?: string | null): this {
+    return this.setScalarClaim(ImmunizationClaim.Series, series);
+  }
+
+  public getSeries(): string | undefined {
+    return this.getScalarClaim(ImmunizationClaim.Series);
+  }
+
+  public setReactionDate(date?: string | null): this {
+    return this.setScalarClaim(ImmunizationClaim.ReactionDate, date);
+  }
+
+  public getReactionDate(): string | undefined {
+    return this.getScalarClaim(ImmunizationClaim.ReactionDate);
+  }
+
+  public setNote(note?: string | null): this {
+    return this.setScalarClaim(ImmunizationClaim.Note, note);
+  }
+
+  public getNote(): string | undefined {
+    return this.getScalarClaim(ImmunizationClaim.Note);
+  }
+
+  public setClinicalNote(note?: string | null): this {
+    return this.setNote(note);
+  }
+
+  public getClinicalNote(): string | undefined {
+    return this.getNote();
+  }
+}
+
+/** Claims-first editor for one staged Procedure entry. */
+export class ProcedureEntryEditor extends ClinicalResourceEntryEditor {
+  public setIdentifier(identifier?: string | null): this {
+    return this.setIdentifierValue(ProcedureClaim.Identifier, identifier);
+  }
+
+  public getIdentifier(): string | undefined {
+    return this.getIdentifierValue(ProcedureClaim.Identifier);
+  }
+
+  public ensureIdentifier(): string {
+    return this.ensureIdentifierValue(ProcedureClaim.Identifier);
+  }
+
+  public setSubject(subject?: string | null): this {
+    return this.setSubjectClaims(ProcedureClaim.Subject, ProcedureClaim.Patient, subject);
+  }
+
+  public getSubject(): string | undefined {
+    return this.getSubjectClaims(ProcedureClaim.Subject, ProcedureClaim.Patient);
+  }
+
+  public setStatus(status?: string | null): this {
+    return this.setScalarClaim(ProcedureClaim.Status, status);
+  }
+
+  public getStatus(): string | undefined {
+    return this.getScalarClaim(ProcedureClaim.Status);
+  }
+
+  public setDate(date?: string | null): this {
+    return this.setScalarClaim(ProcedureClaim.Date, date);
+  }
+
+  public getDate(): string | undefined {
+    return this.getScalarClaim(ProcedureClaim.Date);
+  }
+
+  public setCode(code?: string | null): this {
+    return this.setScalarClaim(ProcedureClaim.Code, code);
+  }
+
+  public getCode(): string | undefined {
+    return this.getScalarClaim(ProcedureClaim.Code);
+  }
+
+  public setCodeTextLocal(text?: string | null): this {
+    return this.setScalarClaim(ProcedureClaim.CodeText, text);
+  }
+
+  public getCodeTextLocal(): string | undefined {
+    return this.getScalarClaim(ProcedureClaim.CodeText);
+  }
+
+  public setCodeDisplay(display?: string | null): this {
+    return this.setScalarClaim(ProcedureClaim.CodeDisplay, display);
+  }
+
+  public getCodeDisplay(): string | undefined {
+    return this.getScalarClaim(ProcedureClaim.CodeDisplay);
+  }
+
+  public setEncounter(reference?: string | null): this {
+    return this.setScalarClaim(ProcedureClaim.Encounter, reference);
+  }
+
+  public getEncounter(): string | undefined {
+    return this.getScalarClaim(ProcedureClaim.Encounter);
+  }
+
+  public setLocation(reference?: string | null): this {
+    return this.setScalarClaim(ProcedureClaim.Location, reference);
+  }
+
+  public getLocation(): string | undefined {
+    return this.getScalarClaim(ProcedureClaim.Location);
+  }
+
+  public setReasonCode(code?: string | null): this {
+    return this.setScalarClaim(ProcedureClaim.ReasonCode, code);
+  }
+
+  public getReasonCode(): string | undefined {
+    return this.getScalarClaim(ProcedureClaim.ReasonCode);
+  }
+
+  public setNote(note?: string | null): this {
+    return this.setScalarClaim(ProcedureClaim.Note, note);
+  }
+
+  public getNote(): string | undefined {
+    return this.getScalarClaim(ProcedureClaim.Note);
+  }
+
+  public setClinicalNote(note?: string | null): this {
+    return this.setNote(note);
+  }
+
+  public getClinicalNote(): string | undefined {
+    return this.getNote();
+  }
+
+  public setPerformerList(references: readonly string[]): this {
+    return this.setCsvClaimList(ProcedureClaim.Performer, references);
+  }
+
+  public getPerformerList(): string[] {
+    return this.getCsvClaimList(ProcedureClaim.Performer);
+  }
+
+  public setBasedOnList(references: readonly string[]): this {
+    return this.setCsvClaimList(ProcedureClaim.BasedOn, references);
+  }
+
+  public getBasedOnList(): string[] {
+    return this.getCsvClaimList(ProcedureClaim.BasedOn);
+  }
+
+  public setReasonReferenceList(references: readonly string[]): this {
+    return this.setCsvClaimList(ProcedureClaim.ReasonReference, references);
+  }
+
+  public getReasonReferenceList(): string[] {
+    return this.getCsvClaimList(ProcedureClaim.ReasonReference);
+  }
+}
+
+/** Claims-first editor for one staged DiagnosticReport entry. */
+export class DiagnosticReportEntryEditor extends ClinicalResourceEntryEditor {
+  public setIdentifier(identifier?: string | null): this {
+    return this.setIdentifierValue(DiagnosticReportClaim.Identifier, identifier);
+  }
+
+  public getIdentifier(): string | undefined {
+    return this.getIdentifierValue(DiagnosticReportClaim.Identifier);
+  }
+
+  public ensureIdentifier(): string {
+    return this.ensureIdentifierValue(DiagnosticReportClaim.Identifier);
+  }
+
+  public setSubject(subject?: string | null): this {
+    return this.setSubjectClaims(DiagnosticReportClaim.Subject, DiagnosticReportClaim.Patient, subject);
+  }
+
+  public getSubject(): string | undefined {
+    return this.getSubjectClaims(DiagnosticReportClaim.Subject, DiagnosticReportClaim.Patient);
+  }
+
+  public setStatus(status?: string | null): this {
+    return this.setScalarClaim(DiagnosticReportClaim.Status, status);
+  }
+
+  public getStatus(): string | undefined {
+    return this.getScalarClaim(DiagnosticReportClaim.Status);
+  }
+
+  public setDate(date?: string | null): this {
+    return this.setScalarClaim(DiagnosticReportClaim.Date, date);
+  }
+
+  public getDate(): string | undefined {
+    return this.getScalarClaim(DiagnosticReportClaim.Date);
+  }
+
+  public setCategory(category?: string | null): this {
+    return this.setScalarClaim(DiagnosticReportClaim.Category, category);
+  }
+
+  public getCategory(): string | undefined {
+    return this.getScalarClaim(DiagnosticReportClaim.Category);
+  }
+
+  public setCode(code?: string | null): this {
+    return this.setScalarClaim(DiagnosticReportClaim.Code, code);
+  }
+
+  public getCode(): string | undefined {
+    return this.getScalarClaim(DiagnosticReportClaim.Code);
+  }
+
+  public setEncounter(reference?: string | null): this {
+    return this.setScalarClaim(DiagnosticReportClaim.Encounter, reference);
+  }
+
+  public getEncounter(): string | undefined {
+    return this.getScalarClaim(DiagnosticReportClaim.Encounter);
+  }
+
+  public setPerformerList(references: readonly string[]): this {
+    return this.setCsvClaimList(DiagnosticReportClaim.Performer, references);
+  }
+
+  public getPerformerList(): string[] {
+    return this.getCsvClaimList(DiagnosticReportClaim.Performer);
+  }
+
+  public setResultList(references: readonly string[]): this {
+    return this.setCsvClaimList(DiagnosticReportClaim.Result, references);
+  }
+
+  public getResultList(): string[] {
+    return this.getCsvClaimList(DiagnosticReportClaim.Result);
+  }
+
+  public setSpecimenList(references: readonly string[]): this {
+    return this.setCsvClaimList(DiagnosticReportClaim.Specimen, references);
+  }
+
+  public getSpecimenList(): string[] {
+    return this.getCsvClaimList(DiagnosticReportClaim.Specimen);
+  }
+
+  public setContainedDocumentIdentifierList(identifiers: readonly string[]): this {
+    return this.setCsvClaimList(DiagnosticReportClaim.ContainedDocuments, identifiers);
+  }
+
+  public getContainedDocumentIdentifierList(): string[] {
+    return this.getCsvClaimList(DiagnosticReportClaim.ContainedDocuments);
+  }
+
+  public setPresentedFormContentType(contentType?: string | null): this {
+    return this.setScalarClaim(DiagnosticReportClaim.PresentedFormContentType, contentType);
+  }
+
+  public getPresentedFormContentType(): string | undefined {
+    return this.getScalarClaim(DiagnosticReportClaim.PresentedFormContentType);
+  }
+
+  public setPresentedFormData(data?: string | null): this {
+    return this.setScalarClaim(DiagnosticReportClaim.PresentedFormData, data);
+  }
+
+  public getPresentedFormData(): string | undefined {
+    return this.getScalarClaim(DiagnosticReportClaim.PresentedFormData);
+  }
+
+  public setPresentedFormUrl(url?: string | null): this {
+    return this.setScalarClaim(DiagnosticReportClaim.PresentedFormUrl, url);
+  }
+
+  public getPresentedFormUrl(): string | undefined {
+    return this.getScalarClaim(DiagnosticReportClaim.PresentedFormUrl);
   }
 }
 

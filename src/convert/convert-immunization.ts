@@ -11,7 +11,19 @@ export function immunizationFlatToFhirR4(claims: FlatClaims): FhirResource {
     resourceType: 'Immunization',
     identifier: claims[ImmunizationClaim.Identifier] ? [{ value: claims[ImmunizationClaim.Identifier] }] : undefined,
     status: claims[ImmunizationClaim.Status],
-    vaccineCode: claims[ImmunizationClaim.VaccineCode] ? { coding: codingFromValue(claims[ImmunizationClaim.VaccineCode]) } : undefined,
+    vaccineCode: claims[ImmunizationClaim.VaccineCode]
+      ? {
+        coding: codingFromValue(claims[ImmunizationClaim.VaccineCode])?.map((coding) => ({
+          ...coding,
+          ...(claims[ImmunizationClaim.VaccineCodeDisplay]
+            ? { display: claims[ImmunizationClaim.VaccineCodeDisplay] }
+            : {}),
+        })),
+        ...(claims[ImmunizationClaim.VaccineCodeText]
+          ? { text: claims[ImmunizationClaim.VaccineCodeText] }
+          : {}),
+      }
+      : undefined,
     patient: subject ? { reference: subject } : undefined,
     occurrenceDateTime: claims[ImmunizationClaim.Date],
     location: claims[ImmunizationClaim.Location] ? { reference: claims[ImmunizationClaim.Location] } : undefined,
@@ -53,6 +65,8 @@ export function immunizationFhirR4ToFlat(resource: FhirResource): FlatClaims {
     [ImmunizationClaim.StatusReason]: codingToValue((resource.statusReason as { coding?: Array<{ system?: string; code?: string }> } | undefined)?.coding?.[0]),
     [ImmunizationClaim.TargetDisease]: codingToValue((protocolApplied?.targetDisease as Array<{ coding?: Array<{ system?: string; code?: string }> }> | undefined)?.[0]?.coding?.[0]),
     [ImmunizationClaim.VaccineCode]: codingToValue((resource.vaccineCode as { coding?: Array<{ system?: string; code?: string }> } | undefined)?.coding?.[0]),
+    [ImmunizationClaim.VaccineCodeText]: (resource.vaccineCode as { text?: string } | undefined)?.text,
+    [ImmunizationClaim.VaccineCodeDisplay]: (resource.vaccineCode as { coding?: Array<{ display?: string }> } | undefined)?.coding?.[0]?.display,
     [ImmunizationClaim.DoseSequence]: protocolApplied?.doseNumberString as string | undefined,
     [ImmunizationClaim.Subject]: referenceToValue(resource.patient as { reference?: string } | undefined),
     [ImmunizationClaim.Note]: (resource.note as Array<{ text?: string }> | undefined)?.[0]?.text,

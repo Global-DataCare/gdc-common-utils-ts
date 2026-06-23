@@ -161,12 +161,24 @@ When those typed helpers are still missing, the gap stays explicit in:
 ## 4. Shared Rules
 
 - do not hardcode section literals in docs or tests
+- do not hardcode clinical literals in docs or tests when a shared constant
+  already exists
+- if a clinical literal still lacks a shared constant, add it first in
+  `gdc-common-utils-ts` following the canonical FHIR/HL7 value
 - use shared constants such as `HealthcareBasicSections.*`
+- use typed/shared constants and fixtures in snippets instead of ad-hoc strings
+- keep fixtures/tests reusable and shared across packages when the contract is
+  intended to be canonical
 - do not invent date/search names when FHIR already defines one
 - prefer `effective`, `onset-datetime`, `date`, `clinical-status`,
   `verification-status`, and the other canonical FHIR names
 - keep `setClaim(...)` / `getClaim(...)` as fallback escape hatches, not the
   primary teaching path
+- keep `sections` for advanced examples only, not the default teaching story
+- keep internal query objects internal; public onboarding should stay explicit
+  and readable
+- treat IPS `subject` as contextual/readonly in the happy path, not as one
+  repetitive per-entry setter
 
 ## 5. What This 101 Does Not Teach
 

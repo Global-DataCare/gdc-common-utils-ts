@@ -49,12 +49,18 @@ Render helpers accept either one entry or one resource:
 - No `upsert...` in `101` onboarding docs.
 - No raw section literals such as `LOINC|10160-0` in docs/tests when shared
   constants exist.
+- No raw clinical literals in docs/tests when a shared constant already exists.
+- If a clinical constant is missing, create it first in `gdc-common-utils-ts`
+  using the canonical FHIR/HL7 value rather than re-inlining the literal in a
+  downstream package.
 - No `voice` ownership wording in `gdc-common-utils-ts`, `gdc-sdk-core-ts`, or
   `gdc-sdk-node-ts`.
 - Use `ipsBundleReader` in docs, not `facade`.
 - Keep `101` docs high-level and chainable.
 - Keep technical plumbing in code/JSDoc/reference/tests, not in the first
   onboarding flow.
+- Keep snippets on shared types/constants/fixtures instead of ad-hoc strings.
+- Keep reusable fixtures/tests shared when the contract is canonical.
 - In basic family snippets, do not add `sections` unless section filtering is
   the actual teaching point.
 - Keep `sections` only in explicit advanced blocks such as:
@@ -80,6 +86,25 @@ The correct target model is:
 
 `subject` may still exist in low-level/general tables for compatibility, but it
 is **not** a primary IPS editor method.
+
+### What is already reinforced in code
+
+This is no longer only editorial guidance. The repo already contains:
+
+- the shared clinical status catalog in
+  `src/constants/clinical-statuses.ts`
+- a dedicated catalog test in
+  `__tests__/constants-clinical-statuses.test.ts`
+- the rewritten IPS onboarding that consumes shared constants in
+  `docs/101-CLINICAL-IPS.md`
+
+Canonical docs to learn and preserve:
+
+- https://github.com/Global-DataCare/gdc-common-utils-ts/blob/main/docs/101-CLINICAL-IPS.md
+- https://github.com/Global-DataCare/gdc-common-utils-ts/blob/main/docs/101-IPS_BUNDLE.md
+- https://github.com/Global-DataCare/gdc-common-utils-ts/blob/main/docs/101-BUNDLE_EDITOR_READER.md
+- https://github.com/Global-DataCare/gdc-common-utils-ts/blob/main/docs/REFERENCE-CLINICAL-IPS-API.md
+- https://github.com/Global-DataCare/gdc-common-utils-ts/blob/main/NEXT_AGENT_HANDOFF.md
 
 ### API shape decisions already fixed
 
@@ -212,6 +237,9 @@ GW:
 The next agent must preserve these decisions and build forward from them.
 
 ## What is still missing
+
+The main gap is no longer editorial discipline. The main gap is completing the
+typed IPS editor surface and expanding more IPS resource families around it.
 
 ### 1. IPS clinical editor surface is not complete
 
