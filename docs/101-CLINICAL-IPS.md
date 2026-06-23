@@ -64,25 +64,29 @@ const vitalSignsSection =
 | API | Kind | Input | Output | Scope | Exists today? | Notes |
 |---|---|---|---|---|---|---|
 | `ipsBundleReader.getSections()` | read | none | section list | all IPS | yes | discover the sections present in the IPS |
-| `ipsBundleReader.getSectionSummary({ sections? })` | read | section selector | section counts/summary | all IPS | yes/target | section and type counts |
-| `ipsBundleReader.getResources({ sections?, resourceType?, start?, end?, searchText?, count?, page?, offset? })` | read | generic query | resources | all IPS | yes/target | generic high-level query |
-| `ipsBundleReader.getAllergies({ sections?, clinicalStatus?, verificationStatus?, criticality?, start?, end?, count?, page?, offset? })` | read | allergy query | `AllergyIntolerance[]` | allergies | yes/target | family-specific query |
-| `ipsBundleReader.getConditions({ sections?, clinicalStatus?, verificationStatus?, severity?, start?, end?, count?, page?, offset? })` | read | condition query | `Condition[]` | conditions | yes/target | family-specific query |
-| `ipsBundleReader.getMedications({ sections?, status?, start?, end?, count?, page?, offset? })` | read | medication query | `MedicationStatement[]` | medications | yes/target | family-specific query |
-| `ipsBundleReader.getVitalSigns({ sections?, code?, start?, end?, count?, page?, offset? })` | read | vital-sign query | `Observation[]` | vital signs | yes/target | family-specific query |
-| `ipsBundleReader.getLocalTextAndIntDisplay(resource)` | render | resource | label DTO | all IPS | yes | UI-ready label |
-| `ipsBundleReader.getXhtmlOrDerived(resource)` | render | resource | xhtml | all IPS | yes | prefers stored `text.div`, derives when needed |
-| `ipsBundleReader.getNarrative(resource)` | render | resource | narrative DTO | all IPS | yes | UI/voice-ready narrative |
+| `ipsBundleReader.getSectionCounts({ sections? })` | read | section selector | section counts | all IPS | yes/target | counts by section and resource type |
+| `ipsBundleReader.getEntries({ sections?, resourceTypes?, start?, end?, searchText?, count?, page?, offset? })` | read | generic entry filter | bundle entries | all IPS | yes/target | returns `fullUrl + resource` |
+| `ipsBundleReader.getResources({ sections?, resourceType?, start?, end?, searchText?, count?, page?, offset? })` | read | generic query | resources | all IPS | yes/compat | compatibility path only |
+| `ipsBundleReader.getAllergies({ sections?, clinicalStatus?, verificationStatus?, criticality?, start?, end?, count?, page?, offset? })` | read | allergy filter | bundle entries | allergies | yes/target | filtered entries with `fullUrl` and `resource` |
+| `ipsBundleReader.getConditions({ sections?, clinicalStatus?, verificationStatus?, severity?, start?, end?, count?, page?, offset? })` | read | condition filter | bundle entries | conditions | yes/target | filtered entries with `fullUrl` and `resource` |
+| `ipsBundleReader.getMedications({ sections?, status?, start?, end?, count?, page?, offset? })` | read | medication filter | bundle entries | medications | yes/target | filtered entries with `fullUrl` and `resource` |
+| `ipsBundleReader.getVitalSigns({ sections?, code?, start?, end?, count?, page?, offset? })` | read | vital-sign filter | bundle entries | vital signs | yes/target | filtered entries with `fullUrl` and `resource` |
+| `ipsBundleReader.getLocalTextAndIntDisplay(resourceOrEntry)` | render | resource or entry | label DTO | all IPS | yes | UI-ready label |
+| `ipsBundleReader.getXhtmlOrDerived(resourceOrEntry)` | render | resource or entry | xhtml | all IPS | yes | prefers stored `text.div`, derives when needed |
+| `ipsBundleReader.getNarrative(resourceOrEntry)` | render | resource or entry | narrative DTO | all IPS | yes | UI/voice-ready narrative |
 
 ## Read Sections And Summary
 
 ```ts
 const sections = ipsBundleReader.getSections();
 
-const fullSummary = ipsBundleReader.getSectionSummary({
+const fullCounts = ipsBundleReader.getSectionCounts({
   sections: [],
 });
 ```
+
+`getSectionCounts(...)` returns counts only. It does not return entries or
+resources.
 
 ## Section Selector Rule
 
@@ -139,6 +143,8 @@ const firstMedication = ipsBundleReader.getMedications({
 const label = ipsBundleReader.getLocalTextAndIntDisplay(firstMedication);
 const xhtml = ipsBundleReader.getXhtmlOrDerived(firstMedication);
 const narrative = ipsBundleReader.getNarrative(firstMedication);
+const fullUrl = firstMedication.fullUrl;
+const claims = firstMedication.resource?.meta?.claims;
 ```
 
 ## Limit Queries To Selected Sections
@@ -150,7 +156,7 @@ const selectedResources = ipsBundleReader.getResources({
   sections: [allergySection, medicationSection],
 });
 
-const selectedMedications = ipsBundleReader.getMedications({
+const selectedMedicationEntries = ipsBundleReader.getMedications({
   sections: [medicationSection],
   status: ['active'],
 });

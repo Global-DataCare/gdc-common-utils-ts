@@ -107,14 +107,16 @@ Rules:
 | `getSectionResources(section, type?)` | section + optional type | resources | section / type | `sdk-core` | yes | no | low-level section helper |
 | `getByDates(type, start, end)` | resource type + dates | resources | date | `sdk-core` | yes | no | generic low-level date helper |
 | `getResources({ sections, resourceType, start, end, searchText, count, page, offset })` | query object | resources | generic | `sdk-core` | yes/target | no | preferred generic query API |
-| `getSectionSummary({ sections })` | sections | counts | section | `sdk-core` / `sdk-node` | yes/target | no | menu/app counts |
-| `getAllergies(...)` | semantic query | allergy resources | section/date/status/criticality | `sdk-core` / `sdk-node` | yes/target | no | family-specific high-level query |
-| `getConditions(...)` | semantic query | condition resources | section/date/status/severity | `sdk-core` / `sdk-node` | yes/target | no | family-specific high-level query |
-| `getMedications(...)` | semantic query | medication resources | section/date/status | `sdk-core` / `sdk-node` | yes/target | no | family-specific high-level query |
-| `getVitalSigns(...)` | semantic query | observation resources | section/date/code | `sdk-core` / `sdk-node` | yes/target | no | family-specific high-level query |
-| `getLocalTextAndIntDisplay(resource)` | resource | label DTO | none | `common-utils` / `sdk-core` | yes | no | render helper |
-| `getXhtmlOrDerived(resource)` | resource | xhtml | none | `common-utils` / `sdk-core` | yes | no | render helper |
-| `getNarrative(resource)` | resource | narrative DTO | none | `common-utils` / `sdk-core` | yes | no | render helper |
+| `getSectionCounts({ sections })` | sections | counts | section | `sdk-core` / `sdk-node` | yes/target | no | preferred count API |
+| `getSectionSummary({ sections })` | sections | counts | section | `sdk-core` / `sdk-node` | yes/compat | yes | compatibility alias; prefer `getSectionCounts(...)` |
+| `getEntries({ sections, resourceTypes, start, end, searchText, count, page, offset })` | query object | bundle entries | generic | `sdk-core` / `sdk-node` | yes/target | no | returns `fullUrl + resource` |
+| `getAllergies(...)` | semantic query | bundle entries | section/date/status/criticality | `sdk-core` / `sdk-node` | yes/target | no | family-specific entries |
+| `getConditions(...)` | semantic query | bundle entries | section/date/status/severity | `sdk-core` / `sdk-node` | yes/target | no | family-specific entries |
+| `getMedications(...)` | semantic query | bundle entries | section/date/status | `sdk-core` / `sdk-node` | yes/target | no | family-specific entries |
+| `getVitalSigns(...)` | semantic query | bundle entries | section/date/code | `sdk-core` / `sdk-node` | yes/target | no | family-specific entries |
+| `getLocalTextAndIntDisplay(resourceOrEntry)` | resource or entry | label DTO | none | `common-utils` / `sdk-core` | yes | no | render helper |
+| `getXhtmlOrDerived(resourceOrEntry)` | resource or entry | xhtml | none | `common-utils` / `sdk-core` | yes | no | render helper |
+| `getNarrative(resourceOrEntry)` | resource or entry | narrative DTO | none | `common-utils` / `sdk-core` | yes | no | render helper |
 
 ## Remaining IPS Families To Expand
 

@@ -80,7 +80,8 @@ The high-level reading path is documented in:
 The reader mental model is:
 
 - `ipsBundleReader.getSections()`
-- `ipsBundleReader.getSectionSummary(...)`
+- `ipsBundleReader.getSectionCounts(...)`
+- `ipsBundleReader.getEntries(...)`
 - `ipsBundleReader.getResources(...)`
 - `ipsBundleReader.getAllergies(...)`
 - `ipsBundleReader.getConditions(...)`
