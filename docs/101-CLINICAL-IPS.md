@@ -107,17 +107,24 @@ ipsBundleReader.getResources({ sections: [allergySection] });
 ## Read By Family
 
 ```ts
+import {
+  AllergyIntoleranceClinicalStatuses,
+  AllergyIntoleranceVerificationStatuses,
+  ConditionClinicalStatuses,
+  MedicationStatementStatuses,
+} from 'gdc-common-utils-ts';
+
 const allergies = ipsBundleReader.getAllergies({
-  clinicalStatus: ['active'],
-  verificationStatus: ['confirmed'],
+  clinicalStatus: [AllergyIntoleranceClinicalStatuses.Active],
+  verificationStatus: [AllergyIntoleranceVerificationStatuses.Confirmed],
 });
 
 const conditions = ipsBundleReader.getConditions({
-  clinicalStatus: ['active'],
+  clinicalStatus: [ConditionClinicalStatuses.Active],
 });
 
 const medications = ipsBundleReader.getMedications({
-  status: ['active'],
+  status: [MedicationStatementStatuses.Active],
 });
 
 const vitalSigns = ipsBundleReader.getVitalSigns();
@@ -158,7 +165,7 @@ const selectedResources = ipsBundleReader.getResources({
 
 const selectedMedicationEntries = ipsBundleReader.getMedications({
   sections: [medicationSection],
-  status: ['active'],
+  status: [MedicationStatementStatuses.Active],
 });
 ```
 
