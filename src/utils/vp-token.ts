@@ -1,5 +1,6 @@
 // Always create JSDoc, do not use strings inline in keys nor values, use types instead, and reuse the data test examples.
 import { Content } from './content';
+import { buildJwtCompact, prepareJwtBytesForSignature, prepareJwtForSignature } from './jwt';
 import {
   ORGANIZATION_ACTIVATION_VC_TYPES,
   REPRESENTATIVE_ACTIVATION_VC_TYPES,
@@ -279,13 +280,7 @@ export function prepareForSignature(header: VpTokenHeader, payload: VpTokenPaylo
   encodedPayload: string;
   signingInput: string;
 } {
-  const encodedHeader = Content.objectToRawBase64UrlSafe(header);
-  const encodedPayload = Content.objectToRawBase64UrlSafe(payload);
-  return {
-    encodedHeader,
-    encodedPayload,
-    signingInput: `${encodedHeader}.${encodedPayload}`,
-  };
+  return prepareJwtForSignature(header, payload);
 }
 
 /**
@@ -297,8 +292,7 @@ export function prepareForSignature(header: VpTokenHeader, payload: VpTokenPaylo
  * `buildVpTokenCompact(...)`.
  */
 export function prepareBytesForSignature(header: VpTokenHeader, payload: VpTokenPayload): Uint8Array {
-  const { signingInput } = prepareForSignature(header, payload);
-  return new TextEncoder().encode(signingInput);
+  return prepareJwtBytesForSignature(header, payload);
 }
 
 /**
@@ -309,5 +303,5 @@ export function prepareBytesForSignature(header: VpTokenHeader, payload: VpToken
  * - the detached signature returned by the external signer, also base64url-encoded
  */
 export function buildVpTokenCompact(encodedHeader: string, encodedPayload: string, signatureBase64Url: string): string {
-  return `${encodedHeader}.${encodedPayload}.${String(signatureBase64Url || '').trim()}`;
+  return buildJwtCompact(encodedHeader, encodedPayload, signatureBase64Url);
 }

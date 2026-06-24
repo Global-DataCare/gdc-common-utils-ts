@@ -136,6 +136,7 @@ If you need the canonical explanation of how DIDComm envelope, batch body,
 entry types, FHIR-like resources, and `resource.meta.claims` fit together,
 read first:
 
+- [`docs/101-ID_TOKEN.md`](docs/101-ID_TOKEN.md)
 - [`docs/101-COMMUNICATION_LAYERING.md`](docs/101-COMMUNICATION_LAYERING.md)
 - [`docs/101-BUNDLE_EDITOR_READER.md`](docs/101-BUNDLE_EDITOR_READER.md)
 - [`docs/101-CLINICAL-IPS.md`](docs/101-CLINICAL-IPS.md)

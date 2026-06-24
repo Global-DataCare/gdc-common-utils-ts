@@ -165,6 +165,69 @@ export async function compactJWT(header: object, payload: object, signatureBytes
 }
 
 /**
+ * Prepares the JOSE compact-signing input for an externally signed JWT/JWS.
+ *
+ * This helper is intended for BFF, wallet, Expo/native, or server-side flows
+ * where the signing key lives in an external KMS/HSM and the application must:
+ *
+ * 1. build the protected header and JWT payload locally
+ * 2. obtain the canonical `base64url(header).base64url(payload)` string
+ * 3. sign that exact byte sequence with the external signer
+ * 4. assemble the final compact JWS/JWT by appending the returned signature
+ *
+ * References:
+ * - RFC 7515 (JWS), Compact Serialization
+ * - RFC 7519 (JWT)
+ * - OpenID Connect Core 1.0 (`id_token` profile claims such as `email`)
+ *
+ * Note:
+ * - this helper only prepares the compact signing input
+ * - it does not verify that the payload is a particular profile such as
+ *   `vp_token`, `id_token`, or `private_key_jwt`
+ */
+export function prepareJwtForSignature(header: object, payload: object): {
+  encodedHeader: string;
+  encodedPayload: string;
+  signingInput: string;
+} {
+  const encodedHeader = encodeHeader(header);
+  const encodedPayload = Content.objectToRawBase64UrlSafe(payload);
+  return {
+    encodedHeader,
+    encodedPayload,
+    signingInput: `${encodedHeader}.${encodedPayload}`,
+  };
+}
+
+/**
+ * Returns the UTF-8 bytes of the canonical compact JWT/JWS signing input.
+ *
+ * This is the exact byte sequence that an external signer must sign before the
+ * caller assembles the final compact JWT string with
+ * `buildJwtCompact(...)`.
+ */
+export function prepareJwtBytesForSignature(header: object, payload: object): Uint8Array {
+  const { signingInput } = prepareJwtForSignature(header, payload);
+  return new TextEncoder().encode(signingInput);
+}
+
+/**
+ * Assembles the final compact JWT/JWS once the caller already has:
+ *
+ * - the base64url-encoded protected header
+ * - the base64url-encoded payload
+ * - the detached signature returned by the external signer, also base64url-encoded
+ *
+ * This helper is profile-agnostic. It can be used for:
+ * - OpenID Connect `id_token`
+ * - `vp_token`
+ * - other compact JWS/JWT profiles that follow RFC 7515 / RFC 7519
+ */
+export function buildJwtCompact(encodedHeader: string, encodedPayload: string, signatureBase64Url: string): string {
+  return `${encodedHeader}.${encodedPayload}.${String(signatureBase64Url || '').trim()}`;
+}
+
+/**
  * Builds an unsigned compact JWT with `alg=none`.
  *
  * Useful for local demos, fixtures, and live tests where the transport/runtime
