@@ -36,10 +36,11 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
   - `unpackWithContext(...)`
 - Added a package export for `./adapters/node/wallet`.
 - Standardized the shared professional actor DID fixtures/helpers around the
-  canonical employee DID shape:
+  canonical employee DID shape with one hashed email-derived identifier
+  segment:
   - `did:web:<host>:employee:z<multibase-sha384(email)>:<role>`
-  This keeps the stable actor identifier pseudonymous while preserving the role
-  segment used by GW consent matching:
+  This keeps the stable actor identifier pseudonymous while preserving the
+  `did:web` envelope and the role segment used by GW consent matching:
   - `src/utils/did.ts`
   - `src/examples/shared.ts`
   - `src/utils/actor.ts`
