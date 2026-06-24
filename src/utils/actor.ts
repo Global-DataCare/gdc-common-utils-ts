@@ -4,13 +4,15 @@ export type ParsedActor = {
   /**
    * The token subject / authenticated actor identifier (as provided in the token request).
    * Examples:
+   * - did:web:api.acme.org:employee:z6MksExampleHashedEmployeeId:ISCO-08|2211
+   * - did:web:api.acme.org:employee:z6MksExampleHashedEmployeeId:ISCO-08|2211:<device-uuid>
    * - did:web:api.acme.org:employee:doctor1@acme.org:ISCO-08|2211
    * - did:web:api.acme.org:employee:doctor1@acme.org:ISCO-08|2211:<device-uuid>
    * - did:web:api.acme.org:family:<id>:v3-RoleCode|ONESELF
    * - did:web:api.acme.org:family:<id>:v3-RoleCode|CHILD:<device-uuid>
    */
   sub: string;
-  /** The actor identifier (employee email, familyId, or raw email). */
+  /** The actor identifier (employee hashed-id/email token, familyId, or raw email). */
   identifier?: string;
   /** The employee role code if present (e.g. "ISCO-08|2211"). */
   role?: string;

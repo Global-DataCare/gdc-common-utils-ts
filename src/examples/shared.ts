@@ -21,6 +21,7 @@ import {
   buildHostedProviderDidWeb,
   buildIndividualDidWeb,
   buildIndividualMemberDidWeb,
+  buildProfessionalDidWeb,
   buildProviderSectorDidWeb,
 } from '../utils/did';
 import { encodeHexToMultibase58btc } from '../utils/multibase58';
@@ -143,7 +144,11 @@ export const EXAMPLE_CONTROLLER_EMAIL = EXAMPLE_EMAIL_CONTROLLER_ORG;
 export const EXAMPLE_CONTROLLER_SAME_AS = `mailto:${EXAMPLE_CONTROLLER_EMAIL}` as const;
 export const EXAMPLE_API_ORGANIZATION_DID = 'did:web:api.acme.org' as const;
 export const EXAMPLE_SERVICE_PUBLIC_DID = 'did:web:public.acme.org' as const;
-export const EXAMPLE_PROFESSIONAL_DID = 'did:web:api.acme.org:professional:1' as const;
+export const EXAMPLE_PROFESSIONAL_DID = buildProfessionalDidWeb({
+  organizationDidWeb: 'did:web:api.acme.org',
+  email: 'doctor.oncall@example.org',
+  role: HealthcareActorRoles.Physician,
+});
 export const EXAMPLE_PROVIDER_ORGANIZATION_DID = 'did:web:hospital.acme.org' as const;
 export const EXAMPLE_PROVIDER_ORGANIZATION_URL = 'https://hospital.acme.org' as const;
 export const EXAMPLE_GATEWAY_PUBLIC_ORIGIN = 'https://gateway.example.com' as const;
