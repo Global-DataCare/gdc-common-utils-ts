@@ -3,6 +3,11 @@
 This document explains the canonical step-by-step flow for building the
 `vp_token` used by ICA/GW bootstrap flows.
 
+Related guide:
+
+- [`101-ID_TOKEN.md`](./101-ID_TOKEN.md) for identity-oriented `id_token`
+  construction with the same external-signing/KMS pattern.
+
 Use this guide when you need to answer:
 
 - which VC artifacts belong inside the proof

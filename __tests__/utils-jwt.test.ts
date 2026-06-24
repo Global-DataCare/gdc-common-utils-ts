@@ -1,4 +1,5 @@
 import {
+  buildJwtCompact,
   buildUnsignedJwt,
   buildUnsignedVpJwt,
   compactJWT,
@@ -9,6 +10,8 @@ import {
   encodeSignature,
   getDataJWT,
   getPartsJWT,
+  prepareJwtBytesForSignature,
+  prepareJwtForSignature,
 } from '../src/utils/jwt.js';
 
 const signatureBytes = new Uint8Array([1, 2, 3]);
@@ -78,5 +81,25 @@ describe('jwt utilities', () => {
       exp: 2600,
       nonce: 'nonce-2000',
     });
+  });
+
+  it('prepares compact JWT signing input for an external signer and reassembles the final token', () => {
+    const header = { alg: 'ES384', typ: 'JWT', kid: 'did:web:bff.example.org#key-1' };
+    const payload = {
+      iss: 'did:web:bff.example.org',
+      sub: 'controller-sub-001',
+      aud: 'gw-example',
+      email: 'controller@example.org',
+      exp: 1782300000,
+    };
+
+    const prepared = prepareJwtForSignature(header, payload);
+    const signingBytes = prepareJwtBytesForSignature(header, payload);
+
+    expect(prepared.signingInput).toBe(`${prepared.encodedHeader}.${prepared.encodedPayload}`);
+    expect(Array.from(signingBytes)).toEqual(Array.from(Buffer.from(prepared.signingInput, 'utf8')));
+
+    const jwt = buildJwtCompact(prepared.encodedHeader, prepared.encodedPayload, 'external-kms-signature');
+    expect(jwt).toBe(`${prepared.encodedHeader}.${prepared.encodedPayload}.external-kms-signature`);
   });
 });

@@ -4,6 +4,17 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.0.10] - 2026-06-24
+
+### Changed
+- Added generic externally-signed JWT helpers so BFF/native flows can prepare compact `header.payload` signing input bytes for KMS/HSM signing and then assemble the final compact JWT string, reusing the same pattern already used by `vp_token`.
+- Added didactic `101` coverage and documentation for `id_token` construction, including links between the `vp_token` and `id_token` guides and references to JOSE/JWT/OpenID standards.
+- Refactored `vp_token` helpers to reuse the new generic JWT signing primitives instead of maintaining a parallel local implementation.
+
+### Validation
+- `npm run typecheck`
+- `npm test -- --watchman=false __tests__/utils-jwt.test.ts __tests__/101-vp-token.test.ts __tests__/101-id-token.test.ts`
+
 ## [2.0.9] - 2026-06-23
 
 ### Changed
