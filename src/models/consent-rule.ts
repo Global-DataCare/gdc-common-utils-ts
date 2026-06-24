@@ -23,7 +23,7 @@ export enum ClaimConsent {
      * @deprecated Use `containedDocuments`.
      */
     'attachmentContentIds' = 'Consent.attachment-content-ids',
-    'attachmentContentType' = 'Consent.attachment-contentType',
+    'attachmentContentType' = 'Consent.attachment-contenttype',
     'attachmentData' = 'Consent.attachment-data',
     'attachmentId' = 'Consent.attachment-id',
 }
@@ -154,7 +154,7 @@ export interface ConsentRule {
     'Consent.contained-documents'?: string;
     'Consent.attachment-content-ids'?: string;
 
-    'Consent.attachment-contentType'?: string
+    'Consent.attachment-contenttype'?: string
     'Consent.attachment-data'?: string
     'Consent.attachment-id'?: string
 }

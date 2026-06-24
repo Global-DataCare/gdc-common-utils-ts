@@ -1,108 +1,148 @@
 # ID Token 101
 
-This document explains the canonical step-by-step flow for building the
-compact `id_token` used by frontend/BFF/native identity-authenticated flows.
+This guide explains the high-level flow an integrator actually cares about:
 
-Use this guide when you need to answer:
+1. create one signer
+2. inspect its public identity material
+3. prepare one `id_token` signing input
+4. let a KMS/HSM/BFF signer sign it
+5. assemble the final compact token
 
-- which claims belong in the token
-- what exactly gets signed
-- how to prepare the external KMS/HSM signing bytes
-- how to assemble the final compact `header.payload.signature` string
-- how this differs from the `vp_token` proof flow
+If you are looking for low-level JOSE plumbing, that exists too, but it is not
+the starting point. Start from `createJwtSigner(...)`.
+
+Related guide:
+
+- [`101-VP_TOKEN.md`](./101-VP_TOKEN.md) for legal-onboarding `vp_token`
 
 References:
 
 - RFC 7515, JSON Web Signature (JWS)
+- RFC 7517, JSON Web Key (JWK)
 - RFC 7519, JSON Web Token (JWT)
+- RFC 7638, JSON Web Key Thumbprint
+- RFC 9278, JWK Thumbprint URI
 - OpenID Connect Core 1.0
-- RFC 5322, email address syntax (referenced by the common `email` claim)
 
 ## Quick summary
 
-For identity-authenticated controller/BFF flows, the sequence is:
+Use the high-level façade:
 
-1. Decide whether you are in:
-   - `demo/local`: unsigned compact JWT shell is acceptable
-   - `production`: external signing by KMS/HSM/trusted issuer is required
-2. Build the protected header:
-   - `alg`
-   - `typ: JWT`
-   - `kid`
-3. Build the payload with at least:
-   - `iss`
-   - `sub`
-   - `aud`
-   - `exp`
-   - `iat`
-   - `email`
-4. Prepare the canonical compact signing input:
-   - `prepareJwtForSignature(...)`
-   - `prepareJwtBytesForSignature(...)`
-5. Ask the external signer to sign those exact bytes.
-6. Assemble the final token with `buildJwtCompact(...)`.
+```ts
+const signer = await createJwtSigner({
+  alg: 'ES384',
+  seed: 'demo-bff-seed-001', // optional
+  purpose: 'virtual-bff',
+});
+```
 
-The executable didactic test lives in:
+Contract:
+
+- `seed` present => deterministic signer
+- `seed` absent => random signer
+
+Then:
+
+```ts
+const publicJwk = signer.getPublicJwk();
+const kid = signer.getKid();
+const thumbprint = signer.getThumbprint();
+const thumbprintUri = signer.getThumbprintUri();
+
+const prepared = signer.prepareJwt({
+  payload: {
+    iss: 'did:web:bff.example.org',
+    sub: 'controller-sub-001',
+    aud: 'gw-production',
+    email: 'controller@example.org',
+    email_verified: true,
+    iat: 1782296400,
+    exp: 1782297000,
+  },
+});
+
+const compact = signer.buildCompact(
+  'external-signature-base64url',
+  prepared,
+);
+```
+
+Key-id rule:
+
+- `getKid()` always returns the RFC 9278 JWK thumbprint URI
+- this high-level API does not expose arbitrary `kid` aliases
+- the prepared JWT header uses that same thumbprint URI as `kid`
+
+The executable didactic tests live in:
 
 - [`__tests__/101-id-token.test.ts`](../__tests__/101-id-token.test.ts)
+- [`__tests__/101-deterministic-signers.test.ts`](../__tests__/101-deterministic-signers.test.ts)
 
 ## Demo vs production
 
 ### Demo/local
 
-Use:
+Use the same signer façade, but ask it for an unsigned shell:
 
-- `buildUnsignedJwt(...)`
+```ts
+const demoToken = signer.buildUnsignedJwt({
+  iss: 'did:web:demo-bff.example.org',
+  sub: 'controller-sub-001',
+  aud: 'gw-local-demo',
+  email: 'controller@example.org',
+});
+```
 
-This produces:
+This returns:
 
 - `base64url(header).base64url(payload).`
 
-The signature part is intentionally empty, which is useful for:
-
-- local demos
-- Expo/native prototyping
-- backend smoke tests when the runtime explicitly allows insecure bearer mode
+The signature part is intentionally empty.
 
 ### Production
 
 Use:
 
+- `signer.prepareJwt(...)`
+- your real KMS/HSM/BFF signing step
+- `signer.buildCompact(...)`
+
+The helper deliberately does not pretend to be the external signer. It prepares
+the exact bytes that signer must sign.
+
+## Supported signer families
+
+`createJwtSigner(...)` is intentionally high-level, but not magic. The key
+family still matters:
+
+- classical EC signers:
+  - `ES384`
+  - `ES256K`
+- post-quantum signers:
+  - `ML-DSA-44`
+  - `ML-DSA-65`
+  - `ML-DSA-87`
+
+For post-quantum creation, pass the shared cryptography engine:
+
+```ts
+const signer = await createJwtSigner({
+  alg: 'ML-DSA-44',
+  purpose: 'virtual-bff',
+  seed: 'pq-demo-seed-001',
+  cryptography,
+});
+```
+
+## What is intentionally low-level and not 101
+
+These are still valid shared helpers, but they are plumbing, not the main 101
+entry point:
+
+- `deriveDeterministicEcJwkPair(...)`
 - `prepareJwtForSignature(...)`
 - `prepareJwtBytesForSignature(...)`
 - `buildJwtCompact(...)`
 
-The caller is responsible for the real signature step, typically through:
-
-- an HSM
-- a cloud KMS
-- a trusted backend signer
-- an external OIDC / OpenID Connect issuer
-
-## Relationship with `vp_token`
-
-Do not confuse the two proof types:
-
-- `vp_token`
-  proves business/legal onboarding evidence, often coming from ICA-backed VC
-  material and signed by the organization/controller side
-- `id_token`
-  proves authenticated identity claims such as `email`, normally signed by a
-  trusted issuer or trusted backend/BFF identity plane
-
-They both use compact JOSE/JWT mechanics, but they belong to different trust
-planes.
-
-## Shared helpers
-
-The common-utils package now exposes these JWT helpers:
-
-- `buildUnsignedJwt(...)`
-- `prepareJwtForSignature(...)`
-- `prepareJwtBytesForSignature(...)`
-- `buildJwtCompact(...)`
-
-And the equivalent `vp_token`-specific helpers remain available in:
-
-- [`docs/101-VP_TOKEN.md`](./101-VP_TOKEN.md)
-
+Use those when you need lower-level control. Start from `createJwtSigner(...)`
+when teaching or integrating.

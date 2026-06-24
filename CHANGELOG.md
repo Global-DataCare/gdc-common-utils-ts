@@ -4,6 +4,58 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.0.12] - 2026-06-24
+
+### Changed
+- Kept the high-level JWT signer façade and `101` docs introduced after
+  `2.0.11`, including deterministic/random signer creation for `id_token` and
+  `vp_token` flows:
+  - `src/utils/jwt-signer.ts`
+  - `src/utils/deterministic-jwk.ts`
+  - `docs/101-ID_TOKEN.md`
+  - `docs/101-VP_TOKEN.md`
+  - `__tests__/101-id-token.test.ts`
+  - `__tests__/101-vp-token.test.ts`
+  - `__tests__/101-deterministic-signers.test.ts`
+
+### Fixed
+- Corrected the shared Consent attachment claim key from
+  `Consent.attachment-contentType` to the canonical lowercase
+  `Consent.attachment-contenttype` so downstream generated examples and OpenAPI
+  payloads no longer leak camelCase in FHIR-style claim names.
+
+### Validation
+- `npm run typecheck`
+- `npm test -- --watchman=false __tests__/101-id-token.test.ts __tests__/101-vp-token.test.ts __tests__/101-deterministic-signers.test.ts`
+- `npm run build`
+
+## [2.0.11] - 2026-06-24
+
+### Added
+- Added a shared high-level JWT signer façade for BFF/controller/app flows so
+  integrators can create deterministic or random signers without starting from
+  low-level JOSE plumbing:
+  - `src/utils/jwt-signer.ts`
+  - `src/utils/deterministic-jwk.ts`
+
+### Changed
+- Reframed the `101` guides so `id_token` and `vp_token` now teach the
+  integrator-facing high-level flow first, using `createJwtSigner(...)`,
+  instead of starting from low-level signing helpers:
+  - `docs/101-ID_TOKEN.md`
+  - `docs/101-VP_TOKEN.md`
+- Standardized the high-level signer contract so the exposed key identifier is
+  always the RFC 9278 JWK thumbprint URI, including the prepared JWT header
+  `kid`.
+- Added deterministic signer examples and regression coverage for:
+  - legacy EC signers (`ES384`, `ES256K`)
+  - post-quantum deterministic signer flows already backed by the shared
+    cryptography engine (`ML-DSA-*`)
+
+### Validation
+- `npm run typecheck`
+- `npm test -- --watchman=false __tests__/101-id-token.test.ts __tests__/101-vp-token.test.ts __tests__/101-deterministic-signers.test.ts`
+
 ## [2.0.10] - 2026-06-24
 
 ### Changed
