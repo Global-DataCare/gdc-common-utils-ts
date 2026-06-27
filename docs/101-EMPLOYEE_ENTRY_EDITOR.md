@@ -236,12 +236,12 @@ import {
 const employeeCreateBatchBundle = new BundleEditor()
   .setBundleOperation(EmployeeBundleOperations.create)
   .setAllowedResourceType(EmployeeResourceTypes.employee)
-  .newEntry(EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE.identifier)
+  .newEntry(EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE.resourceId)
   .asEmployee()
   .setEmail(EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE.email)
   .setRole(EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE.role)
   .doneEntry()
-  .newEntry(EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE.identifier)
+  .newEntry(EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE.resourceId)
   .asEmployee()
   .setEmail(EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE.email)
   .setRole(EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE.role)
@@ -305,7 +305,7 @@ const bundle = new BundleEditor()
   .setAllowedResourceType(EmployeeResourceTypes.employee);
 
 bundle
-  .newEntry(EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE.identifier)
+  .newEntry(EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE.resourceId)
   .asEmployee()
   .doneEntry();
 
@@ -336,7 +336,7 @@ const bundle = new BundleEditor()
   .setAllowedResourceType(EmployeeResourceTypes.employee);
 
 bundle
-  .newEntry(EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE.identifier)
+  .newEntry(EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE.resourceId)
   .asEmployee()
   .doneEntry();
 
@@ -345,7 +345,9 @@ const employeePurgeBundle = bundle.build();
 
 Purge rules:
 
-- selector should be the exact `identifier`
+- selector should be the exact current `resourceId` when targeting one live GW
+  profile row
+- keep the public/exportable `identifier` in claims alongside that technical id
 - purge is terminal for that technical profile
 - purge releases the license
 

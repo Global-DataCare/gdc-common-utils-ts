@@ -2,39 +2,15 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
-## [Unreleased]
+## [2.0.13] - 2026-06-27
 
 ### Added
-- Added a richer shared wallet contract in [`src/interfaces/IWallet.ts`](/Users/fernando/GITS/gdc-workspace/gdc-common-utils-ts/src/interfaces/IWallet.ts:1) so app, web, and backend runtimes can model:
-  - actor/profile key ownership
-  - runtime/channel key ownership
-  - GW/Core route context
-  - canonical key purposes such as `actor-signing`, `openid-id-token-signing`, `vp-token-signing`, `vc-signing`, `comm-signing`, `comm-encryption`, and `document-at-rest`
-- Added a Node runtime crypto helper in [`src/adapters/node/crypto.ts`](/Users/fernando/GITS/gdc-workspace/gdc-common-utils-ts/src/adapters/node/crypto.ts:1).
-- Added a Node managed wallet adapter in [`src/adapters/node/wallet.ts`](/Users/fernando/GITS/gdc-workspace/gdc-common-utils-ts/src/adapters/node/wallet.ts:1) that supports:
-  - deterministic or random provisioning
-  - separate profile and runtime keyrings
-  - signing and verification
-  - compact JWS and detached JWS
-  - compact JWE build/decrypt
-  - runtime envelope packing/unpacking
-  - confidential document protection
-
-### Changed
-- Kept the legacy app-facing `IWallet` methods intact while adding richer optional methods such as:
-  - `provisionManagedKeys(...)`
-  - `getPublicJwks(...)`
-  - `sign(...)`
-  - `verify(...)`
-  - `encrypt(...)`
-  - `decrypt(...)`
-  - `signCompactJws(...)`
-  - `signDetachedJws(...)`
-  - `buildCompactJwe(...)`
-  - `decryptCompactJwe(...)`
-  - `packForRecipientWithContext(...)`
-  - `unpackWithContext(...)`
-- Added a package export for `./adapters/node/wallet`.
+- Added explicit package-boundary guidance so `gdc-common-utils-ts` stays
+  limited to shared runtime-neutral primitives while higher-layer wallet
+  contracts and Node runtime adapters live in `gdc-sdk-core-ts` and
+  `gdc-sdk-node-ts` respectively:
+  - `ARCHITECTURE.md`
+  - `README.md`
 - Standardized the shared professional actor DID fixtures/helpers around the
   canonical employee DID shape with one hashed email-derived identifier
   segment:
@@ -47,7 +23,6 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ### Validation
 - `npm run typecheck`
-- `npm test -- --watchman=false __tests__/iwallet-unified-compat.test.ts __tests__/node-managed-wallet.test.ts`
 - `npm run build`
 
 ## [2.0.12] - 2026-06-24

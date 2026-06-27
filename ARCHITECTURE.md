@@ -60,6 +60,13 @@ But this package must not own concrete runtime behavior such as:
 - `VaultFirestore`
 - `closeProfile(...)` orchestration
 
+The same rule applies to wallet-aware runtime orchestration:
+
+- runtime-neutral wallet contracts belong in `gdc-sdk-core-ts`
+- concrete Node wallet adapters belong in `gdc-sdk-node-ts`
+- this package should only keep low-level crypto primitives and reusable data
+  models, not wallet orchestration contracts or runtime adapters
+
 ## Naming Rules
 
 Use these conventions consistently:

@@ -43,10 +43,11 @@ describe('101: employee examples', () => {
     ]);
   });
 
-  it('documents that identifier addresses one technical profile including historical purged profiles', () => {
+  it('documents that identifier addresses one exact employee identity including historical purged profiles', () => {
     // Teaching goal:
-    // the canonical employee identifier addresses one exact technical profile,
-    // including historical/purged records.
+    // the exportable employee identifier still addresses one exact business
+    // identity/profile lineage, including historical/purged records, even
+    // though the internal GW resource id is a separate technical locator.
 
     // Step 1.
     // Build claims for one historical purged employee profile.
@@ -54,7 +55,9 @@ describe('101: employee examples', () => {
 
     // Step 2.
     // Final didactic proof:
-    // the identifier stays specific even when the visible email is shared.
+    // the public/exportable identifier stays specific even when the visible
+    // email is shared.
+    expect(EXAMPLE_EMPLOYEE_DOCTOR_PURGED_HISTORICAL.resourceId).toMatch(/^urn:uuid:/);
     expect(claims[ClaimsPersonSchemaorg.identifier]).toBe(EXAMPLE_EMPLOYEE_DOCTOR_PURGED_HISTORICAL.identifier);
     expect(claims[ClaimsPersonSchemaorg.email]).toBe(ExampleEmployeeEmails.SharedProfessional);
     expect(claims[ClaimsPersonSchemaorg.hasOccupationalRoleValue]).toBe(EXAMPLE_EMPLOYEE_DOCTOR_PURGED_HISTORICAL.role);
@@ -74,7 +77,7 @@ describe('101: employee examples', () => {
     const entry = buildEmployeeBatchEntry({
       method: EmployeeBundleMethods.create,
       claims,
-      resourceId: EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE.identifier,
+      resourceId: EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE.resourceId,
     });
 
     // Step 3.
@@ -83,6 +86,7 @@ describe('101: employee examples', () => {
     // resource.meta.claims for the caller.
     expect(entry.type).toBe(EmployeeBatchEntryTypes.create);
     expect(entry.request.method).toBe(EmployeeBundleMethods.create);
+    expect(entry.resource.id).toBe(EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE.resourceId);
     expect(entry.resource.meta.claims).toEqual(claims);
   });
 
@@ -115,7 +119,7 @@ describe('101: employee examples', () => {
     });
   });
 
-  it('builds employee purge bundles from one identifier without exposing raw entry assembly to callers', () => {
+  it('builds employee purge bundles from identifier plus resource id without exposing raw entry assembly to callers', () => {
     // Teaching goal:
     // the app should be able to request purge from one identifier without
     // handcrafting the underlying batch entry.
@@ -124,15 +128,16 @@ describe('101: employee examples', () => {
     // Build the purge bundle from the historical employee identifier.
     const bundle = buildEmployeePurgeBundle({
       identifier: EXAMPLE_EMPLOYEE_DOCTOR_PURGED_HISTORICAL.identifier,
+      resourceId: EXAMPLE_EMPLOYEE_DOCTOR_PURGED_HISTORICAL.resourceId,
     });
 
     // Step 2.
     // Final didactic proof:
-    // purge uses the canonical purge operation while preserving the identifier
-    // in resource.meta.claims for backend processing.
+    // purge uses the technical resource id as transport target while
+    // preserving the exportable identifier in resource.meta.claims.
     expect(bundle.entry[0].type).toBe(EmployeeBatchEntryTypes.purge);
     expect(bundle.entry[0].request.method).toBe(EmployeeBundleMethods.purge);
-    expect(bundle.entry[0].resource.id).toBe(EXAMPLE_EMPLOYEE_DOCTOR_PURGED_HISTORICAL.identifier);
+    expect(bundle.entry[0].resource.id).toBe(EXAMPLE_EMPLOYEE_DOCTOR_PURGED_HISTORICAL.resourceId);
     expect(bundle.entry[0].resource.meta.claims).toEqual({
       '@context': 'org.schema',
       [ClaimsPersonSchemaorg.identifier]: EXAMPLE_EMPLOYEE_DOCTOR_PURGED_HISTORICAL.identifier,
@@ -199,7 +204,7 @@ describe('101: employee examples', () => {
     const responseBody = {
       body: {
         data: EXAMPLE_EMPLOYEE_DIRECTORY_RECORDS.map((record) => ({
-          id: `resource:${record.identifier}`,
+          id: `resource:${record.resourceId}`,
           meta: {
             status: record.status,
             claims: buildExampleEmployeeClaims(record),
@@ -218,7 +223,7 @@ describe('101: employee examples', () => {
         worksFor: undefined,
         memberOf: undefined,
         memberOfOrgTaxId: undefined,
-        resourceId: `resource:${EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE.identifier}`,
+        resourceId: `resource:${EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE.resourceId}`,
         status: EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE.status,
         claims: buildExampleEmployeeClaims(EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE),
       },
@@ -229,7 +234,7 @@ describe('101: employee examples', () => {
         worksFor: undefined,
         memberOf: undefined,
         memberOfOrgTaxId: undefined,
-        resourceId: `resource:${EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE.identifier}`,
+        resourceId: `resource:${EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE.resourceId}`,
         status: EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE.status,
         claims: buildExampleEmployeeClaims(EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE),
       },
@@ -240,7 +245,7 @@ describe('101: employee examples', () => {
         worksFor: undefined,
         memberOf: undefined,
         memberOfOrgTaxId: undefined,
-        resourceId: `resource:${EXAMPLE_EMPLOYEE_DOCTOR_PURGED_HISTORICAL.identifier}`,
+        resourceId: `resource:${EXAMPLE_EMPLOYEE_DOCTOR_PURGED_HISTORICAL.resourceId}`,
         status: EXAMPLE_EMPLOYEE_DOCTOR_PURGED_HISTORICAL.status,
         claims: buildExampleEmployeeClaims(EXAMPLE_EMPLOYEE_DOCTOR_PURGED_HISTORICAL),
       },

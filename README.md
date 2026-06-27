@@ -601,14 +601,18 @@ These helpers are the shared base for consent claim construction across GW and S
 
 ### Interfaces
 
-The `interfaces` export contains the shared type contracts and cryptography types, including:
+The `interfaces` export contains the shared low-level type contracts and cryptography types, including:
 
 - `ICryptography`
 - `ICryptoHelper`
-- `IWallet`
 - `Cryptography.types`
 - `MlDsa`
 - `MlKem`
+
+Wallet contracts and runtime adapters live in higher layers:
+
+- `gdc-sdk-core-ts` owns the runtime-neutral `IWallet` contract
+- `gdc-sdk-node-ts` owns concrete Node wallet/runtime adapters
 
 Example:
 

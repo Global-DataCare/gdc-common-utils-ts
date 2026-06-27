@@ -1,6 +1,6 @@
 {
   "name": "gdc-common-utils-ts",
-  "version": "2.0.12",
+  "version": "2.0.13",
   "publishConfig": {
     "access": "public"
   },
@@ -102,10 +102,6 @@
     "./storage/*": {
       "types": "./dist/storage/*.d.ts",
       "default": "./dist/storage/*.js"
-    },
-    "./adapters/node/crypto": {
-      "types": "./dist/adapters/node/crypto.d.ts",
-      "default": "./dist/adapters/node/crypto.js"
     }
   },
   "files": [
