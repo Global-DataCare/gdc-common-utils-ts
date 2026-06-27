@@ -2,6 +2,15 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [2.0.14] - 2026-06-27
+
+### Added
+- Added a compatibility wrapper for the historical medication helper subpath
+  so consumers can keep importing
+  `gdc-common-utils-ts/utils/medication-claim-helpers` while the underlying
+  implementation stays in `claims-helpers-medication-statement`:
+  - `src/utils/medication-claim-helpers.ts`
+
 ## [2.0.13] - 2026-06-27
 
 ### Added
