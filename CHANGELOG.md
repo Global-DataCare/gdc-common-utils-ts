@@ -2,6 +2,16 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [2.0.15] - 2026-06-27
+
+### Added
+- Added explicit export-map compatibility for the historical medication helper
+  subpaths so TypeScript consumers can resolve
+  `gdc-common-utils-ts/utils/medication-claim-helpers` and
+  `gdc-common-utils-ts/utils/claims-helpers-medication-statement` directly to
+  the canonical medication statement helper declarations in `claims`:
+  - `package.json`
+
 ## [2.0.14] - 2026-06-27
 
 ### Added

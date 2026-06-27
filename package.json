@@ -1,6 +1,6 @@
 {
   "name": "gdc-common-utils-ts",
-  "version": "2.0.14",
+  "version": "2.0.15",
   "publishConfig": {
     "access": "public"
   },
@@ -54,6 +54,14 @@
     "./claims/*": {
       "types": "./dist/claims/*.d.ts",
       "default": "./dist/claims/*.js"
+    },
+    "./utils/claims-helpers-medication-statement": {
+      "types": "./dist/claims/claims-helpers-medication-statement.d.ts",
+      "default": "./dist/claims/claims-helpers-medication-statement.js"
+    },
+    "./utils/medication-claim-helpers": {
+      "types": "./dist/claims/claims-helpers-medication-statement.d.ts",
+      "default": "./dist/claims/claims-helpers-medication-statement.js"
     },
     "./constants/*": {
       "types": "./dist/constants/*.d.ts",
