@@ -2,6 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import {
   HealthcareCanonicalSectionFamilies,
   HealthcareCoreSections,
+  HealthcareSummarySections,
   HealthcareKindOfDocumentSections,
   HealthcareTypeOfServiceSections,
   HealthcareSubjectMatterDomainSections,
@@ -42,6 +43,18 @@ describe('healthcare section families', () => {
   it('keeps backwards-compatible legacy basic sections', () => {
     expect(HealthcareBasicSections.PatientSummaryDocument.code).toBe(HealthcareCoreSections.PatientSummaryDocument.code);
     expect(HealthcareBasicSections.AllergiesAndIntolerances.claim).toBe(HealthcareCoreSections.AllergiesAndIntolerances.claim);
+  });
+
+  it('exposes the IPS summary subset including the extra HL7 IPS all-sections tokens', () => {
+    expect(HealthcareSummarySections.Alert.code).toBe('104605-1');
+    expect(HealthcareSummarySections.PregnancyHistory.code).toBe('10162-6');
+    expect(HealthcareSummarySections.GoalsAndPreferences.code).toBe('81338-6');
+    expect('DietAndNutrition' in HealthcareSummarySections).toBe(false);
+    expect('HistoryOfFamilyMemberDiseases' in HealthcareSummarySections).toBe(false);
+    expect('HistoryOfHospitalizationsAndOutpatientVisits' in HealthcareSummarySections).toBe(false);
+    expect('HistoryOfPresentIllness' in HealthcareSummarySections).toBe(false);
+    expect('ProblemListNarrativeReported' in HealthcareSummarySections).toBe(false);
+    expect('Instructions' in HealthcareSummarySections).toBe(false);
   });
 
   it('classifies codes into canonical section families and aggregates them by code', () => {

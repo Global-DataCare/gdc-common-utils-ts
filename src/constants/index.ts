@@ -2,6 +2,7 @@ export * from './actor-session';
 export * from './communication';
 export * from './clinical-statuses';
 export * from './cryptography';
+export * from './data-collections';
 export * from './data-capabilities';
 export * from './dataspace-discovery';
 export * from './dataspace-protocol';

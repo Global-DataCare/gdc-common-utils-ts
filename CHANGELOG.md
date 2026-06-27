@@ -2,6 +2,24 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [2.0.16] - 2026-06-27
+
+### Added
+- Added the reusable IPS summary section catalog to the shared healthcare
+  constants, including the extra HL7 IPS all-sections tokens required by GW
+  digital twin/research flows:
+  - `HealthcareSummarySections`
+  - `HealthcareCoreSections.Alert`
+  - `HealthcareCoreSections.PregnancyHistory`
+  - `HealthcareCoreSections.GoalsAndPreferences`
+- Added shared logical collection ids and canonical IPS/FHIR collection
+  mappings so gateways and SDK layers can reuse one taxonomy for normalized
+  healthcare indexing:
+  - `DataCollectionIds`
+  - `HealthcareSummarySectionDataCollections`
+  - `FhirResourceTypeDataCollections`
+  - `src/constants/data-collections.ts`
+
 ## [2.0.15] - 2026-06-27
 
 ### Added

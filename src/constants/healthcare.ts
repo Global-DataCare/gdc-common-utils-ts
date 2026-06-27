@@ -130,12 +130,14 @@ function buildWorkbookSectionCatalog(
 export const HealthcareCoreSections = Object.freeze({
   PatientSummaryDocument: defineSection('60591-5', 'Patient summary document'),
   AllergiesAndIntolerances: defineSection('48765-2', 'Allergies and adverse reactions'),
+  Alert: defineSection('104605-1', 'Alert'),
   DietAndNutrition: defineSection('61144-2', 'Diet and nutrition'),
   HistoryOfMedicationUse: defineSection('10160-0', 'History of medication use'),
   HistoryOfFamilyMemberDiseases: defineSection('10157-6', 'History of family member diseases'),
   HistoryOfHospitalizationsAndOutpatientVisits: defineSection('46240-8', 'History of hospitalizations+History of outpatient visits'),
   HistoryOfPastIllness: defineSection('11348-0', 'History of past illness'),
   HistoryOfPresentIllness: defineSection('10164-2', 'History of present illness'),
+  PregnancyHistory: defineSection('10162-6', 'Pregnancy History'),
   ProblemList: defineSection('11450-4', 'Problem list'),
   ProblemListNarrativeReported: defineSection('57852-6', 'Problem list'),
   Results: defineSection('30954-2', 'Relevant diagnostic tests/laboratory data'),
@@ -143,6 +145,7 @@ export const HealthcareCoreSections = Object.freeze({
   Immunizations: defineSection('11369-6', 'History of immunization'),
   MedicalDevices: defineSection('46264-8', 'History of medical device use'),
   FunctionalStatus: defineSection('47420-5', 'Functional status'),
+  GoalsAndPreferences: defineSection('81338-6', 'Goals / Preferences'),
   PlanOfTreatment: defineSection('18776-5', 'Plan of treatment'),
   /** @deprecated Use `PlanOfTreatment`. */
   PlanOfCare: defineSection('18776-5', 'Plan of treatment'),
@@ -154,6 +157,39 @@ export const HealthcareCoreSections = Object.freeze({
 
 /** @deprecated Use `HealthcareCoreSections`. */
 export const HealthcareBasicSections = HealthcareCoreSections;
+
+/**
+ * IPS summary-oriented subset aligned with the official HL7 IPS all-sections
+ * example and intended for "full patient summary / digital twin" flows.
+ *
+ * It excludes the broader core sections that are outside that summary example:
+ * - Diet and Nutrition
+ * - History of Family Member Diseases
+ * - History of Hospitalizations and Outpatient Visits
+ * - History of Present Illness
+ * - Problem List Narrative Reported
+ * - Instructions
+ */
+export const HealthcareSummarySections = Object.freeze({
+  PatientSummaryDocument: HealthcareCoreSections.PatientSummaryDocument,
+  AllergiesAndIntolerances: HealthcareCoreSections.AllergiesAndIntolerances,
+  HistoryOfMedicationUse: HealthcareCoreSections.HistoryOfMedicationUse,
+  ProblemList: HealthcareCoreSections.ProblemList,
+  Results: HealthcareCoreSections.Results,
+  Procedures: HealthcareCoreSections.Procedures,
+  Immunizations: HealthcareCoreSections.Immunizations,
+  MedicalDevices: HealthcareCoreSections.MedicalDevices,
+  VitalSigns: HealthcareCoreSections.VitalSigns,
+  SocialHistory: HealthcareCoreSections.SocialHistory,
+  Alert: HealthcareCoreSections.Alert,
+  GoalsAndPreferences: HealthcareCoreSections.GoalsAndPreferences,
+  AdvanceDirectives: HealthcareCoreSections.AdvanceDirectives,
+  FunctionalStatus: HealthcareCoreSections.FunctionalStatus,
+  HistoryOfPastIllness: HealthcareCoreSections.HistoryOfPastIllness,
+  PregnancyHistory: HealthcareCoreSections.PregnancyHistory,
+  PlanOfCare: HealthcareCoreSections.PlanOfCare,
+  PlanOfTreatment: HealthcareCoreSections.PlanOfTreatment,
+} as const);
 
 export const HealthcareDocumentTypes = Object.freeze({
   [DocumentTypeLoincOntology.IPS]: defineDocumentType(
