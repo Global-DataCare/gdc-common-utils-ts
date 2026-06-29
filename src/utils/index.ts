@@ -31,6 +31,8 @@ export * from './fhir-cid';
 export * from './fhir-search';
 export * from './family-organization-summary';
 export * from './gw-core-path';
+export * from './gw-core-commercial-contract';
+export * from './legal-organization-verification-result';
 export * from './communication-fhir-r4';
 export * from './communication-document-reference';
 export * from './communication-bundle-document-request';

@@ -2,6 +2,39 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [Unreleased]
+
+## [2.0.17] - 2026-06-29
+
+### Added
+- Added shared bundle-claim readers in `src/utils/bundle-reader.ts` so callers
+  do not have to hand-navigate `body.data[index].resource.meta.claims`:
+  - `getClaimsInBundleEntryAt(...)`
+  - `getClaimsInFirstDataEntry(...)`
+- Added matching `BundleReader` instance helpers:
+  - `getEntryClaimsByArrayIndex(...)`
+  - `getActiveEntryClaims()`
+- Added one shared GW CORE commercial-contract catalog so SDK/BFF/GW layers can
+  distinguish onboarding/reissue flows that mint an Offer from flows that only
+  return activation material:
+  - `src/utils/gw-core-commercial-contract.ts`
+  - `GW_CORE_COMMERCIAL_CONTRACTS`
+  - `readGwCoreCommercialContract(...)`
+- Added shared legal-organization verification response readers for direct ICA
+  `_verify-response`, nested GW `_transaction` `icaResponse`, and projected
+  `vc[]` shapes:
+  - `src/utils/legal-organization-verification-result.ts`
+  - `getLegalOrganizationVerificationEntriesFromResponseBody(...)`
+  - `readLegalOrganizationVerificationCredentialPairFromResponseBody(...)`
+  - `readLegalOrganizationVerificationTaxIdFromResponseBody(...)`
+  - `readLegalRepresentativeSameAsFromResponseBody(...)`
+  - `readLegalRepresentativeBindingFromResponseBody(...)`
+
+### Changed
+- Clarified the shared bundle-claim reader contract around index-based bundle
+  navigation and documented/tested the canonical claims location under
+  `resource.meta.claims`.
+
 ## [2.0.16] - 2026-06-27
 
 ### Added
