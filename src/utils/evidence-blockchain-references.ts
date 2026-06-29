@@ -9,12 +9,15 @@ const SHA3_384_PREFIX = 'sha3-384:';
  *
  * Current shared rule:
  * - `z...` multibase base58 references are already public and stable
+ * - `sha3-384:...` references are already blockchain-safe and must pass
+ *   through unchanged
  * - any other identifier-like value is SHA3-384 hashed before persistence
  */
 export function sanitizeBlockchainReference(value: unknown): string | undefined {
   const normalized = String(value || '').trim();
   if (!normalized) return undefined;
   if (/^z[1-9A-HJ-NP-Za-km-z]+$/.test(normalized)) return normalized;
+  if (/^sha3-384:[a-f0-9]{96}$/i.test(normalized)) return normalized;
   return `${SHA3_384_PREFIX}${createHash('sha3-384').update(normalized, 'utf8').digest('hex')}`;
 }
 

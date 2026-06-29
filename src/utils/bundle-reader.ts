@@ -43,6 +43,41 @@ function cloneEntry<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
 }
 
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
+}
+
+/**
+ * Returns the canonical claims view for one bundle entry array index.
+ *
+ * The helper accepts the full bundle-like object plus the entry position to
+ * inspect inside `bundle.data[]` or `bundle.entry[]`.
+ */
+export function getClaimsInBundleEntryAt(bundle: unknown, index: number): Record<string, unknown> {
+  const bundleRecord = asRecord(bundle);
+  const entries = Array.isArray(bundleRecord.data)
+    ? bundleRecord.data
+    : (Array.isArray(bundleRecord.entry) ? bundleRecord.entry : []);
+  if (!Number.isInteger(index) || index < 0 || index >= entries.length) {
+    return {};
+  }
+  const entryRecord = asRecord(entries[index]);
+  const resource = asRecord(entryRecord.resource);
+  const resourceMeta = asRecord(resource.meta);
+  return asRecord(resourceMeta.claims);
+}
+
+/**
+ * Returns the merged claims view for the first `data[]` or `entry[]` item in a
+ * bundle-like body.
+ *
+ * Use this for the common "one operation, one returned entry" flows when the
+ * caller does not want to manually navigate `body.data[0]`.
+ */
+export function getClaimsInFirstDataEntry(bundle: unknown): Record<string, unknown> {
+  return getClaimsInBundleEntryAt(bundle, 0);
+}
+
 /**
  * Runtime-neutral reader for built or received FHIR-like bundles.
  *
@@ -94,6 +129,19 @@ export class BundleReader {
       return undefined;
     }
     return this.resolveEntryIdentifier(entries[index]);
+  }
+
+  /** Returns merged claims for one entry array index. */
+  public getEntryClaimsByArrayIndex(index: number): Record<string, unknown> {
+    return getClaimsInBundleEntryAt(this.bundle, index);
+  }
+
+  /** Returns merged claims for the currently opened entry. */
+  public getActiveEntryClaims(): Record<string, unknown> {
+    if (this.activeEntryIndex === null) {
+      throw new Error('BundleReader does not have one active entry. Call openEntry(index) first.');
+    }
+    return this.getEntryClaimsByArrayIndex(this.activeEntryIndex);
   }
 
   /** Returns the first entry array index whose resolved identifier matches the requested value. */

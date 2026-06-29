@@ -11,6 +11,7 @@
 export * from './shared';
 export * from './ica-activation-proof';
 export * from './organization-controller';
+export * from './inter-tenant-access-contract';
 export * from './individual-controller';
 export * from './professional';
 export * from './related-person';

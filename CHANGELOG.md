@@ -2,6 +2,68 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [Unreleased]
+
+## [2.0.18] - 2026-06-29
+
+### Added
+- Added a shared inter-tenant access contract model plus reusable synthetic
+  `acme-id` -> `lab-id` fixtures so gateways and SDK layers can build and
+  validate a VC whose `credentialSubject` is a FHIR `Contract`:
+  - `src/models/inter-tenant-access-contract.ts`
+  - `src/utils/inter-tenant-access-contract.ts`
+  - `src/examples/inter-tenant-access-contract.ts`
+  - `__tests__/utils-inter-tenant-access-contract.test.ts`
+- Added the canonical contract VC subtype
+  `InterTenantAccessContractCredential` to the shared verifiable-credential
+  constants.
+
+### Changed
+- Canonicalized persisted organization/member authorization identifiers around
+  stable URNs and added reusable builders/normalizers for organization-scoped
+  authorization and ledger flows:
+  - `src/utils/organization-authorization-urn.ts`
+  - `__tests__/utils-organization-authorization-urn.test.ts`
+- Reused the existing consent-style rule model for inter-tenant contract
+  authorization/delegation checks, linked to the blockchain-safe contract VC
+  reference:
+  - `src/utils/inter-tenant-access-contract.ts`
+  - `__tests__/utils-consent-blockchain-rules.test.ts`
+- Preserved already-hashed blockchain references such as `sha3-384:...`
+  instead of rehashing them during normalization:
+  - `src/utils/evidence-blockchain-references.ts`
+
+## [2.0.17] - 2026-06-29
+
+### Added
+- Added shared bundle-claim readers in `src/utils/bundle-reader.ts` so callers
+  do not have to hand-navigate `body.data[index].resource.meta.claims`:
+  - `getClaimsInBundleEntryAt(...)`
+  - `getClaimsInFirstDataEntry(...)`
+- Added matching `BundleReader` instance helpers:
+  - `getEntryClaimsByArrayIndex(...)`
+  - `getActiveEntryClaims()`
+- Added one shared GW CORE commercial-contract catalog so SDK/BFF/GW layers can
+  distinguish onboarding/reissue flows that mint an Offer from flows that only
+  return activation material:
+  - `src/utils/gw-core-commercial-contract.ts`
+  - `GW_CORE_COMMERCIAL_CONTRACTS`
+  - `readGwCoreCommercialContract(...)`
+- Added shared legal-organization verification response readers for direct ICA
+  `_verify-response`, nested GW `_transaction` `icaResponse`, and projected
+  `vc[]` shapes:
+  - `src/utils/legal-organization-verification-result.ts`
+  - `getLegalOrganizationVerificationEntriesFromResponseBody(...)`
+  - `readLegalOrganizationVerificationCredentialPairFromResponseBody(...)`
+  - `readLegalOrganizationVerificationTaxIdFromResponseBody(...)`
+  - `readLegalRepresentativeSameAsFromResponseBody(...)`
+  - `readLegalRepresentativeBindingFromResponseBody(...)`
+
+### Changed
+- Clarified the shared bundle-claim reader contract around index-based bundle
+  navigation and documented/tested the canonical claims location under
+  `resource.meta.claims`.
+
 ## [2.0.16] - 2026-06-27
 
 ### Added
