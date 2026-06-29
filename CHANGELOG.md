@@ -4,6 +4,35 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.0.18] - 2026-06-29
+
+### Added
+- Added a shared inter-tenant access contract model plus reusable synthetic
+  `acme-id` -> `lab-id` fixtures so gateways and SDK layers can build and
+  validate a VC whose `credentialSubject` is a FHIR `Contract`:
+  - `src/models/inter-tenant-access-contract.ts`
+  - `src/utils/inter-tenant-access-contract.ts`
+  - `src/examples/inter-tenant-access-contract.ts`
+  - `__tests__/utils-inter-tenant-access-contract.test.ts`
+- Added the canonical contract VC subtype
+  `InterTenantAccessContractCredential` to the shared verifiable-credential
+  constants.
+
+### Changed
+- Canonicalized persisted organization/member authorization identifiers around
+  stable URNs and added reusable builders/normalizers for organization-scoped
+  authorization and ledger flows:
+  - `src/utils/organization-authorization-urn.ts`
+  - `__tests__/utils-organization-authorization-urn.test.ts`
+- Reused the existing consent-style rule model for inter-tenant contract
+  authorization/delegation checks, linked to the blockchain-safe contract VC
+  reference:
+  - `src/utils/inter-tenant-access-contract.ts`
+  - `__tests__/utils-consent-blockchain-rules.test.ts`
+- Preserved already-hashed blockchain references such as `sha3-384:...`
+  instead of rehashing them during normalization:
+  - `src/utils/evidence-blockchain-references.ts`
+
 ## [2.0.17] - 2026-06-29
 
 ### Added

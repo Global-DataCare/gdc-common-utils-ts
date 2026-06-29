@@ -43,12 +43,15 @@ import { medicationStatementFlatToFhirR4 } from '../utils/clinical-resource-conv
  */
 
 export const EXAMPLE_TENANT_IDENTIFIER = 'acme-id' as const;
+export const EXAMPLE_RESEARCH_TENANT_IDENTIFIER = 'lab-id' as const;
 export const EXAMPLE_JURISDICTION = 'ES' as const;
 export const EXAMPLE_HOST_COVERAGE_SCOPE = 'EU' as const;
 export const EXAMPLE_NETWORK_TYPE = HostNetworkTypes.Test;
 export const EXAMPLE_ROUTE_VERSION = 'v1' as const;
 export const EXAMPLE_SECTOR = DataspaceSectors.HealthCare;
+export const EXAMPLE_RESEARCH_SECTOR = DataspaceSectors.HealthResearch;
 export const EXAMPLE_EMAIL_CONTROLLER_ORG = 'controller@acme.org' as const;
+export const EXAMPLE_EMAIL_CONTROLLER_RESEARCH_ORG = 'controller@lab.org' as const;
 export const EXAMPLE_ORGANIZATION_LEGAL_NAME = 'ACME HEALTH SL' as const;
 export const EXAMPLE_LEGAL_ORGANIZATION_TAX_ID = 'VATES-B00112233' as const;
 export const EXAMPLE_EMAIL_CONTROLLER_INDIVIDUAL = 'ana.parent@example.org' as const;
@@ -140,9 +143,11 @@ export const EXAMPLE_HOST_ROUTE_CONTEXT = {
 } as const;
 
 export const EXAMPLE_CONTROLLER_DID = 'did:web:people.acme.org:controllers:primary' as const;
+export const EXAMPLE_RESEARCH_CONTROLLER_DID = 'did:web:people.lab.org:controllers:primary' as const;
 export const EXAMPLE_CONTROLLER_EMAIL = EXAMPLE_EMAIL_CONTROLLER_ORG;
 export const EXAMPLE_CONTROLLER_SAME_AS = `mailto:${EXAMPLE_CONTROLLER_EMAIL}` as const;
 export const EXAMPLE_API_ORGANIZATION_DID = 'did:web:api.acme.org' as const;
+export const EXAMPLE_RESEARCH_API_ORGANIZATION_DID = 'did:web:api.lab.org' as const;
 export const EXAMPLE_SERVICE_PUBLIC_DID = 'did:web:public.acme.org' as const;
 export const EXAMPLE_PROFESSIONAL_DID = buildProfessionalDidWeb({
   organizationDidWeb: 'did:web:api.acme.org',

@@ -22,6 +22,7 @@ export * from './interoperable-claims';
 export * from './indexing';
 export * from './identity-bootstrap';
 export * from './individual-onboarding';
+export * from './inter-tenant-access-contract';
 export * from './issue';
 export * from './jsonapi';
 export * from './jwe';

@@ -203,6 +203,8 @@ describe('Consent blockchain rule primary-document utilities', () => {
       .toBe(EXAMPLE_CONTENT_ADDRESSED_CONSENT_IDENTIFIER);
     expect(sanitizeConsentReferenceForBlockchain(EXAMPLE_CONTENT_ADDRESSED_SOURCE_REFERENCE))
       .toBe(EXAMPLE_CONTENT_ADDRESSED_SOURCE_REFERENCE);
+    expect(sanitizeConsentReferenceForBlockchain('sha3-384:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'))
+      .toBe('sha3-384:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef');
     expect(sanitizeConsentReferenceForBlockchain(EXAMPLE_CONSENT_IDENTIFIER))
       .toMatch(SHA3_384_REFERENCE_PATTERN);
     expect(sanitizeConsentReferenceForBlockchain(EXAMPLE_DOCUMENT_REFERENCE_URL))

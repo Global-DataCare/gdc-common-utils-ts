@@ -43,6 +43,14 @@ export const ProfessionalCredentialTypes = Object.freeze({
   EmployeeCredential: 'EmployeeCredential',
 });
 
+/**
+ * Canonical credential subtype names used by inter-tenant authorization
+ * contracts for cross-organization access.
+ */
+export const ContractCredentialTypes = Object.freeze({
+  InterTenantAccessContractCredential: 'InterTenantAccessContractCredential',
+});
+
 export const ORGANIZATION_ACTIVATION_VC_TYPES = Object.freeze([
   ActivationCredentialTypes.OrganizationCredential,
   ActivationCredentialTypes.LegalOrganizationCredential,
