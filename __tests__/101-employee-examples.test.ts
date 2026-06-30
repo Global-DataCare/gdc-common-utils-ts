@@ -90,6 +90,26 @@ describe('101: employee examples', () => {
     expect(entry.resource.meta.claims).toEqual(claims);
   });
 
+  it('uses the canonical shared update request type when building employee update entries', () => {
+    // Teaching goal:
+    // update operations should reuse the shared employee type catalog instead
+    // of drifting to one duplicated inline transport string.
+
+    // Step 1.
+    const claims = buildExampleEmployeeClaims(EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE);
+
+    // Step 2.
+    const entry = buildEmployeeBatchEntry({
+      method: 'PATCH',
+      claims,
+      resourceId: EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE.resourceId,
+    });
+
+    // Step 3.
+    expect(entry.type).toBe(EmployeeBatchEntryTypes.update);
+    expect(entry.request.method).toBe('PATCH');
+  });
+
   it('builds employee search bundles from claims without exposing bundle internals to callers', () => {
     // Teaching goal:
     // the app should be able to ask for an employee search bundle from plain

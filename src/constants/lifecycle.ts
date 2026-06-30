@@ -15,6 +15,8 @@ export const InteroperableContext = Object.freeze({
  * adapters for the currently deployed GW CORE contract.
  */
 export const LifecycleRequestType = Object.freeze({
+  IndividualOrganizationDisable: 'Family-disable-request-v1.0',
+  IndividualOrganizationPurge: 'Family-purge-request-v1.0',
   RelatedPersonDisable: 'RelatedPerson-disable-request-v1.0',
   RelatedPersonPurge: 'RelatedPerson-purge-request-v1.0',
   TenantEnable: 'Organization-enable-request-v1.0',

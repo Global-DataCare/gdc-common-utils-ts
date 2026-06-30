@@ -6,6 +6,7 @@ export * from './data-collections';
 export * from './data-capabilities';
 export * from './dataspace-discovery';
 export * from './dataspace-protocol';
+export * from './didcomm';
 export * from './device';
 export * from './did-services';
 export * from './eu-countries';

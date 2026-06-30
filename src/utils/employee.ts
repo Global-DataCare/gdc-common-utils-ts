@@ -88,6 +88,7 @@ export const EmployeeResourceTypes = Object.freeze({
 export const EmployeeBatchEntryTypes = Object.freeze({
   create: 'Employee-create-request-v1.0',
   disable: 'Employee-disable-request-v1.0',
+  update: 'Employee-update-request-v1.0',
   search: 'Employee-search-request-v1.0',
   purge: 'Employee-purge-request-v1.0',
 } as const);
@@ -127,7 +128,7 @@ function inferEmployeeEntryType(method: EmployeeBatchMethod): string {
       return EmployeeBatchEntryTypes.disable;
     case 'PUT':
     case 'PATCH':
-      return 'Employee-update-request-v1.0';
+      return EmployeeBatchEntryTypes.update;
     case 'GET':
       return EmployeeBatchEntryTypes.search;
     case 'POST':

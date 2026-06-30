@@ -1,11 +1,12 @@
 // Copyright 2026 Conectate Soluciones y Aplicaciones SL under the Apache License, Version 2.0.
 
+import { DidcommMessageTypes } from '../constants/didcomm';
 import type { IDecodedDidcommPayload } from '../models/confidential-message';
 import { CommunicationClaim } from '../models/interoperable-claims/communication-claims';
 import { transformCommunicationClaimsToResourceFhirR4 } from './communication-fhir-r4';
 
 export const CommunicationDidcommEntryTypes = Object.freeze({
-  AttachedBundle: 'Communication-attached-bundle-v1.0',
+  AttachedBundle: DidcommMessageTypes.CommunicationAttachedBundle,
 } as const);
 
 /**

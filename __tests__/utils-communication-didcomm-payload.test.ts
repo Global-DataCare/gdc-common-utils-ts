@@ -8,6 +8,7 @@ import {
   EXAMPLE_DIDCOMM_BUNDLE_ENTRY_CONTEXT,
   EXAMPLE_DIDCOMM_COMMUNICATION_AUD,
   EXAMPLE_DIDCOMM_COMMUNICATION_ATTACHMENT_CONTEXT,
+  EXAMPLE_DIDCOMM_COMMUNICATION_ENTRY_TYPE,
   EXAMPLE_DIDCOMM_COMMUNICATION_ISS,
   EXAMPLE_DIDCOMM_COMMUNICATION_JTI,
   EXAMPLE_DIDCOMM_COMMUNICATION_THID,
@@ -28,12 +29,17 @@ import {
 import { CommunicationAttachedBundleSession } from '../src/utils/communication-attached-bundle-session.js';
 import {
   buildDidcommPayloadFromCommunicationClaims,
+  CommunicationDidcommEntryTypes,
   decodeAttachedBundleFromCommunicationClaims,
   getFirstCommunicationClaimsFromDidcommPayload,
 } from '../src/utils/communication-didcomm-payload.js';
 import { BundleReader } from '../src/utils/bundle-reader.js';
 
 describe('utils/communication-didcomm-payload', () => {
+  it('keeps the shared example entry type aligned with the canonical DIDComm communication type catalog', () => {
+    expect(EXAMPLE_DIDCOMM_COMMUNICATION_ENTRY_TYPE).toBe(CommunicationDidcommEntryTypes.AttachedBundle);
+  });
+
   it('wraps one communication-attached medication bundle as a DIDComm-style payload and decodes the attached bundle back', () => {
     const session = new CommunicationAttachedBundleSession({
       communicationClaims: {

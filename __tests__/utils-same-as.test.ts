@@ -1,8 +1,12 @@
 import {
   multibase58MultihashSha3_256,
   normalizeSameAsHash,
+  normalizeSameAsHashCsv,
+  normalizeSameAsHashList,
+  normalizeTelephoneHash,
   sameAsValuesEqual,
 } from '../src/utils/same-as';
+import { ExampleEmployeeTelephones } from '../src/examples/employee';
 
 describe('SameAs Utils', () => {
   const exampleEmail = 'Jane.Doe@Example.org';
@@ -34,5 +38,27 @@ describe('SameAs Utils', () => {
 
   it('compares emails and their hashed representation as equal', () => {
     expect(sameAsValuesEqual(exampleEmail, exampleUrnMultibase)).toBe(true);
+  });
+
+  it('normalizes CSV and array inputs into one deduplicated sameAs array', () => {
+    expect(normalizeSameAsHashList([
+      exampleEmail,
+      `${exampleUrnMultibase},${exampleDid}`,
+      exampleMultibase,
+    ])).toEqual([
+      exampleUrnMultibase,
+      exampleDid,
+    ]);
+  });
+
+  it('joins the normalized sameAs list back into the canonical CSV storage form', () => {
+    expect(normalizeSameAsHashCsv([exampleEmail, exampleDid])).toBe(
+      `${exampleUrnMultibase},${exampleDid}`,
+    );
+  });
+
+  it('hashes public telephone continuity separately from sameAs', () => {
+    const expectedPhoneUrn = `urn:multibase:${multibase58MultihashSha3_256('+34600111222')}`;
+    expect(normalizeTelephoneHash(ExampleEmployeeTelephones.SharedProfessional)).toBe(expectedPhoneUrn);
   });
 });

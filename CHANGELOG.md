@@ -5,6 +5,83 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 ## [Unreleased]
 
 ### Changed
+- Rewired shared DIDComm example entry-type fixtures to import the canonical
+  type catalogs instead of re-hardcoding duplicate string literals, and added
+  guard tests so examples stay aligned with the shared utility layer:
+  - `src/examples/bundle-didcomm-payload.ts`
+  - `src/examples/communication-didcomm-payload.ts`
+  - `__tests__/utils-bundle-didcomm-payload.test.ts`
+  - `__tests__/utils-communication-didcomm-payload.test.ts`
+- Added one shared DIDComm message-type catalog and repointed low-level
+  wallet/profile/communication examples plus lifecycle fixtures to canonical
+  exported constants instead of duplicated example literals:
+  - `src/constants/didcomm.ts`
+  - `src/constants/lifecycle.ts`
+  - `src/examples/wallet-mem.ts`
+  - `src/examples/profile-manager-mem.ts`
+  - `src/examples/lifecycle.ts`
+  - `__tests__/constants-didcomm.test.ts`
+- Extended the canonical employee batch-entry type catalog with `update` so
+  internal helper code no longer falls back to one duplicated inline request
+  type string:
+  - `src/utils/employee.ts`
+  - `__tests__/101-employee-examples.test.ts`
+- Replaced additional inline FHIR `resourceType` example values with
+  `ResourceTypesFhirR4` constants and completed the shared FHIR catalog with
+  the missing `Patient` resource type:
+  - `src/constants/fhir-resource-types.ts`
+  - `src/examples/wallet-mem.ts`
+  - `src/examples/vital-signs.ts`
+  - `src/examples/shared.ts`
+  - `src/examples/related-person.ts`
+  - `src/examples/lifecycle.ts`
+- Repointed the shared appointment participant-status example fixture to the
+  canonical `AppointmentParticipantStatus` enum instead of a duplicated literal:
+  - `src/examples/communication-didcomm-payload.ts`
+
+## [2.1.2] - 2026-06-30
+
+### Added
+- Added one shared client-auth JWT helper so GW, SDK, and test callers can
+  generate `client_assertion` values from one canonical implementation instead
+  of keeping per-repo fixture code:
+  - `src/utils/client-assertion.ts`
+  - `__tests__/utils-client-assertion.test.ts`
+- Added one richer professional identity VC/VP helper surface for SMART and
+  OpenID4VP flows:
+  - `getProfessionalIdentitySameAs(...)`
+  - `getProfessionalIdentityTelephone(...)`
+  - `getProfessionalIdentityVC(...)`
+  - `buildProfessionalIdentityVpPayload(...)`
+  - `buildUnsignedProfessionalIdentityVpJwt(...)`
+  in:
+  - `src/utils/professional-smart.ts`
+  - `__tests__/utils-professional-smart.test.ts`
+- Added one canonical professional identity example fixture so shared tests and
+  higher SDK layers can reuse the same actor DID/email/phone/material values:
+  - `src/examples/employee.ts`
+
+### Changed
+- Extended the shared `sameAs` normalization helpers with array/CSV handling so
+  higher SDK facades can expose DID-style `alsoKnownAs` semantics while keeping
+  the stored/shared representation flat:
+  - `normalizeSameAsHashList(...)`
+  - `normalizeSameAsHashCsv(...)`
+  in:
+  - `src/utils/same-as.ts`
+  - `__tests__/utils-same-as.test.ts`
+- Added one separate hashed-telephone normalization path so professional
+  identity VC builders can keep `sameAs` focused on public email continuity and
+  keep telephone continuity under its own claim:
+  - `normalizeTelephoneHash(...)`
+  in:
+  - `src/utils/same-as.ts`
+  - `__tests__/utils-same-as.test.ts`
+- Exported the new shared client-assertion and enriched professional-identity
+  helpers through the canonical utility barrel:
+  - `src/utils/index.ts`
+
+### Changed
 - Removed repository-local planning handoff/TODO files that had become
   duplicated.
 - Removed the stale repository-local `TEST_MATRIX.md` because it no longer
