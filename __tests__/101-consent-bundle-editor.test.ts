@@ -49,8 +49,8 @@ import {
 } from '../src/utils/claims-helpers-consent.js';
 import {
   ConsentEditorTargetKinds,
-  createConsentAccessEditor,
 } from '../src/utils/communication-attached-bundle-session.js';
+import { createConsentAccessEditor } from '../src/utils/communication-consent-access-editor.js';
 import {
   buildConsentPermissionTemplateImportExportSessionExample,
   buildSeparateConsentPermissionBundleExample,

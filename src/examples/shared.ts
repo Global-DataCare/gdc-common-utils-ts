@@ -374,6 +374,7 @@ export const EXAMPLE_OBSERVATION_COMPONENT_IDENTIFIER = 'urn:uuid:observation-co
 export const EXAMPLE_OBSERVATION_COMPONENT_IDENTIFIER_SECONDARY =
   'urn:uuid:observation-component-example-002' as const;
 export const EXAMPLE_IPS_COMPOSITION_IDENTIFIER = 'ips-composition' as const;
+export const EXAMPLE_APPOINTMENT_RESPONSE_IDENTIFIER = 'appointment-response-example-001' as const;
 export const EXAMPLE_CONDITION_IDENTIFIER = 'condition-example-001' as const;
 export const EXAMPLE_VITAL_SIGNS_NOTE = 'Measured after rest.' as const;
 export const EXAMPLE_FHIR_STATUS_FINAL = 'final' as const;

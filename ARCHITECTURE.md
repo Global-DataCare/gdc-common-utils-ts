@@ -24,6 +24,28 @@ This package is not the place for:
 - concrete `JobManager`, `Outbox`, `Queue`, or `Vault` implementations
 - gateway route binding or polling behavior
 
+## File Hygiene Rules
+
+Keep module structure strict:
+
+- one exported class per file
+- exported types belong in `src/models/*` or another dedicated type module
+- reusable helper functions belong in `src/utils/*-helpers.ts` or another
+  dedicated helper module
+- do not define exported types, helper functions, and multiple exported classes
+  together in the same file
+
+Re-exports for compatibility are acceptable, but the owning implementation must
+still respect the one-class-per-file rule.
+
+Inside class methods:
+
+- keep orchestration shallow
+- move parsing, normalization, classification, flattening, and serialization
+  logic into reusable helper functions
+- prefer calling named helper functions over embedding long decision trees in
+  methods
+
 ## Ownership Rules
 
 Put code here when it is:
@@ -129,6 +151,25 @@ Preferred anchors:
 - [__tests__/101-license-list-search.test.ts](/Users/fernando/GITS/gdc-workspace/gdc-common-utils-ts/__tests__/101-license-list-search.test.ts:1)
 - [__tests__/101-license-offer-order-editor.test.ts](/Users/fernando/GITS/gdc-workspace/gdc-common-utils-ts/__tests__/101-license-offer-order-editor.test.ts:1)
 - [__tests__/101-communication-search-editor.test.ts](/Users/fernando/GITS/gdc-workspace/gdc-common-utils-ts/__tests__/101-communication-search-editor.test.ts:1)
+
+When a test crosses frontend/BFF/GW concerns, it must state the boundary
+explicitly:
+
+- frontend/app responsibilities:
+  semantic editing, bundle construction, communication construction
+- BFF/runtime responsibilities:
+  DIDComm plaintext wrapping, signing, encryption, queueing, submission
+- GW-like responsibilities:
+  unpack, verify, decrypt, decode, readback
+
+For example:
+
+- `buildDidcommPayloadFromBundle(...)` is the BFF/runtime-side plaintext
+  wrapping step for direct operational bundles
+- `buildDidcommPayloadFromCommunicationClaims(...)` is the BFF/runtime-side
+  plaintext wrapping step for Communication-carried payloads
+- actual `pack/sign/encrypt` behavior belongs to the wallet/runtime layer, not
+  to frontend editors
 
 ## JSDoc Policy
 

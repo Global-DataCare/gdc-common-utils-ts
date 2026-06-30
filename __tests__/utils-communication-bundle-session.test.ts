@@ -1,9 +1,11 @@
 import { describe, expect, it } from '@jest/globals';
 import { ResourceTypesFhirR4 } from '../src/constants/fhir-resource-types.js';
 import { HealthcareBasicSections } from '../src/constants/healthcare.js';
+import { Format } from '../src/constants/Schemas.js';
 import { CommunicationCategoryCodes } from '../src/constants/communication.js';
 import { ClaimConsent } from '../src/models/consent-rule.js';
 import { AllergyIntoleranceClaim } from '../src/models/interoperable-claims/allergy-intolerance-claims.js';
+import { AppointmentClaim } from '../src/models/interoperable-claims/appointment-claims.js';
 import { CommunicationClaim } from '../src/models/interoperable-claims/communication-claims.js';
 import { ConditionClaim } from '../src/models/interoperable-claims/condition-claims.js';
 import { DocumentReferenceClaim } from '../src/models/interoperable-claims/document-reference-claims.js';
@@ -29,13 +31,18 @@ import {
   EXAMPLE_MEDICATION_STATEMENT_TEXT,
   EXAMPLE_SUBJECT_DID,
 } from '../src/examples/shared.js';
+import {
+  EXAMPLE_APPOINTMENT_CLAIMS,
+  EXAMPLE_APPOINTMENT_IDENTIFIER,
+  EXAMPLE_APPOINTMENT_PARTICIPANT_STATUS,
+} from '../src/examples/communication-didcomm-payload.js';
 import { CommunicationAttachedBundleSession } from '../src/utils/communication-attached-bundle-session.js';
 
 describe('utils/communication-attached-bundle-session', () => {
   it('keeps consent as activeEntry, syncs attachment base64, and releases memory on save', () => {
     const session = new CommunicationAttachedBundleSession({
       communicationClaims: {
-        '@context': 'org.hl7.fhir.r4',
+        '@context': Format.FHIR_R4,
         [CommunicationClaim.Identifier]: EXAMPLE_COMMUNICATION_IDENTIFIER,
         [CommunicationClaim.Subject]: EXAMPLE_SUBJECT_DID,
         [CommunicationClaim.Category]: CommunicationCategoryCodes.Notification.claim,
@@ -60,7 +67,7 @@ describe('utils/communication-attached-bundle-session', () => {
       fullUrl: `urn:uuid:${EXAMPLE_CONSENT_IDENTIFIER}`,
     });
 
-    expect(session.getActiveEntryIndex()).toBe(0);
+    expect(session.getActiveEntryPosition()).toBe(0);
     expect(session.getActiveEntry()?.resource?.resourceType).toBe(ResourceTypesFhirR4.Consent);
 
     session.saveAndReleaseActiveEntry();
@@ -119,6 +126,62 @@ describe('utils/communication-attached-bundle-session', () => {
     expect(decoded.data[0].resource.meta.claims[MedicationStatementClaim.Note]).toBe(EXAMPLE_IPS_BUNDLE_NOTE_TEXT);
   });
 
+  it('supports appointment helpers for schedule flows carried inside communication attachments', () => {
+    const session = new CommunicationAttachedBundleSession({
+      communicationClaims: {
+        '@context': 'org.hl7.fhir.r4',
+        [CommunicationClaim.Identifier]: EXAMPLE_COMMUNICATION_IDENTIFIER,
+        [CommunicationClaim.Subject]: EXAMPLE_SUBJECT_DID,
+        [CommunicationClaim.Category]: CommunicationCategoryCodes.Notification.claim,
+      },
+    });
+
+    session.upsertActiveAppointmentEntry({
+      claims: EXAMPLE_APPOINTMENT_CLAIMS,
+      fullUrl: `urn:uuid:${EXAMPLE_APPOINTMENT_IDENTIFIER}`,
+    });
+
+    session.saveAndReleaseActiveEntry();
+
+    const claims = session.getCommunicationClaims();
+    const decoded = JSON.parse(
+      Buffer.from(String(claims[CommunicationClaim.ContentAttachmentData]), 'base64').toString('utf8'),
+    );
+
+    expect(decoded.data[0].resource.resourceType).toBe(ResourceTypesFhirR4.Appointment);
+    expect(decoded.data[0].resource.meta.claims[AppointmentClaim.Identifier]).toBe(EXAMPLE_APPOINTMENT_IDENTIFIER);
+    expect(decoded.data[0].resource.meta.claims[AppointmentClaim.ParticipantActor]).toBe(
+      EXAMPLE_APPOINTMENT_CLAIMS[AppointmentClaim.ParticipantActor],
+    );
+    expect(decoded.data[0].resource.meta.claims[AppointmentClaim.ParticipantStatus]).toBe(
+      EXAMPLE_APPOINTMENT_PARTICIPANT_STATUS,
+    );
+  });
+
+  it('fails to link one contained document when the active resource type does not support contained-documents', () => {
+    const session = new CommunicationAttachedBundleSession({
+      communicationClaims: {
+        '@context': 'org.hl7.fhir.r4',
+        [CommunicationClaim.Identifier]: EXAMPLE_COMMUNICATION_IDENTIFIER,
+        [CommunicationClaim.Subject]: EXAMPLE_SUBJECT_DID,
+        [CommunicationClaim.Category]: CommunicationCategoryCodes.Notification.claim,
+      },
+    });
+
+    session.upsertActiveAppointmentEntry({
+      claims: EXAMPLE_APPOINTMENT_CLAIMS,
+      fullUrl: `urn:uuid:${EXAMPLE_APPOINTMENT_IDENTIFIER}`,
+    });
+
+    expect(() => session.addContainedDocumentToActiveEntry({
+      identifier: EXAMPLE_DOCUMENT_REFERENCE_IDENTIFIER,
+      attachmentContentType: EXAMPLE_DOCUMENT_REFERENCE_CONTENT_TYPE_PDF,
+      attachmentUrl: EXAMPLE_DOCUMENT_REFERENCE_URL,
+      description: EXAMPLE_DOCUMENT_REFERENCE_DESCRIPTION,
+      date: EXAMPLE_DOCUMENT_REFERENCE_DATE,
+    })).toThrow('Contained documents are not supported for resourceType: Appointment');
+  });
+
   it('returns resource IDs filtered by section, resourceType and date range, and resolves entries by IDs', () => {
     const session = new CommunicationAttachedBundleSession({
       communicationClaims: {
@@ -167,6 +230,29 @@ describe('utils/communication-attached-bundle-session', () => {
 
     expect(session.getEntryUrl('med-B')).toBe('urn:uuid:med-B');
     expect(session.getEntryUrl('unknown-id')).toBeUndefined();
+  });
+
+  it('reopens one active entry by position using the preferred selector field', () => {
+    const session = new CommunicationAttachedBundleSession({
+      communicationClaims: {
+        '@context': Format.FHIR_R4,
+        [CommunicationClaim.Identifier]: EXAMPLE_COMMUNICATION_IDENTIFIER,
+      },
+    });
+
+    session.upsertActiveMedicationStatementEntry({
+      claims: {
+        '@context': Format.FHIR_API,
+        [MedicationStatementClaim.Identifier]: EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER,
+        [MedicationStatementClaim.Subject]: EXAMPLE_SUBJECT_DID,
+      },
+      fullUrl: `urn:uuid:${EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER}`,
+    });
+    session.saveAndReleaseActiveEntry();
+    session.selectActiveEntry({ position: 0 });
+
+    expect(session.getActiveEntryPosition()).toBe(0);
+    expect(session.getActiveEntry()?.resource?.resourceType).toBe(ResourceTypesFhirR4.MedicationStatement);
   });
 
   it('supports condition and allergy helpers for IPS bundle authoring', () => {

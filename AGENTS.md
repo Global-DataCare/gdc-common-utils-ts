@@ -7,7 +7,6 @@ Primary references in this repo:
 - `README.md`
 - `docs/normalization-spec.md`
 - `docs/clinical-sections-workbook-ehds-crosswalk.md`
-- `TODO_INTEROPERABLE_CLAIM_CATALOG.md`
 
 ## Hard Rules (Project-Specific)
 1. Canonical interoperable claim keys are defined here first.

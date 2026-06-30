@@ -655,4 +655,3 @@ When integrating the converged SDKs:
 
 ## Roadmap and Briefing
 - `docs/BRIEFING_DATASPACE_EN.md`
-- `TODO_ROADMAP.md`

@@ -24,8 +24,8 @@ import {
 } from '../src/examples/shared.js';
 import {
   ConsentEditorTargetKinds,
-  createConsentAccessEditor,
 } from '../src/utils/communication-attached-bundle-session.js';
+import { createConsentAccessEditor } from '../src/utils/communication-consent-access-editor.js';
 import { CommunicationCategoryCodes } from '../src/constants/communication.js';
 import {
   setCommunicationCategory,

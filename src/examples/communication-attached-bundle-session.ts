@@ -35,8 +35,10 @@ import {
 } from './shared';
 import {
   CommunicationAttachedBundleSession,
-  createConsentAccessEditor,
 } from '../utils/communication-attached-bundle-session';
+import {
+  createConsentAccessEditor,
+} from '../utils/communication-consent-access-editor';
 import {
   setCommunicationCategory,
   setCommunicationIdentifier,

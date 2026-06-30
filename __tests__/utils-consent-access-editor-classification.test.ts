@@ -29,8 +29,8 @@ import { ClaimConsent, ConsentDecisions } from '../src/models/consent-rule.js';
 import {
   ConsentEditorScopeCodes,
   ConsentEditorTargetKinds,
-  createConsentAccessEditor,
 } from '../src/utils/communication-attached-bundle-session.js';
+import { createConsentAccessEditor } from '../src/utils/communication-consent-access-editor.js';
 
 describe('ConsentAccessEditor classification helpers', () => {
   it('classifies permit, targets, and actors from the current consent claim contract', () => {

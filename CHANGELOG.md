@@ -4,6 +4,112 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- Removed repository-local planning handoff/TODO files that had become
+  duplicated.
+- Removed the stale repository-local `TEST_MATRIX.md` because it no longer
+  matched the actual package quality gates or the current test surface.
+
+## [2.1.0] - 2026-06-30
+
+### Added
+- Added one portable in-memory wallet/runtime foundation for shared low-level
+  DIDComm-style tests without depending on higher actor SDK layers:
+  - `src/interfaces/IWallet.ts`
+  - `src/interfaces/IWalletQueue.ts`
+  - `src/models/wallet.ts`
+  - `src/utils/wallet-mem.ts`
+  - `src/utils/wallet-memory-queue.ts`
+  - `src/examples/wallet-mem.ts`
+  - `__tests__/utils-wallet-mem.test.ts`
+  - `__tests__/101-wallet-mem.test.ts`
+  - `__tests__/utils-wallet-queue.test.ts`
+- Added one low-level profile/message orchestration slice that composes a
+  wallet, local queue, transport submit callback, and decoded responses by
+  `thid`, still below actor-specific facades:
+  - `src/interfaces/IProfileOutboxRepository.ts`
+  - `src/models/profile-manager.ts`
+  - `src/utils/backend-message-manager-mem.ts`
+  - `src/utils/profile-outbox-memory-repository.ts`
+  - `src/utils/profile-manager-mem.ts`
+  - `src/examples/profile-manager-mem.ts`
+  - `__tests__/utils-profile-outbox-memory-repository.test.ts`
+  - `__tests__/utils-profile-manager-mem.test.ts`
+  - `__tests__/101-profile-manager-mem.test.ts`
+  - `__tests__/utils-profile-manager-polling.test.ts`
+  - `__tests__/101-profile-manager-polling.test.ts`
+- Added one low-level Communication-to-DIDComm wrapping helper plus one
+  executable end-to-end tutorial that joins `CommunicationAttachedBundleSession`,
+  `WalletMem`, `ProfileManagerMem`, and `BundleReader` without introducing
+  higher actor SDK layers:
+  - `src/utils/communication-didcomm-payload.ts`
+  - `src/examples/communication-didcomm-payload.ts`
+  - `__tests__/utils-communication-didcomm-payload.test.ts`
+  - `__tests__/101-communication-profile-wallet-e2e.test.ts`
+  - `__tests__/101-communication-document-reference-profile-wallet-e2e.test.ts`
+- Added one direct Bundle-to-DIDComm wrapping helper plus one executable
+  employee batch tutorial so operational bundles can travel through the same
+  low-level wallet/profile runtime without being nested inside `Communication`:
+  - `src/utils/bundle-didcomm-payload.ts`
+  - `src/examples/bundle-didcomm-payload.ts`
+  - `__tests__/utils-bundle-didcomm-payload.test.ts`
+  - `__tests__/101-employee-profile-wallet-e2e.test.ts`
+
+### Changed
+- Exported the new shared wallet/profile-manager memory helpers through the
+  package public entry points so GW and test consumers can reuse them directly:
+  - `src/index.ts`
+  - `src/models/index.ts`
+  - `src/utils/index.ts`
+  - `src/examples/index.ts`
+- Decoupled `WalletMem` from its internal queue storage so BFF/mobile runtimes
+  can later inject Redis/SQLite-style adapters through the shared
+  `IWalletQueue` contract while keeping the default in-memory implementation in
+  this package:
+  - `src/interfaces/IWalletQueue.ts`
+  - `src/utils/wallet-memory-queue.ts`
+  - `src/utils/wallet-mem.ts`
+- Extended the low-level profile message transport contract with asynchronous
+  GW-style `submit + poll` support, including `locationUrl`, poll counters, and
+  persisted transport status in the profile outbox history:
+  - `src/models/profile-manager.ts`
+  - `src/utils/backend-message-manager-mem.ts`
+  - `src/utils/profile-manager-mem.ts`
+- Extended `CommunicationAttachedBundleSession` with one explicit
+  `Appointment` helper so scheduling/event payloads can be authored inside
+  communication-attached bundles with the same low-level save/release flow:
+  - `src/utils/communication-attached-bundle-session.ts`
+  - `__tests__/utils-communication-bundle-session.test.ts`
+- Hardened the low-level `Communication` attachment contract for linked
+  `DocumentReference` rows by adding one DIDComm wrapping/readback test and one
+  negative guard for unsupported parent resource types:
+  - `__tests__/utils-communication-didcomm-payload.test.ts`
+  - `__tests__/utils-communication-bundle-session.test.ts`
+- Completed the low-level `CommunicationAttachedBundleSession` resource helper
+  surface for the currently shared claim catalogs, including
+  `DiagnosticReport`, `CarePlan`, `Procedure`, `Immunization`, `Encounter`,
+  `Device`, `DeviceUseStatement`, `Flag`, `ClinicalImpression`, `Coverage`,
+  `AppointmentResponse`, `Composition`, `Location`, `Organization`, and
+  `RelatedPerson`, while reusing shared identifier/subject resolution helpers:
+  - `src/models/communication-attached-bundle-session.ts`
+  - `src/utils/communication-attached-bundle-session-helpers.ts`
+  - `src/utils/communication-attached-bundle-session.ts`
+  - `__tests__/utils-diagnostic-report-communication-session.test.ts`
+  - `__tests__/utils-communication-resource-helpers.test.ts`
+- Separated the consent-access editor from the generic communication-attached
+  session so exported types, helper functions, and classes no longer share the
+  same implementation file:
+  - `src/models/communication-attached-bundle-session.ts`
+  - `src/utils/communication-attached-bundle-session-helpers.ts`
+  - `src/utils/communication-consent-access-editor.ts`
+  - `src/utils/communication-attached-bundle-session.ts`
+- Documented the repository hygiene rules in architecture/contributing:
+  one exported class per file, exported types in `models`, helpers in separate
+  modules, and explicit frontend-vs-BFF responsibility comments in high-level
+  DIDComm tests:
+  - `ARCHITECTURE.md`
+  - `CONTRIBUTING.md`
+
 ## [2.0.18] - 2026-06-29
 
 ### Added
