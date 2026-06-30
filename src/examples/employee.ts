@@ -24,6 +24,14 @@ export const ExampleEmployeeEmails = Object.freeze({
   SharedProfessional: 'shared.professional@example.org',
 } as const);
 
+export const ExampleEmployeeTelephones = Object.freeze({
+  SharedProfessional: '+34 600 111 222',
+} as const);
+
+export const ExampleEmployeeCredentialMaterials = Object.freeze({
+  SharedProfessionalSigningKid: 'did:key:z6Mkt2p7vKov6R6By7QjFv2F5x8f4H9g2m3c4n5p6q7r8s9t#z6Mkt2p7vKov6R6By7QjFv2F5x8f4H9g2m3c4n5p6q7r8s9t',
+} as const);
+
 export const ExampleEmployeeRoles = Object.freeze({
   Controller: 'ISCO-08|1120',
   Doctor: 'ISCO-08|2211',
@@ -58,6 +66,22 @@ export const EXAMPLE_EMPLOYEE_DIRECTORY_RECORDS = Object.freeze([
   EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE,
   EXAMPLE_EMPLOYEE_DOCTOR_PURGED_HISTORICAL,
 ] as const);
+
+/**
+ * Canonical professional identity fixture reused by SMART/OpenID4VP tests and
+ * SDK facade helpers.
+ *
+ * The public continuity alias is intentionally the employee email; phone is
+ * kept separate so callers can hash/project it into
+ * `org.schema.Person.telephone` without overloading `sameAs`.
+ */
+export const EXAMPLE_PROFESSIONAL_IDENTITY = Object.freeze({
+  actorDid: EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE.identifier,
+  role: EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE.role,
+  email: EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE.email,
+  telephone: ExampleEmployeeTelephones.SharedProfessional,
+  credentialMaterial: ExampleEmployeeCredentialMaterials.SharedProfessionalSigningKid,
+} as const);
 
 export function buildExampleEmployeeClaims(
   record: ExampleEmployeeRecord,

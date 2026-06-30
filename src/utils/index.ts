@@ -48,6 +48,7 @@ export * from './communication-didcomm-payload';
 export * from './confidential-storage-persistence';
 export * from './confidential-storage-test-data';
 export * from './permission-templates';
+export * from './client-assertion';
 export * from './professional-smart';
 export * from './related-person-list';
 export * from './clinical-resource-converters';

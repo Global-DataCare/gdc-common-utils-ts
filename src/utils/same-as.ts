@@ -1,5 +1,6 @@
 import { createHash } from 'crypto';
 
+import { normalizePhone } from './consent';
 import { encodeMultibase58btc } from './multibase58';
 
 /**
@@ -31,6 +32,13 @@ function looksLikeBase58Multibase(value: string): boolean {
 function looksLikeEmail(value: string): boolean {
   const trimmed = value.trim();
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+}
+
+function splitCommaSeparatedValues(value: string): string[] {
+  return String(value || '')
+    .split(',')
+    .map((candidate) => candidate.trim())
+    .filter(Boolean);
 }
 
 /**
@@ -71,6 +79,79 @@ export function normalizeSameAsHash(value: string): string {
   }
 
   return trimmed;
+}
+
+/**
+ * Normalizes one or more `sameAs` aliases into one deduplicated array.
+ *
+ * Input forms:
+ * - one plain string
+ * - one CSV string
+ * - one array of plain/CSV strings
+ *
+ * Normalization rules:
+ * - whitespace-only entries are discarded
+ * - emails are hashed into ICA-compatible `urn:multibase:z...`
+ * - already-normalized `urn:multibase:z...` values are preserved
+ * - duplicate normalized entries are removed while preserving order
+ *
+ * @param value Canonical sameAs source value(s).
+ */
+export function normalizeSameAsHashList(
+  value: string | readonly string[] | undefined,
+): string[] {
+  const candidates = Array.isArray(value)
+    ? value.flatMap((entry) => splitCommaSeparatedValues(entry))
+    : splitCommaSeparatedValues(String(value || ''));
+  const normalized = candidates
+    .map((candidate) => normalizeSameAsHash(candidate))
+    .filter(Boolean);
+  return [...new Set(normalized)];
+}
+
+/**
+ * Joins one or more normalized `sameAs` aliases into the current flat CSV
+ * storage form used by some shared VC/profile helpers.
+ *
+ * @param value Canonical sameAs source value(s).
+ */
+export function normalizeSameAsHashCsv(
+  value: string | readonly string[] | undefined,
+): string {
+  return normalizeSameAsHashList(value).join(',');
+}
+
+/**
+ * Normalizes one public telephone alias into the same hashed
+ * `urn:multibase:z...` representation used for ICA-compatible public
+ * continuity identifiers, while keeping the telephone claim separate from
+ * `sameAs`.
+ *
+ * Rules:
+ * - empty input becomes `''`
+ * - `urn:multibase:z...` stays unchanged
+ * - bare `z...` becomes `urn:multibase:z...`
+ * - plain phone-like values are compacted through `normalizePhone(...)`
+ *   before hashing
+ *
+ * @param value Plain or already-normalized public telephone alias.
+ */
+export function normalizeTelephoneHash(value: string): string {
+  const trimmed = String(value || '').trim();
+  if (!trimmed) return '';
+
+  if (trimmed.toLowerCase().startsWith('urn:multibase:')) {
+    const suffix = trimmed.slice('urn:multibase:'.length).trim();
+    return looksLikeBase58Multibase(suffix) ? `urn:multibase:${suffix}` : trimmed;
+  }
+
+  if (looksLikeBase58Multibase(trimmed)) {
+    return `urn:multibase:${trimmed}`;
+  }
+
+  const normalizedPhone = normalizePhone(trimmed);
+  if (!normalizedPhone) return '';
+  return `urn:multibase:${multibase58MultihashSha3_256(normalizedPhone)}`;
 }
 
 /**

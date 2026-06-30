@@ -4,6 +4,48 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.1.2] - 2026-06-30
+
+### Added
+- Added one shared client-auth JWT helper so GW, SDK, and test callers can
+  generate `client_assertion` values from one canonical implementation instead
+  of keeping per-repo fixture code:
+  - `src/utils/client-assertion.ts`
+  - `__tests__/utils-client-assertion.test.ts`
+- Added one richer professional identity VC/VP helper surface for SMART and
+  OpenID4VP flows:
+  - `getProfessionalIdentitySameAs(...)`
+  - `getProfessionalIdentityTelephone(...)`
+  - `getProfessionalIdentityVC(...)`
+  - `buildProfessionalIdentityVpPayload(...)`
+  - `buildUnsignedProfessionalIdentityVpJwt(...)`
+  in:
+  - `src/utils/professional-smart.ts`
+  - `__tests__/utils-professional-smart.test.ts`
+- Added one canonical professional identity example fixture so shared tests and
+  higher SDK layers can reuse the same actor DID/email/phone/material values:
+  - `src/examples/employee.ts`
+
+### Changed
+- Extended the shared `sameAs` normalization helpers with array/CSV handling so
+  higher SDK facades can expose DID-style `alsoKnownAs` semantics while keeping
+  the stored/shared representation flat:
+  - `normalizeSameAsHashList(...)`
+  - `normalizeSameAsHashCsv(...)`
+  in:
+  - `src/utils/same-as.ts`
+  - `__tests__/utils-same-as.test.ts`
+- Added one separate hashed-telephone normalization path so professional
+  identity VC builders can keep `sameAs` focused on public email continuity and
+  keep telephone continuity under its own claim:
+  - `normalizeTelephoneHash(...)`
+  in:
+  - `src/utils/same-as.ts`
+  - `__tests__/utils-same-as.test.ts`
+- Exported the new shared client-assertion and enriched professional-identity
+  helpers through the canonical utility barrel:
+  - `src/utils/index.ts`
+
 ### Changed
 - Removed repository-local planning handoff/TODO files that had become
   duplicated.
