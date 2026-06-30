@@ -1,5 +1,6 @@
 // Copyright 2026 Conectate Soluciones y Aplicaciones SL under the Apache License, Version 2.0.
 
+import { DidcommMessageTypes } from '../constants/didcomm';
 import {
   EXAMPLE_WALLET_ENTITY_ID_RECIPIENT,
   EXAMPLE_WALLET_ENTITY_ID_SENDER,
@@ -18,7 +19,7 @@ export const EXAMPLE_PROFILE_MANAGER_MEM_DID = 'did:web:portal.example.org' as c
 export const EXAMPLE_PROFILE_MANAGER_MEM_GATEWAY_DID = 'did:web:gw.example.org' as const;
 export const EXAMPLE_PROFILE_MANAGER_MEM_DISPLAY_NAME = 'Portal BFF Profile' as const;
 export const EXAMPLE_PROFILE_MANAGER_MEM_GATEWAY_DISPLAY_NAME = 'GW Proxy Profile' as const;
-export const EXAMPLE_PROFILE_MANAGER_MEM_RESPONSE_TYPE = 'Communication-response-v1.0' as const;
+export const EXAMPLE_PROFILE_MANAGER_MEM_RESPONSE_TYPE = DidcommMessageTypes.CommunicationResponse;
 export const EXAMPLE_PROFILE_MANAGER_MEM_RESPONSE_NOTE = 'Gateway acknowledged the queued communication.' as const;
 export const EXAMPLE_PROFILE_MANAGER_MEM_PORTAL_REPLY_AUD = 'https://portal.example.org/reply' as const;
 export const EXAMPLE_PROFILE_MANAGER_MEM_PORTAL_INBOX_AUD = 'https://portal.example.org/inbox' as const;

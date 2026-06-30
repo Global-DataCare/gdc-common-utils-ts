@@ -5,6 +5,7 @@ import {
   ClaimsPersonSchemaorg,
 } from '../constants/schemaorg';
 import { LifecycleRequestType } from '../constants/lifecycle';
+import { ResourceTypesFhirR4 } from '../constants/fhir-resource-types';
 import { ClaimConsent } from '../models/consent-rule';
 import {
   IndividualOrganizationLifecycleEditor,
@@ -34,8 +35,8 @@ export const EXAMPLE_LIFECYCLE_OPERATIONS = {
   delete: 'delete',
 } as const;
 
-export const EXAMPLE_INDIVIDUAL_ORGANIZATION_DISABLE_REQUEST_TYPE = 'Family-disable-request-v1.0' as const;
-export const EXAMPLE_INDIVIDUAL_ORGANIZATION_PURGE_REQUEST_TYPE = 'Family-purge-request-v1.0' as const;
+export const EXAMPLE_INDIVIDUAL_ORGANIZATION_DISABLE_REQUEST_TYPE = LifecycleRequestType.IndividualOrganizationDisable;
+export const EXAMPLE_INDIVIDUAL_ORGANIZATION_PURGE_REQUEST_TYPE = LifecycleRequestType.IndividualOrganizationPurge;
 export const EXAMPLE_TENANT_ENABLE_REQUEST_TYPE = LifecycleRequestType.TenantEnable;
 export const EXAMPLE_TENANT_DISABLE_REQUEST_TYPE = LifecycleRequestType.TenantDisable;
 export const EXAMPLE_TENANT_PURGE_REQUEST_TYPE = LifecycleRequestType.TenantPurge;
@@ -130,7 +131,7 @@ export const EXAMPLE_EMPLOYEE_DELETE_MESSAGE = {
 
 export const EXAMPLE_TENANT_ENABLE_MESSAGE = {
   operation: EXAMPLE_LIFECYCLE_OPERATIONS.enable,
-  resourceType: 'Organization',
+  resourceType: ResourceTypesFhirR4.Organization,
   routeContext: {
     tenantId: 'host',
     jurisdiction: EXAMPLE_JURISDICTION,
@@ -146,7 +147,7 @@ export const EXAMPLE_TENANT_ENABLE_MESSAGE = {
 
 export const EXAMPLE_TENANT_DISABLE_MESSAGE = {
   operation: EXAMPLE_LIFECYCLE_OPERATIONS.disable,
-  resourceType: 'Organization',
+  resourceType: ResourceTypesFhirR4.Organization,
   routeContext: {
     tenantId: 'host',
     jurisdiction: EXAMPLE_JURISDICTION,
@@ -167,7 +168,7 @@ export const EXAMPLE_TENANT_DISABLE_MESSAGE = {
 
 export const EXAMPLE_TENANT_DELETE_MESSAGE = {
   operation: EXAMPLE_LIFECYCLE_OPERATIONS.delete,
-  resourceType: 'Organization',
+  resourceType: ResourceTypesFhirR4.Organization,
   routeContext: {
     tenantId: 'host',
     jurisdiction: EXAMPLE_JURISDICTION,
@@ -271,7 +272,7 @@ export const EXAMPLE_INDIVIDUAL_ORGANIZATION_PURGE_PAYLOAD =
 
 export const EXAMPLE_CONSENT_ENABLE_MESSAGE = {
   operation: EXAMPLE_LIFECYCLE_OPERATIONS.enable,
-  resourceType: 'Consent',
+  resourceType: ResourceTypesFhirR4.Consent,
   routeContext: {
     tenantId: EXAMPLE_TENANT_IDENTIFIER,
     jurisdiction: EXAMPLE_JURISDICTION,
@@ -291,7 +292,7 @@ export const EXAMPLE_CONSENT_ENABLE_MESSAGE = {
 
 export const EXAMPLE_CONSENT_DISABLE_MESSAGE = {
   operation: EXAMPLE_LIFECYCLE_OPERATIONS.disable,
-  resourceType: 'Consent',
+  resourceType: ResourceTypesFhirR4.Consent,
   routeContext: {
     tenantId: EXAMPLE_TENANT_IDENTIFIER,
     jurisdiction: EXAMPLE_JURISDICTION,
@@ -311,7 +312,7 @@ export const EXAMPLE_CONSENT_DISABLE_MESSAGE = {
 
 export const EXAMPLE_CONSENT_DELETE_MESSAGE = {
   operation: EXAMPLE_LIFECYCLE_OPERATIONS.delete,
-  resourceType: 'Consent',
+  resourceType: ResourceTypesFhirR4.Consent,
   routeContext: {
     tenantId: EXAMPLE_TENANT_IDENTIFIER,
     jurisdiction: EXAMPLE_JURISDICTION,

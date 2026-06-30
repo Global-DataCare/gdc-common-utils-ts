@@ -143,7 +143,7 @@ export function buildVitalSignObservationEntry(
  */
 export function buildExampleVitalSignsObservationBundle(): BundleJsonApi<BundleEntry> {
   return {
-    resourceType: 'Bundle',
+    resourceType: ResourceTypesFhirR4.Bundle,
     type: 'collection',
     data: [
       buildVitalSignObservationEntry(EXAMPLE_VITAL_SIGN_HEART_RATE_INPUT),

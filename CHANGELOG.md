@@ -4,6 +4,41 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- Rewired shared DIDComm example entry-type fixtures to import the canonical
+  type catalogs instead of re-hardcoding duplicate string literals, and added
+  guard tests so examples stay aligned with the shared utility layer:
+  - `src/examples/bundle-didcomm-payload.ts`
+  - `src/examples/communication-didcomm-payload.ts`
+  - `__tests__/utils-bundle-didcomm-payload.test.ts`
+  - `__tests__/utils-communication-didcomm-payload.test.ts`
+- Added one shared DIDComm message-type catalog and repointed low-level
+  wallet/profile/communication examples plus lifecycle fixtures to canonical
+  exported constants instead of duplicated example literals:
+  - `src/constants/didcomm.ts`
+  - `src/constants/lifecycle.ts`
+  - `src/examples/wallet-mem.ts`
+  - `src/examples/profile-manager-mem.ts`
+  - `src/examples/lifecycle.ts`
+  - `__tests__/constants-didcomm.test.ts`
+- Extended the canonical employee batch-entry type catalog with `update` so
+  internal helper code no longer falls back to one duplicated inline request
+  type string:
+  - `src/utils/employee.ts`
+  - `__tests__/101-employee-examples.test.ts`
+- Replaced additional inline FHIR `resourceType` example values with
+  `ResourceTypesFhirR4` constants and completed the shared FHIR catalog with
+  the missing `Patient` resource type:
+  - `src/constants/fhir-resource-types.ts`
+  - `src/examples/wallet-mem.ts`
+  - `src/examples/vital-signs.ts`
+  - `src/examples/shared.ts`
+  - `src/examples/related-person.ts`
+  - `src/examples/lifecycle.ts`
+- Repointed the shared appointment participant-status example fixture to the
+  canonical `AppointmentParticipantStatus` enum instead of a duplicated literal:
+  - `src/examples/communication-didcomm-payload.ts`
+
 ## [2.1.2] - 2026-06-30
 
 ### Added

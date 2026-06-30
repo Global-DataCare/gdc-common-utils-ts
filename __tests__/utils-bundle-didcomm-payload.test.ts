@@ -16,12 +16,17 @@ import {
   EmployeeBundleOperations,
 } from '../src/utils/employee.js';
 import {
+  BundleDidcommEntryTypes,
   buildDidcommPayloadFromBundle,
   getFirstBundleResourceFromDidcommPayload,
 } from '../src/utils/bundle-didcomm-payload.js';
 import { BundleReader } from '../src/utils/bundle-reader.js';
 
 describe('utils/bundle-didcomm-payload', () => {
+  it('keeps the shared example entry type aligned with the canonical DIDComm bundle type catalog', () => {
+    expect(EXAMPLE_DIDCOMM_BUNDLE_ENTRY_TYPE).toBe(BundleDidcommEntryTypes.Batch);
+  });
+
   it('wraps one direct employee batch bundle as one DIDComm-style payload and reads it back as a bundle', () => {
     const bundle = new BundleEditor()
       .setBundleOperation(EmployeeBundleOperations.create)

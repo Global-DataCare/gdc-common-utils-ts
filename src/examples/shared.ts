@@ -693,7 +693,7 @@ export function buildExampleDocumentReferenceSearchPayload(subjectDid = EXAMPLE_
   return {
     thid: 'search-documentreference-example',
     body: {
-      resourceType: 'Bundle',
+      resourceType: ResourceTypesFhirR4.Bundle,
       type: 'batch',
       entry: [
         {
@@ -812,7 +812,7 @@ export function buildExampleMedicationIpsDocumentBundle(
       },
       {
         resource: {
-          resourceType: 'Patient',
+          resourceType: ResourceTypesFhirR4.Patient,
           id: `patient-${input.medication.identifier}`,
         },
       },

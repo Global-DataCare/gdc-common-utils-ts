@@ -1,10 +1,11 @@
 // Copyright 2026 Conectate Soluciones y Aplicaciones SL under the Apache License, Version 2.0.
 
+import { DidcommMessageTypes } from '../constants/didcomm';
 import type { IDecodedDidcommPayload } from '../models/confidential-message';
 
 export const BundleDidcommEntryTypes = Object.freeze({
-  Batch: 'Bundle-batch-request-v1.0',
-  Document: 'Bundle-document-request-v1.0',
+  Batch: DidcommMessageTypes.BundleBatchRequest,
+  Document: DidcommMessageTypes.BundleDocumentRequest,
 } as const);
 
 /**

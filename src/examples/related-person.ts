@@ -84,7 +84,7 @@ export const EXAMPLE_RELATED_PERSON_DISABLE_BUNDLE_ENTRY = {
 export const EXAMPLE_RELATED_PERSON_DISABLE_BUNDLE_PAYLOAD = {
   thid: 'relatedperson-disable-example-001',
   body: {
-    resourceType: 'Bundle',
+    resourceType: ResourceTypesFhirR4.Bundle,
     type: 'batch',
     entry: [EXAMPLE_RELATED_PERSON_DISABLE_BUNDLE_ENTRY],
   },
@@ -112,7 +112,7 @@ export const EXAMPLE_RELATED_PERSON_PURGE_BUNDLE_ENTRY = {
 export const EXAMPLE_RELATED_PERSON_PURGE_BUNDLE_PAYLOAD = {
   thid: 'relatedperson-purge-example-001',
   body: {
-    resourceType: 'Bundle',
+    resourceType: ResourceTypesFhirR4.Bundle,
     type: 'batch',
     entry: [EXAMPLE_RELATED_PERSON_PURGE_BUNDLE_ENTRY],
   },
@@ -128,7 +128,7 @@ export const EXAMPLE_RELATED_PERSON_PURGE_BUNDLE_PAYLOAD = {
 export const EXAMPLE_RELATED_PERSON_UPSERT_BUNDLE_PAYLOAD = {
   thid: 'relatedperson-upsert-example-001',
   body: {
-    resourceType: 'Bundle',
+    resourceType: ResourceTypesFhirR4.Bundle,
     type: 'batch',
     entry: [{
       resource: {
