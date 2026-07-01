@@ -1,6 +1,7 @@
 export * from './actor-session';
 export * from './aes';
 export * from './auth';
+export * from './authority-resolution';
 export * from './bundle';
 export * from './comm';
 export * from './clinical-sections';
