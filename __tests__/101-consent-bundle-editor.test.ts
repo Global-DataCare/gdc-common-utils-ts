@@ -1,3 +1,10 @@
+/**
+ * 101 note:
+ * - Teach the highest-level public `common-utils` helper available for this topic.
+ * - Do not make raw `meta.claims`, `upsert*`, or pack/unpack the main path unless this file is itself about transport.
+ * - Read `docs/101-README.md` for the ordered path, then continue upward into `gdc-sdk-core-ts` and `gdc-sdk-node-ts`.
+ */
+
 import { describe, expect, it } from '@jest/globals';
 
 import { ResourceTypesFhirR4 } from '../src/constants/fhir-resource-types.js';
@@ -12,6 +19,10 @@ import {
 } from '../src/constants/healthcare.js';
 import { ClaimConsent, ConsentDecisions } from '../src/models/consent-rule.js';
 import { CommunicationClaim } from '../src/models/interoperable-claims/communication-claims.js';
+import {
+  BundleEntryClaimsContext,
+  CommunicationClaimsContext,
+} from '../src/models/communication-attached-bundle-session.js';
 import {
   EXAMPLE_COMMUNICATION_IDENTIFIER,
   EXAMPLE_CONSENT_DATE,
@@ -72,7 +83,7 @@ describe('101: consent bundle editor', () => {
     // Frontend/runtime already has the Communication wrapper or creates one.
     // The in-memory bundle editor is the canonical unit for editing the
     // permissions bundle carried in Communication.content-attachment-data.
-    let communicationBaseClaims: Record<string, unknown> = { '@context': 'org.hl7.fhir.r4' };
+    let communicationBaseClaims: Record<string, unknown> = { '@context': CommunicationClaimsContext };
     communicationBaseClaims = setCommunicationIdentifier(
       communicationBaseClaims,
       EXAMPLE_COMMUNICATION_IDENTIFIER,
@@ -90,14 +101,14 @@ describe('101: consent bundle editor', () => {
       CONSENT_COMMUNICATION_TOPIC,
     );
 
-    const bundleEditor = createConsentAccessEditor({
+    const consentBundleEditor = createConsentAccessEditor({
       communicationClaims: communicationBaseClaims,
     });
 
     // Step 2.
     // Create or upsert one Consent entry in the bundle. This is the consent the
     // user selected or the consent the UI is creating now.
-    let consentBaseClaims: Record<string, unknown> = { '@context': 'org.hl7.fhir.api' };
+    let consentBaseClaims: Record<string, unknown> = { '@context': BundleEntryClaimsContext };
     consentBaseClaims = setConsentDecision(consentBaseClaims, ConsentDecisions.Permit);
     consentBaseClaims = setConsentSubject(consentBaseClaims, EXAMPLE_SUBJECT_DID);
     consentBaseClaims = setConsentIdentifier(consentBaseClaims, EXAMPLE_CONSENT_IDENTIFIER);
@@ -105,7 +116,7 @@ describe('101: consent bundle editor', () => {
     consentBaseClaims = setConsentPeriodStart(consentBaseClaims, EXAMPLE_CONSENT_PERIOD_START);
     consentBaseClaims = setConsentPeriodEnd(consentBaseClaims, EXAMPLE_CONSENT_PERIOD_END);
 
-    bundleEditor.upsertActiveConsentEntry({
+    consentBundleEditor.upsertActiveConsentEntry({
       claims: consentBaseClaims,
       fullUrl: `urn:uuid:${EXAMPLE_CONSENT_IDENTIFIER}`,
     });
@@ -114,7 +125,7 @@ describe('101: consent bundle editor', () => {
     // Read the currently selected Consent claims from the active bundle entry
     // so the app can populate the current screen state.
     const activeConsentClaims = {
-      ...(bundleEditor.getActiveEntry()?.resource?.meta?.claims || {}),
+      ...(consentBundleEditor.getActiveEntry()?.resource?.meta?.claims || {}),
     };
 
     // Step 4.
@@ -131,14 +142,14 @@ describe('101: consent bundle editor', () => {
 
     // Step 5.
     // Save the edited values back into the selected Consent entry.
-    bundleEditor.patchActiveEntryClaims(editedConsentClaims);
-    bundleEditor.saveAndReleaseActiveEntry();
+    consentBundleEditor.patchActiveEntryClaims(editedConsentClaims);
+    consentBundleEditor.saveAndReleaseActiveEntry();
 
     // Step 6.
     // Final didactic proof:
     // the edited Consent is now persisted inside the Communication-attached
     // bundle and ready to be rendered again or sent to backend transport.
-    const communicationClaims = bundleEditor.getCommunicationClaims();
+    const communicationClaims = consentBundleEditor.getCommunicationClaims();
     expect(communicationClaims[CommunicationClaim.Topic]).toBe(CONSENT_COMMUNICATION_TOPIC);
     const decodedBundle = JSON.parse(
       Buffer.from(String(communicationClaims[CommunicationClaim.ContentAttachmentData]), 'base64').toString('utf8'),
@@ -158,31 +169,31 @@ describe('101: consent bundle editor', () => {
     // Teaching goal:
     // this is the low-level escape hatch. It is useful for internal plumbing
     // or advanced cases, but it is intentionally not the main 101 UI path.
-    const bundleEditor = createConsentAccessEditor();
+    const consentBundleEditor = createConsentAccessEditor();
 
-    bundleEditor.upsertActiveConsentEntry({
+    consentBundleEditor.upsertActiveConsentEntry({
       claims: {
-        '@context': 'org.hl7.fhir.api',
+        '@context': BundleEntryClaimsContext,
         [ClaimConsent.identifier]: EXAMPLE_CONSENT_IDENTIFIER,
         [ClaimConsent.subject]: EXAMPLE_SUBJECT_DID,
       },
       fullUrl: `urn:uuid:${EXAMPLE_CONSENT_IDENTIFIER}`,
     });
 
-    bundleEditor.setActiveEntryClaim(ClaimConsent.decision, ConsentDecisions.Permit);
-    expect(bundleEditor.getActiveEntryClaim(ClaimConsent.decision)).toBe(ConsentDecisions.Permit);
-    expect(bundleEditor.hasActiveEntryClaim(ClaimConsent.identifier)).toBe(true);
+    consentBundleEditor.setActiveEntryClaim(ClaimConsent.decision, ConsentDecisions.Permit);
+    expect(consentBundleEditor.getActiveEntryClaim(ClaimConsent.decision)).toBe(ConsentDecisions.Permit);
+    expect(consentBundleEditor.hasActiveEntryClaim(ClaimConsent.identifier)).toBe(true);
 
-    bundleEditor.removeActiveEntryClaim(ClaimConsent.decision);
-    expect(bundleEditor.hasActiveEntryClaim(ClaimConsent.decision)).toBe(false);
+    consentBundleEditor.removeActiveEntryClaim(ClaimConsent.decision);
+    expect(consentBundleEditor.hasActiveEntryClaim(ClaimConsent.decision)).toBe(false);
   });
 
   it('exposes duplicate atomic-rule conflicts for the frontend after saving entries', () => {
-    const bundleEditor = createConsentAccessEditor({
-      communicationClaims: { '@context': 'org.hl7.fhir.r4' },
+    const consentBundleEditor = createConsentAccessEditor({
+      communicationClaims: { '@context': CommunicationClaimsContext },
     });
 
-    let firstConsentClaims: Record<string, unknown> = { '@context': 'org.hl7.fhir.api' };
+    let firstConsentClaims: Record<string, unknown> = { '@context': BundleEntryClaimsContext };
     firstConsentClaims = setConsentDecision(firstConsentClaims, ConsentDecisions.Permit);
     firstConsentClaims = setConsentIdentifier(firstConsentClaims, 'urn:uuid:consent-1');
     firstConsentClaims = setConsentSubject(firstConsentClaims, EXAMPLE_SUBJECT_DID);
@@ -194,13 +205,13 @@ describe('101: consent bundle editor', () => {
       HealthcareBasicSections.HistoryOfMedicationUse.attributeValue,
     ]);
 
-    bundleEditor.upsertActiveConsentEntry({
+    consentBundleEditor.upsertActiveConsentEntry({
       claims: firstConsentClaims,
       fullUrl: 'urn:uuid:consent-1',
     });
-    bundleEditor.saveAndReleaseActiveEntry();
+    consentBundleEditor.saveAndReleaseActiveEntry();
 
-    let secondConsentClaims: Record<string, unknown> = { '@context': 'org.hl7.fhir.api' };
+    let secondConsentClaims: Record<string, unknown> = { '@context': BundleEntryClaimsContext };
     secondConsentClaims = setConsentDecision(secondConsentClaims, ConsentDecisions.Permit);
     secondConsentClaims = setConsentIdentifier(secondConsentClaims, 'urn:uuid:consent-2');
     secondConsentClaims = setConsentSubject(secondConsentClaims, EXAMPLE_SUBJECT_DID);
@@ -211,13 +222,13 @@ describe('101: consent bundle editor', () => {
       HealthcareBasicSections.Results.attributeValue,
     ]);
 
-    bundleEditor.upsertActiveConsentEntry({
+    consentBundleEditor.upsertActiveConsentEntry({
       claims: secondConsentClaims,
       fullUrl: 'urn:uuid:consent-2',
     });
 
-    const activeConflicts = bundleEditor.getActiveConsentRuleDuplicateConflicts();
-    const allConflicts = bundleEditor.getConsentRuleDuplicateConflicts();
+    const activeConflicts = consentBundleEditor.getActiveConsentRuleDuplicateConflicts();
+    const allConflicts = consentBundleEditor.getConsentRuleDuplicateConflicts();
 
     expect(activeConflicts).toHaveLength(1);
     expect(allConflicts).toHaveLength(1);
@@ -238,8 +249,8 @@ describe('101: consent bundle editor', () => {
     // - the app converts that draft into canonical Consent claims
     // - the app saves the result into the bundle
     // - the app later reads the persisted Consent back
-    const bundleEditor = createConsentAccessEditor({
-      communicationClaims: { '@context': 'org.hl7.fhir.r4' },
+    const consentBundleEditor = createConsentAccessEditor({
+      communicationClaims: { '@context': CommunicationClaimsContext },
     });
 
     const templateDraft = {
@@ -271,7 +282,7 @@ describe('101: consent bundle editor', () => {
       ],
     } as const;
 
-    let consentClaims: Record<string, unknown> = { '@context': 'org.hl7.fhir.api' };
+    let consentClaims: Record<string, unknown> = { '@context': BundleEntryClaimsContext };
     consentClaims = setConsentDecision(consentClaims, templateDraft.decision);
     consentClaims = setConsentIdentifier(consentClaims, EXAMPLE_CONSENT_IDENTIFIER);
     consentClaims = setConsentSubject(consentClaims, EXAMPLE_SUBJECT_DID);
@@ -282,19 +293,19 @@ describe('101: consent bundle editor', () => {
     consentClaims = setSectionList(consentClaims, templateDraft.sections);
     consentClaims = setClaimValues(consentClaims, ClaimConsent.resourceType, templateDraft.resourceTypes);
 
-    bundleEditor.upsertActiveConsentEntry({
+    consentBundleEditor.upsertActiveConsentEntry({
       claims: consentClaims,
       fullUrl: `urn:uuid:${EXAMPLE_CONSENT_IDENTIFIER}`,
     });
 
     // Save the draft-derived Consent exactly as storage/transport would see it.
-    bundleEditor.saveAndReleaseActiveEntry();
+    consentBundleEditor.saveAndReleaseActiveEntry();
 
     // Re-read the serialized bundle payload and prove that persisted data still
     // matches the user's selected template values.
     const exportedBundle = JSON.parse(
       Buffer.from(
-        String(bundleEditor.getCommunicationClaims()[CommunicationClaim.ContentAttachmentData]),
+        String(consentBundleEditor.getCommunicationClaims()[CommunicationClaim.ContentAttachmentData]),
         'base64',
       ).toString('utf8'),
     );
@@ -326,7 +337,7 @@ describe('101: consent bundle editor', () => {
     );
 
     const reloadedEditor = createConsentAccessEditor({
-      communicationClaims: bundleEditor.getCommunicationClaims(),
+      communicationClaims: consentBundleEditor.getCommunicationClaims(),
     });
 
     // Open the saved Consent again exactly like the app would do on reload.

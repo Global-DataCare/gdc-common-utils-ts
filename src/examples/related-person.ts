@@ -6,6 +6,8 @@ import { HL7_CODING_SYSTEM_V3_ROLE_CODE } from '../constants/hl7-roles';
 import {
   EXAMPLE_INTEROPERABLE_CONTEXT_FHIR_API,
   EXAMPLE_EMAIL_RELATED_PERSON,
+  EXAMPLE_FORM_CONTROLLER_PHONE,
+  EXAMPLE_RELATED_PERSON_MEMBER_DID,
   EXAMPLE_RELATED_PERSON_ACTIVE_NAME,
   EXAMPLE_RELATED_PERSON_IDENTIFIER,
   EXAMPLE_RELATED_PERSON_INACTIVE_EMAIL,
@@ -34,6 +36,20 @@ export const EXAMPLE_RELATED_PERSON_INTERNAL_RESOURCE_ID = 'related-person-inter
 export const EXAMPLE_RELATED_PERSON_SEARCH_URL =
   buildInteroperableSearchPath(EXAMPLE_RELATED_PERSON_RESOURCE_TYPE);
 export const EXAMPLE_RELATED_PERSON_DISPLAY_NAME = EXAMPLE_RELATED_PERSON_ACTIVE_NAME;
+export const EXAMPLE_INDIVIDUAL_MEMBER_IDENTITY = Object.freeze({
+  actorDid: EXAMPLE_RELATED_PERSON_MEMBER_DID,
+  subjectDid: EXAMPLE_SUBJECT_DID,
+  relationship: EXAMPLE_RELATED_PERSON_ROLE,
+  authorityBasis: 'family-book',
+  email: EXAMPLE_EMAIL_RELATED_PERSON,
+  telephone: EXAMPLE_FORM_CONTROLLER_PHONE,
+  credentialMaterial: `${EXAMPLE_RELATED_PERSON_MEMBER_DID}#signing-key-1`,
+  evidence: [{
+    type: ['DocumentVerification'],
+    evidenceDocument: 'LibroDeFamilia',
+    verifier: 'did:web:kyc.example.org',
+  }],
+} as const);
 
 /**
  * Minimal semantic input used by SDK helpers to disable one subject-side

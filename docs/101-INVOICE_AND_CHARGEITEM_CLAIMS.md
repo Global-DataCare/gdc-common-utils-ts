@@ -1,5 +1,11 @@
 # Invoice And ChargeItem Claims 101
 
+> 101 note
+> - Teach here: the highest-level public `common-utils` helper available for this topic.
+> - Do not present raw `meta.claims`, `upsert*`, or pack/unpack as the main path unless the topic itself is transport.
+> - Read [101-README.md](./101-README.md) for the ordered path, then continue upward into `gdc-sdk-core-ts` and `gdc-sdk-node-ts`.
+
+
 This is the shared-guide for invoice and charge-item claims used by frontend,
 portal, and backend-facing SDK layers.
 

@@ -4,6 +4,7 @@ import { ServiceCapability } from '../constants/service-capabilities';
 import { DataspaceSectors } from '../constants/sectors';
 import { ClaimConsent } from '../models/consent-rule';
 import { ClaimInterTenantAccessContract } from '../models/inter-tenant-access-contract';
+import { BundleEntryClaimsContext } from '../models/communication-attached-bundle-session';
 import {
   buildInterTenantAccessContractCredential,
   buildInterTenantAccessContractResource,
@@ -151,7 +152,7 @@ export const EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONTEXT_WITH_URNS = Object.fre
  *   reference that was or will be anchored on-chain
  */
 export const EXAMPLE_INTER_TENANT_EMPLOYEE_CONTRACT_AUTHORIZATION_CONSENT = Object.freeze({
-  '@context': 'org.hl7.fhir.api',
+  '@context': BundleEntryClaimsContext,
   [ClaimConsent.identifier]: 'urn:uuid:employee-contract-authorization-001',
   [ClaimConsent.subject]: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONSUMER_ORGANIZATION_URN,
   [ClaimConsent.actorIdentifier]: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONSUMER_MEMBER_URN,
@@ -168,7 +169,7 @@ export const EXAMPLE_INTER_TENANT_EMPLOYEE_CONTRACT_AUTHORIZATION_CONSENT = Obje
 } as const);
 
 export const EXAMPLE_INTER_TENANT_PROVIDER_CONTRACT_AUTHORIZATION_CONSENT = Object.freeze({
-  '@context': 'org.hl7.fhir.api',
+  '@context': BundleEntryClaimsContext,
   [ClaimConsent.identifier]: 'urn:uuid:provider-contract-authorization-001',
   [ClaimConsent.subject]: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_PROVIDER_ORGANIZATION_URN,
   [ClaimConsent.actorIdentifier]: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONSUMER_ORGANIZATION_URN,

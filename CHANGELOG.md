@@ -2,9 +2,49 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [2.2.1] - 2026-07-06
+
+### Changed
+- Bumped the package patch version to capture the current shared bundle, communication session, and tutorial cleanup work on a release branch for `main`.
+
 ## [Unreleased]
 
 ### Changed
+- Linked the main shared `101` reading path to the neutral cross-repo user
+  story canon and made the communication/profile tutorial order explicit as:
+  `ProfileManagerMem -> wallet/profile session -> communication/bundle helper`:
+  - `docs/101-README.md`
+  - `docs/101-COMMUNICATION_LAYERING.md`
+  - `__tests__/101-profile-manager-mem.test.ts`
+  - `__tests__/101-communication-profile-wallet-e2e.test.ts`
+- Clarified the public `101` teaching boundary for communication/profile/wallet
+  material so the main shared tutorial points first to the highest-level
+  public `common-utils` path and explicitly links higher SDK layers for
+  controller/runtime orchestration:
+  - `docs/101-COMMUNICATION_LAYERING.md`
+  - `__tests__/101-communication-profile-wallet-e2e.test.ts`
+- Added one shared individual-side identity VC helper surface so controller,
+  member, and dependent-subject proof material can be built from one canonical
+  utility layer instead of per-runtime ad hoc objects:
+  - `getIndividualControllerIdentitySameAs(...)`
+  - `getIndividualControllerIdentityTelephone(...)`
+  - `getIndividualControllerIdentityVC(...)`
+  - `buildIndividualControllerIdentityVpPayload(...)`
+  - `buildUnsignedIndividualControllerIdentityVpJwt(...)`
+  - `getIndividualMemberIdentitySameAs(...)`
+  - `getIndividualMemberIdentityTelephone(...)`
+  - `getIndividualMemberIdentityVC(...)`
+  - `buildIndividualMemberIdentityVpPayload(...)`
+  - `buildUnsignedIndividualMemberIdentityVpJwt(...)`
+  - `getIndividualSubjectVC(...)`
+  in:
+  - `src/utils/individual-smart.ts`
+  - `__tests__/utils-individual-smart.test.ts`
+- Added canonical individual credential subtype names and example fixtures for
+  controller, member, and dependent-subject identity proofs:
+  - `src/constants/verifiable-credentials.ts`
+  - `src/examples/individual-controller.ts`
+  - `src/examples/related-person.ts`
 - Rewired shared DIDComm example entry-type fixtures to import the canonical
   type catalogs instead of re-hardcoding duplicate string literals, and added
   guard tests so examples stay aligned with the shared utility layer:

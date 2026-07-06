@@ -326,12 +326,24 @@ export function removeSectors(
  */
 export function getContainedDocumentIdentifierList(claims: InteroperableClaims): string[] {
   return uniqueCsvLists([
+    getClaimValues(claims, ClaimConsent.containedReferenceList),
     getClaimValues(claims, ClaimConsent.containedDocuments),
     getClaimValues(claims, ClaimConsent.attachmentContentIds),
   ]);
 }
 
+export function getContainedResourceReferenceList(claims: InteroperableClaims): string[] {
+  return getContainedDocumentIdentifierList(claims);
+}
+
 export function setContainedDocumentIdentifierList(
+  claims: InteroperableClaims,
+  values: string | readonly string[],
+): InteroperableClaims {
+  return setContainedDocuments(claims, values);
+}
+
+export function setContainedResourceReferenceList(
   claims: InteroperableClaims,
   values: string | readonly string[],
 ): InteroperableClaims {
@@ -366,14 +378,29 @@ export function removeContainedDocumentIdentifierList(
   );
 }
 
+export function addContainedResourceReferenceList(
+  claims: InteroperableClaims,
+  values: string | readonly string[],
+): InteroperableClaims {
+  return addContainedDocumentIdentifierList(claims, values);
+}
+
+export function removeContainedResourceReferenceList(
+  claims: InteroperableClaims,
+  values: string | readonly string[],
+): InteroperableClaims {
+  return removeContainedDocumentIdentifierList(claims, values);
+}
+
 function setContainedDocuments(
   claims: InteroperableClaims,
   values: string | readonly string[],
 ): InteroperableClaims {
-  const next = setClaimValues(claims, ClaimConsent.containedDocuments, values);
+  const next = setClaimValues(claims, ClaimConsent.containedReferenceList, values);
   const cleaned = {
     ...next,
   };
+  delete cleaned[ClaimConsent.containedDocuments];
   delete cleaned[ClaimConsent.attachmentContentIds];
   return cleaned;
 }

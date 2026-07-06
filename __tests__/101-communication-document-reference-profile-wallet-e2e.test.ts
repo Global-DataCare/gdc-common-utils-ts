@@ -1,3 +1,10 @@
+/**
+ * 101 note:
+ * - Teach the highest-level public `common-utils` helper available for this topic.
+ * - Do not make raw `meta.claims`, `upsert*`, or pack/unpack the main path unless this file is itself about transport.
+ * - Read `docs/101-README.md` for the ordered path, then continue upward into `gdc-sdk-core-ts` and `gdc-sdk-node-ts`.
+ */
+
 import { createHash, randomBytes, randomUUID } from 'crypto';
 import { describe, expect, it } from '@jest/globals';
 import { CryptographyService } from '../src/CryptographyService';
@@ -7,13 +14,15 @@ import { CommunicationClaim } from '../src/models/interoperable-claims/communica
 import { DocumentReferenceClaim } from '../src/models/interoperable-claims/document-reference-claims.js';
 import { MedicationStatementClaim } from '../src/models/interoperable-claims/medication-statement-claims.js';
 import {
+  BundleEntryClaimsContext,
+  CommunicationClaimsContext,
+} from '../src/models/communication-attached-bundle-session.js';
+import {
   EXAMPLE_DIDCOMM_ACK_BODY_OK_KEY,
   EXAMPLE_DIDCOMM_ACK_BODY_RECEIVED_DOCUMENT_IDENTIFIER_KEY,
   EXAMPLE_DIDCOMM_ACK_BODY_RECEIVED_MEDICATION_IDENTIFIER_KEY,
   EXAMPLE_DIDCOMM_ACK_TYPE,
-  EXAMPLE_DIDCOMM_BUNDLE_ENTRY_CONTEXT,
   EXAMPLE_DIDCOMM_COMMUNICATION_AUD,
-  EXAMPLE_DIDCOMM_COMMUNICATION_ATTACHMENT_CONTEXT,
   EXAMPLE_DIDCOMM_COMMUNICATION_ISS,
   EXAMPLE_DIDCOMM_COMMUNICATION_JTI,
   EXAMPLE_DIDCOMM_COMMUNICATION_THID,
@@ -87,7 +96,7 @@ describe('101: communication DocumentReference through profile manager and walle
 
     const session = new CommunicationAttachedBundleSession({
       communicationClaims: {
-        '@context': EXAMPLE_DIDCOMM_COMMUNICATION_ATTACHMENT_CONTEXT,
+        '@context': CommunicationClaimsContext,
         [CommunicationClaim.Identifier]: EXAMPLE_COMMUNICATION_IDENTIFIER,
         [CommunicationClaim.Subject]: EXAMPLE_SUBJECT_DID,
         [CommunicationClaim.Category]: CommunicationCategoryCodes.Notification.claim,
@@ -102,7 +111,7 @@ describe('101: communication DocumentReference through profile manager and walle
     // - the authored bundle rows are stored as neutral `FHIR_API` claims for reuse
     session.upsertActiveMedicationStatementEntry({
       claims: {
-        '@context': EXAMPLE_DIDCOMM_BUNDLE_ENTRY_CONTEXT,
+        '@context': BundleEntryClaimsContext,
         [MedicationStatementClaim.Identifier]: EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER,
         [MedicationStatementClaim.Subject]: EXAMPLE_SUBJECT_DID,
         [MedicationStatementClaim.Status]: EXAMPLE_MEDICATION_STATEMENT_STATUS,
@@ -158,7 +167,7 @@ describe('101: communication DocumentReference through profile manager and walle
           expect(medicationEntryIndex).toBeDefined();
           expect(documentReferenceEntryIndex).toBeDefined();
           expect(
-            reader.getEntryClaimsByArrayIndex(medicationEntryIndex as number)[MedicationStatementClaim.ContainedDocuments],
+            reader.getEntryClaimsByArrayIndex(medicationEntryIndex as number)[MedicationStatementClaim.ContainedReferenceList],
           ).toBe(EXAMPLE_DOCUMENT_REFERENCE_IDENTIFIER);
           expect(
             reader.getEntryClaimsByArrayIndex(documentReferenceEntryIndex as number)[DocumentReferenceClaim.ContentType],

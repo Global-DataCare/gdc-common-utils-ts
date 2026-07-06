@@ -1,4 +1,10 @@
 import { ResourceTypesFhirR4 } from '../constants/fhir-resource-types';
+import { AllergyIntoleranceClaim } from '../models/interoperable-claims/allergy-intolerance-claims';
+import { CompositionClaim } from '../models/interoperable-claims/composition-claims';
+import { ConditionClaim } from '../models/interoperable-claims/condition-claims';
+import { DiagnosticReportClaim } from '../models/interoperable-claims/diagnostic-report-claims';
+import { MedicationStatementClaim } from '../models/interoperable-claims/medication-statement-claims';
+import { ClaimConsent } from '../models/consent-rule';
 import {
   allergyIntoleranceFlatToFhirR4,
   appointmentFlatToFhirR4,
@@ -31,6 +37,7 @@ export type BuildBundleDocumentFromClaimsInput = Readonly<{
   claimsList: readonly BundleDocumentClaims[];
   subjectDid?: string;
   compositionType?: string;
+  compositionClaims?: BundleDocumentClaims;
 }>;
 
 export type ValidateBundleDocumentResult = Readonly<{
@@ -135,6 +142,50 @@ function normalizeSectionCode(value: string): { code: string; system?: string } 
   return { system, code };
 }
 
+function resolveContainedReferenceListClaimKey(resourceType: string): string | undefined {
+  switch (resourceType) {
+    case ResourceTypesFhirR4.MedicationStatement:
+      return MedicationStatementClaim.ContainedReferenceList;
+    case ResourceTypesFhirR4.AllergyIntolerance:
+      return AllergyIntoleranceClaim.ContainedReferenceList;
+    case ResourceTypesFhirR4.Condition:
+      return ConditionClaim.ContainedReferenceList;
+    case ResourceTypesFhirR4.DiagnosticReport:
+      return DiagnosticReportClaim.ContainedReferenceList;
+    case ResourceTypesFhirR4.Consent:
+      return ClaimConsent.containedReferenceList;
+    default:
+      return undefined;
+  }
+}
+
+function resolveContainedFlagClaimKey(resourceType: string): string | undefined {
+  const normalized = asTrimmedString(resourceType);
+  return normalized ? `${normalized}.is-contained` : undefined;
+}
+
+function resolveContainedParentReferenceClaimKey(resourceType: string): string | undefined {
+  const normalized = asTrimmedString(resourceType);
+  return normalized ? `${normalized}.contained-parent-reference` : undefined;
+}
+
+function mergeContainedResourceReferenceList(
+  claims: BundleDocumentClaims,
+  references: readonly string[],
+): BundleDocumentClaims {
+  const resourceType = detectClaimsResourceType(claims);
+  const claimKey = resourceType ? resolveContainedReferenceListClaimKey(resourceType) : undefined;
+  if (!claimKey || references.length === 0) {
+    return claims;
+  }
+  const current = splitCsv(claims[claimKey]);
+  const next = Array.from(new Set([...current, ...references].map((item) => asTrimmedString(item)).filter(Boolean)));
+  return {
+    ...claims,
+    [claimKey]: next.join(','),
+  };
+}
+
 export function detectClaimsResourceType(claims: BundleDocumentClaims): string | undefined {
   const keys = Object.keys(claims || {});
   if (keys.some((key) => key.startsWith('MedicationStatement.'))) return ResourceTypesFhirR4.MedicationStatement;
@@ -228,15 +279,57 @@ export function extractBundleDocumentClaimsList(
     .map((entry) => entry?.resource)
     .filter((resource) => resource && typeof resource === 'object')
     .filter((resource) => !ignoredResourceTypes.has(String(resource.resourceType || '')))
-    .map((resource) => {
-      const metaClaims = resource?.meta?.claims;
-      if (metaClaims && typeof metaClaims === 'object' && !Array.isArray(metaClaims)) {
-        return ensureClaimsIdentifier({ ...metaClaims }, resource);
-      }
-      return ensureClaimsIdentifier(
-        convertFhirResourceToClaims(resource as FhirResource, context),
-        resource,
-      );
+    .flatMap((resource) => {
+      const resourceRecord = resource as Record<string, any>;
+      const resourceReference = `${asTrimmedString(resourceRecord.resourceType)}/${asTrimmedString(resourceRecord.id)}`;
+      const metaClaims = resourceRecord?.meta?.claims;
+      const baseClaims = metaClaims && typeof metaClaims === 'object' && !Array.isArray(metaClaims)
+        ? ensureClaimsIdentifier({ ...metaClaims }, resourceRecord)
+        : ensureClaimsIdentifier(
+          convertFhirResourceToClaims(resourceRecord as FhirResource, context),
+          resourceRecord,
+        );
+
+      const containedResources = Array.isArray(resourceRecord.contained)
+        ? (resourceRecord.contained as Array<Record<string, unknown>>)
+        : [];
+
+      const containedClaimsList = containedResources.map((containedResource, index) => {
+        const containedMetaClaims = ((containedResource?.meta as Record<string, unknown> | undefined)?.claims);
+        const containedClaims = containedMetaClaims && typeof containedMetaClaims === 'object' && !Array.isArray(containedMetaClaims)
+          ? ensureClaimsIdentifier({ ...containedMetaClaims }, containedResource)
+          : ensureClaimsIdentifier(
+            convertFhirResourceToClaims(containedResource as FhirResource, context),
+            containedResource,
+          );
+        const containedResourceType = asTrimmedString(containedResource.resourceType);
+        const containedFlagClaimKey = resolveContainedFlagClaimKey(containedResourceType);
+        const containedParentReferenceClaimKey = resolveContainedParentReferenceClaimKey(containedResourceType);
+        return {
+          ...containedClaims,
+          ...(containedFlagClaimKey ? { [containedFlagClaimKey]: true } : {}),
+          ...(containedParentReferenceClaimKey ? { [containedParentReferenceClaimKey]: resourceReference } : {}),
+          ...(asTrimmedString(containedResource.id) ? {} : {
+            [`${containedResource.resourceType}.identifier`]: `${resourceReference}#contained-${index + 1}`,
+          }),
+        };
+      });
+
+      const containedReferences = containedResources
+        .map((containedResource, index) => {
+          const containedType = asTrimmedString(containedResource.resourceType);
+          const containedId = asTrimmedString(containedResource.id) || `${resourceReference}#contained-${index + 1}`;
+          if (!containedType || !containedId) {
+            return '';
+          }
+          return `${containedType}/${containedId}`;
+        })
+        .filter(Boolean);
+
+      return [
+        mergeContainedResourceReferenceList(baseClaims, containedReferences),
+        ...containedClaimsList,
+      ];
     });
 }
 
@@ -258,9 +351,17 @@ export function resolveClaimsSectionList(claims: BundleDocumentClaims): string[]
 export function buildBundleDocumentFromClaims(
   input: BuildBundleDocumentFromClaimsInput,
 ): Record<string, unknown> {
-  const compositionType = asTrimmedString(input.compositionType) || 'http://loinc.org|60591-5';
+  const compositionClaims = { ...(input.compositionClaims || {}) };
+  const compositionType = asTrimmedString(input.compositionType || compositionClaims[CompositionClaim.Type]) || 'http://loinc.org|60591-5';
+  const compositionSubject = asTrimmedString(input.subjectDid || compositionClaims[CompositionClaim.Subject]);
+  const compositionIdentifier = asTrimmedString(compositionClaims[CompositionClaim.Identifier]);
+  const compositionTitle = asTrimmedString(compositionClaims[CompositionClaim.Title]);
+  const compositionDate = asTrimmedString(compositionClaims[CompositionClaim.Date]);
+  const compositionAuthorList = splitCsv(compositionClaims[CompositionClaim.Author]);
   const compositionSections = new Map<string, { code: { coding: Array<{ code: string; system?: string }> }; entry: Array<{ reference: string }> }>();
-  const entries: Array<{ resource: Record<string, unknown> }> = [];
+  const visibleEntries: Array<{ resource: Record<string, unknown> }> = [];
+  const resourceByReference = new Map<string, Record<string, unknown>>();
+  const containedChildrenByParentReference = new Map<string, Array<Record<string, unknown>>>();
 
   input.claimsList.forEach((claims, index) => {
     const resource = convertClaimsToFhirResource(claims);
@@ -269,9 +370,26 @@ export function buildBundleDocumentFromClaims(
       claims: { ...claims },
     };
     ensureResourceIdentifier(resource, claims, index);
-    entries.push({ resource });
+    const resourceReference = `${resource.resourceType}/${asTrimmedString(resource.id)}`;
+    const containedFlagClaimKey = resolveContainedFlagClaimKey(resource.resourceType);
+    const containedParentReferenceClaimKey = resolveContainedParentReferenceClaimKey(resource.resourceType);
+    const isContained = containedFlagClaimKey
+      ? (claims[containedFlagClaimKey] === true || claims[containedFlagClaimKey] === 'true')
+      : false;
+    const containedParentReference = containedParentReferenceClaimKey
+      ? asTrimmedString(claims[containedParentReferenceClaimKey])
+      : '';
 
-    const resourceRef = `${resource.resourceType}/${resource.id}`;
+    if (isContained && containedParentReference) {
+      const currentChildren = containedChildrenByParentReference.get(containedParentReference) || [];
+      containedChildrenByParentReference.set(containedParentReference, [...currentChildren, resource]);
+      return;
+    }
+
+    visibleEntries.push({ resource });
+    resourceByReference.set(resourceReference, resource);
+
+    const resourceRef = resourceReference;
     resolveClaimsSectionList(claims).forEach((sectionValue) => {
       const normalizedSection = asTrimmedString(sectionValue);
       if (!normalizedSection) return;
@@ -288,6 +406,14 @@ export function buildBundleDocumentFromClaims(
     });
   });
 
+  containedChildrenByParentReference.forEach((children, parentReference) => {
+    const parent = resourceByReference.get(parentReference);
+    if (!parent) {
+      return;
+    }
+    parent.contained = [...(Array.isArray(parent.contained) ? parent.contained : []), ...children];
+  });
+
   const [compositionSystem, compositionCode] = compositionType.split('|');
   return {
     resourceType: ResourceTypesFhirR4.Bundle,
@@ -296,8 +422,14 @@ export function buildBundleDocumentFromClaims(
       {
         resource: {
           resourceType: ResourceTypesFhirR4.Composition,
+          ...(compositionIdentifier ? { id: compositionIdentifier } : {}),
           status: 'final',
-          subject: input.subjectDid ? { reference: input.subjectDid } : undefined,
+          ...(compositionIdentifier ? {
+            identifier: [{ value: compositionIdentifier }],
+          } : {}),
+          ...(compositionSubject ? {
+            subject: { reference: compositionSubject },
+          } : {}),
           type: {
             coding: [
               compositionCode
@@ -305,18 +437,24 @@ export function buildBundleDocumentFromClaims(
                 : { code: compositionSystem },
             ],
           },
+          ...(compositionTitle ? { title: compositionTitle } : {}),
+          ...(compositionDate ? { date: compositionDate } : {}),
+          ...(compositionAuthorList.length > 0 ? {
+            author: compositionAuthorList.map((reference) => ({ reference })),
+          } : {}),
+          meta: { claims: compositionClaims },
           section: Array.from(compositionSections.values()),
         },
       },
-      ...(input.subjectDid
+      ...(compositionSubject
         ? [{
           resource: {
             resourceType: 'Patient',
-            id: input.subjectDid,
+            id: compositionSubject,
           },
         }]
         : []),
-      ...entries,
+      ...visibleEntries,
     ],
   };
 }

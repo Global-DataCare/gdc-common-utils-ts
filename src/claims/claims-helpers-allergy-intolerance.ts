@@ -42,58 +42,91 @@ export function removeAllergyIntoleranceClaimList(
   return removeClaimValues(claims, claimKey, values);
 }
 
-export function getAllergyIntoleranceContainedDocumentIdentifierList(
+export function getAllergyIntoleranceContainedResourceReferenceList(
   claims: AllergyIntoleranceInteroperableClaims,
 ): string[] {
   return uniqueCsvLists([
+    getAllergyIntoleranceClaimList(claims, AllergyIntoleranceClaim.ContainedReferenceList),
     getAllergyIntoleranceClaimList(claims, AllergyIntoleranceClaim.ContainedDocuments),
     getAllergyIntoleranceClaimList(claims, AllergyIntoleranceClaim.AttachmentContentIds),
   ]);
 }
 
-export function setAllergyIntoleranceContainedDocumentIdentifierList(
+export function setAllergyIntoleranceContainedResourceReferenceList(
   claims: AllergyIntoleranceInteroperableClaims,
   values: string | readonly string[],
 ): AllergyIntoleranceInteroperableClaims {
-  return setContainedDocuments(claims, values);
+  return setContainedResources(claims, values);
 }
 
-export function addAllergyIntoleranceContainedDocumentIdentifierList(
+export function addAllergyIntoleranceContainedResourceReferenceList(
   claims: AllergyIntoleranceInteroperableClaims,
   values: string | readonly string[],
 ): AllergyIntoleranceInteroperableClaims {
-  return setContainedDocuments(
+  return setContainedResources(
     claims,
     uniqueCsvLists([
-      getAllergyIntoleranceContainedDocumentIdentifierList(claims),
-      Array.isArray(values) ? [...values] : getAllergyIntoleranceClaimList({ [AllergyIntoleranceClaim.ContainedDocuments]: values }, AllergyIntoleranceClaim.ContainedDocuments),
+      getAllergyIntoleranceContainedResourceReferenceList(claims),
+      Array.isArray(values) ? [...values] : getAllergyIntoleranceClaimList({ [AllergyIntoleranceClaim.ContainedReferenceList]: values }, AllergyIntoleranceClaim.ContainedReferenceList),
     ]),
   );
 }
 
-export function removeAllergyIntoleranceContainedDocumentIdentifierList(
+export function removeAllergyIntoleranceContainedResourceReferenceList(
   claims: AllergyIntoleranceInteroperableClaims,
   values: string | readonly string[],
 ): AllergyIntoleranceInteroperableClaims {
   const toRemove = new Set(
-    (Array.isArray(values) ? values : getAllergyIntoleranceClaimList({ [AllergyIntoleranceClaim.ContainedDocuments]: values }, AllergyIntoleranceClaim.ContainedDocuments))
+    (Array.isArray(values) ? values : getAllergyIntoleranceClaimList({ [AllergyIntoleranceClaim.ContainedReferenceList]: values }, AllergyIntoleranceClaim.ContainedReferenceList))
       .map((item) => String(item || '').trim())
       .filter(Boolean),
   );
-  return setContainedDocuments(
+  return setContainedResources(
     claims,
-    getAllergyIntoleranceContainedDocumentIdentifierList(claims).filter((item) => !toRemove.has(item)),
+    getAllergyIntoleranceContainedResourceReferenceList(claims).filter((item) => !toRemove.has(item)),
   );
 }
 
-function setContainedDocuments(
+/** @deprecated Use `getAllergyIntoleranceContainedResourceReferenceList`. */
+export function getAllergyIntoleranceContainedDocumentIdentifierList(
+  claims: AllergyIntoleranceInteroperableClaims,
+): string[] {
+  return getAllergyIntoleranceContainedResourceReferenceList(claims);
+}
+
+/** @deprecated Use `setAllergyIntoleranceContainedResourceReferenceList`. */
+export function setAllergyIntoleranceContainedDocumentIdentifierList(
   claims: AllergyIntoleranceInteroperableClaims,
   values: string | readonly string[],
 ): AllergyIntoleranceInteroperableClaims {
-  const next = setAllergyIntoleranceClaimList(claims, AllergyIntoleranceClaim.ContainedDocuments, values);
+  return setAllergyIntoleranceContainedResourceReferenceList(claims, values);
+}
+
+/** @deprecated Use `addAllergyIntoleranceContainedResourceReferenceList`. */
+export function addAllergyIntoleranceContainedDocumentIdentifierList(
+  claims: AllergyIntoleranceInteroperableClaims,
+  values: string | readonly string[],
+): AllergyIntoleranceInteroperableClaims {
+  return addAllergyIntoleranceContainedResourceReferenceList(claims, values);
+}
+
+/** @deprecated Use `removeAllergyIntoleranceContainedResourceReferenceList`. */
+export function removeAllergyIntoleranceContainedDocumentIdentifierList(
+  claims: AllergyIntoleranceInteroperableClaims,
+  values: string | readonly string[],
+): AllergyIntoleranceInteroperableClaims {
+  return removeAllergyIntoleranceContainedResourceReferenceList(claims, values);
+}
+
+function setContainedResources(
+  claims: AllergyIntoleranceInteroperableClaims,
+  values: string | readonly string[],
+): AllergyIntoleranceInteroperableClaims {
+  const next = setAllergyIntoleranceClaimList(claims, AllergyIntoleranceClaim.ContainedReferenceList, values);
   const cleaned = {
     ...next,
   };
+  delete cleaned[AllergyIntoleranceClaim.ContainedDocuments];
   delete cleaned[AllergyIntoleranceClaim.AttachmentContentIds];
   return cleaned;
 }

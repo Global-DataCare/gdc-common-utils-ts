@@ -17,6 +17,7 @@ export const MedicationStatementClaim = {
   PartOf: 'MedicationStatement.part-of',
   Source: 'MedicationStatement.source',
   MedicationText: 'MedicationStatement.medication-text',
+  UserSelected: 'MedicationStatement.user-selected',
   /**
    * Free-text clinical note.
    *
@@ -30,6 +31,22 @@ export const MedicationStatementClaim = {
    * `TimingPeriodUnit`, and `DosagePatientInstructionText`.
    */
   Note: 'MedicationStatement.note',
+  /**
+   * Canonical CSV/list of related contained resource references or identifiers.
+   *
+   * Values may be:
+   * - `urn:uuid:*`
+   * - `ResourceType/urn:uuid:*`
+   * - another canonical local resource reference used inside the same bundle
+   */
+  ContainedReferenceList: 'MedicationStatement.contained-reference-list',
+  /**
+   * @deprecated Use `ContainedReferenceList`.
+   */
+  ContainedResourceList: 'MedicationStatement.contained-resource-list',
+  /**
+   * @deprecated Use `ContainedReferenceList`.
+   */
   ContainedDocuments: 'MedicationStatement.contained-documents',
   /**
    * @deprecated Use `ContainedDocuments`.

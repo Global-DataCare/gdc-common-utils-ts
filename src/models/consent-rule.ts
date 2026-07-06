@@ -18,9 +18,17 @@ export enum ClaimConsent {
     'identifier' = 'Consent.identifier',
     'eventBasedOn' = 'Consent.event-basedon',
     'sourceReference' = 'Consent.source-reference',
+    'containedReferenceList' = 'Consent.contained-reference-list',
+    /**
+     * @deprecated Use `containedReferenceList`.
+     */
+    'containedResourceList' = 'Consent.contained-resource-list',
+    /**
+     * @deprecated Use `containedReferenceList`.
+     */
     'containedDocuments' = 'Consent.contained-documents',
     /**
-     * @deprecated Use `containedDocuments`.
+     * @deprecated Use `containedReferenceList`.
      */
     'attachmentContentIds' = 'Consent.attachment-content-ids',
     'attachmentContentType' = 'Consent.attachment-contenttype',
@@ -151,6 +159,8 @@ export interface ConsentRule {
      */
     'Consent.identifier': string;
 
+    'Consent.contained-reference-list'?: string;
+    'Consent.contained-resource-list'?: string;
     'Consent.contained-documents'?: string;
     'Consent.attachment-content-ids'?: string;
 

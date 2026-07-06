@@ -1,5 +1,11 @@
 # Bundle Editor And Reader 101
 
+> 101 note
+> - Teach here: the highest-level public `common-utils` helper available for this topic.
+> - Do not present raw `meta.claims`, `upsert*`, or pack/unpack as the main path unless the topic itself is transport.
+> - Read [101-README.md](./101-README.md) for the ordered path, then continue upward into `gdc-sdk-core-ts` and `gdc-sdk-node-ts`.
+
+
 This document defines the target migration for shared bundle construction and
 bundle reading across the GDC repositories.
 
@@ -80,6 +86,16 @@ They should consume shared bundle helpers instead of redefining them.
 `BundleEditor` is the generic builder for bundle types that clients construct
 today.
 
+For the current individual clinical story, the canonical mode is:
+
+- `setBundleType('document')`
+- configure `Composition` fields on the same editor
+- add/reopen resource entries one by one
+- finish with `buildDocument()`
+
+Keep `batch` for flows such as employees and current consent batch-style
+payloads.
+
 Important distinction:
 
 - `setBundleOperation(...)` declares the business action the editor is staging
@@ -119,13 +135,86 @@ The editor then manages one active entry at a time:
 
 ```ts
 bundle.newEntry(resourceId?);
+bundle.newEntryAs(resourceType, resourceId?);
 bundle.openEntry(resourceIdOrFullUrl);
 bundle.build();
+bundle.buildDocument();
 ```
+
+### Identifier Rule
+
+For the default onboarding story, keep one canonical identifier only.
+
+- `newEntryAs(...)` without an explicit id seeds one internal `resource.id` /
+  `fullUrl`
+- call `ensureIdentifier()` immediately when the entry must also expose the
+  public `<ResourceType>.identifier` claim
+- after that, keep the same canonical value everywhere
+
+Do not teach `setIdentifier(...)` as the normal path in `101` material.
+Reserve it for special import/migration/correlation cases where the caller is
+intentionally replacing the canonical value and understands the reference
+impact.
 
 `build()` does not send, sign, or translate the payload to another standard.
 It only materializes the final bundle object from the editor state currently
 held in memory.
+
+For `Bundle.type=document`, prefer `buildDocument()` explicitly in onboarding
+examples so the reader understands when the editor is closing a clinical
+document with `Composition` first.
+
+### Document Mode
+
+The current newbie-facing document shape is:
+
+```ts
+import {
+  BundleEditor,
+  BundleEditableResourceTypes,
+  BundleTypes,
+  HealthcareBasicSections,
+} from 'gdc-common-utils-ts';
+
+const documentEditor = new BundleEditor()
+  .setBundleOperation(EmployeeBundleOperations.create)
+  .setBundleType(BundleTypes.document)
+  .setCompositionSubject(subjectDid)
+  .setCompositionType('http://loinc.org|60591-5')
+  .setCompositionTitle('Medication document')
+  .setCompositionDate('2026-07-06T10:15:00Z')
+  .setCompositionAuthorList([subjectDid]);
+
+documentEditor
+  .newEntryAs(BundleEditableResourceTypes.medicationStatement, medicationId)
+  .setIdentifier(medicationId)
+  .setSubject(subjectDid)
+  .setCategoryList([HealthcareBasicSections.HistoryOfMedicationUse.attributeValue])
+  .doneEntry();
+
+const bundleDocument = documentEditor.buildDocument();
+```
+
+When a resource needs a linked sibling resource in the same document, keep that
+work on the same editor:
+
+```ts
+documentEditor
+  .openEntry(medicationId)
+  .asResourceType(BundleEditableResourceTypes.medicationStatement)
+  .newContainedResourceAs(
+    BundleEditableResourceTypes.documentReference,
+    documentReferenceId,
+  )
+  .setSubject(subjectDid)
+  .setContentType('application/pdf')
+  .doneEntry();
+```
+
+The helper name keeps `contained` for compatibility with the claims model, but
+the default clinical attachment story is one visible sibling resource in the
+same document section. Only mark it as `contained` when the FHIR export must
+rebuild `resource.contained[]`.
 
 ### Active Entry Editing
 
@@ -170,6 +259,33 @@ const builtBundle = bundle.build();
 - `setIdentifier(...)`
 - `getIdentifier()`
 - `ensureIdentifier()`
+
+## Visible Resources Vs Total Entries
+
+`BundleReader` now separates:
+
+- total `entry[]` count in the stored bundle
+- visible resource count for UI iteration
+
+Use:
+
+```ts
+const entryCount = bundleReader.getEntryCount();
+const visibleResourceCount = bundleReader.getVisibleResourceCount();
+const firstVisibleEntryIndex = bundleReader.getVisibleEntryIndexByPosition(0);
+const nextVisibleEntryIndex = bundleReader.getNextVisibleEntryIndex(firstVisibleEntryIndex ?? -1);
+```
+
+Why both exist:
+
+- `getEntryCount()` includes every raw entry, including imported children that
+  came from one parent resource `contained[]`
+- `getVisibleResourceCount()` excludes entries whose claims mark them as
+  `<ResourceType>.is-contained`
+
+Frontend iteration should usually follow the visible-resource helpers, not the
+raw `entry[]` length, so attached contained children are not rendered as top-
+level cards by mistake.
 - `setEmail(...)`
 - `setRole(...)`
 - `setWorksFor(...)`

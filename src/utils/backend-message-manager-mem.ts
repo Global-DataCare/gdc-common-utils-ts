@@ -31,6 +31,17 @@ export type BackendMessageManagerMemOptions = Readonly<{
  *
  * This is the lowest reusable BFF/proxy slice before actor-specific SDK
  * facades appear.
+ *
+ * Normal deployment story:
+ * - the injected wallet is the unlocked wallet of the user profile runtime
+ * - that same profile wallet usually encrypts outbound messages and decrypts
+ *   replies
+ *
+ * Optional deployment story:
+ * - one BFF/proxy may also own a separate service wallet for its own
+ *   envelopes, signatures, confidential storage, or tenant-level messaging
+ * - that service wallet is a different actor and must not be confused with
+ *   the user-profile wallet handled here
  */
 export class BackendMessageManagerMem {
   private readonly wallet: IWallet;

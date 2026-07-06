@@ -16,6 +16,18 @@ import {
 } from '../models/communication-attached-bundle-session';
 import { BundleQuery, type BundleResourceIdFilters } from './bundle-query';
 import { addClaimValues, getClaimValues, removeClaimValues } from '../claims/claim-list-helpers';
+import {
+  getCommunicationCategoryList,
+  getCommunicationIdentifier,
+  getCommunicationSubject,
+  getCommunicationText,
+  getCommunicationTopic,
+  setCommunicationCategory,
+  setCommunicationIdentifier,
+  setCommunicationSubject,
+  setCommunicationText,
+  setCommunicationTopic,
+} from '../claims/claims-helpers-communication';
 import type { MedicationStatementClaimsFlat } from '../models/interoperable-claims/medication-statement-claims';
 import {
   asTrimmedString,
@@ -37,6 +49,7 @@ import {
 
 export {
   BundleEntryClaimsContext,
+  CommunicationClaimsContext,
   CommunicationAttachmentClaimsContext,
   ConsentEditorScopeCodes,
   ConsentEditorTargetKinds,
@@ -95,9 +108,77 @@ export class CommunicationAttachedBundleSession {
     };
   }
 
+  /** Returns the canonical outer Communication identifier. */
+  getCommunicationIdentifier(): string {
+    return getCommunicationIdentifier(this.communicationClaims);
+  }
+
+  /** Sets the canonical outer Communication identifier. */
+  setCommunicationIdentifier(value: unknown): this {
+    this.communicationClaims = setCommunicationIdentifier(this.communicationClaims, value);
+    return this;
+  }
+
+  /** Returns the canonical outer Communication subject. */
+  getCommunicationSubject(): string {
+    return getCommunicationSubject(this.communicationClaims);
+  }
+
+  /** Sets the canonical outer Communication subject. */
+  setCommunicationSubject(value: unknown): this {
+    this.communicationClaims = setCommunicationSubject(this.communicationClaims, value);
+    return this;
+  }
+
+  /** Returns the canonical outer Communication categories. */
+  getCommunicationCategoryList(): string[] {
+    return getCommunicationCategoryList(this.communicationClaims);
+  }
+
+  /** Replaces the canonical outer Communication categories. */
+  setCommunicationCategory(value: string | readonly string[]): this {
+    this.communicationClaims = setCommunicationCategory(this.communicationClaims, value);
+    return this;
+  }
+
+  /** Returns the canonical outer Communication topic. */
+  getCommunicationTopic(): string {
+    return getCommunicationTopic(this.communicationClaims);
+  }
+
+  /** Sets the canonical outer Communication topic. */
+  setCommunicationTopic(value: unknown): this {
+    this.communicationClaims = setCommunicationTopic(this.communicationClaims, value);
+    return this;
+  }
+
+  /** Returns the canonical outer Communication text. */
+  getCommunicationText(): string {
+    return getCommunicationText(this.communicationClaims);
+  }
+
+  /** Sets the canonical outer Communication text. */
+  setCommunicationText(value: unknown): this {
+    this.communicationClaims = setCommunicationText(this.communicationClaims, value);
+    return this;
+  }
+
   /** Returns a deep copy of the current in-memory bundle. */
   getBundleInMemory(): BundleJsonApi<BundleEntry> {
     return cloneBundle(this.bundleInMemory);
+  }
+
+  /** Replaces the attached clinical bundle and resyncs the outer Communication attachment. */
+  setAttachedBundle(bundle: BundleJsonApi<BundleEntry>): this {
+    validateBundleLike(bundle, this.mode);
+    this.bundleInMemory = cloneBundle(bundle);
+    this.syncAttachmentFromBundle();
+    return this;
+  }
+
+  /** Alias of `getBundleInMemory()` with communication wording. */
+  getAttachedBundle(): BundleJsonApi<BundleEntry> {
+    return this.getBundleInMemory();
   }
 
   /** Returns the active entry index, or null when no entry is selected. */
@@ -312,7 +393,8 @@ export class CommunicationAttachedBundleSession {
 
   /**
    * DocumentReference helper for bundle-contained attachments linked from
-   * other clinical resources through `*.contained-documents`.
+   * other clinical resources through `*.contained-reference-list`
+   * (with `*.contained-documents` kept as legacy compatibility alias).
    */
   upsertActiveDocumentReferenceEntry(input: UpsertClaimsResourceEntryInput<Record<string, unknown>>): this {
     return this.upsertActiveClaimsResourceEntry(ResourceTypesFhirR4.DocumentReference, input);
@@ -431,7 +513,8 @@ export class CommunicationAttachedBundleSession {
 
   /**
    * Creates or updates a linked `DocumentReference` entry and stores its
-   * identifier under the active resource `*.contained-documents` claim.
+   * identifier/reference under the active resource
+   * `*.contained-reference-list` claim.
    */
   addContainedDocumentToActiveEntry(input: AddContainedDocumentToActiveEntryInput): this {
     if (this.activeEntryIndex === null) {

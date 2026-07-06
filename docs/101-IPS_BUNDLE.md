@@ -1,5 +1,11 @@
 # IPS Bundle 101
 
+> 101 note
+> - Teach here: the highest-level public `common-utils` helper available for this topic.
+> - Do not present raw `meta.claims`, `upsert*`, or pack/unpack as the main path unless the topic itself is transport.
+> - Read [101-README.md](./101-README.md) for the ordered path, then continue upward into `gdc-sdk-core-ts` and `gdc-sdk-node-ts`.
+
+
 This is the high-level shared guide for IPS work in the GDC SDK family.
 
 Use this when a developer needs to:
@@ -113,6 +119,7 @@ Start from:
 - `BundleEditor`
 - `BundleEntryEditor`
 - resource-specific entry editors when available
+- `BundleEditor.setBundleType('document')` for individual clinical documents
 
 The generic path is documented in:
 
@@ -128,21 +135,24 @@ Shortest generic editing shape:
 ```ts
 import {
   BundleEditor,
+  BundleEditableResourceTypes,
+  BundleTypes,
   HealthcareBasicSections,
-  ResourceTypesFhirR4,
 } from 'gdc-common-utils-ts';
 
 const bundle = new BundleEditor()
   .setBundleOperation('create')
-  .setAllowedResourceType(ResourceTypesFhirR4.Observation)
-  .newEntry('entry-001')
+  .setBundleType(BundleTypes.document)
+  .setCompositionSubject(subjectDid)
+  .setCompositionType('http://loinc.org|60591-5')
+  .setCompositionTitle('IPS-style document')
+  .setCompositionDate('2026-07-06T10:15:00Z')
+  .setCompositionAuthorList([subjectDid])
+  .newEntryAs(BundleEditableResourceTypes.observation, 'entry-001')
   .setClaim('Observation.identifier', 'urn:uuid:entry-001')
-  .setClaim(
-    'Observation.category',
-    HealthcareBasicSections.VitalSigns.attributeValue,
-  )
+  .setClaim('Observation.category', HealthcareBasicSections.VitalSigns.attributeValue)
   .doneEntry()
-  .build();
+  .buildDocument();
 ```
 
 That generic shape is only the baseline.
@@ -153,6 +163,23 @@ The preferred target surface is resource-specific, for example:
 - `asMedicationStatement().setIdentifier(...).setSubject(...).setEffective(...)`
 - `asCondition().setIdentifier(...).setSubject(...).setOnsetDateTime(...)`
 - `asVitalSign().setVitalSignType(...).setValueQuantity(...)`
+
+For the concrete medication-document story, use:
+
+- [../__tests__/101-communication-medication-document.test.ts](../__tests__/101-communication-medication-document.test.ts)
+
+When rendering one received IPS/document bundle in a frontend, iterate visible
+resources rather than raw entries when contained children were imported into the
+flat claims view:
+
+```ts
+const entryCount = ipsBundleReader.getEntryCount();
+const visibleResourceCount = ipsBundleReader.getVisibleResourceCount();
+const firstVisibleEntryIndex = ipsBundleReader.getVisibleEntryIndexByPosition(0);
+```
+
+Use `getEntryCount()` for audit/debug totals. Use `getVisibleResourceCount()`
+and the visible-index helpers for UI traversal.
 
 When those typed helpers are still missing, the gap stays explicit in:
 

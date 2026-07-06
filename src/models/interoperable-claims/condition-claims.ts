@@ -12,9 +12,20 @@ export const ConditionClaim = {
   VerificationStatus: 'Condition.verification-status',
   Category: 'Condition.category',
   Code: 'Condition.code',
+  /**
+   * Canonical CSV/list of related contained resource references or identifiers.
+   */
+  ContainedReferenceList: 'Condition.contained-reference-list',
+  /**
+   * @deprecated Use `ContainedReferenceList`.
+   */
+  ContainedResourceList: 'Condition.contained-resource-list',
+  /**
+   * @deprecated Use `ContainedReferenceList`.
+   */
   ContainedDocuments: 'Condition.contained-documents',
   /**
-   * @deprecated Use `ContainedDocuments`.
+   * @deprecated Use `ContainedReferenceList`.
    */
   AttachmentContentIds: 'Condition.attachment-content-ids',
   Severity: 'Condition.severity',

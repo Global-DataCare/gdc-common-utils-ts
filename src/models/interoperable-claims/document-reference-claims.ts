@@ -28,6 +28,7 @@ export const DocumentReferenceClaim = {
   Relation: 'DocumentReference.relation',
   Subject: 'DocumentReference.subject',
   Type: 'DocumentReference.type',
+  UserSelected: 'DocumentReference.user-selected',
 } as const;
 
 export type DocumentReferenceClaimKey = typeof DocumentReferenceClaim[keyof typeof DocumentReferenceClaim];
@@ -59,6 +60,7 @@ export const DocumentReferenceClaimSpecs: ClaimSpec[] = [
   { key: DocumentReferenceClaim.Relation, meaning: 'Relation type to related document.', example: 'appends' },
   { key: DocumentReferenceClaim.Subject, meaning: 'URN for the section in the individual index.', example: 'urn:uhix:section:vitals' },
   { key: DocumentReferenceClaim.Type, meaning: 'Lower-level, sector-specific type.', example: 'http://hl7.org/fhir/ValueSet/c80-doc-typecodes|34133-9' },
+  { key: DocumentReferenceClaim.UserSelected, meaning: 'Custom provenance flag telling whether the document was explicitly created or selected by the end user/controller.', example: 'true' },
 ];
 
 /**
@@ -94,4 +96,5 @@ export const DocumentReferenceClaimToFhirPath: Record<string, string | string[]>
   [DocumentReferenceClaim.Relation]: 'DocumentReference.relatesTo.code',
   [DocumentReferenceClaim.Subject]: 'DocumentReference.subject.reference',
   [DocumentReferenceClaim.Type]: 'DocumentReference.type.coding',
+  [DocumentReferenceClaim.UserSelected]: 'DocumentReference.user-selected',
 };

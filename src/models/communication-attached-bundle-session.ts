@@ -25,11 +25,14 @@ export type CommunicationAttachedBundleSessionOptions = Readonly<{
  * Canonical `@context` for outer `Communication` claim payloads.
  *
  * Rationale:
- * - the outer container is materialized as one FHIR `Communication` resource
- * - the inner `resource.meta.claims` rows stay version-agnostic and therefore
- *   use `FHIR_API`
+ * - this value belongs to canonical claims, not to `resource.resourceType`
+ * - `resource.resourceType = Communication` may later be projected as FHIR R4
+ * - but `resource.meta.claims['@context']` should stay version-agnostic
  */
-export const CommunicationAttachmentClaimsContext = Format.FHIR_R4;
+export const CommunicationClaimsContext = Format.FHIR_API;
+
+/** @deprecated Prefer `CommunicationClaimsContext`. */
+export const CommunicationAttachmentClaimsContext = CommunicationClaimsContext;
 
 /**
  * Canonical `@context` for bundle entry `resource.meta.claims`.

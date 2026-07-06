@@ -35,6 +35,8 @@ import {
 } from './shared';
 import {
   CommunicationAttachedBundleSession,
+  CommunicationClaimsContext,
+  BundleEntryClaimsContext,
 } from '../utils/communication-attached-bundle-session';
 import {
   createConsentAccessEditor,
@@ -84,7 +86,7 @@ export function buildConsentEditingCommunicationSessionExample(): {
   communicationClaims: Record<string, unknown>;
   bundleInMemory: BundleJsonApi<BundleEntry>;
 } {
-  let communicationClaims: Record<string, unknown> = { '@context': 'org.hl7.fhir.r4' };
+  let communicationClaims: Record<string, unknown> = { '@context': CommunicationClaimsContext };
   communicationClaims = setCommunicationIdentifier(
     communicationClaims,
     EXAMPLE_COMMUNICATION_IDENTIFIER,
@@ -106,11 +108,11 @@ export function buildConsentEditingCommunicationSessionExample(): {
     EXAMPLE_IPS_BUNDLE_NOTE_TEXT,
   );
 
-  const bundleEditor = new CommunicationAttachedBundleSession({
+  const consentBundleEditor = new CommunicationAttachedBundleSession({
     communicationClaims,
   });
 
-  let consentClaims: Record<string, unknown> = { '@context': 'org.hl7.fhir.api' };
+  let consentClaims: Record<string, unknown> = { '@context': BundleEntryClaimsContext };
   consentClaims = setConsentDecision(consentClaims, ConsentDecisions.Permit);
   consentClaims = setConsentSubject(consentClaims, EXAMPLE_SUBJECT_DID);
   consentClaims = setConsentIdentifier(consentClaims, EXAMPLE_CONSENT_IDENTIFIER);
@@ -124,16 +126,16 @@ export function buildConsentEditingCommunicationSessionExample(): {
   consentClaims = setActorIdentifierList(consentClaims, [EXAMPLE_EMAIL_PROFESSIONAL]);
   consentClaims = setActorRoleList(consentClaims, [EXAMPLE_HEALTHCARE_ACTOR_ROLE_PHYSICIAN]);
 
-  bundleEditor.upsertActiveConsentEntry({
+  consentBundleEditor.upsertActiveConsentEntry({
     claims: consentClaims,
     fullUrl: `urn:uuid:${EXAMPLE_CONSENT_IDENTIFIER}`,
   });
 
-  bundleEditor.saveAndReleaseActiveEntry();
+  consentBundleEditor.saveAndReleaseActiveEntry();
 
   return {
-    communicationClaims: bundleEditor.getCommunicationClaims(),
-    bundleInMemory: bundleEditor.getBundleInMemory(),
+    communicationClaims: consentBundleEditor.getCommunicationClaims(),
+    bundleInMemory: consentBundleEditor.getBundleInMemory(),
   };
 }
 
@@ -147,7 +149,7 @@ export function buildMedicationEditingCommunicationSessionExample(): {
   communicationClaims: Record<string, unknown>;
   bundleInMemory: BundleJsonApi<BundleEntry>;
 } {
-  let communicationClaims: Record<string, unknown> = { '@context': 'org.hl7.fhir.r4' };
+  let communicationClaims: Record<string, unknown> = { '@context': CommunicationClaimsContext };
   communicationClaims = setCommunicationIdentifier(
     communicationClaims,
     EXAMPLE_COMMUNICATION_IDENTIFIER,
@@ -165,13 +167,13 @@ export function buildMedicationEditingCommunicationSessionExample(): {
     EXAMPLE_IPS_BUNDLE_NOTE_TEXT,
   );
 
-  const bundleEditor = new CommunicationAttachedBundleSession({
+  const clinicalBundleEditor = new CommunicationAttachedBundleSession({
     communicationClaims,
   });
 
-  bundleEditor.upsertActiveMedicationStatementEntry({
+  clinicalBundleEditor.upsertActiveMedicationStatementEntry({
     claims: {
-      '@context': 'org.hl7.fhir.api',
+      '@context': BundleEntryClaimsContext,
       [MedicationStatementClaim.Identifier]: EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER,
       [MedicationStatementClaim.Subject]: EXAMPLE_SUBJECT_DID,
       [MedicationStatementClaim.Status]: EXAMPLE_MEDICATION_STATEMENT_STATUS,
@@ -180,11 +182,11 @@ export function buildMedicationEditingCommunicationSessionExample(): {
     fullUrl: `urn:uuid:${EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER}`,
   });
 
-  bundleEditor.saveAndReleaseActiveEntry();
+  clinicalBundleEditor.saveAndReleaseActiveEntry();
 
   return {
-    communicationClaims: bundleEditor.getCommunicationClaims(),
-    bundleInMemory: bundleEditor.getBundleInMemory(),
+    communicationClaims: clinicalBundleEditor.getCommunicationClaims(),
+    bundleInMemory: clinicalBundleEditor.getBundleInMemory(),
   };
 }
 
@@ -209,7 +211,7 @@ export function buildConsentPermissionTemplateImportExportSessionExample(): {
   importedConsentClaims: Record<string, unknown>;
   bundleInMemory: BundleJsonApi<BundleEntry>;
 } {
-  let communicationClaims: Record<string, unknown> = { '@context': 'org.hl7.fhir.r4' };
+  let communicationClaims: Record<string, unknown> = { '@context': CommunicationClaimsContext };
   communicationClaims = setCommunicationIdentifier(
     communicationClaims,
     EXAMPLE_COMMUNICATION_IDENTIFIER,
@@ -260,7 +262,7 @@ export function buildConsentPermissionTemplateImportExportSessionExample(): {
     ],
   } as const;
 
-  let consentClaims: Record<string, unknown> = { '@context': 'org.hl7.fhir.api' };
+  let consentClaims: Record<string, unknown> = { '@context': BundleEntryClaimsContext };
   consentClaims = setConsentDecision(consentClaims, templateDraft.decision);
   consentClaims = setConsentSubject(consentClaims, EXAMPLE_SUBJECT_DID);
   consentClaims = setConsentIdentifier(consentClaims, EXAMPLE_CONSENT_IDENTIFIER);
@@ -273,18 +275,18 @@ export function buildConsentPermissionTemplateImportExportSessionExample(): {
   consentClaims = setSectionList(consentClaims, templateDraft.sections);
   consentClaims = setClaimValues(consentClaims, ClaimConsent.resourceType, templateDraft.resourceTypes);
 
-  const bundleEditor = createConsentAccessEditor({
+  const consentBundleEditor = createConsentAccessEditor({
     communicationClaims,
   });
 
-  bundleEditor.upsertActiveConsentEntry({
+  consentBundleEditor.upsertActiveConsentEntry({
     claims: consentClaims,
     fullUrl: `urn:uuid:${EXAMPLE_CONSENT_IDENTIFIER}`,
   });
-  bundleEditor.saveAndReleaseActiveEntry();
+  consentBundleEditor.saveAndReleaseActiveEntry();
 
   const reloadedEditor = createConsentAccessEditor({
-    communicationClaims: bundleEditor.getCommunicationClaims(),
+    communicationClaims: consentBundleEditor.getCommunicationClaims(),
   });
   reloadedEditor.selectActiveEntry({
     fullUrl: `urn:uuid:${EXAMPLE_CONSENT_IDENTIFIER}`,
@@ -313,7 +315,7 @@ export function buildSeparateConsentPermissionBundleExample(): {
   bundleInMemory: BundleJsonApi<BundleEntry>;
   communicationClaims: Record<string, unknown>;
 } {
-  let communicationClaims: Record<string, unknown> = { '@context': 'org.hl7.fhir.r4' };
+  let communicationClaims: Record<string, unknown> = { '@context': CommunicationClaimsContext };
   communicationClaims = setCommunicationIdentifier(
     communicationClaims,
     EXAMPLE_COMMUNICATION_IDENTIFIER,
@@ -413,7 +415,7 @@ export function buildSeparateConsentPermissionBundleExample(): {
     },
   );
 
-  const bundleEditor = createConsentAccessEditor({
+  const consentBundleEditor = createConsentAccessEditor({
     communicationClaims,
   });
   const decisions = [
@@ -428,7 +430,7 @@ export function buildSeparateConsentPermissionBundleExample(): {
       subject: EXAMPLE_SUBJECT_DID,
       fullUrl: `urn:uuid:${EXAMPLE_CONSENT_IDENTIFIER}-${index + 1}`,
     });
-    bundleEditor.upsertActiveConsentEntry({
+    consentBundleEditor.upsertActiveConsentEntry({
       claims: {
         ...(consentEntry.resource?.meta?.claims || {}),
       },
@@ -436,11 +438,11 @@ export function buildSeparateConsentPermissionBundleExample(): {
       type: consentEntry.type,
     });
   });
-  bundleEditor.saveAndReleaseActiveEntry();
+  consentBundleEditor.saveAndReleaseActiveEntry();
 
   return {
     decisions,
-    communicationClaims: bundleEditor.getCommunicationClaims(),
-    bundleInMemory: bundleEditor.getBundleInMemory(),
+    communicationClaims: consentBundleEditor.getCommunicationClaims(),
+    bundleInMemory: consentBundleEditor.getBundleInMemory(),
   };
 }

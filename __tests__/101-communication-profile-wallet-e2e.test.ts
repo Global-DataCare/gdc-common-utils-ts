@@ -1,185 +1,186 @@
-import { createHash, randomBytes, randomUUID } from 'crypto';
+/**
+ * 101 note:
+ * - Read `CONTRIBUTING.md` first. The shared test rules there are part of this file.
+ * - Teach the highest-level public `common-utils` helper available for this topic.
+ * - Do not make raw `meta.claims`, `upsert*`, or pack/unpack the main path unless this file is itself about transport.
+ * - Do not introduce inline literals when a shared type, constant, fixture, or
+ *   validation issue already exists in `src/constants/*`, `src/models/*`, or
+ *   `src/examples/*`.
+ * - Read `docs/101-README.md` for the ordered path, then continue upward into `gdc-sdk-core-ts` and `gdc-sdk-node-ts`.
+ */
+
 import { describe, expect, it } from '@jest/globals';
-import { CryptographyService } from '../src/CryptographyService';
-import type { ICryptoHelper } from '../src/interfaces/ICryptoHelper';
 import { CommunicationCategoryCodes } from '../src/constants/communication.js';
-import { CommunicationClaim } from '../src/models/interoperable-claims/communication-claims.js';
+import { ResourceTypesFhirR4 } from '../src/constants/fhir-resource-types.js';
 import { MedicationStatementClaim } from '../src/models/interoperable-claims/medication-statement-claims.js';
 import {
-  EXAMPLE_DIDCOMM_ACK_BODY_OK_KEY,
-  EXAMPLE_DIDCOMM_ACK_BODY_RECEIVED_MEDICATION_IDENTIFIER_KEY,
-  EXAMPLE_DIDCOMM_ACK_TYPE,
-  EXAMPLE_DIDCOMM_BUNDLE_ENTRY_CONTEXT,
   EXAMPLE_DIDCOMM_COMMUNICATION_AUD,
-  EXAMPLE_DIDCOMM_COMMUNICATION_ATTACHMENT_CONTEXT,
   EXAMPLE_DIDCOMM_COMMUNICATION_ISS,
   EXAMPLE_DIDCOMM_COMMUNICATION_JTI,
-  EXAMPLE_DIDCOMM_REPLY_AUD,
-  EXAMPLE_DIDCOMM_REPLY_JTI,
   EXAMPLE_DIDCOMM_COMMUNICATION_THID,
 } from '../src/examples/communication-didcomm-payload.js';
 import {
-  EXAMPLE_PROFILE_MANAGER_MEM_DID,
-  EXAMPLE_PROFILE_MANAGER_MEM_DISPLAY_NAME,
-  EXAMPLE_PROFILE_MANAGER_MEM_GATEWAY_DID,
-  EXAMPLE_PROFILE_MANAGER_MEM_GATEWAY_DISPLAY_NAME,
-  EXAMPLE_PROFILE_MANAGER_MEM_GATEWAY_PROFILE_ID,
-  EXAMPLE_PROFILE_MANAGER_MEM_PRIORITY_EMERGENCY,
-  EXAMPLE_PROFILE_MANAGER_MEM_PROFILE_ID,
-} from '../src/examples/profile-manager-mem.js';
-import {
   EXAMPLE_COMMUNICATION_IDENTIFIER,
-  EXAMPLE_MEDICATION_STATEMENT_CODE,
-  EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER,
-  EXAMPLE_MEDICATION_STATEMENT_STATUS,
-  EXAMPLE_MEDICATION_STATEMENT_TEXT,
   EXAMPLE_SUBJECT_DID,
 } from '../src/examples/shared.js';
-import { CommunicationAttachedBundleSession } from '../src/utils/communication-attached-bundle-session.js';
+import {
+  buildExampleLiveMedicationCases,
+  buildExampleMedicationIpsDocumentBundle,
+} from '../src/examples/shared.js';
+import { validateBundleDocumentBasic } from '../src/utils/bundle-document-builder.js';
+import { CommunicationEditor, CommunicationReader } from '../src/utils/communication-editor.js';
 import {
   buildDidcommPayloadFromCommunicationClaims,
-  decodeAttachedBundleFromCommunicationClaims,
-  getFirstCommunicationClaimsFromDidcommPayload,
 } from '../src/utils/communication-didcomm-payload.js';
-import { ProfileManagerMem } from '../src/utils/profile-manager-mem.js';
-import { WalletMem } from '../src/utils/wallet-mem.js';
-import { BundleReader } from '../src/utils/bundle-reader.js';
-
-const cryptoHelper: ICryptoHelper = {
-  async getRandomBytes(byteCount: number): Promise<Uint8Array> {
-    return randomBytes(byteCount);
-  },
-  async digestString(data: string, algorithm: string): Promise<string> {
-    const normalized = String(algorithm).replace('-', '').toLowerCase();
-    return createHash(normalized).update(data).digest('hex');
-  },
-  randomUUID(): string {
-    return randomUUID();
-  },
-};
 
 describe('101: communication bundle through profile manager and wallet', () => {
-  it('teaches the end-to-end path from clinical bundle editing to DIDComm pack/unpack and bundle readback', async () => {
+  it('teaches the transport and readback path for one already-built document bundle', async () => {
     /**
-     * Teaching goal:
-     * - show the real low-level path an app/BFF can use without actor facades
-     * - show what belongs to frontend clinical editing vs BFF DIDComm wrapping
-     * - clarify why the outer `Communication` uses `FHIR_R4` while the inner
-     *   bundle-entry claims use `FHIR_API`
-     * - author a medication entry through `CommunicationAttachedBundleSession`
-     * - wrap the resulting `Communication` claims as DIDComm batch payload
-     * - let the BFF/runtime layer encrypt and send it through `ProfileManagerMem`
-     * - decode the payload on the receiver side and read the attached bundle
+     * Scope:
+     * - canonical bundle authoring: `101-ips-bundle-editor.test.ts`
+     * - this file: transport/readback around one finished document bundle
+     * - stop before wallet/outbox transport plumbing
+     * - next layers: `sdk-core` and `sdk-node`
      *
-     * Escape hatch note:
-     * - direct `WalletMem.pack/unpack` exists for raw transport tests
-     * - the main tutorial path here is profile -> message manager -> decoded
-     *   communication bundle
+     * Runtime ownership rule:
+     * - normal case: the unlocked user profile runtime later encrypts this
+     *   payload for transport and decrypts the reply
+     * - that runtime may live inside a BFF, web shell, or Expo app
+     * - a separate proxy/service wallet is optional infrastructure, not the
+     *   default path taught here
      */
-    const senderWallet = new WalletMem({ cryptoHelper, cryptography: new CryptographyService(cryptoHelper) });
-    const gatewayWallet = new WalletMem({ cryptoHelper, cryptography: new CryptographyService(cryptoHelper) });
-    await gatewayWallet.provisionKeys(EXAMPLE_PROFILE_MANAGER_MEM_GATEWAY_PROFILE_ID);
 
-    const session = new CommunicationAttachedBundleSession({
-      communicationClaims: {
-        '@context': EXAMPLE_DIDCOMM_COMMUNICATION_ATTACHMENT_CONTEXT,
-        [CommunicationClaim.Identifier]: EXAMPLE_COMMUNICATION_IDENTIFIER,
-        [CommunicationClaim.Subject]: EXAMPLE_SUBJECT_DID,
-        [CommunicationClaim.Category]: CommunicationCategoryCodes.Notification.claim,
-      },
-    });
+    // Step 1: load one shared document bundle fixture from the bundle-authoring tutorial.
+    //
+    // What happens here:
+    // - we reuse the shared IPS example fixture instead of rebuilding the
+    //   document by hand in this transport-focused test
+    //
+    // What the newbie should remember:
+    // - the authoring walkthrough itself lives in `101-ips-bundle-editor.test.ts`
+    // - the claims-aggregator helper stays secondary, not canonical
+    const medication = buildExampleLiveMedicationCases(101)[0]!;
+    const clinicalDocumentBundle = buildExampleMedicationIpsDocumentBundle({
+      subjectDid: EXAMPLE_SUBJECT_DID,
+      medication,
+    }) as Record<string, unknown>;
 
-    // Step 1.
-    // Frontend/app responsibility:
-    // edit the clinical payload and persist it in one Communication attachment.
-    // Context rule:
-    // - outer `Communication` claims stay `FHIR_R4`
-    // - inner `resource.meta.claims` rows stay `FHIR_API`
-    // This split is intentional: transport shell outside, reusable neutral
-    // claim vocabulary inside.
-    session.upsertActiveMedicationStatementEntry({
-      claims: {
-        '@context': EXAMPLE_DIDCOMM_BUNDLE_ENTRY_CONTEXT,
-        [MedicationStatementClaim.Identifier]: EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER,
-        [MedicationStatementClaim.Subject]: EXAMPLE_SUBJECT_DID,
-        [MedicationStatementClaim.Status]: EXAMPLE_MEDICATION_STATEMENT_STATUS,
-        [MedicationStatementClaim.Code]: EXAMPLE_MEDICATION_STATEMENT_CODE,
-        [MedicationStatementClaim.MedicationText]: EXAMPLE_MEDICATION_STATEMENT_TEXT,
-      },
-      fullUrl: `urn:uuid:${EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER}`,
-    });
-    session.saveAndReleaseActiveEntry();
+    expect(validateBundleDocumentBasic(clinicalDocumentBundle)).toEqual({ ok: true, issues: [] });
 
-    // Step 2.
-    // BFF/runtime responsibility:
-    // wrap the final Communication claims as DIDComm plaintext JSON before
-    // crypto. In one plain/FHIR-compat mode this payload can travel as-is.
-    // In the normal proxy mode this payload becomes the input to wallet pack/encrypt.
+    // Step 2: build one delivery Communication and attach that finished bundle.
+    //
+    // What happens here:
+    // - we author one outer Communication through communication-level setters
+    // - we attach the already-built bundle to that Communication
+    //
+    // What the newbie should remember:
+    // - for individual index data, the current shared payload is:
+    //   `document Bundle inside Communication`
+    // - the public editor name is `CommunicationEditor`
+    const deliverCommunication = new CommunicationEditor()
+      .setCommunicationIdentifier(EXAMPLE_COMMUNICATION_IDENTIFIER)
+      .setCommunicationSubject(EXAMPLE_SUBJECT_DID)
+      .setCommunicationCategory(CommunicationCategoryCodes.Notification.claim)
+      .setCommunicationTopic('medication-document')
+      .setCommunicationText('Transport-only example for one ready-made document bundle.')
+      .setAttachedBundle(clinicalDocumentBundle as any);
+
+    expect(deliverCommunication.getCommunicationIdentifier()).toBe(EXAMPLE_COMMUNICATION_IDENTIFIER);
+    expect(deliverCommunication.getCommunicationSubject()).toBe(EXAMPLE_SUBJECT_DID);
+    expect(deliverCommunication.getCommunicationCategoryList()).toEqual([CommunicationCategoryCodes.Notification.claim]);
+    expect((deliverCommunication.getAttachedBundle() as any).type).toBe('document');
+    expect((deliverCommunication.getAttachedBundle() as any).entry?.[0]?.resource?.resourceType).toBe(ResourceTypesFhirR4.Composition);
+
+    // Step 3: convert the finished Communication into the transport payload that will travel.
+    //
+    // What happens here:
+    // - we wrap that Communication in one DIDComm-style plaintext payload
+    //
+    // What the newbie should remember:
+    // - after Step 1 we had one document clinical bundle
+    // - after Step 2 we had one Communication carrying that bundle
+    // - after Step 3 we have plaintext transport content, still not encrypted
+    //
     // Semantics:
-    // - BFF first wraps `Bundle` inside `Communication`
-    // - then wraps `Communication` inside DIDComm plaintext JSON
+    // - first: the current shared document bundle lives inside `Communication`
+    // - second: `Communication` lives inside DIDComm/plain `body.data[]`
     const didcommPayload = buildDidcommPayloadFromCommunicationClaims({
-      communicationClaims: session.getCommunicationClaims(),
+      communicationClaims: deliverCommunication.getCommunicationClaims(),
       iss: EXAMPLE_DIDCOMM_COMMUNICATION_ISS,
       aud: EXAMPLE_DIDCOMM_COMMUNICATION_AUD,
       jti: EXAMPLE_DIDCOMM_COMMUNICATION_JTI,
       thid: EXAMPLE_DIDCOMM_COMMUNICATION_THID,
     });
-    // Step 3.
-    const senderManager = new ProfileManagerMem({
-      profile: {
-        profileId: EXAMPLE_PROFILE_MANAGER_MEM_PROFILE_ID,
-        did: EXAMPLE_PROFILE_MANAGER_MEM_DID,
-        displayName: EXAMPLE_PROFILE_MANAGER_MEM_DISPLAY_NAME,
-      },
-      wallet: senderWallet,
-      transport: {
-        submit: async ({ envelope }) => {
-          const decoded = await gatewayWallet.unpack!(envelope, EXAMPLE_PROFILE_MANAGER_MEM_GATEWAY_PROFILE_ID);
-          const communicationClaims = getFirstCommunicationClaimsFromDidcommPayload(decoded.content as any);
-          const attachedBundle = decodeAttachedBundleFromCommunicationClaims(communicationClaims);
-          const reader = new BundleReader(attachedBundle);
 
-          expect(reader.getEntryClaimsByArrayIndex(0)[MedicationStatementClaim.Identifier]).toBe(EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER);
+    // Step 4: read that DIDComm/plain payload back as one Communication.
+    //
+    // What happens here:
+    // - we read the first delivery Communication from the transport payload
+    // - we open the attached clinical bundle again through reader APIs
+    //
+    // What the frontend/BFF should remember:
+    // - Step 3 gave us transport content
+    // - the app first decodes that payload into one Communication
+    // - it then reads Communication metadata that a chat list/card would show
+    // - it then opens the attached business payload
+    // - backend searches are a different story:
+    //   they are expressed with FHIR search params such as
+    //   `Composition.section=loinc-1,loinc-2`
+    // - do not copy local bundle-navigation code from this test and mistake
+    //   it for GW search semantics
+    //
+    // Transport runtime is still out of scope here:
+    // - profile queue/send/poll lives in `101-profile-manager-mem.test.ts`
+    // - higher SDK/BFF orchestration lives in `sdk-node` / `sdk-front`
+    // - full document teaching with `Composition` first entry should use a
+    //   dedicated public document editor path, which is not the public 101
+    //   surface yet
+    const receivedCommunication = CommunicationReader.fromDidcommPayload(didcommPayload);
+    const receivedClinicalBundleReader = receivedCommunication.getAttachedBundleReader();
+    const medicationEntryIndex = receivedClinicalBundleReader.getEntryIndexByIdentifier(medication.identifier);
+    const documentSections = receivedClinicalBundleReader.getDocumentSections();
 
-          const senderKeys = await senderWallet.getPublicKeys!(EXAMPLE_PROFILE_MANAGER_MEM_PROFILE_ID);
-          return {
-            accepted: true,
-            responseEnvelope: await gatewayWallet.pack!(
-              {
-                iss: EXAMPLE_PROFILE_MANAGER_MEM_GATEWAY_DID,
-                aud: EXAMPLE_DIDCOMM_REPLY_AUD,
-                jti: EXAMPLE_DIDCOMM_REPLY_JTI,
-                thid: EXAMPLE_DIDCOMM_COMMUNICATION_THID,
-                type: EXAMPLE_DIDCOMM_ACK_TYPE,
-                body: {
-                  [EXAMPLE_DIDCOMM_ACK_BODY_OK_KEY]: true,
-                  [EXAMPLE_DIDCOMM_ACK_BODY_RECEIVED_MEDICATION_IDENTIFIER_KEY]:
-                    reader.getEntryClaimsByArrayIndex(0)[MedicationStatementClaim.Identifier],
-                },
-              },
-              senderKeys.encryptionJwk,
-              EXAMPLE_PROFILE_MANAGER_MEM_GATEWAY_PROFILE_ID,
-            ),
-          };
-        },
-      },
-    });
-    await senderManager.initialize();
-    const gatewayKeys = await gatewayWallet.getPublicKeys!(EXAMPLE_PROFILE_MANAGER_MEM_GATEWAY_PROFILE_ID);
-    await senderManager.queueMessage({
-      payload: didcommPayload as unknown as Record<string, unknown>,
-      priority: EXAMPLE_PROFILE_MANAGER_MEM_PRIORITY_EMERGENCY,
-      recipientEncryptionJwk: gatewayKeys.encryptionJwk,
-    });
-
-    // Step 4.
-    const submitted = await senderManager.submitNextPendingMessage(gatewayKeys.encryptionJwk);
-    expect((submitted.response?.content as Record<string, unknown>)['thid']).toBe(EXAMPLE_DIDCOMM_COMMUNICATION_THID);
+    expect(didcommPayload.thid).toBe(EXAMPLE_DIDCOMM_COMMUNICATION_THID);
+    expect(receivedCommunication.getCommunicationIdentifier()).toBe(EXAMPLE_COMMUNICATION_IDENTIFIER);
+    expect(receivedCommunication.getCommunicationSubject()).toBe(EXAMPLE_SUBJECT_DID);
+    expect(receivedCommunication.getCommunicationCategoryList()).toEqual([CommunicationCategoryCodes.Notification.claim]);
+    expect(receivedCommunication.getAttachmentContentType()).toBe('application/fhir+json');
+    expect(receivedCommunication.getAttachmentDataBase64()).toBeTruthy();
+    expect(receivedClinicalBundleReader.getResourceType()).toBe(ResourceTypesFhirR4.Bundle);
+    expect(receivedClinicalBundleReader.getBundleType()).toBe('document');
+    expect(receivedClinicalBundleReader.getTotalOperations()).toBeGreaterThanOrEqual(3);
+    expect(documentSections).toHaveLength(1);
+    expect(documentSections[0].entryReferences).toEqual([
+      `MedicationStatement/${medication.identifier}`,
+    ]);
+    // TODO: show the authoring-side document constraints required by the
+    // European/FHIR-like exchange profile once the public document authoring
+    // surface exposes them directly:
+    // - document identifiers/version metadata
+    // - document authors/attesters/custodian participants
+    //   (`Composition.author` may need one claims-first CSV/list surface)
+    // - encounter/context references
+    // - narrative/title/language and other profile-required document fields
+    // - section-level multi-resource examples beyond one medication
+    // - resource-specific provenance/author fields that differ by resource,
+    //   for example:
+    //   `MedicationStatement.source`
+    //   `AllergyIntolerance.recorder`
+    //   `Condition.recorder`
+    //   `DiagnosticReport.performer` / `DiagnosticReport.results-interpreter`
+    //   `DocumentReference.author`
+    expect((receivedCommunication.getAttachedBundle() as any).entry?.[0]?.resource?.resourceType).toBe(ResourceTypesFhirR4.Composition);
+    expect((receivedCommunication.getAttachedBundle() as any).entry?.[0]?.resource?.status).toBe('final');
+    expect(medicationEntryIndex).toBeDefined();
+    // TODO: extend this readback example with a second medication and one
+    // linked DocumentReference once the public tutorial surface for
+    // `MedicationStatement.user-selected` / `DocumentReference.user-selected`
+    // is available through dedicated setters instead of raw claim patching.
+    // TODO: add one focused assertion for the resolved resource id and
+    // user-facing summary data the frontend would render in a medication list
+    // card after opening the document section.
     expect(
-      ((submitted.response?.content as Record<string, unknown>)['body'] as Record<string, unknown>)[
-        EXAMPLE_DIDCOMM_ACK_BODY_RECEIVED_MEDICATION_IDENTIFIER_KEY
-      ],
-    ).toBe(EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER);
+      receivedClinicalBundleReader.getEntryClaimsByArrayIndex(medicationEntryIndex as number)[MedicationStatementClaim.Identifier],
+    ).toBe(medication.identifier);
   });
 });

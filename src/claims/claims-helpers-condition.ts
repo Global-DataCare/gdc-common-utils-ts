@@ -39,56 +39,87 @@ export function removeConditionClaimList(
   return removeClaimValues(claims, claimKey, values);
 }
 
-export function getConditionContainedDocumentIdentifierList(claims: ConditionInteroperableClaims): string[] {
+export function getConditionContainedResourceReferenceList(claims: ConditionInteroperableClaims): string[] {
   return uniqueCsvLists([
+    getConditionClaimList(claims, ConditionClaim.ContainedReferenceList),
     getConditionClaimList(claims, ConditionClaim.ContainedDocuments),
     getConditionClaimList(claims, ConditionClaim.AttachmentContentIds),
   ]);
 }
 
-export function setConditionContainedDocumentIdentifierList(
+export function setConditionContainedResourceReferenceList(
   claims: ConditionInteroperableClaims,
   values: string | readonly string[],
 ): ConditionInteroperableClaims {
-  return setContainedDocuments(claims, values);
+  return setContainedResources(claims, values);
 }
 
-export function addConditionContainedDocumentIdentifierList(
+export function addConditionContainedResourceReferenceList(
   claims: ConditionInteroperableClaims,
   values: string | readonly string[],
 ): ConditionInteroperableClaims {
-  return setContainedDocuments(
+  return setContainedResources(
     claims,
     uniqueCsvLists([
-      getConditionContainedDocumentIdentifierList(claims),
-      Array.isArray(values) ? [...values] : getConditionClaimList({ [ConditionClaim.ContainedDocuments]: values }, ConditionClaim.ContainedDocuments),
+      getConditionContainedResourceReferenceList(claims),
+      Array.isArray(values) ? [...values] : getConditionClaimList({ [ConditionClaim.ContainedReferenceList]: values }, ConditionClaim.ContainedReferenceList),
     ]),
   );
 }
 
-export function removeConditionContainedDocumentIdentifierList(
+export function removeConditionContainedResourceReferenceList(
   claims: ConditionInteroperableClaims,
   values: string | readonly string[],
 ): ConditionInteroperableClaims {
   const toRemove = new Set(
-    (Array.isArray(values) ? values : getConditionClaimList({ [ConditionClaim.ContainedDocuments]: values }, ConditionClaim.ContainedDocuments))
+    (Array.isArray(values) ? values : getConditionClaimList({ [ConditionClaim.ContainedReferenceList]: values }, ConditionClaim.ContainedReferenceList))
       .map((item) => String(item || '').trim())
       .filter(Boolean),
   );
-  return setContainedDocuments(
+  return setContainedResources(
     claims,
-    getConditionContainedDocumentIdentifierList(claims).filter((item) => !toRemove.has(item)),
+    getConditionContainedResourceReferenceList(claims).filter((item) => !toRemove.has(item)),
   );
 }
 
-function setContainedDocuments(
+/** @deprecated Use `getConditionContainedResourceReferenceList`. */
+export function getConditionContainedDocumentIdentifierList(claims: ConditionInteroperableClaims): string[] {
+  return getConditionContainedResourceReferenceList(claims);
+}
+
+/** @deprecated Use `setConditionContainedResourceReferenceList`. */
+export function setConditionContainedDocumentIdentifierList(
   claims: ConditionInteroperableClaims,
   values: string | readonly string[],
 ): ConditionInteroperableClaims {
-  const next = setConditionClaimList(claims, ConditionClaim.ContainedDocuments, values);
+  return setConditionContainedResourceReferenceList(claims, values);
+}
+
+/** @deprecated Use `addConditionContainedResourceReferenceList`. */
+export function addConditionContainedDocumentIdentifierList(
+  claims: ConditionInteroperableClaims,
+  values: string | readonly string[],
+): ConditionInteroperableClaims {
+  return addConditionContainedResourceReferenceList(claims, values);
+}
+
+/** @deprecated Use `removeConditionContainedResourceReferenceList`. */
+export function removeConditionContainedDocumentIdentifierList(
+  claims: ConditionInteroperableClaims,
+  values: string | readonly string[],
+): ConditionInteroperableClaims {
+  return removeConditionContainedResourceReferenceList(claims, values);
+}
+
+function setContainedResources(
+  claims: ConditionInteroperableClaims,
+  values: string | readonly string[],
+): ConditionInteroperableClaims {
+  const next = setConditionClaimList(claims, ConditionClaim.ContainedReferenceList, values);
   const cleaned = {
     ...next,
   };
+  delete cleaned[ConditionClaim.ContainedDocuments];
   delete cleaned[ConditionClaim.AttachmentContentIds];
   return cleaned;
 }

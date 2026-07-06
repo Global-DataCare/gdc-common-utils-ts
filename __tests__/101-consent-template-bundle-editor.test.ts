@@ -1,3 +1,10 @@
+/**
+ * 101 note:
+ * - Teach the highest-level public `common-utils` helper available for this topic.
+ * - Do not make raw `meta.claims`, `upsert*`, or pack/unpack the main path unless this file is itself about transport.
+ * - Read `docs/101-README.md` for the ordered path, then continue upward into `gdc-sdk-core-ts` and `gdc-sdk-node-ts`.
+ */
+
 import { describe, expect, it } from '@jest/globals';
 
 import {
@@ -46,7 +53,7 @@ describe('101: consent template bundle editor', () => {
     // Step 1.
     // Build the empty bundle skeleton with three Consent slots that the app
     // will later fill.
-    const bundleEditor = new BundleEditor()
+    const consentBundleEditor = new BundleEditor()
       .setBundleOperation(EmployeeBundleOperations.create)
       .setAllowedResourceType(ResourceTypesFhirR4.Consent)
       .newEntry(`${EXAMPLE_COMMUNICATION_IDENTIFIER}-consent-1`)
@@ -59,8 +66,8 @@ describe('101: consent template bundle editor', () => {
       .setFullUrl(`urn:uuid:${EXAMPLE_CONSENT_IDENTIFIER}-3`)
       .doneEntry();
 
-    const draftBundle = bundleEditor.buildJsonApi();
-    expect(new BundleReader(bundleEditor.build()).getTotalOperations()).toBe(3);
+    const draftBundle = consentBundleEditor.buildJsonApi();
+    expect(new BundleReader(consentBundleEditor.build()).getTotalOperations()).toBe(3);
 
     // Step 2.
     // Build three high-level template decisions representing what the user has

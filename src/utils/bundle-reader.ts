@@ -4,6 +4,7 @@ import {
   IssueSeverity,
   type IssueSeverityCode,
 } from '../models/issue';
+import { BundleQuery, type BundleResourceIdFilters } from './bundle-query';
 
 export type BundleReaderEntry = Record<string, unknown>;
 
@@ -39,12 +40,43 @@ export type BundleReaderResponseAnalysis = Readonly<{
   }>;
 }>;
 
+export type BundleDocumentSectionSummary = Readonly<{
+  index: number;
+  code?: string;
+  system?: string;
+  claim?: string;
+  entryReferences: readonly string[];
+}>;
+
+export type BundleVisibleResourceNavigation = Readonly<{
+  entryIndexes: readonly number[];
+  resourceIds: readonly string[];
+}>;
+
 function cloneEntry<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
 }
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
+}
+
+function asNonEmptyString(value: unknown): string | undefined {
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+  const normalized = value.trim();
+  return normalized || undefined;
+}
+
+function resolveContainedFlagClaimKey(resourceType: unknown): string | undefined {
+  const normalized = asNonEmptyString(resourceType);
+  return normalized ? `${normalized}.is-contained` : undefined;
+}
+
+function resolveContainedParentReferenceClaimKey(resourceType: unknown): string | undefined {
+  const normalized = asNonEmptyString(resourceType);
+  return normalized ? `${normalized}.contained-parent-reference` : undefined;
 }
 
 /**
@@ -136,6 +168,29 @@ export class BundleReader {
     return getClaimsInBundleEntryAt(this.bundle, index);
   }
 
+  /** Returns true when the entry was imported from one parent resource `contained[]`. */
+  public isContainedResourceEntryByArrayIndex(index: number): boolean {
+    const claims = this.getEntryClaimsByArrayIndex(index);
+    const entryRecord = asRecord(this.getEntries()[index]);
+    const resourceRecord = asRecord(entryRecord.resource);
+    const resourceType = claims['resourceType'] || resourceRecord.resourceType;
+    const claimKey = resolveContainedFlagClaimKey(resourceType);
+    return claimKey
+      ? (claims[claimKey] === true || claims[claimKey] === 'true')
+      : false;
+  }
+
+  /** Returns the parent resource reference for one contained resource entry. */
+  public getContainedParentReferenceByArrayIndex(index: number): string | undefined {
+    const claims = this.getEntryClaimsByArrayIndex(index);
+    const entryRecord = asRecord(this.getEntries()[index]);
+    const resourceRecord = asRecord(entryRecord.resource);
+    const resourceType = claims['resourceType'] || resourceRecord.resourceType;
+    const claimKey = resolveContainedParentReferenceClaimKey(resourceType);
+    const value = claimKey ? claims[claimKey] : undefined;
+    return typeof value === 'string' && value.trim() ? value.trim() : undefined;
+  }
+
   /** Returns merged claims for the currently opened entry. */
   public getActiveEntryClaims(): Record<string, unknown> {
     if (this.activeEntryIndex === null) {
@@ -158,6 +213,126 @@ export class BundleReader {
       }
     }
     return undefined;
+  }
+
+  /** Returns stable resource IDs filtered from the current bundle in memory. */
+  public getResourceIds(filters: BundleResourceIdFilters = {}): string[] {
+    const query = new BundleQuery(this.bundle as any);
+    return query.getResourceIds(filters);
+  }
+
+  /** Returns visible entry indexes after filtering out imported contained children. */
+  public getVisibleEntryIndexes(filters: BundleResourceIdFilters = {}): number[] {
+    return [...this.getVisibleResourceNavigation(filters).entryIndexes];
+  }
+
+  /** Returns stable resource IDs excluding entries marked as imported `contained[]` children. */
+  public getVisibleResourceIds(filters: BundleResourceIdFilters = {}): string[] {
+    return [...this.getVisibleResourceNavigation(filters).resourceIds];
+  }
+
+  /** Returns the number of visible resources the frontend should iterate over. */
+  public getVisibleResourceCount(filters: BundleResourceIdFilters = {}): number {
+    return this.getVisibleResourceIds(filters).length;
+  }
+
+  /** Returns one visible entry index by visible-position order. */
+  public getVisibleEntryIndexByPosition(position: number, filters: BundleResourceIdFilters = {}): number | undefined {
+    if (!Number.isInteger(position) || position < 0) {
+      return undefined;
+    }
+    return this.getVisibleEntryIndexes(filters)[position];
+  }
+
+  /** Returns the next visible entry index after one raw entry index. */
+  public getNextVisibleEntryIndex(currentIndex: number, filters: BundleResourceIdFilters = {}): number | undefined {
+    const visibleIndexes = this.getVisibleEntryIndexes(filters);
+    const currentVisiblePosition = visibleIndexes.findIndex((index) => index === currentIndex);
+    if (currentVisiblePosition >= 0) {
+      return visibleIndexes[currentVisiblePosition + 1];
+    }
+    return visibleIndexes.find((index) => index > currentIndex);
+  }
+
+  /** Returns the previous visible entry index before one raw entry index. */
+  public getPreviousVisibleEntryIndex(currentIndex: number, filters: BundleResourceIdFilters = {}): number | undefined {
+    const visibleIndexes = this.getVisibleEntryIndexes(filters);
+    const currentVisiblePosition = visibleIndexes.findIndex((index) => index === currentIndex);
+    if (currentVisiblePosition > 0) {
+      return visibleIndexes[currentVisiblePosition - 1];
+    }
+    const lowerVisibleIndexes = visibleIndexes.filter((index) => index < currentIndex);
+    return lowerVisibleIndexes[lowerVisibleIndexes.length - 1];
+  }
+
+  /** Returns bundle entries matching resource IDs produced by `getResourceIds(...)`. */
+  public getEntriesByIds(resourceIds: readonly string[]): BundleReaderEntry[] {
+    const query = new BundleQuery(this.bundle as any);
+    return query.getResourceEntriesByIds(resourceIds) as BundleReaderEntry[];
+  }
+
+  /** Resolves the entry URL (`fullUrl`) for a given entry/resource identifier. */
+  public getEntryUrl(resourceId: string): string | undefined {
+    const query = new BundleQuery(this.bundle as any);
+    return query.getEntryUrl(resourceId);
+  }
+
+  /** Returns the Composition-first document sections when this bundle is one document bundle. */
+  public getDocumentSections(): BundleDocumentSectionSummary[] {
+    const composition = this.getDocumentCompositionResource();
+    if (!composition) {
+      return [];
+    }
+
+    const sections = Array.isArray(composition.section) ? composition.section : [];
+    return sections.map((section, index) => {
+      const sectionRecord = asRecord(section);
+      const codingList = asRecord(sectionRecord.code).coding;
+      const coding = Array.isArray(codingList)
+        ? asRecord(codingList[0])
+        : {};
+      const system = asNonEmptyString(coding.system);
+      const code = asNonEmptyString(coding.code);
+      const claim = system && code ? `${system}|${code}` : code;
+      const entryReferences = Array.isArray(sectionRecord.entry)
+        ? sectionRecord.entry
+          .map((entry) => asNonEmptyString(asRecord(entry).reference))
+          .filter((reference): reference is string => Boolean(reference))
+        : [];
+
+      return {
+        index,
+        code,
+        system,
+        claim,
+        entryReferences,
+      };
+    });
+  }
+
+  /** Returns the number of Composition sections in one document bundle. */
+  public getDocumentSectionCount(): number {
+    return this.getDocumentSections().length;
+  }
+
+  /** Returns one document section by canonical claim (`system|code`) or plain code. */
+  public getDocumentSectionByCode(sectionCodeOrClaim: string): BundleDocumentSectionSummary | undefined {
+    const normalized = normalizeOptionalString(sectionCodeOrClaim);
+    if (!normalized) {
+      return undefined;
+    }
+    return this.getDocumentSections().find((section) =>
+      section.claim === normalized || section.code === normalized);
+  }
+
+  /** Returns the number of resource references inside one document section. */
+  public getDocumentSectionResourceCount(sectionCodeOrClaim: string): number {
+    return this.getDocumentSectionByCode(sectionCodeOrClaim)?.entryReferences.length || 0;
+  }
+
+  /** Returns bundle resource references listed under one document section. */
+  public getDocumentSectionResourceReferences(sectionCodeOrClaim: string): string[] {
+    return [...(this.getDocumentSectionByCode(sectionCodeOrClaim)?.entryReferences || [])];
   }
 
   /** Returns the active entry response status when present. */
@@ -183,8 +358,13 @@ export class BundleReader {
   }
 
   /** Returns the number of bundle entries. */
-  public getTotalOperations(): number {
+  public getEntryCount(): number {
     return this.getEntries().length;
+  }
+
+  /** Returns the number of bundle entries. */
+  public getTotalOperations(): number {
+    return this.getEntryCount();
   }
 
   /** Returns the number of entries with one 2xx response status. */
@@ -263,6 +443,39 @@ export class BundleReader {
     }
     const entries = this.getEntries();
     return entries[this.activeEntryIndex];
+  }
+
+  private getDocumentCompositionResource(): Record<string, unknown> | null {
+    if (this.getBundleType() !== 'document') {
+      return null;
+    }
+    const entries = this.getEntries();
+    const compositionEntry = entries.find((entry) => {
+      const resource = asRecord(asRecord(entry).resource);
+      return asNonEmptyString(resource.resourceType) === 'Composition';
+    });
+    const compositionResource = asRecord(asRecord(compositionEntry).resource);
+    return Object.keys(compositionResource).length ? compositionResource : null;
+  }
+
+  private getVisibleResourceNavigation(filters: BundleResourceIdFilters = {}): BundleVisibleResourceNavigation {
+    const visiblePairs = this.getResourceIds(filters)
+      .map((resourceId) => {
+        const entryIndex = this.getEntryIndexByIdentifier(resourceId);
+        if (entryIndex === undefined || this.isContainedResourceEntryByArrayIndex(entryIndex)) {
+          return undefined;
+        }
+        return {
+          entryIndex,
+          resourceId,
+        };
+      })
+      .filter((value): value is { entryIndex: number; resourceId: string } => Boolean(value));
+
+    return {
+      entryIndexes: visiblePairs.map((item) => item.entryIndex),
+      resourceIds: visiblePairs.map((item) => item.resourceId),
+    };
   }
 
   private getActiveEntryIssues(): Array<Record<string, unknown>> {

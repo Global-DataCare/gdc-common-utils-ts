@@ -1,5 +1,11 @@
 # Dataspace Discovery Defaults 101
 
+> 101 note
+> - Teach here: the highest-level public `common-utils` helper available for this topic.
+> - Do not present raw `meta.claims`, `upsert*`, or pack/unpack as the main path unless the topic itself is transport.
+> - Read [101-README.md](./101-README.md) for the ordered path, then continue upward into `gdc-sdk-core-ts` and `gdc-sdk-node-ts`.
+
+
 This guide explains the simplest bootstrap model for portal/backend discovery
 when ICA, CA, and live GW discovery are not fully deployed yet.
 

@@ -72,7 +72,7 @@ describe('utils/diagnostic-report communication session', () => {
     const reportEntry = reportEntries.find((entry) => entry.resource?.resourceType === ResourceTypesFhirR4.DiagnosticReport);
     const documentEntry = reportEntries.find((entry) => entry.resource?.resourceType === ResourceTypesFhirR4.DocumentReference);
 
-    expect(reportEntry?.resource?.meta?.claims?.[DiagnosticReportClaim.ContainedDocuments])
+    expect(reportEntry?.resource?.meta?.claims?.[DiagnosticReportClaim.ContainedReferenceList])
       .toBe(EXAMPLE_DIAGNOSTIC_REPORT_CONTAINED_DOCUMENT_IDENTIFIER);
     expect(documentEntry?.resource?.meta?.claims?.[DocumentReferenceClaim.Identifier])
       .toBe(EXAMPLE_DIAGNOSTIC_REPORT_CONTAINED_DOCUMENT_IDENTIFIER);

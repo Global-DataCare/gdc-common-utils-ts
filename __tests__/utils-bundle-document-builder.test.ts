@@ -8,6 +8,7 @@ import {
   buildExampleLiveMedicationCases,
 } from '../src/examples/shared.js';
 import { MedicationStatementClaim } from '../src/models/interoperable-claims/medication-statement-claims.js';
+import { DiagnosticReportClaim } from '../src/models/interoperable-claims/diagnostic-report-claims.js';
 import {
   buildBundleDocumentFromClaims,
   convertClaimsToFhirResource,
@@ -18,6 +19,7 @@ import {
   validateBundleDocumentBasic,
 } from '../src/utils/bundle-document-builder.js';
 import { fhirResourceToFlatClaims, flatClaimsToFhirResource } from '../src/utils/clinical-resource-converters.js';
+import { BundleReader } from '../src/utils/bundle-reader.js';
 
 describe('bundle document builder', () => {
   it('detects claims resource type and converts medication claims to a FHIR resource', () => {
@@ -143,5 +145,88 @@ describe('bundle document builder', () => {
       performedDateTime: '2026-06-01T10:00:00Z',
     });
     expect(rebuiltProcedure.meta?.claims?.[ProcedureClaim.Code]).toBe('http://snomed.info/sct|80146002');
+  });
+
+  it('imports contained resources as internal claims entries and rebuilds them back under the parent resource', () => {
+    const sourceBundle = {
+      resourceType: ResourceTypesFhirR4.Bundle,
+      type: 'document',
+      entry: [
+        {
+          resource: {
+            resourceType: ResourceTypesFhirR4.Composition,
+            status: 'final',
+            type: { coding: [{ system: 'http://loinc.org', code: '60591-5' }] },
+            section: [
+              {
+                code: { coding: [{ system: 'http://loinc.org', code: '11502-2' }] },
+                entry: [{ reference: 'DiagnosticReport/diag-001' }],
+              },
+            ],
+          },
+        },
+        {
+          resource: {
+            resourceType: ResourceTypesFhirR4.DiagnosticReport,
+            id: 'diag-001',
+            status: 'final',
+            subject: { reference: EXAMPLE_SUBJECT_DID },
+            code: { coding: [{ system: 'http://loinc.org', code: '58410-2' }] },
+            result: [{ reference: '#obs-1' }],
+            contained: [
+              {
+                resourceType: ResourceTypesFhirR4.Observation,
+                id: 'obs-1',
+                status: 'final',
+                code: { coding: [{ system: 'http://loinc.org', code: '789-8' }] },
+                valueString: 'Hemoglobin normal',
+              },
+            ],
+          },
+        },
+      ],
+    };
+
+    const claimsList = extractBundleDocumentClaimsList(sourceBundle);
+    expect(claimsList).toHaveLength(2);
+    expect(claimsList[0][DiagnosticReportClaim.ContainedReferenceList]).toBe('Observation/obs-1');
+    expect(claimsList[1]['Observation.is-contained']).toBe(true);
+    expect(claimsList[1]['Observation.contained-parent-reference']).toBe('DiagnosticReport/diag-001');
+
+    const rebuiltBundle = buildBundleDocumentFromClaims({
+      subjectDid: EXAMPLE_SUBJECT_DID,
+      claimsList,
+    }) as Record<string, unknown>;
+
+    const rebuiltReader = new BundleReader(rebuiltBundle);
+    expect(rebuiltReader.getEntryCount()).toBe(3);
+    expect(rebuiltReader.getVisibleResourceIds({
+      resourceTypes: [ResourceTypesFhirR4.DiagnosticReport],
+    })).toEqual(['diag-001']);
+    expect(rebuiltReader.getVisibleResourceCount({
+      resourceTypes: [ResourceTypesFhirR4.DiagnosticReport, ResourceTypesFhirR4.Observation],
+    })).toBe(1);
+    expect(rebuiltReader.getVisibleResourceIds({
+      resourceTypes: [ResourceTypesFhirR4.Observation],
+    })).toEqual([]);
+    expect(rebuiltReader.getVisibleEntryIndexes({
+      resourceTypes: [ResourceTypesFhirR4.DiagnosticReport, ResourceTypesFhirR4.Observation],
+    })).toEqual([2]);
+    expect(rebuiltReader.getVisibleEntryIndexByPosition(0, {
+      resourceTypes: [ResourceTypesFhirR4.DiagnosticReport, ResourceTypesFhirR4.Observation],
+    })).toBe(2);
+    expect(rebuiltReader.getNextVisibleEntryIndex(2, {
+      resourceTypes: [ResourceTypesFhirR4.DiagnosticReport, ResourceTypesFhirR4.Observation],
+    })).toBeUndefined();
+    expect(rebuiltReader.getPreviousVisibleEntryIndex(2, {
+      resourceTypes: [ResourceTypesFhirR4.DiagnosticReport, ResourceTypesFhirR4.Observation],
+    })).toBeUndefined();
+
+    const rebuiltDiagnosticReport = (rebuiltBundle as any).entry.find(
+      (entry: any) => entry.resource?.resourceType === ResourceTypesFhirR4.DiagnosticReport,
+    )?.resource;
+    expect(rebuiltDiagnosticReport?.contained).toHaveLength(1);
+    expect(rebuiltDiagnosticReport?.contained?.[0]?.resourceType).toBe(ResourceTypesFhirR4.Observation);
+    expect(rebuiltDiagnosticReport?.contained?.[0]?.id).toBe('obs-1');
   });
 });

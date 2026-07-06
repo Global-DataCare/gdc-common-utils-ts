@@ -6,6 +6,7 @@ import {
   HealthcareConsentPurposes,
 } from '../constants/healthcare';
 import { ClaimConsent, type ConsentRule } from '../models/consent-rule';
+import { BundleEntryClaimsContext } from '../models/communication-attached-bundle-session';
 import { ResourceTypesFhirR4 } from '../constants/fhir-resource-types';
 import {
   EXAMPLE_CONSENT_DATE,
@@ -52,7 +53,7 @@ function buildRule(input: {
   periodEnd?: string;
 }): ConsentRule & Partial<Record<typeof ClaimConsent.resourceType, string>> {
   return {
-    '@context': 'org.hl7.fhir.api',
+    '@context': BundleEntryClaimsContext,
     [ClaimConsent.identifier]: input.identifier,
     [ClaimConsent.subject]: EXAMPLE_INDIVIDUAL_DID_WEB,
     [ClaimConsent.actorIdentifier]: input.actorIdentifier,

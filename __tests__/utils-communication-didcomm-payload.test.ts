@@ -5,9 +5,11 @@ import { CommunicationClaim } from '../src/models/interoperable-claims/communica
 import { DocumentReferenceClaim } from '../src/models/interoperable-claims/document-reference-claims.js';
 import { MedicationStatementClaim } from '../src/models/interoperable-claims/medication-statement-claims.js';
 import {
-  EXAMPLE_DIDCOMM_BUNDLE_ENTRY_CONTEXT,
+  BundleEntryClaimsContext,
+  CommunicationClaimsContext,
+} from '../src/models/communication-attached-bundle-session.js';
+import {
   EXAMPLE_DIDCOMM_COMMUNICATION_AUD,
-  EXAMPLE_DIDCOMM_COMMUNICATION_ATTACHMENT_CONTEXT,
   EXAMPLE_DIDCOMM_COMMUNICATION_ENTRY_TYPE,
   EXAMPLE_DIDCOMM_COMMUNICATION_ISS,
   EXAMPLE_DIDCOMM_COMMUNICATION_JTI,
@@ -43,7 +45,7 @@ describe('utils/communication-didcomm-payload', () => {
   it('wraps one communication-attached medication bundle as a DIDComm-style payload and decodes the attached bundle back', () => {
     const session = new CommunicationAttachedBundleSession({
       communicationClaims: {
-        '@context': EXAMPLE_DIDCOMM_COMMUNICATION_ATTACHMENT_CONTEXT,
+        '@context': CommunicationClaimsContext,
         [CommunicationClaim.Identifier]: EXAMPLE_COMMUNICATION_IDENTIFIER,
         [CommunicationClaim.Subject]: EXAMPLE_SUBJECT_DID,
         [CommunicationClaim.Category]: CommunicationCategoryCodes.Notification.claim,
@@ -52,7 +54,7 @@ describe('utils/communication-didcomm-payload', () => {
 
     session.upsertActiveMedicationStatementEntry({
       claims: {
-        '@context': EXAMPLE_DIDCOMM_BUNDLE_ENTRY_CONTEXT,
+        '@context': BundleEntryClaimsContext,
         [MedicationStatementClaim.Identifier]: EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER,
         [MedicationStatementClaim.Subject]: EXAMPLE_SUBJECT_DID,
         [MedicationStatementClaim.Status]: EXAMPLE_MEDICATION_STATEMENT_STATUS,
@@ -83,7 +85,7 @@ describe('utils/communication-didcomm-payload', () => {
   it('wraps one communication-attached medication bundle with one linked DocumentReference and decodes both entries back', () => {
     const session = new CommunicationAttachedBundleSession({
       communicationClaims: {
-        '@context': EXAMPLE_DIDCOMM_COMMUNICATION_ATTACHMENT_CONTEXT,
+        '@context': CommunicationClaimsContext,
         [CommunicationClaim.Identifier]: EXAMPLE_COMMUNICATION_IDENTIFIER,
         [CommunicationClaim.Subject]: EXAMPLE_SUBJECT_DID,
         [CommunicationClaim.Category]: CommunicationCategoryCodes.Notification.claim,
@@ -92,7 +94,7 @@ describe('utils/communication-didcomm-payload', () => {
 
     session.upsertActiveMedicationStatementEntry({
       claims: {
-        '@context': EXAMPLE_DIDCOMM_BUNDLE_ENTRY_CONTEXT,
+        '@context': BundleEntryClaimsContext,
         [MedicationStatementClaim.Identifier]: EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER,
         [MedicationStatementClaim.Subject]: EXAMPLE_SUBJECT_DID,
         [MedicationStatementClaim.Status]: EXAMPLE_MEDICATION_STATEMENT_STATUS,
@@ -127,7 +129,7 @@ describe('utils/communication-didcomm-payload', () => {
     expect(medicationEntryIndex).toBeDefined();
     expect(documentReferenceEntryIndex).toBeDefined();
     expect(
-      reader.getEntryClaimsByArrayIndex(medicationEntryIndex as number)[MedicationStatementClaim.ContainedDocuments],
+      reader.getEntryClaimsByArrayIndex(medicationEntryIndex as number)[MedicationStatementClaim.ContainedReferenceList],
     ).toBe(EXAMPLE_DOCUMENT_REFERENCE_IDENTIFIER);
     expect(
       reader.getEntryClaimsByArrayIndex(documentReferenceEntryIndex as number)[DocumentReferenceClaim.Identifier],

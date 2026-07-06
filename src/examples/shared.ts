@@ -294,17 +294,21 @@ export const EXAMPLE_CONTENT_TYPE_FHIR_JSON = 'application/fhir+json' as const;
 export const EXAMPLE_IPS_BUNDLE_ATTACHMENT_TITLE = 'IPS Document Bundle' as const;
 export const EXAMPLE_BUNDLE_RESOURCE_TYPE = 'Bundle' as const;
 export const EXAMPLE_BUNDLE_TYPE_BATCH = 'batch' as const;
+export const EXAMPLE_BUNDLE_TYPE_DOCUMENT = 'document' as const;
 export const EXAMPLE_MEDICATION_STATEMENT_UUID = 'urn:uuid:medication-statement-example-001' as const;
 export const EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER = EXAMPLE_MEDICATION_STATEMENT_UUID;
 export const EXAMPLE_MEDICATION_STATEMENT_STATUS = 'active' as const;
 export const EXAMPLE_MEDICATION_STATEMENT_CODE = 'http://www.nlm.nih.gov/research/umls/rxnorm|313782' as const;
 export const EXAMPLE_MEDICATION_STATEMENT_TEXT = 'atorvastatin 20 mg oral tablet' as const;
+export const EXAMPLE_MEDICATION_STATEMENT_TEXT_CORRECTED = 'atorvastatin 20 mg oral tablet - corrected text' as const;
 export const EXAMPLE_DOCUMENT_REFERENCE_IDENTIFIER = 'docref-example-001' as const;
 export const EXAMPLE_DOCUMENT_REFERENCE_IDENTIFIER_SECONDARY = 'docref-example-002' as const;
 export const EXAMPLE_DOCUMENT_REFERENCE_CONTENT_TYPE_PDF = 'application/pdf' as const;
 export const EXAMPLE_DOCUMENT_REFERENCE_URL = 'https://example.org/prescription.pdf' as const;
 export const EXAMPLE_DOCUMENT_REFERENCE_DESCRIPTION = 'Prescription PDF' as const;
 export const EXAMPLE_DOCUMENT_REFERENCE_DATE = '2026-06-12T10:00:00Z' as const;
+export const EXAMPLE_DOCUMENT_REFERENCE_DATA_BASE64 =
+  Buffer.from('example-medication-leaflet', 'utf8').toString('base64') as string;
 export const EXAMPLE_CLINICAL_EVENT_DATE_TIME = '2026-06-01T10:00:00Z' as const;
 export const EXAMPLE_VITAL_SIGNS_EFFECTIVE_DATE_TIME = '2026-06-11T08:30:00Z' as const;
 export const EXAMPLE_VITAL_SIGNS_PANEL_DATE_TIME = '2026-06-11T09:00:00Z' as const;
@@ -316,6 +320,14 @@ export const EXAMPLE_VAULT_QUATERNARY_DATE_TIME = '2026-06-11T13:00:00Z' as cons
 export const EXAMPLE_VAULT_CONDITION_DATE_TIME = '2026-06-11T14:00:00Z' as const;
 export const EXAMPLE_DOCUMENT_REFERENCE_CONTENT_HASH = 'z-document-reference-example-hash' as const;
 export const EXAMPLE_DOCUMENT_REFERENCE_LANGUAGE = 'en' as const;
+export const EXAMPLE_COMPOSITION_IDENTIFIER_MEDICATION_DOCUMENT =
+  'urn:uuid:composition-medication-document-001' as const;
+export const EXAMPLE_COMPOSITION_TITLE_MEDICATION_DOCUMENT =
+  'Medication document authored from the self-managed frontend' as const;
+export const EXAMPLE_COMPOSITION_DATE_MEDICATION_DOCUMENT = '2026-07-06T10:15:00Z' as const;
+export const EXAMPLE_COMMUNICATION_TOPIC_MEDICATION_DOCUMENT = 'medication-document' as const;
+export const EXAMPLE_COMMUNICATION_TEXT_MEDICATION_DOCUMENT_READY =
+  'One corrected medication document ready to travel.' as const;
 export const EXAMPLE_CONSENT_ATTACHMENT_CONTENT_TYPE = EXAMPLE_DOCUMENT_REFERENCE_CONTENT_TYPE_PDF;
 export const EXAMPLE_CONSENT_ATTACHMENT_DATA_BASE64 =
   'JVBERi0xLjQKJUZha2UgY29uc2VudCBQREYgZm9yIGxvY2FsIHNtb2tlIHRlc3QK' as const;
@@ -746,8 +758,9 @@ export function buildExampleLiveMedicationCases(seed = Date.now()): ExampleLiveM
  * Builds a minimal IPS `Bundle.type=document` containing one
  * `MedicationStatement` under the `History of medication use` section.
  *
- * This helper exists so live GW tests and demos do not handcraft one-off
- * bundle structures inline.
+ * This is a shared fixture/secondary setup helper for transport demos and
+ * tests. The canonical step-by-step authoring walkthrough lives in the IPS
+ * bundle-editor tests, not here.
  */
 export function buildExampleMedicationIpsDocumentBundle(
   input: ExampleMedicationIpsDocumentBundleInput,
