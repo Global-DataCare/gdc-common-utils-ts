@@ -1,3 +1,10 @@
+/**
+ * 101 note:
+ * - Teach the highest-level public `common-utils` helper available for this topic.
+ * - Do not make raw `meta.claims`, `upsert*`, or pack/unpack the main path unless this file is itself about transport.
+ * - Read `docs/101-README.md` for the ordered path, then continue upward into `gdc-sdk-core-ts` and `gdc-sdk-node-ts`.
+ */
+
 import { describe, expect, it } from '@jest/globals';
 
 import {

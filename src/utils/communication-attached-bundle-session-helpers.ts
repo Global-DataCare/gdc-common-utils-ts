@@ -79,7 +79,9 @@ export function validateBundleLike(
   bundle: BundleJsonApi<BundleEntry>,
   mode: CommunicationAttachedBundleSessionMode,
 ): void {
-  const looksLikeBundle = bundle && bundle.resourceType === ResourceTypesFhirR4.Bundle && Array.isArray(bundle.data);
+  const looksLikeBundle = bundle
+    && bundle.resourceType === ResourceTypesFhirR4.Bundle
+    && (Array.isArray((bundle as any).data) || Array.isArray((bundle as any).entry));
   if (looksLikeBundle || mode === 'normalize') {
     return;
   }
@@ -122,19 +124,19 @@ export function asTrimmedString(value: unknown): string {
 
 export function resolveContainedDocumentsClaimKey(resourceType: string): string {
   if (resourceType === ResourceTypesFhirR4.Consent) {
-    return ClaimConsent.containedDocuments;
+    return ClaimConsent.containedReferenceList;
   }
   if (resourceType === ResourceTypesFhirR4.MedicationStatement) {
-    return MedicationStatementClaim.ContainedDocuments;
+    return MedicationStatementClaim.ContainedReferenceList;
   }
   if (resourceType === ResourceTypesFhirR4.Condition) {
-    return ConditionClaim.ContainedDocuments;
+    return ConditionClaim.ContainedReferenceList;
   }
   if (resourceType === ResourceTypesFhirR4.AllergyIntolerance) {
-    return AllergyIntoleranceClaim.ContainedDocuments;
+    return AllergyIntoleranceClaim.ContainedReferenceList;
   }
   if (resourceType === ResourceTypesFhirR4.DiagnosticReport) {
-    return DiagnosticReportClaim.ContainedDocuments;
+    return DiagnosticReportClaim.ContainedReferenceList;
   }
   return '';
 }

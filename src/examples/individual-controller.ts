@@ -21,6 +21,7 @@ import type {
   ExampleLatestIpsSearchInput,
 } from './shared';
 import {
+  EXAMPLE_CONTROLLER_DID,
   EXAMPLE_API_ORGANIZATION_DID,
   EXAMPLE_CLINICAL_CODE_PROBLEM,
   EXAMPLE_CLINICAL_DATE_RANGE,
@@ -35,6 +36,7 @@ import {
   EXAMPLE_PRACTITIONER_DID,
   EXAMPLE_PROFESSIONAL_DID,
   EXAMPLE_SUBJECT_DID,
+  EXAMPLE_FORM_CONTROLLER_PHONE,
 } from './shared';
 
 export const EXAMPLE_INDIVIDUAL_ORGANIZATION_START_INPUT = {
@@ -61,6 +63,35 @@ export const EXAMPLE_INDIVIDUAL_ORGANIZATION_ORDER_RESPONSE = {
   submit: { status: 202, body: {} },
   poll: { status: 200, body: {}, attempts: 1 },
 } as const;
+
+export const EXAMPLE_INDIVIDUAL_CONTROLLER_IDENTITY = Object.freeze({
+  actorDid: EXAMPLE_CONTROLLER_DID,
+  subjectDid: EXAMPLE_SUBJECT_DID,
+  relationship: 'v3-RoleCode|RESPRSN',
+  authorityBasis: 'parental-authority',
+  email: EXAMPLE_EMAIL_CONTROLLER_INDIVIDUAL,
+  telephone: EXAMPLE_FORM_CONTROLLER_PHONE,
+  credentialMaterial: `${EXAMPLE_CONTROLLER_DID}#signing-key-1`,
+  evidence: [{
+    type: ['DocumentVerification'],
+    evidenceDocument: 'LibroDeFamilia',
+    verifier: 'did:web:kyc.example.org',
+  }],
+} as const);
+
+export const EXAMPLE_INDIVIDUAL_SUBJECT_IDENTITY = Object.freeze({
+  subjectDid: EXAMPLE_SUBJECT_DID,
+  sameAs: 'mailto:subject.guardian.record@example.org',
+  telephone: EXAMPLE_FORM_CONTROLLER_PHONE,
+  evidence: [{
+    type: ['DocumentVerification'],
+    evidenceDocument: 'DNI',
+    verifier: 'did:web:kyc.example.org',
+  }],
+  additionalCredentialSubject: {
+    alternateName: 'Ana',
+  },
+} as const);
 
 export const EXAMPLE_CONSENT_GRANT_INPUT = {
   actor: `${EXAMPLE_PRACTITIONER_DID},${EXAMPLE_HEALTHCARE_JURISDICTION}`,

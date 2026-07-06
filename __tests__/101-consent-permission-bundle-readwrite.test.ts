@@ -1,3 +1,10 @@
+/**
+ * 101 note:
+ * - Teach the highest-level public `common-utils` helper available for this topic.
+ * - Do not make raw `meta.claims`, `upsert*`, or pack/unpack the main path unless this file is itself about transport.
+ * - Read `docs/101-README.md` for the ordered path, then continue upward into `gdc-sdk-core-ts` and `gdc-sdk-node-ts`.
+ */
+
 import { describe, expect, it } from '@jest/globals';
 
 import {
@@ -23,6 +30,7 @@ import {
   EXAMPLE_SUBJECT_DID,
 } from '../src/examples/shared.js';
 import {
+  CommunicationClaimsContext,
   ConsentEditorTargetKinds,
 } from '../src/utils/communication-attached-bundle-session.js';
 import { createConsentAccessEditor } from '../src/utils/communication-consent-access-editor.js';
@@ -51,7 +59,7 @@ describe('101: consent permission bundle read/write', () => {
 
     // Step 1.
     // Create the Communication wrapper that will carry the permission bundle.
-    let communicationClaims: Record<string, unknown> = { '@context': 'org.hl7.fhir.r4' };
+    let communicationClaims: Record<string, unknown> = { '@context': CommunicationClaimsContext };
     communicationClaims = setCommunicationIdentifier(
       communicationClaims,
       EXAMPLE_COMMUNICATION_IDENTIFIER,
@@ -154,7 +162,7 @@ describe('101: consent permission bundle read/write', () => {
 
     // Step 3.
     // Save those three consent decisions into one bundle.
-    const bundleEditor = createConsentAccessEditor({
+    const consentBundleEditor = createConsentAccessEditor({
       communicationClaims,
     });
 
@@ -170,7 +178,7 @@ describe('101: consent permission bundle read/write', () => {
         subject: EXAMPLE_SUBJECT_DID,
         fullUrl: `urn:uuid:${EXAMPLE_CONSENT_IDENTIFIER}-${index + 1}`,
       });
-      bundleEditor.upsertActiveConsentEntry({
+      consentBundleEditor.upsertActiveConsentEntry({
         claims: {
           ...(consentEntry.resource?.meta?.claims || {}),
         },
@@ -178,9 +186,9 @@ describe('101: consent permission bundle read/write', () => {
         type: consentEntry.type,
       });
     });
-    bundleEditor.saveAndReleaseActiveEntry();
+    consentBundleEditor.saveAndReleaseActiveEntry();
 
-    const bundleInMemory = bundleEditor.getBundleInMemory();
+    const bundleInMemory = consentBundleEditor.getBundleInMemory();
 
     // Step 4.
     // Prove that the bundle now contains the three persisted consents that the
@@ -192,7 +200,7 @@ describe('101: consent permission bundle read/write', () => {
     // Reopen the saved Communication bundle as a reader would do on a later
     // screen load.
     const reader = createConsentAccessEditor({
-      communicationClaims: bundleEditor.getCommunicationClaims(),
+      communicationClaims: consentBundleEditor.getCommunicationClaims(),
     });
 
     // Step 6.

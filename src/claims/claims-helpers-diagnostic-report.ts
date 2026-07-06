@@ -57,13 +57,33 @@ export function setDiagnosticReportResultList(
   return setDiagnosticReportClaimList(claims, DiagnosticReportClaim.Result, values);
 }
 
-export function getDiagnosticReportContainedDocumentIdentifierList(claims: DiagnosticReportInteroperableClaims): string[] {
-  return getDiagnosticReportClaimList(claims, DiagnosticReportClaim.ContainedDocuments);
+export function getDiagnosticReportContainedResourceReferenceList(claims: DiagnosticReportInteroperableClaims): string[] {
+  const canonical = getDiagnosticReportClaimList(claims, DiagnosticReportClaim.ContainedReferenceList);
+  const legacy = getDiagnosticReportClaimList(claims, DiagnosticReportClaim.ContainedDocuments);
+  return [...new Set([...canonical, ...legacy].map((item) => String(item || '').trim()).filter(Boolean))];
 }
 
+export function setDiagnosticReportContainedResourceReferenceList(
+  claims: DiagnosticReportInteroperableClaims,
+  values: string | readonly string[],
+): DiagnosticReportInteroperableClaims {
+  const next = setDiagnosticReportClaimList(claims, DiagnosticReportClaim.ContainedReferenceList, values);
+  const cleaned = {
+    ...next,
+  };
+  delete cleaned[DiagnosticReportClaim.ContainedDocuments];
+  return cleaned;
+}
+
+/** @deprecated Use `getDiagnosticReportContainedResourceReferenceList`. */
+export function getDiagnosticReportContainedDocumentIdentifierList(claims: DiagnosticReportInteroperableClaims): string[] {
+  return getDiagnosticReportContainedResourceReferenceList(claims);
+}
+
+/** @deprecated Use `setDiagnosticReportContainedResourceReferenceList`. */
 export function setDiagnosticReportContainedDocumentIdentifierList(
   claims: DiagnosticReportInteroperableClaims,
   values: string | readonly string[],
 ): DiagnosticReportInteroperableClaims {
-  return setDiagnosticReportClaimList(claims, DiagnosticReportClaim.ContainedDocuments, values);
+  return setDiagnosticReportContainedResourceReferenceList(claims, values);
 }

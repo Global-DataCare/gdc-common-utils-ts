@@ -7,6 +7,7 @@ import {
 import { LifecycleRequestType } from '../constants/lifecycle';
 import { ResourceTypesFhirR4 } from '../constants/fhir-resource-types';
 import { ClaimConsent } from '../models/consent-rule';
+import { BundleEntryClaimsContext } from '../models/communication-attached-bundle-session';
 import {
   IndividualOrganizationLifecycleEditor,
   IndividualOrganizationLifecycleOperations,
@@ -279,7 +280,7 @@ export const EXAMPLE_CONSENT_ENABLE_MESSAGE = {
     sector: EXAMPLE_SECTOR,
   },
   claims: {
-    '@context': 'org.hl7.fhir.api',
+    '@context': BundleEntryClaimsContext,
     [ClaimConsent.identifier]: EXAMPLE_LIFECYCLE_PLACEHOLDERS.consentIdentifier,
     [ClaimConsent.subject]: EXAMPLE_LIFECYCLE_PLACEHOLDERS.individualSubjectDid,
     [ClaimConsent.actorIdentifier]: EXAMPLE_LIFECYCLE_PLACEHOLDERS.consentActorIdentifier,
@@ -299,7 +300,7 @@ export const EXAMPLE_CONSENT_DISABLE_MESSAGE = {
     sector: EXAMPLE_SECTOR,
   },
   claims: {
-    '@context': 'org.hl7.fhir.api',
+    '@context': BundleEntryClaimsContext,
     [ClaimConsent.identifier]: EXAMPLE_LIFECYCLE_PLACEHOLDERS.consentIdentifier,
     [ClaimConsent.subject]: EXAMPLE_LIFECYCLE_PLACEHOLDERS.individualSubjectDid,
     [ClaimConsent.actorIdentifier]: EXAMPLE_LIFECYCLE_PLACEHOLDERS.consentActorIdentifier,
@@ -319,7 +320,7 @@ export const EXAMPLE_CONSENT_DELETE_MESSAGE = {
     sector: EXAMPLE_SECTOR,
   },
   claims: {
-    '@context': 'org.hl7.fhir.api',
+    '@context': BundleEntryClaimsContext,
     [ClaimConsent.identifier]: EXAMPLE_LIFECYCLE_PLACEHOLDERS.consentIdentifier,
     [ClaimConsent.subject]: EXAMPLE_LIFECYCLE_PLACEHOLDERS.individualSubjectDid,
     [ClaimConsent.actorIdentifier]: EXAMPLE_LIFECYCLE_PLACEHOLDERS.consentActorIdentifier,

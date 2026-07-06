@@ -3,6 +3,7 @@ export * from './aes';
 export * from './auth';
 export * from './authority-resolution';
 export * from './bundle';
+export * from './bundle-editor-types';
 export * from './comm';
 export * from './clinical-sections';
 export * from './clinical-sections.en';

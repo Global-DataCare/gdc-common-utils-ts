@@ -70,23 +70,35 @@ export function buildDidcommPayloadFromCommunicationClaims(
 export function getFirstCommunicationClaimsFromDidcommPayload(
   payload: IDecodedDidcommPayload,
 ): Record<string, unknown> {
-  const first = Array.isArray(payload?.body?.data) ? payload.body.data[0] as Record<string, unknown> : undefined;
-  const metaClaims = first?.meta && typeof first.meta === 'object'
-    ? (first.meta as Record<string, unknown>)['claims']
-    : undefined;
-  if (metaClaims && typeof metaClaims === 'object') {
-    return clone(metaClaims as Record<string, unknown>);
-  }
-  const resource = first?.resource && typeof first.resource === 'object'
-    ? first.resource as Record<string, unknown>
-    : {};
-  const meta = resource.meta && typeof resource.meta === 'object'
-    ? resource.meta as Record<string, unknown>
-    : {};
-  const claims = meta.claims && typeof meta.claims === 'object'
-    ? meta.claims as Record<string, unknown>
-    : {};
-  return clone(claims);
+  return getCommunicationClaimsListFromDidcommPayload(payload)[0] || {};
+}
+
+/**
+ * Reads canonical communication claims from every `body.data[]` entry of one
+ * DIDComm-style payload.
+ */
+export function getCommunicationClaimsListFromDidcommPayload(
+  payload: IDecodedDidcommPayload,
+): Record<string, unknown>[] {
+  const entries = Array.isArray(payload?.body?.data) ? payload.body.data as Array<Record<string, unknown>> : [];
+  return entries.map((first) => {
+    const metaClaims = first?.meta && typeof first.meta === 'object'
+      ? (first.meta as Record<string, unknown>)['claims']
+      : undefined;
+    if (metaClaims && typeof metaClaims === 'object') {
+      return clone(metaClaims as Record<string, unknown>);
+    }
+    const resource = first?.resource && typeof first.resource === 'object'
+      ? first.resource as Record<string, unknown>
+      : {};
+    const meta = resource.meta && typeof resource.meta === 'object'
+      ? resource.meta as Record<string, unknown>
+      : {};
+    const claims = meta.claims && typeof meta.claims === 'object'
+      ? meta.claims as Record<string, unknown>
+      : {};
+    return clone(claims);
+  });
 }
 
 /**

@@ -1,5 +1,11 @@
 # Related Person Editor 101
 
+> 101 note
+> - Teach here: the highest-level public `common-utils` helper available for this topic.
+> - Do not present raw `meta.claims`, `upsert*`, or pack/unpack as the main path unless the topic itself is transport.
+> - Read [101-README.md](./101-README.md) for the ordered path, then continue upward into `gdc-sdk-core-ts` and `gdc-sdk-node-ts`.
+
+
 This is the frontend/integrator guide for subject-side relationship records.
 
 Use this when you need to understand:
@@ -80,12 +86,49 @@ For create/update, the shared canonical example lives in:
 Example:
 
 ```ts
-import { cloneExample } from 'gdc-common-utils-ts/examples';
-import * as relatedPersonExamples from 'gdc-common-utils-ts/examples/related-person';
+import {
+  EXAMPLE_BUNDLE_TYPE_BATCH,
+  EXAMPLE_INTEROPERABLE_CONTEXT_FHIR_API,
+  EXAMPLE_RELATED_PERSON_ROLE,
+  InteroperableOperationMethods,
+  RelatedPersonClaim,
+  ResourceTypesFhirR4,
+  setRelatedPersonActive,
+  setRelatedPersonIdentifier,
+} from 'gdc-common-utils-ts';
 
-const relatedPersonPayload = cloneExample(
-  relatedPersonExamples.EXAMPLE_RELATED_PERSON_UPSERT_BUNDLE_PAYLOAD,
+const relatedPersonIdentifier = draft.identifier;
+const relatedPersonDisplayName = draft.name;
+const relatedPersonTelecom = `mailto:${draft.email}`;
+
+let relatedPersonClaims = {
+  '@context': EXAMPLE_INTEROPERABLE_CONTEXT_FHIR_API,
+};
+
+relatedPersonClaims = setRelatedPersonIdentifier(
+  relatedPersonClaims,
+  relatedPersonIdentifier,
 );
+relatedPersonClaims = setRelatedPersonActive(relatedPersonClaims, true);
+relatedPersonClaims = {
+  ...relatedPersonClaims,
+  [RelatedPersonClaim.Patient]: subjectDid,
+  [RelatedPersonClaim.Relationship]: EXAMPLE_RELATED_PERSON_ROLE,
+  [RelatedPersonClaim.Name]: relatedPersonDisplayName,
+  [RelatedPersonClaim.Telecom]: relatedPersonTelecom,
+};
+
+const relatedPersonPayload = {
+  resourceType: ResourceTypesFhirR4.Bundle,
+  type: EXAMPLE_BUNDLE_TYPE_BATCH,
+  entry: [{
+    request: { method: InteroperableOperationMethods.Post },
+    resource: {
+      resourceType: ResourceTypesFhirR4.RelatedPerson,
+      meta: { claims: relatedPersonClaims },
+    },
+  }],
+};
 ```
 
 Read that as:
@@ -94,6 +137,14 @@ Read that as:
 - one relationship record entry
 - semantic relationship content prepared locally
 - ready for the next SDK/runtime layer to wrap or submit
+
+The important teaching point is not the fixture itself. It is the sequence:
+
+1. start one claims object
+2. apply shared `get/set` helpers for canonical fields
+3. add the remaining semantic relationship values
+4. place those claims into one `RelatedPerson` bundle entry
+5. pass that payload to the next runtime/backend layer
 
 ## Disable Example
 
@@ -135,6 +186,32 @@ It usually does not need to care first about:
 - internal resource ids
 - current GW route names
 - exact entry request methods
+
+## Readback Example
+
+When one list/search response comes back, read it into UI-neutral rows first.
+
+```ts
+import {
+  findRelatedPersonListRecord,
+  readRelatedPersonListRecords,
+} from 'gdc-common-utils-ts';
+
+const records = readRelatedPersonListRecords(responseBody);
+const activeRecords = records.filter((record) => record.active === 'true');
+const selectedRecord = findRelatedPersonListRecord(responseBody, 'rel-001');
+
+console.log(activeRecords[0]?.name);
+console.log(selectedRecord?.telecom);
+```
+
+That keeps the component code focused on:
+
+- display name
+- relationship
+- contact value
+- active/inactive state
+- business identifier kept for later disable or purge actions
 
 ## Where To See It Working
 

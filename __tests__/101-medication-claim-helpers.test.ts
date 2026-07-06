@@ -1,4 +1,12 @@
+/**
+ * 101 note:
+ * - Teach the highest-level public `common-utils` helper available for this topic.
+ * - Do not make raw `meta.claims`, `upsert*`, or pack/unpack the main path unless this file is itself about transport.
+ * - Read `docs/101-README.md` for the ordered path, then continue upward into `gdc-sdk-core-ts` and `gdc-sdk-node-ts`.
+ */
+
 import { expect, it } from '@jest/globals';
+import { BundleEntryClaimsContext } from '../src/models/communication-attached-bundle-session.js';
 import {
   EXAMPLE_MEDICATION_DOSE_UNIT_MG,
   EXAMPLE_MEDICATION_IBUPROFEN_EFFECTIVE,
@@ -45,7 +53,7 @@ it('101: build medication statement claims step by step with simple setters', ()
 
   // Step 2.
   // Start from flat interoperable claims.
-  let claims: Record<string, unknown> = { '@context': 'org.hl7.fhir.api' };
+  let claims: Record<string, unknown> = { '@context': BundleEntryClaimsContext };
 
   // Step 3.
   // Set the core medication statement fields.

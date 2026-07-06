@@ -321,60 +321,91 @@ export function removeMedicationSubjectList(
 }
 
 /**
- * Linked DocumentReference identifiers associated to the medication statement.
- * Canonical claim key: `MedicationStatement.contained-documents`.
+ * Linked contained resource references associated to the medication statement.
+ * Canonical claim key: `MedicationStatement.contained-reference-list`.
  * Legacy alias accepted on read: `MedicationStatement.attachment-content-ids`.
  */
-export function getMedicationContainedDocumentIdentifierList(claims: MedicationInteroperableClaims): string[] {
+export function getMedicationContainedResourceReferenceList(claims: MedicationInteroperableClaims): string[] {
   return uniqueCsvLists([
+    getMedicationClaimList(claims, MedicationStatementClaim.ContainedReferenceList),
     getMedicationClaimList(claims, MedicationStatementClaim.ContainedDocuments),
     getMedicationClaimList(claims, MedicationStatementClaim.AttachmentContentIds),
   ]);
 }
 
-export function setMedicationContainedDocumentIdentifierList(
+export function setMedicationContainedResourceReferenceList(
   claims: MedicationInteroperableClaims,
   values: string | readonly string[],
 ): MedicationInteroperableClaims {
-  return setContainedDocuments(claims, values);
+  return setContainedResources(claims, values);
 }
 
-export function addMedicationContainedDocumentIdentifierList(
+export function addMedicationContainedResourceReferenceList(
   claims: MedicationInteroperableClaims,
   values: string | readonly string[],
 ): MedicationInteroperableClaims {
-  return setContainedDocuments(
+  return setContainedResources(
     claims,
     uniqueCsvLists([
-      getMedicationContainedDocumentIdentifierList(claims),
-      Array.isArray(values) ? [...values] : getMedicationClaimList({ [MedicationStatementClaim.ContainedDocuments]: values }, MedicationStatementClaim.ContainedDocuments),
+      getMedicationContainedResourceReferenceList(claims),
+      Array.isArray(values) ? [...values] : getMedicationClaimList({ [MedicationStatementClaim.ContainedReferenceList]: values }, MedicationStatementClaim.ContainedReferenceList),
     ]),
   );
 }
 
-export function removeMedicationContainedDocumentIdentifierList(
+export function removeMedicationContainedResourceReferenceList(
   claims: MedicationInteroperableClaims,
   values: string | readonly string[],
 ): MedicationInteroperableClaims {
   const toRemove = new Set(
-    (Array.isArray(values) ? values : getMedicationClaimList({ [MedicationStatementClaim.ContainedDocuments]: values }, MedicationStatementClaim.ContainedDocuments))
+    (Array.isArray(values) ? values : getMedicationClaimList({ [MedicationStatementClaim.ContainedReferenceList]: values }, MedicationStatementClaim.ContainedReferenceList))
       .map((item) => String(item || '').trim())
       .filter(Boolean),
   );
-  return setContainedDocuments(
+  return setContainedResources(
     claims,
-    getMedicationContainedDocumentIdentifierList(claims).filter((item) => !toRemove.has(item)),
+    getMedicationContainedResourceReferenceList(claims).filter((item) => !toRemove.has(item)),
   );
 }
 
-function setContainedDocuments(
+/** @deprecated Use `getMedicationContainedResourceReferenceList`. */
+export function getMedicationContainedDocumentIdentifierList(claims: MedicationInteroperableClaims): string[] {
+  return getMedicationContainedResourceReferenceList(claims);
+}
+
+/** @deprecated Use `setMedicationContainedResourceReferenceList`. */
+export function setMedicationContainedDocumentIdentifierList(
   claims: MedicationInteroperableClaims,
   values: string | readonly string[],
 ): MedicationInteroperableClaims {
-  const next = setMedicationClaimList(claims, MedicationStatementClaim.ContainedDocuments, values);
+  return setMedicationContainedResourceReferenceList(claims, values);
+}
+
+/** @deprecated Use `addMedicationContainedResourceReferenceList`. */
+export function addMedicationContainedDocumentIdentifierList(
+  claims: MedicationInteroperableClaims,
+  values: string | readonly string[],
+): MedicationInteroperableClaims {
+  return addMedicationContainedResourceReferenceList(claims, values);
+}
+
+/** @deprecated Use `removeMedicationContainedResourceReferenceList`. */
+export function removeMedicationContainedDocumentIdentifierList(
+  claims: MedicationInteroperableClaims,
+  values: string | readonly string[],
+): MedicationInteroperableClaims {
+  return removeMedicationContainedResourceReferenceList(claims, values);
+}
+
+function setContainedResources(
+  claims: MedicationInteroperableClaims,
+  values: string | readonly string[],
+): MedicationInteroperableClaims {
+  const next = setMedicationClaimList(claims, MedicationStatementClaim.ContainedReferenceList, values);
   const cleaned = {
     ...next,
   };
+  delete cleaned[MedicationStatementClaim.ContainedDocuments];
   delete cleaned[MedicationStatementClaim.AttachmentContentIds];
   return cleaned;
 }

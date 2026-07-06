@@ -9,6 +9,10 @@ import { CommunicationClaim } from '../models/interoperable-claims/communication
 import { ConditionClaim } from '../models/interoperable-claims/condition-claims';
 import { MedicationStatementClaim } from '../models/interoperable-claims/medication-statement-claims';
 import {
+  BundleEntryClaimsContext,
+  CommunicationClaimsContext,
+} from '../models/communication-attached-bundle-session';
+import {
   EXAMPLE_COMMUNICATION_IDENTIFIER,
   EXAMPLE_DOCUMENT_REFERENCE_CONTENT_TYPE_PDF,
   EXAMPLE_DOCUMENT_REFERENCE_DATE,
@@ -47,9 +51,9 @@ export type IpsBundleFrontCardsExample = Readonly<{
  * authored as `resource.meta.claims`.
  */
 export function buildIpsClinicalHistoryBundleExample(): IpsClinicalHistoryBundleExample {
-  const bundleEditor = new CommunicationAttachedBundleSession({
+  const clinicalBundleEditor = new CommunicationAttachedBundleSession({
     communicationClaims: {
-      '@context': 'org.hl7.fhir.r4',
+      '@context': CommunicationClaimsContext,
       [CommunicationClaim.Identifier]: EXAMPLE_COMMUNICATION_IDENTIFIER,
       [CommunicationClaim.Subject]: EXAMPLE_SUBJECT_DID,
       [CommunicationClaim.Category]: CommunicationCategoryCodes.Notification.claim,
@@ -57,9 +61,9 @@ export function buildIpsClinicalHistoryBundleExample(): IpsClinicalHistoryBundle
     },
   });
 
-  bundleEditor.upsertActiveAllergyIntoleranceEntry({
+  clinicalBundleEditor.upsertActiveAllergyIntoleranceEntry({
     claims: {
-      '@context': 'org.hl7.fhir.api',
+      '@context': BundleEntryClaimsContext,
       [AllergyIntoleranceClaim.Identifier]: 'allergy-1',
       [AllergyIntoleranceClaim.Subject]: EXAMPLE_SUBJECT_DID,
       [AllergyIntoleranceClaim.Code]: 'http://snomed.info/sct|227493005',
@@ -72,9 +76,9 @@ export function buildIpsClinicalHistoryBundleExample(): IpsClinicalHistoryBundle
     fullUrl: 'urn:uuid:allergy-1',
   });
 
-  bundleEditor.upsertActiveConditionEntry({
+  clinicalBundleEditor.upsertActiveConditionEntry({
     claims: {
-      '@context': 'org.hl7.fhir.api',
+      '@context': BundleEntryClaimsContext,
       [ConditionClaim.Identifier]: 'condition-1',
       [ConditionClaim.Subject]: EXAMPLE_SUBJECT_DID,
       [ConditionClaim.Code]: 'http://snomed.info/sct|44054006',
@@ -87,9 +91,9 @@ export function buildIpsClinicalHistoryBundleExample(): IpsClinicalHistoryBundle
     fullUrl: 'urn:uuid:condition-1',
   });
 
-  bundleEditor.upsertActiveMedicationStatementEntry({
+  clinicalBundleEditor.upsertActiveMedicationStatementEntry({
     claims: {
-      '@context': 'org.hl7.fhir.api',
+      '@context': BundleEntryClaimsContext,
       [MedicationStatementClaim.Identifier]: EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER,
       [MedicationStatementClaim.Subject]: EXAMPLE_SUBJECT_DID,
       [MedicationStatementClaim.Category]: HealthcareBasicSections.HistoryOfMedicationUse.attributeValue,
@@ -100,7 +104,7 @@ export function buildIpsClinicalHistoryBundleExample(): IpsClinicalHistoryBundle
     fullUrl: `urn:uuid:${EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER}`,
   });
 
-  bundleEditor.addContainedDocumentToActiveEntry({
+  clinicalBundleEditor.addContainedDocumentToActiveEntry({
     identifier: EXAMPLE_DOCUMENT_REFERENCE_IDENTIFIER,
     attachmentContentType: EXAMPLE_DOCUMENT_REFERENCE_CONTENT_TYPE_PDF,
     attachmentUrl: EXAMPLE_DOCUMENT_REFERENCE_URL,
@@ -108,11 +112,11 @@ export function buildIpsClinicalHistoryBundleExample(): IpsClinicalHistoryBundle
     date: EXAMPLE_DOCUMENT_REFERENCE_DATE,
   });
 
-  bundleEditor.saveAndReleaseActiveEntry();
+  clinicalBundleEditor.saveAndReleaseActiveEntry();
 
   return {
-    communicationClaims: bundleEditor.getCommunicationClaims(),
-    bundleInMemory: bundleEditor.getBundleInMemory(),
+    communicationClaims: clinicalBundleEditor.getCommunicationClaims(),
+    bundleInMemory: clinicalBundleEditor.getBundleInMemory(),
   };
 }
 
@@ -122,7 +126,7 @@ export function buildIpsClinicalHistoryBundleExample(): IpsClinicalHistoryBundle
  */
 export function buildIpsBundleFrontCardsExample(): IpsBundleFrontCardsExample {
   const { communicationClaims, bundleInMemory } = buildIpsClinicalHistoryBundleExample();
-  const bundleEditor = new CommunicationAttachedBundleSession({
+  const clinicalBundleEditor = new CommunicationAttachedBundleSession({
     communicationClaims,
     initialBundle: bundleInMemory,
   });
@@ -130,15 +134,15 @@ export function buildIpsBundleFrontCardsExample(): IpsBundleFrontCardsExample {
   return {
     communicationClaims,
     bundleInMemory,
-    medicationEntryIds: bundleEditor.getResourceIds({
+    medicationEntryIds: clinicalBundleEditor.getResourceIds({
       sections: [HealthcareBasicSections.HistoryOfMedicationUse.attributeValue],
       resourceTypes: [ResourceTypesFhirR4.MedicationStatement],
     }),
-    allergyEntryIds: bundleEditor.getResourceIds({
+    allergyEntryIds: clinicalBundleEditor.getResourceIds({
       sections: [HealthcareBasicSections.AllergiesAndIntolerances.attributeValue],
       resourceTypes: [ResourceTypesFhirR4.AllergyIntolerance],
     }),
-    conditionEntryIds: bundleEditor.getResourceIds({
+    conditionEntryIds: clinicalBundleEditor.getResourceIds({
       sections: [HealthcareBasicSections.ProblemList.attributeValue],
       resourceTypes: [ResourceTypesFhirR4.Condition],
     }),

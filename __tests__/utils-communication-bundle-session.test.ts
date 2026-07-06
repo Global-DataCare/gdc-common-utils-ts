@@ -340,7 +340,7 @@ describe('utils/communication-attached-bundle-session', () => {
     const medicationEntry = entries.find((entry) => entry.resource?.resourceType === ResourceTypesFhirR4.MedicationStatement);
     const documentReferenceEntry = entries.find((entry) => entry.resource?.resourceType === ResourceTypesFhirR4.DocumentReference);
 
-    expect(medicationEntry?.resource?.meta?.claims?.[MedicationStatementClaim.ContainedDocuments]).toBe(EXAMPLE_DOCUMENT_REFERENCE_IDENTIFIER);
+    expect(medicationEntry?.resource?.meta?.claims?.[MedicationStatementClaim.ContainedReferenceList]).toBe(EXAMPLE_DOCUMENT_REFERENCE_IDENTIFIER);
     expect(documentReferenceEntry?.resource?.meta?.claims?.[DocumentReferenceClaim.Identifier]).toBe(EXAMPLE_DOCUMENT_REFERENCE_IDENTIFIER);
     expect(documentReferenceEntry?.resource?.meta?.claims?.[DocumentReferenceClaim.Subject]).toBe(EXAMPLE_SUBJECT_DID);
     expect(documentReferenceEntry?.resource?.meta?.claims?.[DocumentReferenceClaim.ContentType]).toBe(EXAMPLE_DOCUMENT_REFERENCE_CONTENT_TYPE_PDF);

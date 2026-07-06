@@ -4,7 +4,6 @@ import {
   DidcommAckBodyKeys,
   DidcommMessageTypes,
 } from '../constants/didcomm';
-import { Format } from '../constants/Schemas';
 import {
   EXAMPLE_COMMUNICATION_IDENTIFIER,
   EXAMPLE_GATEWAY_PUBLIC_ORIGIN,
@@ -17,6 +16,10 @@ import {
   AppointmentParticipantStatus,
   AppointmentStatus,
 } from '../models/interoperable-claims/appointment-claims';
+import {
+  BundleEntryClaimsContext,
+  CommunicationClaimsContext,
+} from '../models/communication-attached-bundle-session';
 import { CommunicationDidcommEntryTypes } from '../utils/communication-didcomm-payload';
 
 /**
@@ -30,23 +33,29 @@ export const EXAMPLE_DIDCOMM_COMMUNICATION_ENTRY_TYPE = CommunicationDidcommEntr
 export const EXAMPLE_DIDCOMM_COMMUNICATION_TEXT = EXAMPLE_IPS_BUNDLE_NOTE_TEXT;
 export const EXAMPLE_DIDCOMM_COMMUNICATION_ID = EXAMPLE_COMMUNICATION_IDENTIFIER;
 export const EXAMPLE_DIDCOMM_COMMUNICATION_SUBJECT = EXAMPLE_SUBJECT_DID;
-export const EXAMPLE_DIDCOMM_COMMUNICATION_ATTACHMENT_CONTEXT = Format.FHIR_R4;
-export const EXAMPLE_DIDCOMM_BUNDLE_ENTRY_CONTEXT = Format.FHIR_API;
+export const EXAMPLE_DIDCOMM_COMMUNICATION_ATTACHMENT_CONTEXT = CommunicationClaimsContext;
+export const EXAMPLE_DIDCOMM_BUNDLE_ENTRY_CONTEXT = BundleEntryClaimsContext;
 export const EXAMPLE_DIDCOMM_REPLY_AUD = `${EXAMPLE_GATEWAY_PUBLIC_ORIGIN}/reply` as const;
 export const EXAMPLE_DIDCOMM_REPLY_JTI = 'didcomm-communication-reply-jti-001' as const;
-export const EXAMPLE_DIDCOMM_ACK_TYPE = DidcommMessageTypes.CommunicationAck;
-export const EXAMPLE_DIDCOMM_ACK_BODY_OK_KEY = DidcommAckBodyKeys.Ok;
-export const EXAMPLE_DIDCOMM_ACK_BODY_RECEIVED_MEDICATION_IDENTIFIER_KEY =
+export const EXAMPLE_DIDCOMM_REPLY_TYPE = DidcommMessageTypes.CommunicationAck;
+export const EXAMPLE_DIDCOMM_REPLY_BODY_OK_KEY = DidcommAckBodyKeys.Ok;
+export const EXAMPLE_DIDCOMM_REPLY_BODY_RECEIVED_MEDICATION_IDENTIFIER_KEY =
   DidcommAckBodyKeys.ReceivedMedicationIdentifier;
-export const EXAMPLE_DIDCOMM_ACK_BODY_RECEIVED_DOCUMENT_IDENTIFIER_KEY =
+export const EXAMPLE_DIDCOMM_REPLY_BODY_RECEIVED_DOCUMENT_IDENTIFIER_KEY =
   DidcommAckBodyKeys.ReceivedDocumentIdentifier;
+export const EXAMPLE_DIDCOMM_ACK_TYPE = EXAMPLE_DIDCOMM_REPLY_TYPE;
+export const EXAMPLE_DIDCOMM_ACK_BODY_OK_KEY = EXAMPLE_DIDCOMM_REPLY_BODY_OK_KEY;
+export const EXAMPLE_DIDCOMM_ACK_BODY_RECEIVED_MEDICATION_IDENTIFIER_KEY =
+  EXAMPLE_DIDCOMM_REPLY_BODY_RECEIVED_MEDICATION_IDENTIFIER_KEY;
+export const EXAMPLE_DIDCOMM_ACK_BODY_RECEIVED_DOCUMENT_IDENTIFIER_KEY =
+  EXAMPLE_DIDCOMM_REPLY_BODY_RECEIVED_DOCUMENT_IDENTIFIER_KEY;
 export const EXAMPLE_APPOINTMENT_IDENTIFIER = 'appointment-001' as const;
 export const EXAMPLE_APPOINTMENT_START = '2026-07-01T09:00:00Z' as const;
 export const EXAMPLE_APPOINTMENT_END = '2026-07-01T09:30:00Z' as const;
 export const EXAMPLE_APPOINTMENT_DESCRIPTION = 'Medication follow-up visit.' as const;
 export const EXAMPLE_APPOINTMENT_PARTICIPANT_STATUS = AppointmentParticipantStatus.Accepted;
 export const EXAMPLE_APPOINTMENT_CLAIMS = {
-  '@context': EXAMPLE_DIDCOMM_BUNDLE_ENTRY_CONTEXT,
+  '@context': BundleEntryClaimsContext,
   [AppointmentClaim.Identifier]: EXAMPLE_APPOINTMENT_IDENTIFIER,
   [AppointmentClaim.Status]: AppointmentStatus.Booked,
   [AppointmentClaim.Description]: EXAMPLE_APPOINTMENT_DESCRIPTION,

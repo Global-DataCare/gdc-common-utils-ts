@@ -26,7 +26,7 @@ export class BundleQuery {
    * Returns stable resource IDs from bundle entries with optional filters.
    */
   getResourceIds(filters: BundleResourceIdFilters = {}): string[] {
-    return this.bundle.data
+    return this.getEntries()
       .filter((entry) => this.matchesResourceFilters(entry, filters))
       .map((entry, index) => this.resolveBundleEntryId(entry, index));
   }
@@ -40,7 +40,7 @@ export class BundleQuery {
       return [];
     }
 
-    return this.bundle.data
+    return this.getEntries()
       .map((entry, index) => ({
         entry,
         id: this.resolveBundleEntryId(entry, index),
@@ -58,9 +58,19 @@ export class BundleQuery {
       return undefined;
     }
 
-    const match = this.bundle.data.find((entry, index) => this.resolveBundleEntryId(entry, index) === wanted);
+    const match = this.getEntries().find((entry, index) => this.resolveBundleEntryId(entry, index) === wanted);
     const fullUrl = asTrimmedString(match?.fullUrl);
     return fullUrl || undefined;
+  }
+
+  private getEntries(): BundleEntry[] {
+    if (Array.isArray(this.bundle.data)) {
+      return this.bundle.data;
+    }
+    if (Array.isArray((this.bundle as unknown as { entry?: BundleEntry[] }).entry)) {
+      return (this.bundle as unknown as { entry: BundleEntry[] }).entry;
+    }
+    return [];
   }
 
   private resolveBundleEntryId(entry: BundleEntry, index: number): string {

@@ -17,9 +17,20 @@ export const AllergyIntoleranceClaim = {
   ClinicalStatus: 'AllergyIntolerance.clinical-status',
   VerificationStatus: 'AllergyIntolerance.verification-status',
   Category: 'AllergyIntolerance.category',
+  /**
+   * Canonical CSV/list of related contained resource references or identifiers.
+   */
+  ContainedReferenceList: 'AllergyIntolerance.contained-reference-list',
+  /**
+   * @deprecated Use `ContainedReferenceList`.
+   */
+  ContainedResourceList: 'AllergyIntolerance.contained-resource-list',
+  /**
+   * @deprecated Use `ContainedReferenceList`.
+   */
   ContainedDocuments: 'AllergyIntolerance.contained-documents',
   /**
-   * @deprecated Use `ContainedDocuments`.
+   * @deprecated Use `ContainedReferenceList`.
    */
   AttachmentContentIds: 'AllergyIntolerance.attachment-content-ids',
   Criticality: 'AllergyIntolerance.criticality',

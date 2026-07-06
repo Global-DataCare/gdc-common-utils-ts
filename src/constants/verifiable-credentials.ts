@@ -44,6 +44,16 @@ export const ProfessionalCredentialTypes = Object.freeze({
 });
 
 /**
+ * Canonical credential subtype names used by individual-controller and
+ * subject-side member access flows.
+ */
+export const IndividualCredentialTypes = Object.freeze({
+  IndividualControllerCredential: 'IndividualControllerCredential',
+  IndividualMemberCredential: 'IndividualMemberCredential',
+  IndividualSubjectCredential: 'IndividualSubjectCredential',
+});
+
+/**
  * Canonical credential subtype names used by inter-tenant authorization
  * contracts for cross-organization access.
  */

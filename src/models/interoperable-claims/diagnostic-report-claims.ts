@@ -21,6 +21,17 @@ export const DiagnosticReportClaim = {
   PresentedFormContentType: 'DiagnosticReport.presented-form-contenttype',
   PresentedFormData: 'DiagnosticReport.presented-form-data',
   PresentedFormUrl: 'DiagnosticReport.presented-form-url',
+  /**
+   * Canonical CSV/list of related contained resource references or identifiers.
+   */
+  ContainedReferenceList: 'DiagnosticReport.contained-reference-list',
+  /**
+   * @deprecated Use `ContainedReferenceList`.
+   */
+  ContainedResourceList: 'DiagnosticReport.contained-resource-list',
+  /**
+   * @deprecated Use `ContainedReferenceList`.
+   */
   ContainedDocuments: 'DiagnosticReport.contained-documents',
 } as const;
 
@@ -36,7 +47,7 @@ export const DiagnosticReportClaim = {
  *   - `get/set/add/removeDiagnosticReportResultList`
  *   - `get/set/add/removeDiagnosticReportPerformerList`
  *   - `get/set/add/removeDiagnosticReportSpecimenList`
- *   - `get/set/add/removeDiagnosticReportContainedDocuments`
+ *   - `get/set/add/removeDiagnosticReportContainedResourceReferences`
  *   - `get/setDiagnosticReportPresentedFormContentType`
  *   - `get/setDiagnosticReportPresentedFormData`
  *   - `get/setDiagnosticReportPresentedFormUrl`
@@ -137,7 +148,7 @@ DiagnosticReportClaimsFhirApi
  *
  * Do not invent camelCase names. Prefer official FHIR search parameter names
  * or explicit attachment aliases such as `presented-form-*` and
- * `contained-documents`.
+ * `contained-reference-list`.
  *
  * Keep `DiagnosticReport` paused at the typing/mapping layer until:
  * 1. `claims-helpers-diagnostic-report.ts` exists

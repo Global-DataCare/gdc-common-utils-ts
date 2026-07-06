@@ -1,3 +1,10 @@
+/**
+ * 101 note:
+ * - Teach the highest-level public `common-utils` helper available for this topic.
+ * - Do not make raw `meta.claims`, `upsert*`, or pack/unpack the main path unless this file is itself about transport.
+ * - Read `docs/101-README.md` for the ordered path, then continue upward into `gdc-sdk-core-ts` and `gdc-sdk-node-ts`.
+ */
+
 import { describe, expect, it } from '@jest/globals';
 
 import {
@@ -425,7 +432,7 @@ describe('101: IPS family entry editors', () => {
       [AllergyIntoleranceClaim.Code]: EXAMPLE_ALLERGY_CODE,
       [AllergyIntoleranceClaim.ClinicalStatus]: AllergyIntoleranceClinicalStatuses.Active,
       [AllergyIntoleranceClaim.VerificationStatus]: AllergyIntoleranceVerificationStatuses.Confirmed,
-      [AllergyIntoleranceClaim.ContainedDocuments]: EXAMPLE_ALLERGY_DOCUMENT_IDENTIFIER,
+      [AllergyIntoleranceClaim.ContainedReferenceList]: EXAMPLE_ALLERGY_DOCUMENT_IDENTIFIER,
     });
 
     // Step 2.
@@ -456,7 +463,7 @@ describe('101: IPS family entry editors', () => {
       [ConditionClaim.ClinicalStatus]: ConditionClinicalStatuses.Active,
       [ConditionClaim.VerificationStatus]: ConditionVerificationStatuses.Confirmed,
       [ConditionClaim.Severity]: EXAMPLE_CONDITION_SEVERITY,
-      [ConditionClaim.ContainedDocuments]: EXAMPLE_CONDITION_DOCUMENT_IDENTIFIER,
+      [ConditionClaim.ContainedReferenceList]: EXAMPLE_CONDITION_DOCUMENT_IDENTIFIER,
     });
 
     // Step 3.
@@ -731,11 +738,11 @@ describe('101: IPS family entry editors', () => {
     // Step 1.
     // The app creates one Observation-only bundle and stages one blood-pressure
     // panel together with its systolic/diastolic child results.
-    const bundleEditor = new BundleEditor()
+    const clinicalBundleEditor = new BundleEditor()
       .setBundleOperation(EmployeeBundleOperations.create)
       .setAllowedResourceType(BundleEditableResourceTypes.observation);
 
-    bundleEditor
+    clinicalBundleEditor
       .newEntry(EXAMPLE_OBSERVATION_PANEL_IDENTIFIER)
       .asObservation()
       .setIdentifier(EXAMPLE_OBSERVATION_PANEL_IDENTIFIER)
@@ -768,7 +775,7 @@ describe('101: IPS family entry editors', () => {
     // In Observation:
     // - `setCodeTextLocal(...)` is the local/UI label the app wants to show
     // - `setCodeDisplay(...)` is the canonical English/international display
-    bundleEditor
+    clinicalBundleEditor
       .newEntry(EXAMPLE_LAB_PANEL_IDENTIFIER)
       .asObservation()
       .setIdentifier(EXAMPLE_LAB_PANEL_IDENTIFIER)
@@ -814,7 +821,7 @@ describe('101: IPS family entry editors', () => {
     // Step 3.
     // Later in the same editing session, the app reopens one child result and
     // updates it through the same public getter/setter path.
-    const reopenedHemoglobinEntry = bundleEditor
+    const reopenedHemoglobinEntry = clinicalBundleEditor
       .openEntry(EXAMPLE_LAB_RESULT_HEMOGLOBIN_IDENTIFIER)
       .asObservation()
       .setValueQuantityNumber(EXAMPLE_LAB_RESULT_HEMOGLOBIN_VALUE + 0.1);
@@ -826,7 +833,7 @@ describe('101: IPS family entry editors', () => {
     // Step 4.
     // Once built, the bundle exposes one coherent set of Observation entries:
     // parent panels plus their grouped child results.
-    const built = bundleEditor.build();
+    const built = clinicalBundleEditor.build();
     const observationBuilt = built as {
       entry: Array<{ resource?: { resourceType?: string; meta?: { claims?: Record<string, unknown> } } }>;
     };
@@ -887,7 +894,7 @@ describe('101: IPS family entry editors', () => {
     // - `101-bundle-reader.test.ts` is the dedicated tutorial for BundleReader
     // - here we only use the minimal BundleReader path needed to keep IPS
     //   bundle editing connected to generic bundle navigation by identifier
-    const draftBundle = bundleEditor.buildJsonApi();
+    const draftBundle = clinicalBundleEditor.buildJsonApi();
     const clinicalBundleReader = new BundleReader(draftBundle as unknown as Record<string, unknown>);
     const clinicalBundleQuery = new BundleQuery(draftBundle);
     const hemoglobinEntryIndex = clinicalBundleReader.getEntryIndexByIdentifier(
