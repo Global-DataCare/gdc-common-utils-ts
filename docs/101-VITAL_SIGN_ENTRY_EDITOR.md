@@ -93,6 +93,20 @@ Read that example as:
 
 It only returns the final bundle payload.
 
+Practical split:
+
+- the bundle returned here can later be carried by `Communication` when the
+  user, professional, or device wants to update the individual's index
+- the same bundle can later be certified on-chain as a batch hash/CID when the
+  system or operator decides it is meaningful
+- do not treat one observed value as the blockchain unit; the bundle is the
+  unit that can be shared, indexed, or sealed later
+- for a phone assistant, the day-batch should be reopened by date and appended
+  with new vital signs, then resubmitted as a whole bundle
+- if several caregivers take turns, each actor may maintain its own day batch
+  for the same individual; recover that batch id first, and create a new UUID
+  batch when no actor-owned batch exists for the current day
+
 ## Generic Entry Editing
 
 The active entry supports the generic API first:

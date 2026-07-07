@@ -149,6 +149,7 @@ export interface ConfidentialBlobInfo {
 
 export interface ConfidentialStorageDoc {
     // 'id' is inherited from RecordBase
+  /** Vault primary key for the persisted confidential record. Keep this as an opaque technical id; HMAC is reserved for indexed attributes, not for the document key itself. */
     id: string;
     status: string;
     /**
@@ -166,7 +167,7 @@ export interface ConfidentialStorageDoc {
     /** A number that MUST be incremented each time the document is updated. */
     sequence: number;
 
-    /** Contains an array of indexed attributes protected with HMAC for blind queries. */
+    /** Contains an array of indexed attributes protected with HMAC for blind queries. This is the place for blind-search protection, not `id`. */
     indexed?: IndexedData;
     
     /** The main, potentially encrypted, content of the document. */

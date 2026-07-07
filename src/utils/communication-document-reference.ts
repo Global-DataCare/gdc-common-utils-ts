@@ -36,6 +36,19 @@ export type BuildDocumentReferenceResult = {
   warnings: string[];
 };
 
+export type BlockchainArtifactDocumentReferenceInput = Readonly<{
+  subject: string;
+  resource?: Record<string, unknown>;
+  contentDataBase64?: string;
+  contentType?: string;
+  identifier?: string;
+  title?: string;
+  description?: string;
+  date?: string;
+  location?: string;
+  language?: string;
+}>;
+
 const CID_V1 = 0x01;
 const MULTICODEC_RAW = 0x55;
 const MULTIHASH_SHA2_256_CODE = 0x12;
@@ -75,6 +88,10 @@ function cidFromBytes(bytes: Uint8Array): string {
 
 function decodeBase64(data: string): Uint8Array {
   return Uint8Array.from(Buffer.from(data, 'base64'));
+}
+
+function encodeBase64Utf8(data: string): string {
+  return Buffer.from(data, 'utf8').toString('base64');
 }
 
 function toStringOrUndefined(value: unknown): string | undefined {
@@ -212,5 +229,99 @@ export function buildDocumentReferenceFromCommunicationPayload(
     contentCid,
     evidence: [buildEvidenceForKind(kind, contentCid)],
     warnings,
+  };
+}
+
+/**
+ * Builds a blockchain-ready `DocumentReference` projection from either a FHIR
+ * resource or already-encoded attachment bytes.
+ *
+ * The resulting projection keeps two identifiers distinct:
+ * - `contentCid`: canonical content address used for blockchain registration
+ * - `documentReference.identifier`: optional business identifier supplied by the caller
+ *
+ * @param input Source artifact data to wrap.
+ */
+export function buildBlockchainArtifactDocumentReference(
+  input: BlockchainArtifactDocumentReferenceInput,
+): BuildDocumentReferenceResult {
+  const subject = toStringOrUndefined(input.subject);
+  if (!subject) {
+    throw new Error('buildBlockchainArtifactDocumentReference requires subject.');
+  }
+
+  const resource = input.resource;
+  const hasResource = !!resource && typeof resource === 'object' && !Array.isArray(resource);
+  const contentType = toStringOrUndefined(input.contentType) || (hasResource ? 'application/fhir+json' : 'application/octet-stream');
+  const title = toStringOrUndefined(input.title) || (hasResource
+    ? `${String((resource as Record<string, unknown>).resourceType || 'resource').toLowerCase()}.json`
+    : 'artifact.bin');
+
+  let contentDataBase64 = toStringOrUndefined(input.contentDataBase64);
+  let contentCid: string;
+  let communicationLike: Record<string, any>;
+
+  if (hasResource) {
+    const serialized = JSON.stringify(resource);
+    contentDataBase64 = encodeBase64Utf8(serialized);
+    contentCid = fhirResourceToCid(resource as Record<string, unknown>).cid;
+    communicationLike = {
+      resourceType: 'Communication',
+      meta: { claims: { [CommunicationClaim.Subject]: subject } },
+      payload: [{ contentAttachment: { contentType, data: contentDataBase64, title } }],
+    };
+  } else {
+    if (!contentDataBase64) {
+      throw new Error('buildBlockchainArtifactDocumentReference requires contentDataBase64 when resource is absent.');
+    }
+    contentCid = cidFromBytes(decodeBase64(contentDataBase64));
+    communicationLike = {
+      resourceType: 'Communication',
+      meta: { claims: { [CommunicationClaim.Subject]: subject } },
+      payload: [{ contentAttachment: { contentType, data: contentDataBase64, title, url: input.location } }],
+    };
+  }
+
+  const result = buildDocumentReferenceFromCommunicationPayload(communicationLike, { mode: 'strict' });
+  const logicalIdentifier = toStringOrUndefined(input.identifier) || contentCid;
+
+  const documentReference = {
+    ...result.documentReference,
+    identifier: logicalIdentifier ? [{ value: logicalIdentifier }] : undefined,
+    description: toStringOrUndefined(input.description) || result.documentReference.description,
+    date: toStringOrUndefined(input.date) || result.documentReference.date,
+    content: [{
+      attachment: {
+        ...(result.documentReference.content?.[0]?.attachment || {}),
+        contentType,
+        data: contentDataBase64,
+        url: toStringOrUndefined(input.location) || result.documentReference.content?.[0]?.attachment?.url,
+        title,
+        language: toStringOrUndefined(input.language) || result.documentReference.content?.[0]?.attachment?.language,
+        hash: contentCid,
+      },
+    }],
+    meta: {
+      ...(result.documentReference.meta || {}),
+      versionId: contentCid,
+      claims: {
+        ...((result.documentReference.meta || {}).claims || {}),
+        [DocumentReferenceClaim.Identifier]: logicalIdentifier,
+        [DocumentReferenceClaim.ContentHash]: contentCid,
+        [DocumentReferenceClaim.ContentData]: contentDataBase64,
+        [DocumentReferenceClaim.ContentType]: contentType,
+        [DocumentReferenceClaim.Subject]: subject,
+        ...(toStringOrUndefined(input.description) ? { [DocumentReferenceClaim.Description]: input.description } : {}),
+        ...(toStringOrUndefined(input.date) ? { [DocumentReferenceClaim.Date]: input.date } : {}),
+        ...(toStringOrUndefined(input.location) ? { [DocumentReferenceClaim.Location]: input.location } : {}),
+        ...(toStringOrUndefined(input.language) ? { [DocumentReferenceClaim.Language]: input.language } : {}),
+      },
+    },
+  };
+
+  return {
+    ...result,
+    contentCid,
+    documentReference,
   };
 }

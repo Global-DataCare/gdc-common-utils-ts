@@ -51,6 +51,16 @@ Public teaching rule:
 - any `meta.claims`, indexed attributes, or derived section tags belong to
   architecture/implementation, not to the beginner search story
 
+Secure transport note:
+
+- the secure GW/FAPI path uses encrypted DIDComm submission when the runtime
+  has the recipient encryption key
+- in `strict` mode, that encrypted path is mandatory: no recipient encryption
+  JWK means fail fast instead of falling back to plaintext
+- JAR/JARM belongs to the authorization-request / authorization-response
+  security layer around the flow; it is not the same thing as the business
+  payload model in `Communication`
+
 Use these executable references together with this document:
 
 - [__tests__/101-ips-bundle-editor.test.ts](../__tests__/101-ips-bundle-editor.test.ts)
@@ -205,6 +215,27 @@ Important detail:
 
 - employee create/search/disable/purge examples are direct bundle stories, not
   individual-index `Communication` stories
+
+### 3. Vital Signs Measurement Batch
+
+This is the special case for high-frequency clinical measurements.
+
+Shape:
+
+1. build one `Bundle` of `Observation` entries with `type=batch`
+2. let the bundle update the individual index when the backend accepts it
+3. keep blockchain certification as a separate decision
+4. if the batch is wrapped in `Communication`, include the Vital Signs section
+   signal so the backend knows which IPS section the batch belongs to
+
+Important details:
+
+- this is not the same as a document bundle
+- the batch hash/CID is the certification unit, not each individual sample
+- the Communication wrapper, if used, should carry the section signal such as
+  `HealthcareBasicSections.VitalSigns` / the equivalent LOINC code for routing
+- the batch can be shared, indexed, or later sealed as one package
+- do not teach this as a per-observation blockchain write path
 
 ## The Four Layers
 

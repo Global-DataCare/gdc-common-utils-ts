@@ -1,8 +1,11 @@
 /**
  * 101 note:
  * - Teach the highest-level public `common-utils` helper available for this topic.
+ * - This file is infrastructure beneath profile-manager and transport flows.
  * - Do not make raw `meta.claims`, `upsert*`, or pack/unpack the main path unless this file is itself about transport.
  * - Read `docs/101-README.md` for the ordered path, then continue upward into `gdc-sdk-core-ts` and `gdc-sdk-node-ts`.
+ * - Keep the user-profile wallet as the normal mental model; proxy/service
+ *   wallets remain optional infrastructure.
  */
 
 import { randomBytes, createHash, randomUUID } from 'crypto';
@@ -43,6 +46,9 @@ describe('101: wallet mem step by step', () => {
      * - keep the queue local to memory while preserving emergency priority
      * - pack one business payload as nested JWS+JWE and unpack it on the
      *   recipient side
+     *
+     * Main narrative:
+     * `WalletMem -> encrypt/queue -> transport -> decrypt/read back`
      */
     const senderWallet = new WalletMem({
       cryptoHelper,

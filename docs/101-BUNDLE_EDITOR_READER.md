@@ -164,6 +164,32 @@ For `Bundle.type=document`, prefer `buildDocument()` explicitly in onboarding
 examples so the reader understands when the editor is closing a clinical
 document with `Composition` first.
 
+For daily measurement batches and phone-assisted vital-sign capture, use the
+bundle reader's date filters as the primary way to find the current day batch.
+The shared model already exposes `dateFrom` / `dateTo` filtering on bundle
+entries, so today's bundle should be selected by entry dates and job timestamp
+metadata, not by a per-entry `_patch` flow.
+
+When multiple caregivers or professionals take turns for the same individual,
+do not assume there is only one batch per day.
+
+- the bundle id should be treated as subject + day + actor/role scoped
+- if the current actor does not own an existing batch for that day, create a
+  fresh UUID-backed batch id
+- if an existing batch for that actor/day is found, reuse that id and append
+  the new vital-sign entries
+- if the product later chooses a shared day log, that should be an explicit
+  product decision, not an implicit reader default
+
+Important practical rule:
+
+- `createdAtTimestamp` exists on the job wrapper, not as a dedicated patch API
+  for bundle entries
+- if a batch must be updated during the day, reopen/select it, append the new
+  vital-sign entries, and materialize the whole batch again
+- use the batch as the measurement unit; do not split the phone call into
+  blockchain-sized fragments
+
 ### Document Mode
 
 The current newbie-facing document shape is:

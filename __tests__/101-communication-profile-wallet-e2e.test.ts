@@ -2,11 +2,14 @@
  * 101 note:
  * - Read `CONTRIBUTING.md` first. The shared test rules there are part of this file.
  * - Teach the highest-level public `common-utils` helper available for this topic.
+ * - This file bridges bundle authoring and the profile/wallet runtime path.
  * - Do not make raw `meta.claims`, `upsert*`, or pack/unpack the main path unless this file is itself about transport.
  * - Do not introduce inline literals when a shared type, constant, fixture, or
  *   validation issue already exists in `src/constants/*`, `src/models/*`, or
  *   `src/examples/*`.
  * - Read `docs/101-README.md` for the ordered path, then continue upward into `gdc-sdk-core-ts` and `gdc-sdk-node-ts`.
+ * - The unlocked user profile runtime is the next layer above this file; a
+ *   separate proxy/service wallet is optional infrastructure, not the default.
  */
 
 import { describe, expect, it } from '@jest/globals';
@@ -36,11 +39,17 @@ import {
 describe('101: communication bundle through profile manager and wallet', () => {
   it('teaches the transport and readback path for one already-built document bundle', async () => {
     /**
+     * Teaching goal:
+     * - start from one finished clinical document bundle
+     * - wrap it in one delivery Communication through communication-level setters
+     * - show that the unlocked profile wallet, not raw claims, is the normal
+     *   transport owner
+     * - stop before queue/outbox plumbing and runtime orchestration
+     *
      * Scope:
      * - canonical bundle authoring: `101-ips-bundle-editor.test.ts`
      * - this file: transport/readback around one finished document bundle
-     * - stop before wallet/outbox transport plumbing
-     * - next layers: `sdk-core` and `sdk-node`
+     * - next layers: `gdc-sdk-core-ts` and `gdc-sdk-node-ts`
      *
      * Runtime ownership rule:
      * - normal case: the unlocked user profile runtime later encrypts this

@@ -15,6 +15,34 @@ This package is the canonical home for:
 - reusable claim normalization and readback helpers
 - didactic `101` tests that define the intended high-level contract
 
+## Identity And Content Contract
+
+When shared helpers need to talk about identity, keep these concepts separate:
+
+- `resource.identifier` is the public/business locator
+- `resource.id` and `Bundle.entry.id` are the canonical technical lifecycle ids
+  used for editing, readback, disable, and purge flows
+- `Bundle.entry.fullUrl` is a transport/reference locator, not the canonical id
+- `resource.meta.versionId` is the content fingerprint/CID for the canonicalized
+  payload, not the public business identifier
+- `ConfidentialStorageDoc.id` is the vault record key used by the storage layer
+
+Shared editors may synchronize `resource.id`, `Bundle.entry.id`, and `fullUrl`
+for convenience, but the public identifier must stay separate from the lifecycle
+identity.
+
+Content fingerprinting rules:
+
+- canonicalized FHIR JSON -> content CID/versionId from the normalized JSON
+- PDF or binary attachment -> content CID/versionId from the raw bytes
+- user-authored clinical resource without materialized FHIR -> content CID/versionId
+  from canonicalized claims
+
+For the downstream GW route/domain split and portal/BFF mapping, use the GW
+template contract as the reference point:
+
+- [gwtemplate-node-ts/docs/PORTAL_API_TO_GW_CORE.md](https://github.com/Global-DataCare/gwtemplate-node-ts/blob/main/docs/PORTAL_API_TO_GW_CORE.md)
+
 This package is not the place for:
 
 - actor-runtime orchestration
