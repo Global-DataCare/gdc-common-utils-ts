@@ -154,7 +154,7 @@ export function extractTenantIdFromHostedDidWeb(did: string): string | undefined
  * Builds the canonical hosted provider DID root used by hosted tenant services.
  *
  * Canonical form:
- * `did:web:<host.domain>:<sector>;organization:taxid:<provider-tax-id>`
+ * `did:web:<host.domain>:<sector>:organization:taxid:<provider-tax-id>`
  *
  * This is the provider-scoped DID root under which hosted individual and member
  * identities are published. Downstream individual DIDs extend this root with
@@ -171,7 +171,7 @@ export function buildHostedProviderDidWeb(input: {
   if (!hostDomain) throw new Error('buildHostedProviderDidWeb requires hostDomain.');
   if (!sector) throw new Error('buildHostedProviderDidWeb requires sector.');
   if (!providerTaxId) throw new Error('buildHostedProviderDidWeb requires providerTaxId.');
-  return `did:web:${hostDomain}:${sector};organization:taxid:${providerTaxId}`;
+  return `did:web:${hostDomain}:${sector}:organization:taxid:${providerTaxId}`;
 }
 
 /**
@@ -322,7 +322,7 @@ export function buildProfessionalDidWeb(input: {
  *
  * Canonical supported forms:
  * - hosted:
- *   `did:web:<host.domain>:<sector>;organization:taxid:<provider-tax-id>:individual:multibase:<individualId>`
+ *   `did:web:<host.domain>:<sector>:organization:taxid:<provider-tax-id>:individual:multibase:<individualId>`
  * - external/provider-domain:
  *   `did:web:<sector.provider.domain>:individual:multibase:<individualId>`
  *

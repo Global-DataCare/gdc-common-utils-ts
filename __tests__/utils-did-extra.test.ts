@@ -70,7 +70,7 @@ describe('did utilities', () => {
       sector: 'health-care',
       providerTaxId: 'VATES-B00112233',
     });
-    expect(hostedProviderDid).toBe('did:web:host.example.org:health-care;organization:taxid:VATES-B00112233');
+    expect(hostedProviderDid).toBe('did:web:host.example.org:health-care:organization:taxid:VATES-B00112233');
 
     const providerDomainDid = buildProviderSectorDidWeb({
       providerSectorDomain: 'health-care.provider.example.org',
@@ -82,7 +82,7 @@ describe('did utilities', () => {
       individualId: 'z6MkhYExampleIndividualId',
     });
     expect(individualDid).toBe(
-      'did:web:host.example.org:health-care;organization:taxid:VATES-B00112233:individual:multibase:z6MkhYExampleIndividualId',
+      'did:web:host.example.org:health-care:organization:taxid:VATES-B00112233:individual:multibase:z6MkhYExampleIndividualId',
     );
 
     const memberDid = buildIndividualMemberDidWeb({
@@ -90,7 +90,7 @@ describe('did utilities', () => {
       role: 'v3-RoleCode|RESPRSN',
     });
     expect(memberDid).toBe(
-      'did:web:host.example.org:health-care;organization:taxid:VATES-B00112233:individual:multibase:z6MkhYExampleIndividualId:member:role:RESPRSN',
+      'did:web:host.example.org:health-care:organization:taxid:VATES-B00112233:individual:multibase:z6MkhYExampleIndividualId:member:role:RESPRSN',
     );
   });
 
