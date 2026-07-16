@@ -50,6 +50,10 @@ export type BundleDocumentResourceFilter = Readonly<{
   resourceType?: string;
 }>;
 
+export type PrepareBundleDocumentForSubjectOptions = Readonly<{
+  context?: string;
+}>;
+
 function asTrimmedString(value: unknown): string {
   if (value === undefined || value === null) return '';
   return String(value).trim();
@@ -140,6 +144,183 @@ function normalizeSectionCode(value: string): { code: string; system?: string } 
   const [system, code] = raw.split('|');
   if (!code) return { code: system };
   return { system, code };
+}
+
+function toCanonicalSectionToken(system: unknown, code: unknown): string {
+  const normalizedSystem = asTrimmedString(system);
+  const normalizedCode = asTrimmedString(code);
+  if (!normalizedCode) return '';
+  if (!normalizedSystem) return normalizedCode;
+  return `${normalizedSystem === 'http://loinc.org' ? 'LOINC' : normalizedSystem}|${normalizedCode}`;
+}
+
+function resourceReferenceAliases(entry: Record<string, any>): string[] {
+  const resource = entry?.resource;
+  const resourceType = asTrimmedString(resource?.resourceType);
+  const resourceId = asTrimmedString(resource?.id);
+  const fullUrl = asTrimmedString(entry?.fullUrl);
+  return Array.from(new Set([
+    fullUrl,
+    resourceType && resourceId ? `${resourceType}/${resourceId}` : '',
+    resourceId,
+    fullUrl ? fullUrl.split('/').slice(-2).join('/') : '',
+  ].filter(Boolean)));
+}
+
+function sectionMembershipByReference(composition: Record<string, any>): Map<string, string[]> {
+  const memberships = new Map<string, string[]>();
+  const visit = (sections: unknown): void => {
+    if (!Array.isArray(sections)) return;
+    for (const section of sections) {
+      const coding = Array.isArray(section?.code?.coding) ? section.code.coding[0] : undefined;
+      const token = toCanonicalSectionToken(coding?.system, coding?.code);
+      if (token && Array.isArray(section?.entry)) {
+        for (const item of section.entry) {
+          const reference = asTrimmedString(item?.reference);
+          if (!reference) continue;
+          const aliases = [reference, reference.split('/').slice(-2).join('/'), reference.split('/').pop() || ''];
+          for (const alias of aliases.filter(Boolean)) {
+            memberships.set(alias, Array.from(new Set([...(memberships.get(alias) || []), token])));
+          }
+        }
+      }
+      visit(section?.section);
+    }
+  };
+  visit(composition?.section);
+  return memberships;
+}
+
+function allCompositionSectionTokens(composition: Record<string, any>): string[] {
+  const tokens: string[] = [];
+  const visit = (sections: unknown): void => {
+    if (!Array.isArray(sections)) return;
+    for (const section of sections) {
+      const coding = Array.isArray(section?.code?.coding) ? section.code.coding[0] : undefined;
+      const token = toCanonicalSectionToken(coding?.system, coding?.code);
+      if (token) tokens.push(token);
+      visit(section?.section);
+    }
+  };
+  visit(composition?.section);
+  return Array.from(new Set(tokens));
+}
+
+function replacePatientSubjectReference(resource: Record<string, any>, subjectDid: string): void {
+  const resourceType = asTrimmedString(resource?.resourceType);
+  if (resourceType === ResourceTypesFhirR4.Composition || resource?.subject?.reference) {
+    resource.subject = { ...(resource.subject || {}), reference: subjectDid };
+  }
+  if (resource?.patient?.reference) {
+    resource.patient = { ...(resource.patient || {}), reference: subjectDid };
+  }
+}
+
+/**
+ * Validates and prepares an imported FHIR document for one authorized subject.
+ *
+ * The input is cloned. Every resource receives a deterministic flat
+ * `meta.claims` projection. Resources referenced by `Composition.section`
+ * receive the canonical section tokens in `Composition.section`, and patient
+ * subject references are rebound to the selected `did:web` subject. Existing
+ * claims are retained, except subject/patient values are forced to the
+ * selected subject so an imported local `Patient/{id}` cannot escape the
+ * controller-authorized index scope. The source object is never mutated.
+ *
+ * This is a conversion primitive only. It neither confirms that a mismatched
+ * Patient is the right person nor persists anything; confirmation belongs to
+ * the product UI and transport/authorization remain GW concerns.
+ */
+export function prepareBundleDocumentForSubject(
+  bundle: Record<string, any>,
+  subjectDid: string,
+  options: PrepareBundleDocumentForSubjectOptions = {},
+): Record<string, any> {
+  const validation = validateBundleDocumentBasic(bundle);
+  if (!validation.ok) throw new Error(validation.issues.join(' '));
+  const normalizedSubjectDid = asTrimmedString(subjectDid);
+  if (!normalizedSubjectDid) throw new Error('A subject DID is required.');
+
+  const prepared = JSON.parse(JSON.stringify(bundle)) as Record<string, any>;
+  const entries = prepared.entry as Array<Record<string, any>>;
+  const composition = entries[0]?.resource as Record<string, any>;
+  const membership = sectionMembershipByReference(composition);
+  const allSections = allCompositionSectionTokens(composition);
+
+  for (const entry of entries) {
+    const resource = entry?.resource;
+    if (!resource || typeof resource !== 'object') continue;
+    replacePatientSubjectReference(resource, normalizedSubjectDid);
+    const generated = convertFhirResourceToClaims(resource as FhirResource, options.context || 'org.hl7.fhir.r4');
+    const existing = resource?.meta?.claims;
+    const claims: Record<string, unknown> = {
+      ...generated,
+      ...(existing && typeof existing === 'object' && !Array.isArray(existing) ? existing : {}),
+    };
+    const resourceType = asTrimmedString(resource.resourceType);
+    if (resourceType !== 'Patient') {
+      if (resource?.subject?.reference) claims[`${resourceType}.subject`] = normalizedSubjectDid;
+      if (resource?.patient?.reference) claims[`${resourceType}.patient`] = normalizedSubjectDid;
+    }
+    const resourceSections = resourceType === ResourceTypesFhirR4.Composition
+      ? allSections
+      : resourceReferenceAliases(entry).flatMap((alias) => membership.get(alias) || []);
+    if (resourceSections.length > 0) {
+      claims[CompositionClaim.Section] = Array.from(new Set(resourceSections)).join(',');
+    }
+    resource.meta = {
+      ...(resource.meta && typeof resource.meta === 'object' ? resource.meta : {}),
+      claims,
+    };
+  }
+  return prepared;
+}
+
+/**
+ * Returns the Patient Full Name addressed by the document Composition.
+ *
+ * Resolution prefers the Patient referenced by `Composition.subject`, then
+ * falls back to the first Patient for compatibility with incomplete imports.
+ * Name selection prefers `use=official`, then `usual`, then the first name;
+ * `HumanName.text` wins over assembling prefix/given/family/suffix.
+ */
+export function getBundleDocumentPatientFullName(bundle: Record<string, any>): string | undefined {
+  const entries = Array.isArray(bundle?.entry) ? bundle.entry : [];
+  const composition = entries[0]?.resource;
+  const subjectReference = asTrimmedString(composition?.subject?.reference);
+  const patientEntry = entries.find((entry: Record<string, any>) => {
+    if (entry?.resource?.resourceType !== 'Patient') return false;
+    if (!subjectReference) return true;
+    return resourceReferenceAliases(entry).some((alias) =>
+      alias === subjectReference
+      || alias === subjectReference.split('/').slice(-2).join('/')
+      || alias === subjectReference.split('/').pop(),
+    );
+  }) || entries.find((entry: Record<string, any>) => entry?.resource?.resourceType === 'Patient');
+  const names = Array.isArray(patientEntry?.resource?.name) ? patientEntry.resource.name : [];
+  const name = names.find((item: Record<string, any>) => item?.use === 'official')
+    || names.find((item: Record<string, any>) => item?.use === 'usual')
+    || names[0];
+  if (!name) return undefined;
+  const text = asTrimmedString(name.text);
+  if (text) return text;
+  const parts = [
+    ...(Array.isArray(name.prefix) ? name.prefix : []),
+    ...(Array.isArray(name.given) ? name.given : []),
+    name.family,
+    ...(Array.isArray(name.suffix) ? name.suffix : []),
+  ].map(asTrimmedString).filter(Boolean);
+  return parts.length > 0 ? parts.join(' ') : undefined;
+}
+
+/**
+ * Temporary Full Name comparison key: whitespace folding plus uppercase only.
+ * Diacritics and punctuation are intentionally preserved until the shared
+ * ICAO transliteration contract exists, so `JOSE` and `JOSÉ` do not compare as
+ * equal by accident.
+ */
+export function normalizeFullNameForComparison(value: unknown): string {
+  return asTrimmedString(value).replace(/\s+/g, ' ').toUpperCase();
 }
 
 function resolveContainedReferenceListClaimKey(resourceType: string): string | undefined {

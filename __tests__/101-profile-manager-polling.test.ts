@@ -1,8 +1,11 @@
 /**
  * 101 note:
  * - Teach the highest-level public `common-utils` helper available for this topic.
+ * - This file teaches the profile manager as the public orchestration surface.
  * - Do not make raw `meta.claims`, `upsert*`, or pack/unpack the main path unless this file is itself about transport.
  * - Read `docs/101-README.md` for the ordered path, then continue upward into `gdc-sdk-core-ts` and `gdc-sdk-node-ts`.
+ * - The wallet and queue are infrastructure under the profile manager, not the
+ *   first mental model.
  */
 
 import { createHash, randomBytes, randomUUID } from 'crypto';
@@ -40,6 +43,9 @@ describe('101: profile manager async polling step by step', () => {
      * - show the next step after queue + immediate response
      * - model one GW-style async flow where submit only returns a location
      * - complete the interaction later through `pollSubmittedMessage(...)`
+     *
+     * Main narrative:
+     * `ProfileManagerMem -> wallet/profile session -> transport submit -> poll response`
      */
     const wallet = new WalletMem({ cryptoHelper, cryptography: new CryptographyService(cryptoHelper) });
     const gatewayWallet = new WalletMem({ cryptoHelper, cryptography: new CryptographyService(cryptoHelper) });

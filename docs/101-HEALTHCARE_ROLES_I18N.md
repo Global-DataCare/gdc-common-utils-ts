@@ -65,10 +65,12 @@ Professional coding system descriptor:
 
 - `org.ilo.isco`
 
-HL7 role claim formats:
+HL7 role claim format used by the shared catalog:
 
-- `v3-PersonalRelationshipRoleType|<code>`
 - `v3-RoleCode|<code>`
+
+The underlying HL7 sources may come from different value sets, but the shared
+catalog normalizes them into the same claim shape for consumers.
 
 ## i18n keys
 
@@ -84,11 +86,11 @@ This is better than using `ISCO-08|<code>` as an i18n key:
 
 For HL7 personal relationship labels, use:
 
-- `org.hl7.v3.personalRelationship.<code>`
+- `org.hl7.terminology.CodeSystem.v3-RoleCode.<code>`
 
 For HL7 role code labels, use:
 
-- `org.hl7.v3.roleCode.<code>`
+- `org.hl7.terminology.CodeSystem.v3-RoleCode.<code>`
 
 Shared map export:
 
@@ -97,6 +99,7 @@ Shared map export:
 Backward compatibility:
 
 - legacy aliases `org.isco08.<code>` are still available in `roleCodeI18nEn`
+- legacy aliases `org.hl7.v3.personalRelationship.<code>` and `org.hl7.v3.roleCode.<code>` are still available in `roleCodeI18nEn`
 
 ## Typical usage patterns
 

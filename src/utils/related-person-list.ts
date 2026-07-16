@@ -6,11 +6,15 @@ export type RelatedPersonListRecord = Readonly<{
   identifier?: string;
   patient?: string;
   relationship?: string;
+  /** Functional `RelatedPerson.role` extension values, separate from kinship. */
+  roles: readonly string[];
   name?: string;
   telecom?: string;
   active?: string;
   status?: string;
   resourceId?: string;
+  relatedEntityType?: string;
+  actorIdentifiers: readonly string[];
   claims: Record<string, unknown>;
 }>;
 
@@ -37,6 +41,17 @@ function extractClaims(entry: Record<string, unknown>): Record<string, unknown> 
   return { ...(resourceClaims || {}), ...(metaClaims || {}) };
 }
 
+function readClaim(claims: Record<string, unknown>, claimKey: string): unknown {
+  if (claims[claimKey] !== undefined) return claims[claimKey];
+  const context = normalizeText(claims['@context']);
+  if (context && claims[`${context.replace(/\.$/, '')}.${claimKey}`] !== undefined) {
+    return claims[`${context.replace(/\.$/, '')}.${claimKey}`];
+  }
+  const suffix = `.${claimKey}`;
+  const matchedKey = Object.keys(claims).find((key) => key.endsWith(suffix));
+  return matchedKey ? claims[matchedKey] : undefined;
+}
+
 /**
  * Reads subject-side relationship records from one current GW-style result
  * body into one neutral list shape for frontend screens.
@@ -56,14 +71,23 @@ export function readRelatedPersonListRecords(body: unknown): RelatedPersonListRe
       const resource = entry.resource && typeof entry.resource === 'object' ? entry.resource as Record<string, unknown> : {};
 
       return {
-        identifier: normalizeText(claims[RelatedPersonClaim.IdentifierValue] ?? claims[RelatedPersonClaim.Identifier]),
-        patient: normalizeText(claims[RelatedPersonClaim.Patient]),
-        relationship: normalizeText(claims[RelatedPersonClaim.Relationship]),
-        name: normalizeText(claims[RelatedPersonClaim.Name]),
-        telecom: normalizeText(claims[RelatedPersonClaim.Telecom]),
-        active: normalizeText(claims[RelatedPersonClaim.Active]),
+        identifier: normalizeText(readClaim(claims, RelatedPersonClaim.IdentifierValue) ?? readClaim(claims, RelatedPersonClaim.Identifier)),
+        patient: normalizeText(readClaim(claims, RelatedPersonClaim.Patient)),
+        relationship: normalizeText(readClaim(claims, RelatedPersonClaim.Relationship)),
+        roles: String(readClaim(claims, RelatedPersonClaim.Role) ?? '')
+          .split(',')
+          .map((value) => value.trim().toUpperCase())
+          .filter(Boolean),
+        name: normalizeText(readClaim(claims, RelatedPersonClaim.Name)),
+        telecom: normalizeText(readClaim(claims, RelatedPersonClaim.Telecom)),
+        active: normalizeText(readClaim(claims, RelatedPersonClaim.Active)),
         status: normalizeText(meta.status),
         resourceId: normalizeText(resource.id || entry.id),
+        relatedEntityType: normalizeText(readClaim(claims, RelatedPersonClaim.RelatedEntityType)),
+        actorIdentifiers: String(readClaim(claims, RelatedPersonClaim.ActorIdentifier) ?? '')
+          .split(',')
+          .map((value) => value.trim())
+          .filter(Boolean),
         claims,
       };
     });

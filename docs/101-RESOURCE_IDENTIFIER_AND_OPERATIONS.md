@@ -63,6 +63,24 @@ In FHIR mode, the preferred flow is:
 That lets the API stay FHIR-friendly without forcing every manager to process
 raw FHIR structures directly.
 
+### Confidential storage and HMAC
+
+Do not use HMAC as the primary identifier for `resource.id` or for the vault
+record key by default.
+
+- `resource.identifier` remains the business locator
+- `resource.id` remains the technical/runtime identifier
+- `ConfidentialStorageDoc.id` remains the vault primary key
+- HMAC belongs on `indexed.attributes` for blind queries and searchability
+
+If a deployment wants an opaque storage key, it should use a separate internal
+mapping or a random surrogate id. Do not overload the business identifier with
+the blind-index contract.
+
+For bundle responses, `entry.id` is the practical technical correlation id.
+It may echo `resource.id`, but it should not be derived from
+`resource.identifier` unless the gateway contract explicitly states that.
+
 ## Operation Contract
 
 ### `/_search`

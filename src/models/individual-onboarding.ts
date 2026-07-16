@@ -101,9 +101,27 @@ export interface IndividualFormTemplateFields {
   controllerSexAtBirth?: BirthSex | string;
   controllerIsSubject?: boolean;
   subjectAlternateName?: string;
+  /**
+   * Birth date for the indexed subject.
+   *
+   * Canonical downstream target:
+   * - `org.schema.Organization.member.birthDate`
+   *
+   * When `controllerIsSubject=true`, controller date fields may also be used
+   * as the subject seed for self-registration flows.
+   */
   subjectDateOfBirth?: string;
   subjectEmail?: string;
   subjectFamilyName?: string;
+  /**
+   * Gender for the indexed subject.
+   *
+   * Canonical downstream target:
+   * - `org.schema.Organization.member.gender`
+   *
+   * When `controllerIsSubject=true`, controller gender fields may also be used
+   * as the subject seed for self-registration flows.
+   */
   subjectGender?: GenderIdentity | string;
   subjectGivenName?: string;
   subjectIdType?: IdKindValue | string;

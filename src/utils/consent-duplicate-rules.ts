@@ -287,7 +287,7 @@ function normalizeConsentRoleForRuleKey(value: unknown): string {
     return `org.hl7.terminology.codesystem.v3-rolecode.${code}`;
   }
   if (system === 'v3-personalrelationshiproletype') {
-    return `org.hl7.v3.personalrelationship.${code}`;
+    return `org.hl7.terminology.codesystem.v3-rolecode.${code}`;
   }
 
   return claim.toLowerCase();

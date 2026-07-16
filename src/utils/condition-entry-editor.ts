@@ -52,8 +52,8 @@ export class ConditionEntryEditor extends ClinicalResourceEntryEditor {
   public getOnsetDateTime(): string | undefined { return this.getScalarClaim(ConditionClaim.OnsetDateTime); }
   public setRecorder(reference?: string | null): this { return this.setScalarClaim(ConditionClaim.Recorder, reference); }
   public getRecorder(): string | undefined { return this.getScalarClaim(ConditionClaim.Recorder); }
-  public setContainedDocumentIdentifierList(identifiers: readonly string[]): this { return this.setCsvClaimList(ConditionClaim.ContainedDocuments, identifiers); }
-  public getContainedDocumentIdentifierList(): string[] { return this.getCsvClaimList(ConditionClaim.ContainedDocuments); }
+  public setContainedDocumentIdentifierList(identifiers: readonly string[]): this { return this.setCsvClaimList(ConditionClaim.ContainedReferenceList, identifiers); }
+  public getContainedDocumentIdentifierList(): string[] { return this.getCsvClaimList(ConditionClaim.ContainedReferenceList); }
 }
 
 

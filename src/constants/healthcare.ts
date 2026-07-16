@@ -7,6 +7,10 @@ import {
   HL7_V3_ROLE_CODE_LEGAL_REPRESENTATIVE,
 } from './hl7-roles';
 import { DataspaceSectors, type DataspaceSector } from './sectors';
+import {
+  ResourceTypesFhirR4,
+  type ResourceTypeFhirR4,
+} from './fhir-resource-types';
 
 export type HealthcareSectionDescriptor = Readonly<{
   system: typeof LOINC_SYSTEM_URL;
@@ -54,12 +58,19 @@ export const HealthcareRoleFamilies = Object.freeze({
 export type HealthcareRoleFamily =
   typeof HealthcareRoleFamilies[keyof typeof HealthcareRoleFamilies];
 
+/**
+ * Canonical HL7 access role codes used by self-managed and controller flows.
+ *
+ * These are the values the portal and shared backend should persist and match.
+ */
+export type Hl7PersonalAccessRoleCode = 'ONESELF' | 'RESPRSN';
+
 export type HealthcareActorRoleDescriptor = Readonly<{
   family: HealthcareRoleFamily;
   codingSystem: string;
   code: string;
   claim: string;
-  i18nKey: `org.ilo.isco-08.${string}` | `org.hl7.v3.personalRelationship.${string}` | `org.hl7.v3.roleCode.${string}`;
+  i18nKey: `org.ilo.isco-08.${string}` | `org.isco08.${string}` | `org.hl7.terminology.CodeSystem.v3-RoleCode.${string}`;
   titleEn: string;
   definition?: string;
 }>;
@@ -127,57 +138,77 @@ function buildWorkbookSectionCatalog(
     ),
   );
 }
-export const HealthcareCoreSections = Object.freeze({
-  PatientSummaryDocument: defineSection('60591-5', 'Patient summary document'),
-  AllergiesAndIntolerances: defineSection('48765-2', 'Allergies and adverse reactions'),
-  Alert: defineSection('104605-1', 'Alert'),
-  DietAndNutrition: defineSection('61144-2', 'Diet and nutrition'),
-  HistoryOfMedicationUse: defineSection('10160-0', 'History of medication use'),
-  HistoryOfFamilyMemberDiseases: defineSection('10157-6', 'History of family member diseases'),
-  HistoryOfHospitalizationsAndOutpatientVisits: defineSection('46240-8', 'History of hospitalizations+History of outpatient visits'),
-  HistoryOfPastIllness: defineSection('11348-0', 'History of past illness'),
-  HistoryOfPresentIllness: defineSection('10164-2', 'History of present illness'),
-  PregnancyHistory: defineSection('10162-6', 'Pregnancy History'),
+
+const planOfCareSection = defineSection('18776-5', 'Plan of care');
+
+const healthcareCoreSections = {
   ProblemList: defineSection('11450-4', 'Problem list'),
-  ProblemListNarrativeReported: defineSection('57852-6', 'Problem list'),
+  AllergiesAndIntolerances: defineSection('48765-2', 'Allergies and adverse reactions'),
+  HistoryOfMedicationUse: defineSection('10160-0', 'History of medication use'),
+  Immunizations: defineSection('11369-6', 'History of immunization'),
   Results: defineSection('30954-2', 'Relevant diagnostic tests/laboratory data'),
   Procedures: defineSection('47519-4', 'History of Procedures'),
-  Immunizations: defineSection('11369-6', 'History of immunization'),
   MedicalDevices: defineSection('46264-8', 'History of medical device use'),
-  FunctionalStatus: defineSection('47420-5', 'Functional status'),
-  GoalsAndPreferences: defineSection('81338-6', 'Goals / Preferences'),
-  PlanOfTreatment: defineSection('18776-5', 'Plan of treatment'),
-  /** @deprecated Use `PlanOfTreatment`. */
-  PlanOfCare: defineSection('18776-5', 'Plan of treatment'),
-  SocialHistory: defineSection('29762-2', 'Social history'),
   VitalSigns: defineSection('8716-3', 'Vital signs'),
+  SocialHistory: defineSection('29762-2', 'Social history'),
+  Alert: defineSection('104605-1', 'Alert'),
+  GoalsAndPreferences: defineSection('81338-6', 'Goals / Preferences'),
   AdvanceDirectives: defineSection('42348-3', 'Advance directives'),
+  FunctionalStatus: defineSection('47420-5', 'Functional status'),
+  HistoryOfPastIllness: defineSection('11348-0', 'History of past illness'),
+  PregnancyHistory: defineSection('10162-6', 'Pregnancy History'),
+  PlanOfCare: planOfCareSection,
+  DietAndNutrition: defineSection('61144-2', 'Diet and nutrition'),
+  HistoryOfFamilyMemberDiseases: defineSection('10157-6', 'History of family member diseases'),
+  HistoryOfHospitalizationsAndOutpatientVisits: defineSection('46240-8', 'History of hospitalizations+History of outpatient visits'),
+  HistoryOfPresentIllness: defineSection('10164-2', 'History of present illness'),
+  ProblemListNarrativeReported: defineSection('57852-6', 'Problem list'),
   Instructions: defineSection('69730-0', 'Instructions'),
-});
+} as const;
+
+type HealthcareCoreCompatibilityAliases = Readonly<{
+  /** @deprecated Use `HealthcareDocumentTypes.IPS`; this is a document type, not a section. */
+  PatientSummaryDocument: HealthcareSectionDescriptor;
+  /** @deprecated Use `PlanOfCare`; both names resolve to the same LOINC section. */
+  PlanOfTreatment: HealthcareSectionDescriptor;
+}>;
+
+/**
+ * Application healthcare sections: the 16 IPS sections followed by six
+ * LOINC-coded extensions. Deprecated aliases remain accessible but are not
+ * enumerable, so section pickers and `HealthcareAllSections` do not duplicate
+ * the IPS document or plan-of-care entry.
+ */
+export const HealthcareCoreSections = Object.freeze(
+  Object.defineProperties(healthcareCoreSections, {
+    PatientSummaryDocument: {
+      value: defineSection('60591-5', 'Patient summary document'),
+      enumerable: false,
+    },
+    PlanOfTreatment: {
+      value: planOfCareSection,
+      enumerable: false,
+    },
+  }),
+) as typeof healthcareCoreSections & HealthcareCoreCompatibilityAliases;
 
 /** @deprecated Use `HealthcareCoreSections`. */
 export const HealthcareBasicSections = HealthcareCoreSections;
 
 /**
- * IPS summary-oriented subset aligned with the official HL7 IPS all-sections
- * example and intended for "full patient summary / digital twin" flows.
+ * The 16 clinical sections from the official HL7 IPS 2.0 all-sections example.
+ * Order follows `Composition.section`. The `60591-5` IPS document descriptor
+ * is represented by `HealthcareDocumentTypes.IPS`, not as a section.
  *
- * It excludes the broader core sections that are outside that summary example:
- * - Diet and Nutrition
- * - History of Family Member Diseases
- * - History of Hospitalizations and Outpatient Visits
- * - History of Present Illness
- * - Problem List Narrative Reported
- * - Instructions
+ * @see https://hl7.org/fhir/uv/ips/STU2/Bundle-bundle-ips-all-sections.html
  */
 export const HealthcareSummarySections = Object.freeze({
-  PatientSummaryDocument: HealthcareCoreSections.PatientSummaryDocument,
+  ProblemList: HealthcareCoreSections.ProblemList,
   AllergiesAndIntolerances: HealthcareCoreSections.AllergiesAndIntolerances,
   HistoryOfMedicationUse: HealthcareCoreSections.HistoryOfMedicationUse,
-  ProblemList: HealthcareCoreSections.ProblemList,
+  Immunizations: HealthcareCoreSections.Immunizations,
   Results: HealthcareCoreSections.Results,
   Procedures: HealthcareCoreSections.Procedures,
-  Immunizations: HealthcareCoreSections.Immunizations,
   MedicalDevices: HealthcareCoreSections.MedicalDevices,
   VitalSigns: HealthcareCoreSections.VitalSigns,
   SocialHistory: HealthcareCoreSections.SocialHistory,
@@ -188,8 +219,152 @@ export const HealthcareSummarySections = Object.freeze({
   HistoryOfPastIllness: HealthcareCoreSections.HistoryOfPastIllness,
   PregnancyHistory: HealthcareCoreSections.PregnancyHistory,
   PlanOfCare: HealthcareCoreSections.PlanOfCare,
-  PlanOfTreatment: HealthcareCoreSections.PlanOfTreatment,
 } as const);
+
+/** Presence level assigned to a section by the IPS structure guide. */
+export type HealthcareIpsSectionRequirement = 'required' | 'recommended' | 'optional';
+
+/** Non-exclusive resource expectations for one IPS Composition section. */
+export type HealthcareIpsSectionResourceProfile = Readonly<{
+  section: HealthcareSectionDescriptor;
+  requirement: HealthcareIpsSectionRequirement;
+  /**
+   * Primary FHIR resource types named by the IPS section structure. This is a
+   * rendering/discovery hint, not an exclusive validation list: referenced or
+   * supporting resources, including Observation, may occur in other sections.
+   */
+  expectedResourceTypes: readonly ResourceTypeFhirR4[];
+  acceptsOtherSupportingResources: true;
+  /** Patient Story explicitly permits any resource type. */
+  acceptsAnyResource?: true;
+}>;
+
+function defineIpsSectionResourceProfile(
+  section: HealthcareSectionDescriptor,
+  requirement: HealthcareIpsSectionRequirement,
+  expectedResourceTypes: readonly ResourceTypeFhirR4[],
+  acceptsAnyResource?: true,
+): HealthcareIpsSectionResourceProfile {
+  return Object.freeze({
+    section,
+    requirement,
+    expectedResourceTypes: Object.freeze([...expectedResourceTypes]),
+    acceptsOtherSupportingResources: true as const,
+    ...(acceptsAnyResource ? { acceptsAnyResource } : {}),
+  });
+}
+
+/**
+ * Resource-profile expectations for the 16 IPS 2.0 sections.
+ *
+ * Consumers must group a document by `Composition.section.entry` references;
+ * they must not infer a section from `resourceType` alone because the same
+ * type, especially Observation, is valid in several sections.
+ *
+ * @see https://hl7.org/fhir/uv/ips/STU2/Structure-of-the-International-Patient-Summary.html
+ * @see https://hl7.org/fhir/uv/ips/STU2/profiles.html
+ */
+export const HealthcareIpsSectionResourceProfiles = Object.freeze({
+  ProblemList: defineIpsSectionResourceProfile(
+    HealthcareSummarySections.ProblemList,
+    'required',
+    [ResourceTypesFhirR4.Condition],
+  ),
+  AllergiesAndIntolerances: defineIpsSectionResourceProfile(
+    HealthcareSummarySections.AllergiesAndIntolerances,
+    'required',
+    [ResourceTypesFhirR4.AllergyIntolerance],
+  ),
+  HistoryOfMedicationUse: defineIpsSectionResourceProfile(
+    HealthcareSummarySections.HistoryOfMedicationUse,
+    'required',
+    [
+      ResourceTypesFhirR4.MedicationStatement,
+      ResourceTypesFhirR4.MedicationRequest,
+      ResourceTypesFhirR4.Medication,
+    ],
+  ),
+  Immunizations: defineIpsSectionResourceProfile(
+    HealthcareSummarySections.Immunizations,
+    'recommended',
+    [ResourceTypesFhirR4.Immunization],
+  ),
+  Results: defineIpsSectionResourceProfile(
+    HealthcareSummarySections.Results,
+    'recommended',
+    [
+      ResourceTypesFhirR4.DiagnosticReport,
+      ResourceTypesFhirR4.Observation,
+      ResourceTypesFhirR4.Specimen,
+      ResourceTypesFhirR4.Device,
+      ResourceTypesFhirR4.ImagingStudy,
+    ],
+  ),
+  Procedures: defineIpsSectionResourceProfile(
+    HealthcareSummarySections.Procedures,
+    'recommended',
+    [ResourceTypesFhirR4.Procedure, ResourceTypesFhirR4.Device],
+  ),
+  MedicalDevices: defineIpsSectionResourceProfile(
+    HealthcareSummarySections.MedicalDevices,
+    'recommended',
+    [ResourceTypesFhirR4.DeviceUseStatement, ResourceTypesFhirR4.Device],
+  ),
+  VitalSigns: defineIpsSectionResourceProfile(
+    HealthcareSummarySections.VitalSigns,
+    'optional',
+    [ResourceTypesFhirR4.Observation],
+  ),
+  SocialHistory: defineIpsSectionResourceProfile(
+    HealthcareSummarySections.SocialHistory,
+    'optional',
+    [ResourceTypesFhirR4.Observation],
+  ),
+  Alert: defineIpsSectionResourceProfile(
+    HealthcareSummarySections.Alert,
+    'optional',
+    [ResourceTypesFhirR4.Flag],
+  ),
+  GoalsAndPreferences: defineIpsSectionResourceProfile(
+    HealthcareSummarySections.GoalsAndPreferences,
+    'optional',
+    [],
+    true,
+  ),
+  AdvanceDirectives: defineIpsSectionResourceProfile(
+    HealthcareSummarySections.AdvanceDirectives,
+    'optional',
+    [ResourceTypesFhirR4.Consent],
+  ),
+  FunctionalStatus: defineIpsSectionResourceProfile(
+    HealthcareSummarySections.FunctionalStatus,
+    'optional',
+    [ResourceTypesFhirR4.Condition, ResourceTypesFhirR4.ClinicalImpression],
+  ),
+  HistoryOfPastIllness: defineIpsSectionResourceProfile(
+    HealthcareSummarySections.HistoryOfPastIllness,
+    'optional',
+    [ResourceTypesFhirR4.Condition],
+  ),
+  PregnancyHistory: defineIpsSectionResourceProfile(
+    HealthcareSummarySections.PregnancyHistory,
+    'optional',
+    [ResourceTypesFhirR4.Observation],
+  ),
+  PlanOfCare: defineIpsSectionResourceProfile(
+    HealthcareSummarySections.PlanOfCare,
+    'optional',
+    [ResourceTypesFhirR4.CarePlan, ResourceTypesFhirR4.ImmunizationRecommendation],
+  ),
+} as const);
+
+/** IPS profiles used across sections rather than owned by one section. */
+export const HealthcareIpsSharedResourceTypes = Object.freeze([
+  ResourceTypesFhirR4.Organization,
+  ResourceTypesFhirR4.Practitioner,
+  ResourceTypesFhirR4.PractitionerRole,
+  ResourceTypesFhirR4.DocumentReference,
+] as const);
 
 export const HealthcareDocumentTypes = Object.freeze({
   [DocumentTypeLoincOntology.IPS]: defineDocumentType(
@@ -524,10 +699,10 @@ function buildPersonalRelationshipRoles(): Readonly<Record<string, HealthcareAct
         item.code,
         Object.freeze({
           family: HealthcareRoleFamilies.PersonalRelationshipHl7,
-          codingSystem: HL7_CODING_SYSTEM_PERSONAL_RELATIONSHIP,
+          codingSystem: HL7_CODING_SYSTEM_V3_ROLE_CODE,
           code: item.code,
-          claim: `v3-PersonalRelationshipRoleType|${item.code}`,
-          i18nKey: `org.hl7.v3.personalRelationship.${item.code}`,
+          claim: `v3-RoleCode|${item.code}`,
+          i18nKey: `org.hl7.terminology.CodeSystem.v3-RoleCode.${item.code}`,
           titleEn: item.display,
           definition: item.definition,
         }),
@@ -546,7 +721,7 @@ function buildLegalRepresentativeRoles(): Readonly<Record<string, HealthcareActo
           codingSystem: HL7_CODING_SYSTEM_V3_ROLE_CODE,
           code: item.code,
           claim: `v3-RoleCode|${item.code}`,
-          i18nKey: `org.hl7.v3.roleCode.${item.code}`,
+          i18nKey: `org.hl7.terminology.CodeSystem.v3-RoleCode.${item.code}`,
           titleEn: item.display,
           definition: item.definition,
         }),

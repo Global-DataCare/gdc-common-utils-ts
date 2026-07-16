@@ -9,19 +9,125 @@ import {
 } from '../src/examples/shared.js';
 import { MedicationStatementClaim } from '../src/models/interoperable-claims/medication-statement-claims.js';
 import { DiagnosticReportClaim } from '../src/models/interoperable-claims/diagnostic-report-claims.js';
+import { CompositionClaim } from '../src/models/interoperable-claims/composition-claims.js';
 import {
   buildBundleDocumentFromClaims,
   convertClaimsToFhirResource,
   detectClaimsResourceType,
   extractBundleDocumentClaimsList,
+  getBundleDocumentPatientFullName,
   getSimpleClaimAttributeName,
+  normalizeFullNameForComparison,
+  prepareBundleDocumentForSubject,
   resolveClaimsSectionList,
   validateBundleDocumentBasic,
 } from '../src/utils/bundle-document-builder.js';
 import { fhirResourceToFlatClaims, flatClaimsToFhirResource } from '../src/utils/clinical-resource-converters.js';
 import { BundleReader } from '../src/utils/bundle-reader.js';
 
+/**
+ * FHIR document import projection contract under test:
+ * 1. Reject containers that are not document Bundles with Composition first.
+ * 2. Clone accepted documents and bind clinical subject/patient references and
+ *    their claims to the controller-selected subject DID.
+ * 3. Project Composition section membership into referenced resources.
+ * 4. Resolve Patient official Full Name and compare it using uppercase and
+ *    whitespace only, without implicit accent transliteration.
+ *
+ * Person confirmation and GW persistence are product concerns covered in the
+ * portal; these tests protect only the reusable deterministic conversion.
+ */
 describe('bundle document builder', () => {
+  it('prepares an imported document for one subject and records Composition section membership in meta.claims', () => {
+    // Step 1. Model an external IPS whose Patient-local references cannot be
+    // trusted as the destination subject in the UNID index.
+    const imported = {
+      resourceType: 'Bundle',
+      type: 'document',
+      entry: [
+        {
+          fullUrl: 'urn:uuid:composition-1',
+          resource: {
+            resourceType: 'Composition',
+            id: 'composition-1',
+            status: 'final',
+            subject: { reference: 'Patient/patricia' },
+            type: { coding: [{ system: 'http://loinc.org', code: '60591-5' }] },
+            section: [{
+              code: { coding: [{ system: 'http://loinc.org', code: '10160-0' }] },
+              entry: [{ reference: 'MedicationStatement/med-1' }],
+            }],
+          },
+        },
+        {
+          resource: {
+            resourceType: 'Patient',
+            id: 'patricia',
+            name: [{ use: 'official', family: 'JORDANA', given: ['Patricia'] }],
+          },
+        },
+        {
+          resource: {
+            resourceType: 'MedicationStatement',
+            id: 'med-1',
+            status: 'active',
+            subject: { reference: 'Patient/patricia' },
+            medicationCodeableConcept: { text: 'Example medicine' },
+          },
+        },
+      ],
+    };
+
+    // Step 2. Prepare a clone for the controller-authorized subject.
+    const prepared = prepareBundleDocumentForSubject(imported, EXAMPLE_SUBJECT_DID) as any;
+    const composition = prepared.entry[0].resource;
+    const medication = prepared.entry[2].resource;
+
+    // Step 3. Prove immutability, subject rebinding and section claims together.
+    expect((imported.entry[0] as any).resource.subject.reference).toBe('Patient/patricia');
+    expect(composition.subject.reference).toBe(EXAMPLE_SUBJECT_DID);
+    expect(composition.meta.claims[CompositionClaim.Section]).toBe('LOINC|10160-0');
+    expect(medication.subject.reference).toBe(EXAMPLE_SUBJECT_DID);
+    expect(medication.meta.claims['MedicationStatement.subject']).toBe(EXAMPLE_SUBJECT_DID);
+    expect(medication.meta.claims[CompositionClaim.Section]).toBe('LOINC|10160-0');
+  });
+
+  it('rejects imports that are not FHIR document Bundles', () => {
+    // Validation precedes projection so a collection Bundle can never enter
+    // the clinical Communication transport by mistake.
+    expect(() => prepareBundleDocumentForSubject({ resourceType: 'Bundle', type: 'collection' }, EXAMPLE_SUBJECT_DID))
+      .toThrow('Bundle.type must be document.');
+  });
+
+  it('extracts the document patient Full Name and compares it using uppercase without transliteration', () => {
+    // Step 1. Give the Patient both a usual name and an official name.
+    const bundle = {
+      resourceType: 'Bundle',
+      type: 'document',
+      entry: [
+        { resource: { resourceType: 'Composition', subject: { reference: 'Patient/patricia' } } },
+        {
+          fullUrl: 'https://example.test/Patient/patricia',
+          resource: {
+            resourceType: 'Patient',
+            id: 'patricia',
+            name: [
+              { use: 'usual', text: 'Patri' },
+              { use: 'official', prefix: ['Dra.'], given: ['Patricia'], family: 'JORDANA' },
+            ],
+          },
+        },
+      ],
+    };
+
+    // Step 2. Select the official structured name for product confirmation.
+    expect(getBundleDocumentPatientFullName(bundle)).toBe('Dra. Patricia JORDANA');
+    // Step 3. Casing and spaces normalize, while accents remain significant
+    // until the shared ICAO transliteration contract is implemented.
+    expect(normalizeFullNameForComparison('  Patricia   Jordana ')).toBe('PATRICIA JORDANA');
+    expect(normalizeFullNameForComparison('José Jordana')).not.toBe(normalizeFullNameForComparison('Jose Jordana'));
+  });
+
   it('detects claims resource type and converts medication claims to a FHIR resource', () => {
     const medication = buildExampleLiveMedicationCases(321)[0]!;
     const claims = {

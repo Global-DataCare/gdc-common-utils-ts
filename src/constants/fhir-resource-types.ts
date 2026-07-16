@@ -25,15 +25,25 @@ export const ResourceTypesFhirR4 = Object.freeze({
   Flag: 'Flag',
   ImagingStudy: 'ImagingStudy',
   Immunization: 'Immunization',
+  ImmunizationRecommendation: 'ImmunizationRecommendation',
   Invoice: 'Invoice',
   Location: 'Location',
+  Medication: 'Medication',
+  MedicationRequest: 'MedicationRequest',
   MedicationStatement: 'MedicationStatement',
   Observation: 'Observation',
   Organization: 'Organization',
   Patient: 'Patient',
+  Practitioner: 'Practitioner',
+  PractitionerRole: 'PractitionerRole',
   Procedure: 'Procedure',
   RelatedPerson: 'RelatedPerson',
+  Specimen: 'Specimen',
 } as const);
+
+/** One canonical FHIR R4 `resourceType` value. */
+export type ResourceTypeFhirR4 =
+  typeof ResourceTypesFhirR4[keyof typeof ResourceTypesFhirR4];
 
 /**
  * Backwards-compatible alias for the former generic name.

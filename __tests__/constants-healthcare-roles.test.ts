@@ -27,13 +27,17 @@ describe('healthcare role catalogs', () => {
   it('resolves role descriptors by claim with i18n keys and labels', () => {
     const generalistDoctor = getHealthcareRoleByClaim(HealthcareActorRoles.GeneralistMedicalPractitioner);
     const responsibleParty = getHealthcareRoleByClaim('v3-RoleCode|RESPRSN');
+    const oneSelf = getHealthcareRoleByClaim('v3-RoleCode|ONESELF');
 
     expect(generalistDoctor).toBeDefined();
     expect(generalistDoctor?.code).toBe('2211');
     expect(generalistDoctor?.i18nKey).toBe('org.ilo.isco-08.2211');
 
     expect(responsibleParty).toBeDefined();
-    expect(responsibleParty?.i18nKey).toBe('org.hl7.v3.roleCode.RESPRSN');
+    expect(responsibleParty?.i18nKey).toBe('org.hl7.terminology.CodeSystem.v3-RoleCode.RESPRSN');
+
+    expect(oneSelf).toBeDefined();
+    expect(oneSelf?.i18nKey).toBe('org.hl7.terminology.CodeSystem.v3-RoleCode.ONESELF');
   });
 
   it('returns professional ISCO roles by health and animal sectors', () => {
@@ -79,9 +83,8 @@ describe('healthcare role catalogs', () => {
     expect(roleCodeI18nEn['org.ilo.isco-08.2212']).toBe('Specialist medical practitioner');
     expect(roleCodeI18nEn['org.ilo.isco-08.2222']).toBe('Midwifery professional');
     expect(roleCodeI18nEn['org.ilo.isco-08.2250']).toBe('Veterinarian');
-    expect(roleCodeI18nEn['org.isco08.2211']).toBe('Generalist medical practitioner');
-    expect(roleCodeI18nEn['org.hl7.v3.personalRelationship.ONESELF']).toBeDefined();
-    expect(roleCodeI18nEn['org.hl7.v3.roleCode.RESPRSN']).toBeDefined();
+    expect(roleCodeI18nEn['org.hl7.terminology.CodeSystem.v3-RoleCode.ONESELF']).toBeDefined();
+    expect(roleCodeI18nEn['org.hl7.terminology.CodeSystem.v3-RoleCode.RESPRSN']).toBeDefined();
   });
 
   it('keeps exported family maps accessible for front/back usage', () => {

@@ -1,13 +1,13 @@
 /**
  * HL7 role constants shared across GDC projects.
  *
- * Two distinct value sets are provided:
+ * Two curated HL7 role families are exposed:
  *
- * 1. v3-PersonalRelationshipRoleType
+ * 1. personal relationship roles
  *    "Who are you in relation to the subject?" (family / social relationship)
  *    Source: http://terminology.hl7.org/ValueSet/v3-PersonalRelationshipRoleType
  *
- * 2. v3-RoleCode — legal / functional representative subset
+ * 2. legal / functional representative roles
  *    "What legal role do you exercise over the subject?" (guardian, attorney…)
  *    Source: http://terminology.hl7.org/ValueSet/v3-RoleCode
  *    Used as default for non-human subjects (e.g. animal-care sector).
@@ -31,10 +31,11 @@ export type Hl7RoleEntry = {
 export const HL7_CODING_SYSTEM_PERSONAL_RELATIONSHIP =
   'http://terminology.hl7.org/CodeSystem/v3-PersonalRelationshipRoleType';
 
-/** Canonical OID alias used in GDC claims (org.hl7.v3.RoleCode covers both sets). */
+/** Canonical GDC compatibility claim namespace used by legacy payloads. */
 export const HL7_CLAIMS_CODING_SYSTEM = 'org.hl7.v3.RoleCode';
 
 const PERSONAL_RELATIONSHIP_LIST: Hl7RoleEntry[] = [
+  { code: 'FAMMEMB',  display: 'family member',            definition: 'A relationship between two people characterizing their family association.' },
   { code: 'ONESELF',  display: 'self',                     definition: 'The relationship that a person has with himself or herself.' },
   { code: 'CHILD',    display: 'child',                    definition: 'The player of the role is a child of the scoping entity.' },
   { code: 'CHLDADOPT',display: 'adopted child',            definition: 'The player of the role is a child taken into a family through legal means and raised by the scoping person as his or her own child.' },
@@ -183,12 +184,74 @@ export const HL7_PERSONAL_RELATIONSHIP_ROLES: Hl7RoleEntry[] = [
   ..._personalRemaining,
 ];
 
+/**
+ * Small, non-gender-forcing family-role catalog used by individual-member
+ * selectors. `FAMMEMB` is the safe fallback when no more specific relationship
+ * applies. The generic great-grandparent code is `GGRPRN`; `GGRFTH` means a
+ * male great-grandfather and therefore must not be used as its substitute.
+ */
+export const HL7_INDIVIDUAL_MEMBER_RELATIONSHIP_CODES = [
+  'FAMMEMB',
+  'WIFE',
+  'HUSB',
+  'DOMPART',
+  'SIS',
+  'BRO',
+  'SON',
+  'DAU',
+  'PRN',
+  'GRPRN',
+  'GRNDCHILD',
+  'GGRPRN',
+  'FRND',
+  'NBOR',
+  'ROOM',
+] as const;
+
+export type Hl7IndividualMemberRelationshipCode =
+  typeof HL7_INDIVIDUAL_MEMBER_RELATIONSHIP_CODES[number];
+
+const _individualMemberRelationshipCodeSet = new Set<string>(
+  HL7_INDIVIDUAL_MEMBER_RELATIONSHIP_CODES,
+);
+
+/** Returns whether a code belongs to the intentionally simplified member picker. */
+export function isHl7IndividualMemberRelationshipCode(
+  value: unknown,
+): value is Hl7IndividualMemberRelationshipCode {
+  return _individualMemberRelationshipCodeSet.has(String(value || '').trim().toUpperCase());
+}
+
+/** Ordered descriptors for the individual/family member role selector. */
+export const HL7_INDIVIDUAL_MEMBER_RELATIONSHIP_ROLES: readonly Hl7RoleEntry[] =
+  HL7_INDIVIDUAL_MEMBER_RELATIONSHIP_CODES.map((code) => {
+    const descriptor = PERSONAL_RELATIONSHIP_LIST.find((entry) => entry.code === code);
+    if (!descriptor) throw new Error(`Missing HL7 relationship descriptor for ${code}.`);
+    return descriptor;
+  });
+
+/**
+ * Complete personal-relationship catalog. It is the extended picker surface:
+ * every entry from the compact individual-member catalog is included together
+ * with all more specific HL7 personal relationship choices.
+ */
+export const HL7_INDIVIDUAL_MEMBER_RELATIONSHIP_ROLES_FULL:
+  readonly Hl7RoleEntry[] = HL7_PERSONAL_RELATIONSHIP_ROLES;
+
 // ---------------------------------------------------------------------------
 // 2. v3-RoleCode — legal / functional representative subset
 // ---------------------------------------------------------------------------
 
 export const HL7_CODING_SYSTEM_V3_ROLE_CODE =
   'http://terminology.hl7.org/CodeSystem/v3-RoleCode';
+
+/** Canonical system for functional RelatedPerson role-class values. */
+export const HL7_CODING_SYSTEM_V3_ROLE_CLASS =
+  'http://terminology.hl7.org/CodeSystem/v3-RoleClass';
+
+export type Hl7RelatedPersonFunctionalRoleEntry = Hl7RoleEntry & {
+  codingSystem: typeof HL7_CODING_SYSTEM_V3_ROLE_CODE | typeof HL7_CODING_SYSTEM_V3_ROLE_CLASS;
+};
 
 /**
  * Legal representative / guardian roles from HL7 v3-RoleCode.
@@ -228,6 +291,51 @@ export const HL7_V3_ROLE_CODE_LEGAL_REPRESENTATIVE: Hl7RoleEntry[] = [
     display: 'Durable power of attorney',
     definition:
       'A relationship between two people in which one person acts on behalf of another even if the grantor becomes incapacitated.',
+  },
+];
+
+/**
+ * Functional tags accepted by the GDC `RelatedPerson.role` flat-claim
+ * extension. They do not replace `RelatedPerson.relationship`: kinship belongs
+ * in `relationship`, while these comma-separated values describe an explicit
+ * operational or legal function. CAREGIVER/ECON/DEPEN use v3-RoleClass;
+ * RESPRSN/BILL/POWATT use v3-RoleCode. `POWATT` must only be assigned when a
+ * real power of attorney exists; it is never inferred from controller status.
+ * The bare CSV is resolved through the descriptors below when a Coding system
+ * is required.
+ */
+export const HL7_RELATED_PERSON_FUNCTIONAL_ROLES: readonly Hl7RelatedPersonFunctionalRoleEntry[] = [
+  {
+    ...HL7_V3_ROLE_CODE_LEGAL_REPRESENTATIVE[0],
+    codingSystem: HL7_CODING_SYSTEM_V3_ROLE_CODE,
+  },
+  {
+    code: 'CAREGIVER',
+    display: 'Caregiver',
+    definition: 'A person responsible for the primary care of a patient at home.',
+    codingSystem: HL7_CODING_SYSTEM_V3_ROLE_CLASS,
+  },
+  {
+    code: 'ECON',
+    display: 'Emergency contact',
+    definition: 'A contact for use in an emergency.',
+    codingSystem: HL7_CODING_SYSTEM_V3_ROLE_CLASS,
+  },
+  {
+    code: 'DEPEN',
+    display: 'Dependent',
+    definition: 'A person covered under a policy or program based on an association with a subscriber.',
+    codingSystem: HL7_CODING_SYSTEM_V3_ROLE_CLASS,
+  },
+  {
+    code: 'BILL',
+    display: 'Billing contact',
+    definition: 'A contact used for billing in the applicable provider-organization context.',
+    codingSystem: HL7_CODING_SYSTEM_V3_ROLE_CODE,
+  },
+  {
+    ...HL7_V3_ROLE_CODE_LEGAL_REPRESENTATIVE[3],
+    codingSystem: HL7_CODING_SYSTEM_V3_ROLE_CODE,
   },
 ];
 

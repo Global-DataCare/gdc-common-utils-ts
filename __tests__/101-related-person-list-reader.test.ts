@@ -31,11 +31,14 @@ describe('101: related person list reader', () => {
       identifier: EXAMPLE_RELATED_PERSON_IDENTIFIER,
       patient: EXAMPLE_SUBJECT_DID,
       relationship: EXAMPLE_RELATED_PERSON_ROLE,
+      roles: [],
       name: EXAMPLE_RELATED_PERSON_ACTIVE_NAME,
       telecom: `mailto:${EXAMPLE_EMAIL_RELATED_PERSON}`,
       active: 'true',
       status: EXAMPLE_RELATED_PERSON_LIST_RECORD_ACTIVE.meta.status,
       resourceId: EXAMPLE_RELATED_PERSON_LIST_RECORD_ACTIVE.resource.id,
+      relatedEntityType: undefined,
+      actorIdentifiers: [],
       claims: EXAMPLE_RELATED_PERSON_LIST_RECORD_ACTIVE.resource.meta.claims,
     });
 
@@ -43,11 +46,14 @@ describe('101: related person list reader', () => {
       identifier: inactiveClaims['RelatedPerson.identifier.value'] || inactiveClaims['RelatedPerson.identifier'],
       patient: inactiveClaims['RelatedPerson.patient'],
       relationship: inactiveClaims['RelatedPerson.relationship'],
+      roles: [],
       name: inactiveClaims['RelatedPerson.name'],
       telecom: inactiveClaims['RelatedPerson.telecom'],
       active: inactiveClaims['RelatedPerson.active'],
       status: EXAMPLE_RELATED_PERSON_LIST_RECORD_INACTIVE.meta.status,
       resourceId: EXAMPLE_RELATED_PERSON_LIST_RECORD_INACTIVE.resource.id,
+      relatedEntityType: undefined,
+      actorIdentifiers: [],
       claims: EXAMPLE_RELATED_PERSON_LIST_RECORD_INACTIVE.resource.meta.claims,
     });
 

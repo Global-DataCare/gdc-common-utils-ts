@@ -18,9 +18,11 @@ import { ClaimsIndividualProductSchemaorg, ClaimsOfferSchemaorg, ClaimsPersonSch
 export type LicenseListSearchState = Readonly<{
   serialNumbers?: readonly string[];
   email?: string;
+  telephone?: string;
   role?: string;
   status?: LicenseStatus;
   subjectId?: string;
+  ownerOrganizationId?: string;
   userClass?: string;
   type?: string;
   active?: boolean;
@@ -39,6 +41,7 @@ export type LicenseListRecord = Readonly<{
   id?: string;
   status?: string;
   subjectId?: string;
+  ownerOrganizationId?: string;
   email?: string;
   role?: string;
   category?: string;
@@ -77,6 +80,7 @@ function cloneDraft(state?: Partial<LicenseListSearchState>): LicenseListSearchS
     role: normalizeText(state?.role),
     status: state?.status,
     subjectId: normalizeText(state?.subjectId),
+    ownerOrganizationId: normalizeText(state?.ownerOrganizationId),
     userClass: normalizeText(state?.userClass),
     type: normalizeText(state?.type),
     active: typeof state?.active === 'boolean' ? state.active : undefined,
@@ -138,6 +142,12 @@ export class LicenseListSearchEditor {
     return this;
   }
 
+  /** Limits results to the organization that owns the seat pool. */
+  setOwnerOrganizationId(value: string): this {
+    this.draft = cloneDraft({ ...this.draft, ownerOrganizationId: value });
+    return this;
+  }
+
   setUserClass(value: string): this {
     this.draft = cloneDraft({ ...this.draft, userClass: value });
     return this;
@@ -192,6 +202,7 @@ export class LicenseListSearchEditor {
       ...(this.draft.role ? { role: this.draft.role } : {}),
       ...(resolveStatus(this.draft) ? { status: resolveStatus(this.draft) } : {}),
       ...(this.draft.subjectId ? { subjectId: this.draft.subjectId } : {}),
+      ...(this.draft.ownerOrganizationId ? { ownerOrganizationId: this.draft.ownerOrganizationId } : {}),
       additionalClaims: cloneClaims(this.draft.additionalClaims),
     };
   }
@@ -232,7 +243,9 @@ export function readLicenseListRecords(body: unknown): LicenseListRecord[] {
         ),
         status: normalizeText(meta.status),
         subjectId: normalizeText(meta.subjectId),
+        ownerOrganizationId: normalizeText(meta.ownerOrganizationId || claims['License.ownerOrganizationId']),
         email: normalizeText(claims[ClaimsPersonSchemaorg.email]),
+        telephone: normalizeText(claims[ClaimsPersonSchemaorg.telephone]),
         role: normalizeText(claims[ClaimsPersonSchemaorg.hasOccupationalRoleValue]),
         category: normalizeText(claims[ClaimsIndividualProductSchemaorg.category]),
         appType: normalizeText(claims[ClaimsIndividualProductSchemaorg.additionalType]),

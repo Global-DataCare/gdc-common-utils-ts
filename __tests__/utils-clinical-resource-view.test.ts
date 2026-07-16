@@ -14,9 +14,15 @@ import {
   toClinicalResourceCommonView,
   toClinicalResourceCommonViews,
   toClinicalResourceExpandedView,
+  toClinicalSectionViews,
 } from '../src/utils/clinical-resource-view.js';
 
 describe('clinical resource common view', () => {
+  /**
+   * Flow contract: adapters turn both UNID `meta.claims` entries and native
+   * FHIR IPS resources into the same compact cards. IPS section placement is
+   * always read from Composition references, never guessed from resourceType.
+   */
   it('maps consent common fields including period and actor identifier/role/type', () => {
     const consentEntry = {
       fullUrl: 'urn:uuid:consent-1',
@@ -310,6 +316,115 @@ describe('clinical resource common view', () => {
         actorsCount: 1,
       },
     ]);
+  });
+
+  it('summarizes native IPS FHIR resources without requiring meta.claims', () => {
+    const cards = toClinicalResourceCardViews({
+      resourceType: 'Bundle',
+      type: 'document',
+      entry: [
+        {
+          fullUrl: 'urn:uuid:medication-statement-ips-1',
+          resource: {
+            resourceType: ResourceTypesFhirR4.MedicationStatement,
+            id: 'medication-statement-ips-1',
+            identifier: [{ value: 'medication-business-id-1' }],
+            medicationCodeableConcept: {
+              text: 'Metformina 850 mg',
+              coding: [{ display: 'Metformin 850 mg oral tablet' }],
+            },
+            effectivePeriod: { start: '2026-07-01' },
+            subject: { reference: 'Patient/patricia' },
+            informationSource: { reference: 'Practitioner/fernando' },
+          },
+        },
+      ],
+    });
+
+    expect(cards).toEqual([
+      {
+        title: 'Metformina 850 mg (Metformin 850 mg oral tablet)',
+        resourceType: ResourceTypesFhirR4.MedicationStatement,
+        date: '2026-07-01',
+        fullUrl: 'urn:uuid:medication-statement-ips-1',
+        actorsCount: 2,
+      },
+    ]);
+  });
+
+  it('groups resources by Composition.section references instead of guessing from resourceType', () => {
+    const bundle = {
+      resourceType: 'Bundle',
+      type: 'document',
+      entry: [
+        {
+          fullUrl: 'urn:uuid:composition-ips-1',
+          resource: {
+            resourceType: ResourceTypesFhirR4.Composition,
+            section: [
+              {
+                title: 'Diagnostic results',
+                code: { coding: [{ system: 'http://loinc.org', code: '30954-2' }] },
+                entry: [{ reference: 'Observation/laboratory-result-1' }],
+              },
+              {
+                title: 'Vital signs',
+                code: { coding: [{ system: 'http://loinc.org', code: '8716-3' }] },
+                entry: [{ reference: 'Observation/blood-pressure-1' }],
+              },
+            ],
+          },
+        },
+        {
+          fullUrl: 'http://example.test/fhir/Observation/laboratory-result-1',
+          resource: {
+            resourceType: ResourceTypesFhirR4.Observation,
+            id: 'laboratory-result-1',
+            code: { text: 'Hemoglobina' },
+            effectiveDateTime: '2026-07-10T08:00:00Z',
+          },
+        },
+        {
+          fullUrl: 'http://example.test/fhir/Observation/blood-pressure-1',
+          resource: {
+            resourceType: ResourceTypesFhirR4.Observation,
+            id: 'blood-pressure-1',
+            code: { text: 'Presion arterial' },
+            effectiveDateTime: '2026-07-10T09:00:00Z',
+          },
+        },
+      ],
+    };
+
+    const sections = toClinicalSectionViews(bundle);
+
+    expect(sections).toHaveLength(2);
+    expect(sections[0]).toEqual(expect.objectContaining({
+      code: 'http://loinc.org|30954-2',
+      title: 'Diagnostic results',
+      unresolvedReferences: [],
+    }));
+    expect(sections[0].resources.map((resource) => resource.title)).toEqual(['Hemoglobina']);
+    expect(sections[1].resources.map((resource) => resource.title)).toEqual(['Presion arterial']);
+  });
+
+  it('keeps unresolved Composition references visible to the caller', () => {
+    const sections = toClinicalSectionViews({
+      resourceType: 'Bundle',
+      type: 'document',
+      entry: [{
+        resource: {
+          resourceType: ResourceTypesFhirR4.Composition,
+          section: [{
+            title: 'Results',
+            entry: [{ reference: 'Observation/missing' }],
+          }],
+        },
+      }],
+    });
+
+    expect(sections[0].resources).toEqual([]);
+    expect(sections[0].unresolvedReferences).toEqual(['Observation/missing']);
   });
 
   it('builds combined local text plus international display when both are present', () => {

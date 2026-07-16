@@ -47,7 +47,6 @@ export const HealthcareSummarySectionDataCollections: Readonly<Record<string, re
   [HealthcareSummarySections.Immunizations.attributeValue]: Object.freeze([DataCollectionIds.immunizations]),
   [HealthcareSummarySections.FunctionalStatus.attributeValue]: Object.freeze([DataCollectionIds.conditions]),
   [HealthcareSummarySections.PlanOfCare.attributeValue]: Object.freeze([DataCollectionIds.carePlans]),
-  [HealthcareSummarySections.PlanOfTreatment.attributeValue]: Object.freeze([DataCollectionIds.carePlans]),
   [HealthcareSummarySections.SocialHistory.attributeValue]: Object.freeze([DataCollectionIds.observations]),
   [HealthcareSummarySections.VitalSigns.attributeValue]: Object.freeze([DataCollectionIds.observations]),
   [HealthcareSummarySections.AdvanceDirectives.attributeValue]: Object.freeze([DataCollectionIds.consents]),

@@ -199,6 +199,11 @@ export type BundleEntry = {
  * const responseBundle: BundleJsonApi<BundleEntry | ErrorEntry> = { ... };
  */
 export interface BundleJsonApi<T = BundleEntry | ErrorEntry> {
+  id?: string;
+  meta?: {
+    claims?: Record<string, any>;
+    [key: string]: any;
+  };
   data: T[];
   resourceType: 'Bundle';
   total?: number;

@@ -143,6 +143,23 @@ read first:
 - [`docs/REFERENCE-CLINICAL-IPS-API.md`](docs/REFERENCE-CLINICAL-IPS-API.md)
 - [`docs/101-CONSENT_PERMISSION_TEMPLATES.md`](docs/101-CONSENT_PERMISSION_TEMPLATES.md)
 
+Shared batch model for high-frequency clinical measurements:
+
+- one day-level vital-sign batch is an atomic clinical artifact
+- several day batches from the same actor are a collection of atomic batch
+  artifacts
+- the batch is what moves through Communication and ledger paths; the
+  individual observations remain the facts inside it
+
+For high-frequency clinical measurements, keep the same mental model across
+packages:
+
+- one day-level vital-sign batch is an atomic clinical artifact
+- several day batches from the same actor are a collection of atomic batch
+  artifacts
+- the batch is what gets moved through Communication and ledger paths; the
+  underlying observations remain the facts inside it
+
 ## Install
 
 ```bash
@@ -191,6 +208,7 @@ The `utils` export exposes reusable helpers for DID and message handling, such a
 - `utils/jwt`
 - `utils/content`
 - `utils/normalize`
+- `utils/unified-health-id` for provider-scoped Damm control digits over normalized provider + personal numeric sequences
 - `utils/fhir-cid` for recursive FHIR canonicalization + CID generation + `meta.versionId` assignment
 - `utils/fhir-validator` for adapter-based FHIR validation (`validateFhirResource`, pluggable formal validator)
 - conversion, formatting, and multibase helpers
@@ -355,8 +373,10 @@ The canonical API contract should live in JSDoc on exported code. The README act
   - Canonical `Communication.category` coding descriptors and `<system>|<code>` claims.
 - [`ObservationCategoryCodes`, `VitalSignsCodes`, `VitalSignsUnits`](src/constants/vital-signs.ts)
   - Canonical Vital Signs category, code, and UCUM unit descriptors for `Observation`.
-- [`HealthcareBasicSections`, `HealthcareAdditionalSections`, `HealthcareAllSections`](src/constants/healthcare.ts)
-  - Shared IPS/healthcare document section catalogs.
+- [`HealthcareSummarySections`, `HealthcareCoreSections`, `HealthcareAllSections`](src/constants/healthcare.ts)
+  - One nested hierarchy: 16 official IPS sections, 22 application clinical
+    sections after six extensions, and the complete 82-section/classification
+    catalog. The IPS document type lives separately in `HealthcareDocumentTypes`.
 - [`HealthcareConsentPurposes`, `HealthcareConsentActions`, `HealthcareActorRoles`, `HealthcareActorRoleCodes`](src/constants/healthcare.ts)
   - Shared healthcare authorization and role constants.
 - [`EXAMPLE_PROFESSIONAL_ACCESS_SCENARIOS`](src/examples/professional.ts)

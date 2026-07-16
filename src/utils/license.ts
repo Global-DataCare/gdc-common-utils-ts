@@ -70,11 +70,68 @@ export const LicenseStatuses = Object.freeze({
 
 export type LicenseStatus = typeof LicenseStatuses[keyof typeof LicenseStatuses];
 
+/**
+ * Role families that decide which organization owns the actor's license.
+ *
+ * This classification is deliberately independent from Consent. A person may
+ * receive permissions in either case, but only a FHIR v3 relationship role is
+ * a member of the individual's organization and consumes its seat pool.
+ */
+export const LicenseRoleKinds = Object.freeze({
+  IndividualMember: 'individual-member',
+  Professional: 'professional',
+  Unsupported: 'unsupported',
+} as const);
+
+export type LicenseRoleKind = typeof LicenseRoleKinds[keyof typeof LicenseRoleKinds];
+
+/**
+ * Classifies one canonical or compatibility role token for license ownership.
+ *
+ * Rules:
+ * - FHIR/HL7 v3 `RoleCode` actors are non-employee members of the individual
+ *   organization and consume one of its licenses.
+ * - ISCO/ISCO-08 actors are professionals. Their employer/organization owns
+ *   their professional license, so a patient's individual pool is untouched.
+ * - Unknown role systems are not silently charged to either pool.
+ */
+export function classifyLicenseRole(role: string): LicenseRoleKind {
+  const normalized = String(role || '').trim().toLowerCase();
+  if (!normalized) return LicenseRoleKinds.Unsupported;
+  const system = normalized.includes('|') ? normalized.split('|', 1)[0] : normalized;
+  if (
+    system === 'isco'
+    || system === 'isco-08'
+    || system === 'org.ilo.isco'
+    || system === 'org.ilo.isco-08'
+    || system.endsWith('/isco-08')
+  ) {
+    return LicenseRoleKinds.Professional;
+  }
+  if (
+    system === 'v3-rolecode'
+    || system === 'org.hl7.v3.rolecode'
+    || system.endsWith('/v3-rolecode')
+  ) {
+    return LicenseRoleKinds.IndividualMember;
+  }
+  return LicenseRoleKinds.Unsupported;
+}
+
 export type LicenseIssueInput = Readonly<{
-  email: string;
+  email?: string;
+  telephone?: string;
   role: string;
   userClass?: DeviceUserClass;
   type?: DeviceAppType;
+  /** Individual/legal organization that owns the seat pool. */
+  ownerOrganizationId?: string;
+  /** Card/individual DID granted by the invitation after acceptance. */
+  subjectDid?: string;
+  /** Existing RelatedPerson/contact selected before the invitation. */
+  relatedPersonId?: string;
+  /** Stable invitation workflow identifier; not the license id or code. */
+  invitationId?: string;
   additionalClaims?: LicenseClaims;
 }>;
 
@@ -83,6 +140,10 @@ export type LicensePurchaseInput = Readonly<{
   userClass?: DeviceUserClass;
   type?: DeviceAppType;
   serialNumbers?: readonly string[];
+  price?: number;
+  priceCurrency?: string;
+  /** Organization whose pool receives the newly materialized seats. */
+  ownerOrganizationId?: string;
   additionalClaims?: LicenseClaims;
 }>;
 
@@ -94,6 +155,7 @@ export type LicenseSearchInput = Readonly<{
   role?: string;
   status?: LicenseStatus;
   subjectId?: string;
+  ownerOrganizationId?: string;
   additionalClaims?: LicenseClaims;
 }>;
 
@@ -130,13 +192,32 @@ export function serializeLicenseSerialNumbers(serialNumbers?: readonly string[])
  * - seat/app semantics come from `IndividualProduct.*`
  */
 export function buildLicenseIssueClaims(input: LicenseIssueInput): LicenseClaims {
+  const email = String(input.email || '').trim();
+  const telephone = String(input.telephone || '').trim();
+  if (!email && !telephone) {
+    throw new Error('License issue requires an email or telephone recipient.');
+  }
+  if (telephone && !/^\+[1-9]\d{6,14}$/.test(telephone)) {
+    throw new Error('License issue telephone must use an international ITU format beginning with +.');
+  }
+  const userClass = input.userClass || DeviceUserClasses.Employee;
+  if (userClass === DeviceUserClasses.Individual) {
+    const roleKind = classifyLicenseRole(input.role);
+    if (roleKind === LicenseRoleKinds.Professional) {
+      throw new Error('ISCO professional roles do not consume individual-member licenses.');
+    }
+    if (roleKind !== LicenseRoleKinds.IndividualMember) {
+      throw new Error('Individual-member licenses require a FHIR v3-RoleCode role.');
+    }
+  }
   const claims: LicenseClaims = {
     '@context': LicenseClaimContext.SchemaOrg,
     ...cloneClaims(input.additionalClaims),
-    [ClaimsPersonSchemaorg.email]: input.email.trim(),
+    ...(email ? { [ClaimsPersonSchemaorg.email]: email } : {}),
+    ...(telephone ? { [ClaimsPersonSchemaorg.telephone]: telephone } : {}),
     [ClaimsPersonSchemaorg.hasOccupationalRoleValue]: input.role.trim(),
     [ClaimsIndividualProductSchemaorg.category]: mapLicenseCategoryFromUserClass(
-      input.userClass || DeviceUserClasses.Employee,
+      userClass,
     ),
     [ClaimsIndividualProductSchemaorg.additionalType]: input.type || DeviceAppTypes.Mobile,
   };
@@ -149,7 +230,13 @@ export function buildLicenseIssueClaims(input: LicenseIssueInput): LicenseClaims
 export function buildLicenseIssueEntry(input: LicenseIssueInput): {
   type: string;
   request: { method: 'POST' };
-  meta: { claims: LicenseClaims };
+  meta: {
+    claims: LicenseClaims;
+    ownerOrganizationId?: string;
+    subjectDid?: string;
+    relatedPersonId?: string;
+    invitationId?: string;
+  };
 } {
   return {
     type: LicenseEntryTypes.Issue,
@@ -159,6 +246,18 @@ export function buildLicenseIssueEntry(input: LicenseIssueInput): {
         ...buildLicenseIssueClaims(input),
         '@type': LicenseEntryOperations.Issue,
       },
+      ...(String(input.ownerOrganizationId || '').trim()
+        ? { ownerOrganizationId: String(input.ownerOrganizationId).trim() }
+        : {}),
+      ...(String(input.subjectDid || '').trim()
+        ? { subjectDid: String(input.subjectDid).trim() }
+        : {}),
+      ...(String(input.relatedPersonId || '').trim()
+        ? { relatedPersonId: String(input.relatedPersonId).trim() }
+        : {}),
+      ...(String(input.invitationId || '').trim()
+        ? { invitationId: String(input.invitationId).trim() }
+        : {}),
     },
   };
 }
@@ -187,6 +286,12 @@ export function buildLicensePurchaseClaims(input: LicensePurchaseInput): License
   if (serializedSerialNumbers) {
     claims[ClaimsOfferSchemaorg.serialNumber] = serializedSerialNumbers;
   }
+  if (typeof input.price === 'number' && Number.isFinite(input.price) && input.price >= 0) {
+    claims[ClaimsOfferSchemaorg.price] = input.price;
+  }
+  if (typeof input.priceCurrency === 'string' && input.priceCurrency.trim()) {
+    claims[ClaimsOfferSchemaorg.priceCurrency] = input.priceCurrency.trim().toUpperCase();
+  }
   return claims;
 }
 
@@ -197,7 +302,7 @@ export function buildLicensePurchaseClaims(input: LicensePurchaseInput): License
 export function buildLicensePurchaseEntry(input: LicensePurchaseInput): {
   type: string;
   request: { method: 'POST' };
-  meta: { claims: LicenseClaims };
+  meta: { claims: LicenseClaims; ownerOrganizationId?: string };
 } {
   return {
     type: LicenseEntryTypes.Purchase,
@@ -207,6 +312,9 @@ export function buildLicensePurchaseEntry(input: LicensePurchaseInput): {
         ...buildLicensePurchaseClaims(input),
         '@type': LicenseEntryOperations.Purchase,
       },
+      ...(String(input.ownerOrganizationId || '').trim()
+        ? { ownerOrganizationId: String(input.ownerOrganizationId).trim() }
+        : {}),
     },
   };
 }
@@ -228,6 +336,7 @@ export function buildLicenseSearchEntry(input: LicenseSearchInput): {
     claims: LicenseClaims;
     status?: LicenseStatus;
     subjectId?: string;
+    ownerOrganizationId?: string;
   };
 } {
   const claims: LicenseClaims = {
@@ -262,6 +371,9 @@ export function buildLicenseSearchEntry(input: LicenseSearchInput): {
       ...(input.status ? { status: input.status } : {}),
       ...(typeof input.subjectId === 'string' && input.subjectId.trim()
         ? { subjectId: input.subjectId.trim() }
+        : {}),
+      ...(typeof input.ownerOrganizationId === 'string' && input.ownerOrganizationId.trim()
+        ? { ownerOrganizationId: input.ownerOrganizationId.trim() }
         : {}),
     },
   };

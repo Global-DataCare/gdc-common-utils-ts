@@ -1,6 +1,7 @@
 // Always create JSDoc, do not use strings inline in keys nor values, use types instead, and reuse the data test examples.
 import { CommunicationClaim } from '../src/models/interoperable-claims/communication-claims.js';
 import {
+  buildBlockchainArtifactDocumentReference,
   buildDocumentReferenceFromCommunicationPayload,
   detectAttachmentKind,
 } from '../src/utils/communication-document-reference.js';
@@ -71,5 +72,41 @@ describe('communication-document-reference utilities', () => {
     const result = buildDocumentReferenceFromCommunicationPayload(communication, { mode: 'normalize' });
     expect(result.warnings.length).toBeGreaterThan(0);
     expect(result.documentReference.content?.[0]?.attachment?.contentType).toBe('application/octet-stream');
+  });
+
+  it('builds a blockchain-ready DocumentReference for a FHIR resource and keeps the logical identifier separate', () => {
+    const result = buildBlockchainArtifactDocumentReference({
+      subject: 'did:web:example.com:subject:1',
+      identifier: 'resource-logical-id-001',
+      resource: {
+        resourceType: 'Observation',
+        id: 'obs-1',
+        status: 'final',
+        code: { text: 'Heart rate' },
+      },
+    });
+
+    expect(result.contentCid.startsWith('z')).toBe(true);
+    expect(result.documentReference.meta?.versionId).toBe(result.contentCid);
+    expect(result.documentReference.identifier?.[0]?.value).toBe('resource-logical-id-001');
+    expect(result.documentReference.meta?.claims?.['DocumentReference.contenthash']).toBe(result.contentCid);
+    expect(result.documentReference.meta?.claims?.['DocumentReference.identifier']).toBe('resource-logical-id-001');
+    expect(result.documentReference.meta?.claims?.['DocumentReference.subject']).toBe('did:web:example.com:subject:1');
+  });
+
+  it('builds a blockchain-ready DocumentReference for raw PDF bytes', () => {
+    const dataBase64 = Buffer.from('%PDF-1.4', 'utf8').toString('base64');
+    const result = buildBlockchainArtifactDocumentReference({
+      subject: 'did:web:example.com:subject:2',
+      contentType: 'application/pdf',
+      contentDataBase64: dataBase64,
+      title: 'report.pdf',
+    });
+
+    expect(result.contentCid.startsWith('z')).toBe(true);
+    expect(result.documentReference.content?.[0]?.attachment?.contentType).toBe('application/pdf');
+    expect(result.documentReference.content?.[0]?.attachment?.hash).toBe(result.contentCid);
+    expect(result.documentReference.identifier?.[0]?.value).toBe(result.contentCid);
+    expect(result.documentReference.meta?.claims?.['DocumentReference.contentdata']).toBe(dataBase64);
   });
 });
