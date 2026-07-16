@@ -72,9 +72,9 @@ export class AllergyIntoleranceEntryEditor extends ClinicalResourceEntryEditor {
   /** Reads the recorder reference. */
   public getRecorder(): string | undefined { return this.getScalarClaim(AllergyIntoleranceClaim.Recorder); }
   /** Writes the linked contained-document identifier list. */
-  public setContainedDocumentIdentifierList(identifiers: readonly string[]): this { return this.setCsvClaimList(AllergyIntoleranceClaim.ContainedDocuments, identifiers); }
+  public setContainedDocumentIdentifierList(identifiers: readonly string[]): this { return this.setCsvClaimList(AllergyIntoleranceClaim.ContainedReferenceList, identifiers); }
   /** Reads the linked contained-document identifier list. */
-  public getContainedDocumentIdentifierList(): string[] { return this.getCsvClaimList(AllergyIntoleranceClaim.ContainedDocuments); }
+  public getContainedDocumentIdentifierList(): string[] { return this.getCsvClaimList(AllergyIntoleranceClaim.ContainedReferenceList); }
 }
 
 

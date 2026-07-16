@@ -71,6 +71,15 @@ export type ClinicalResourceExpandedView = Readonly<{
   notes: string[];
 }>;
 
+/** UI-ready summary for one Composition section and its resolved entries. */
+export type ClinicalSectionView = Readonly<{
+  code?: string;
+  title: string;
+  emptyReason?: string;
+  resources: ClinicalResourceCardView[];
+  unresolvedReferences: string[];
+}>;
+
 export type ClinicalResourceLike = Readonly<{
   resourceType?: string;
   text?: {
@@ -116,17 +125,18 @@ export type ClinicalResourceBundleLike = Readonly<{
 export function toClinicalResourceCommonView(entry: ClinicalResourceEntryLike): ClinicalResourceCommonView {
   const claims = readClaims(entry);
   const resourceType = resolveResourceType(entry, claims);
-  const title = resolveTitle(resourceType, claims);
+  const resource = entry.resource as ClinicalResourceLike | undefined;
+  const title = resolveTitle(resourceType, claims, resource);
 
   return {
     title,
     resourceType,
-    identifier: resolveIdentifier(resourceType, claims),
-    date: resolveDate(resourceType, claims),
-    periodStart: resolvePeriodStart(resourceType, claims),
-    periodEnd: resolvePeriodEnd(resourceType, claims),
+    identifier: resolveIdentifier(resourceType, claims, resource),
+    date: resolveDate(resourceType, claims, resource),
+    periodStart: resolvePeriodStart(resourceType, claims, resource),
+    periodEnd: resolvePeriodEnd(resourceType, claims, resource),
     fullUrl: trimValue(entry.fullUrl),
-    actors: resolveActors(resourceType, claims),
+    actors: resolveActors(resourceType, claims, resource),
     claims,
   };
 }
@@ -176,6 +186,55 @@ export function toClinicalResourceExpandedView(entry: ClinicalResourceEntryLike)
  */
 export function toClinicalResourceExpandedViews(bundle: ClinicalResourceBundleLike): ClinicalResourceExpandedView[] {
   return readBundleEntries(bundle).map((entry) => toClinicalResourceExpandedView(entry));
+}
+
+/**
+ * Builds section cards from the references authored in an IPS Composition.
+ *
+ * The Composition is authoritative for grouping. Resource type is deliberately
+ * not used to guess a section because Observation and supporting resources can
+ * be referenced from several IPS sections.
+ */
+export function toClinicalSectionViews(bundle: ClinicalResourceBundleLike): ClinicalSectionView[] {
+  const entries = readBundleEntries(bundle);
+  const composition = entries.find((entry) => entry.resource?.resourceType === ResourceTypesFhirR4.Composition);
+  if (!composition?.resource) {
+    return [];
+  }
+
+  const entryIndex = indexEntriesByFhirReference(entries);
+  return flattenCompositionSections(asArray(composition.resource.section)).map((section) => {
+    const references = asArray(section.entry)
+      .map((item) => trimValue(asRecord(item).reference))
+      .filter(Boolean);
+    const resolvedEntries: ClinicalResourceEntryLike[] = [];
+    const unresolvedReferences: string[] = [];
+
+    references.forEach((reference) => {
+      const resolved = resolveIndexedEntry(entryIndex, reference);
+      if (resolved) {
+        resolvedEntries.push(resolved);
+      } else {
+        unresolvedReferences.push(reference);
+      }
+    });
+
+    const code = resolveCodeableConceptToken(section.code);
+    const title = trimValue(section.title)
+      || resolveCodeableConceptLabel(section.code)
+      || code
+      || 'Section';
+
+    return {
+      ...(code ? { code } : {}),
+      title,
+      ...(resolveCodeableConceptLabel(section.emptyReason)
+        ? { emptyReason: resolveCodeableConceptLabel(section.emptyReason) }
+        : {}),
+      resources: resolvedEntries.map((entry) => toClinicalResourceCardView(entry)),
+      unresolvedReferences,
+    };
+  });
 }
 
 /**
@@ -277,12 +336,17 @@ function resolveResourceType(entry: ClinicalResourceEntryLike, claims: ClinicalV
   return 'Unknown';
 }
 
-function resolveTitle(resourceType: string, claims: ClinicalViewClaims): string {
+function resolveTitle(
+  resourceType: string,
+  claims: ClinicalViewClaims,
+  resource?: ClinicalResourceLike,
+): string {
   if (resourceType === ResourceTypesFhirR4.Communication) {
     return (
       trimValue(claims[CommunicationClaim.ContentAttachmentTitle])
       || trimValue(claims[CommunicationClaim.Text])
       || trimValue(claims[CommunicationClaim.NoteText])
+      || resolveFhirResourceTitle(resourceType, resource)
       || resourceType
     );
   }
@@ -291,7 +355,7 @@ function resolveTitle(resourceType: string, claims: ClinicalViewClaims): string 
     const firstCategory = splitCsv(claims[ClaimConsent.category])[0];
     const firstAction = splitCsv(claims[ClaimConsent.action])[0];
     const firstPurpose = splitCsv(claims[ClaimConsent.purpose])[0];
-    return firstCategory || firstAction || firstPurpose || resourceType;
+    return firstCategory || firstAction || firstPurpose || resolveFhirResourceTitle(resourceType, resource) || resourceType;
   }
 
   if (resourceType === ResourceTypesFhirR4.MedicationStatement) {
@@ -303,7 +367,7 @@ function resolveTitle(resourceType: string, claims: ClinicalViewClaims): string 
       MedicationStatementClaim.Code,
       MedicationStatementClaimsFhirApi.Code,
     ]);
-    return text || firstCode || resourceType;
+    return text || firstCode || resolveFhirResourceTitle(resourceType, resource) || resourceType;
   }
 
   if (resourceType === ResourceTypesFhirR4.Condition) {
@@ -315,7 +379,7 @@ function resolveTitle(resourceType: string, claims: ClinicalViewClaims): string 
       ConditionClaim.Category,
       ConditionClaimsFhirApi.Category,
     ]);
-    return firstCode || firstCategory || resourceType;
+    return firstCode || firstCategory || resolveFhirResourceTitle(resourceType, resource) || resourceType;
   }
 
   if (resourceType === ResourceTypesFhirR4.AllergyIntolerance) {
@@ -327,85 +391,105 @@ function resolveTitle(resourceType: string, claims: ClinicalViewClaims): string 
       AllergyIntoleranceClaim.Category,
       AllergyIntoleranceClaimsFhirApi.Category,
     ]);
-    return firstCode || firstCategory || resourceType;
+    return firstCode || firstCategory || resolveFhirResourceTitle(resourceType, resource) || resourceType;
   }
 
-  return resourceType;
+  return resolveFhirResourceTitle(resourceType, resource) || resourceType;
 }
 
-function resolveIdentifier(resourceType: string, claims: ClinicalViewClaims): string | undefined {
+function resolveIdentifier(
+  resourceType: string,
+  claims: ClinicalViewClaims,
+  resource?: ClinicalResourceLike,
+): string | undefined {
   if (resourceType === ResourceTypesFhirR4.Communication) {
-    return trimValue(claims[CommunicationClaim.Identifier]);
+    return trimValue(claims[CommunicationClaim.Identifier]) || resolveFhirIdentifier(resource);
   }
   if (resourceType === ResourceTypesFhirR4.Consent) {
-    return trimValue(claims[ClaimConsent.identifier]);
+    return trimValue(claims[ClaimConsent.identifier]) || resolveFhirIdentifier(resource);
   }
   if (resourceType === ResourceTypesFhirR4.MedicationStatement) {
     return firstClaimValue(claims, [
       MedicationStatementClaim.Identifier,
       MedicationStatementClaimsFhirApi.Identifier,
-    ]);
+    ]) || resolveFhirIdentifier(resource);
   }
   if (resourceType === ResourceTypesFhirR4.Condition) {
     return firstClaimValue(claims, [
       ConditionClaim.Identifier,
       ConditionClaimsFhirApi.Identifier,
-    ]);
+    ]) || resolveFhirIdentifier(resource);
   }
   if (resourceType === ResourceTypesFhirR4.AllergyIntolerance) {
     return firstClaimValue(claims, [
       AllergyIntoleranceClaim.Identifier,
       AllergyIntoleranceClaimsFhirApi.Identifier,
-    ]);
+    ]) || resolveFhirIdentifier(resource);
   }
-  return undefined;
+  return resolveFhirIdentifier(resource);
 }
 
-function resolveDate(resourceType: string, claims: ClinicalViewClaims): string | undefined {
+function resolveDate(
+  resourceType: string,
+  claims: ClinicalViewClaims,
+  resource?: ClinicalResourceLike,
+): string | undefined {
   if (resourceType === ResourceTypesFhirR4.Communication) {
-    return trimValue(claims[CommunicationClaim.Sent]);
+    return trimValue(claims[CommunicationClaim.Sent]) || resolveFhirDate(resourceType, resource);
   }
   if (resourceType === ResourceTypesFhirR4.Consent) {
-    return trimValue(claims[ClaimConsent.date]);
+    return trimValue(claims[ClaimConsent.date]) || resolveFhirDate(resourceType, resource);
   }
   if (resourceType === ResourceTypesFhirR4.MedicationStatement) {
     return firstClaimValue(claims, [
       MedicationStatementClaim.Effective,
       MedicationStatementClaimsFhirApi.Effective,
-    ]);
+    ]) || resolveFhirDate(resourceType, resource);
   }
   if (resourceType === ResourceTypesFhirR4.Condition) {
     return firstClaimValue(claims, [
       ConditionClaim.OnsetDateTime,
       ConditionClaimsFhirApi.OnsetDateTime,
-    ]);
+    ]) || resolveFhirDate(resourceType, resource);
   }
   if (resourceType === ResourceTypesFhirR4.AllergyIntolerance) {
     return firstClaimValue(claims, [
       AllergyIntoleranceClaim.OnsetDateTime,
       AllergyIntoleranceClaimsFhirApi.OnsetDateTime,
-    ]);
+    ]) || resolveFhirDate(resourceType, resource);
   }
 
   const genericDate = findBySuffix(claims, '.date');
-  return genericDate || undefined;
+  return genericDate || resolveFhirDate(resourceType, resource) || undefined;
 }
 
-function resolvePeriodStart(resourceType: string, claims: ClinicalViewClaims): string | undefined {
+function resolvePeriodStart(
+  resourceType: string,
+  claims: ClinicalViewClaims,
+  resource?: ClinicalResourceLike,
+): string | undefined {
   if (resourceType === ResourceTypesFhirR4.Consent) {
-    return trimValue(claims[ClaimConsent.periodStart]);
+    return trimValue(claims[ClaimConsent.periodStart]) || resolveFhirPeriod(resource).start;
   }
-  return findBySuffix(claims, '.period-start') || undefined;
+  return findBySuffix(claims, '.period-start') || resolveFhirPeriod(resource).start || undefined;
 }
 
-function resolvePeriodEnd(resourceType: string, claims: ClinicalViewClaims): string | undefined {
+function resolvePeriodEnd(
+  resourceType: string,
+  claims: ClinicalViewClaims,
+  resource?: ClinicalResourceLike,
+): string | undefined {
   if (resourceType === ResourceTypesFhirR4.Consent) {
-    return trimValue(claims[ClaimConsent.periodEnd]);
+    return trimValue(claims[ClaimConsent.periodEnd]) || resolveFhirPeriod(resource).end;
   }
-  return findBySuffix(claims, '.period-end') || undefined;
+  return findBySuffix(claims, '.period-end') || resolveFhirPeriod(resource).end || undefined;
 }
 
-function resolveActors(resourceType: string, claims: ClinicalViewClaims): ClinicalResourceActorView[] {
+function resolveActors(
+  resourceType: string,
+  claims: ClinicalViewClaims,
+  resource?: ClinicalResourceLike,
+): ClinicalResourceActorView[] {
   const out: ClinicalResourceActorView[] = [];
 
   if (resourceType === ResourceTypesFhirR4.Consent) {
@@ -494,6 +578,7 @@ function resolveActors(resourceType: string, claims: ClinicalViewClaims): Clinic
   appendGenericActorType(out, claims, GENERIC_CREATOR_CLAIM_SUFFIX, 'creator');
   appendGenericActorType(out, claims, GENERIC_PERFORMER_CLAIM_SUFFIX, 'performer');
   appendGenericActorType(out, claims, GENERIC_ASSERTER_CLAIM_SUFFIX, 'asserter');
+  appendFhirActors(out, resource);
 
   return out;
 }
@@ -631,6 +716,219 @@ function resolveResourceCodeDisplay(resource: ClinicalResourceLike): string | un
     }
   }
   return undefined;
+}
+
+function resolveFhirResourceTitle(
+  resourceType: string,
+  resource?: ClinicalResourceLike,
+): string | undefined {
+  if (!resource) {
+    return undefined;
+  }
+
+  const codeableConceptCandidates: unknown[] = [];
+  if (
+    resourceType === ResourceTypesFhirR4.MedicationStatement
+    || resourceType === ResourceTypesFhirR4.MedicationRequest
+  ) {
+    codeableConceptCandidates.push(resource.medicationCodeableConcept);
+    const medicationDisplay = trimValue(asRecord(resource.medicationReference).display);
+    if (medicationDisplay) return medicationDisplay;
+  }
+  if (resourceType === ResourceTypesFhirR4.Immunization) {
+    codeableConceptCandidates.push(resource.vaccineCode);
+  }
+  if (resourceType === ResourceTypesFhirR4.Device) {
+    const deviceName = asArray(resource.deviceName)
+      .map((item) => trimValue(asRecord(item).name))
+      .find(Boolean);
+    if (deviceName) return deviceName;
+    codeableConceptCandidates.push(resource.type);
+  }
+  if (resourceType === ResourceTypesFhirR4.DeviceUseStatement) {
+    const deviceDisplay = trimValue(asRecord(resource.device).display);
+    if (deviceDisplay) return deviceDisplay;
+  }
+
+  codeableConceptCandidates.push(
+    resource.code,
+    resource.title,
+    resource.name,
+    resource.description,
+    resource.scope,
+    resource.category,
+  );
+
+  for (const candidate of codeableConceptCandidates) {
+    const plainText = trimValue(candidate);
+    if (plainText && typeof candidate !== 'object') {
+      return plainText;
+    }
+    const label = resolveCodeableConceptLabel(candidate);
+    if (label) {
+      return label;
+    }
+    for (const item of asArray(candidate)) {
+      const arrayLabel = resolveCodeableConceptLabel(item);
+      if (arrayLabel) return arrayLabel;
+    }
+  }
+
+  return undefined;
+}
+
+function resolveFhirIdentifier(resource?: ClinicalResourceLike): string | undefined {
+  if (!resource) return undefined;
+  for (const identifier of asArray(resource.identifier)) {
+    const record = asRecord(identifier);
+    const value = trimValue(record.value);
+    if (value) return value;
+  }
+  return trimValue(resource.id) || undefined;
+}
+
+function resolveFhirDate(
+  resourceType: string,
+  resource?: ClinicalResourceLike,
+): string | undefined {
+  if (!resource) return undefined;
+  const period = resolveFhirPeriod(resource);
+  const candidates = resourceType === ResourceTypesFhirR4.MedicationRequest
+    ? [resource.authoredOn, period.start]
+    : resourceType === ResourceTypesFhirR4.Immunization
+      ? [resource.occurrenceDateTime, resource.occurrenceString, resource.recorded]
+      : resourceType === ResourceTypesFhirR4.Procedure
+        ? [resource.performedDateTime, resource.performedString, period.start]
+        : [
+          resource.effectiveDateTime,
+          resource.effectiveInstant,
+          resource.occurrenceDateTime,
+          resource.onsetDateTime,
+          resource.dateTime,
+          resource.date,
+          resource.issued,
+          resource.recordedDate,
+          resource.recordedOn,
+          resource.authoredOn,
+          resource.created,
+          period.start,
+        ];
+  return firstDefinedText(candidates.map((candidate) => trimValue(candidate) || undefined));
+}
+
+function resolveFhirPeriod(resource?: ClinicalResourceLike): { start?: string; end?: string } {
+  if (!resource) return {};
+  const candidates = [
+    resource.effectivePeriod,
+    resource.performedPeriod,
+    resource.occurrencePeriod,
+    resource.timingPeriod,
+    resource.period,
+    resource.onsetPeriod,
+  ];
+  for (const candidate of candidates) {
+    const period = asRecord(candidate);
+    const start = trimValue(period.start);
+    const end = trimValue(period.end);
+    if (start || end) {
+      return {
+        ...(start ? { start } : {}),
+        ...(end ? { end } : {}),
+      };
+    }
+  }
+  return {};
+}
+
+function appendFhirActors(
+  out: ClinicalResourceActorView[],
+  resource?: ClinicalResourceLike,
+): void {
+  if (!resource) return;
+  appendFhirReference(out, resource.subject || resource.patient, 'subject');
+  appendFhirReference(out, resource.informationSource || resource.source, 'source');
+  appendFhirReference(out, resource.sender, 'sender');
+  appendFhirReference(out, resource.recipient, 'recipient');
+  appendFhirReference(out, resource.recorder || resource.asserter, 'asserter');
+  appendFhirReference(out, resource.author, 'creator');
+  appendFhirReference(out, resource.performer, 'performer');
+}
+
+function appendFhirReference(
+  out: ClinicalResourceActorView[],
+  value: unknown,
+  type: ClinicalActorType,
+): void {
+  const values = Array.isArray(value) ? value : [value];
+  values.forEach((item) => {
+    const record = asRecord(item);
+    const actor = asRecord(record.actor);
+    const identifierRecord = asRecord(record.identifier);
+    const actorIdentifierRecord = asRecord(actor.identifier);
+    const identifier = firstDefinedText([
+      trimValue(record.reference) || undefined,
+      trimValue(actor.reference) || undefined,
+      trimValue(identifierRecord.value) || undefined,
+      trimValue(actorIdentifierRecord.value) || undefined,
+      trimValue(record.display) || undefined,
+      trimValue(actor.display) || undefined,
+    ]);
+    if (identifier) pushActor(out, { identifier, type });
+  });
+}
+
+function resolveCodeableConceptLabel(value: unknown): string | undefined {
+  const concept = asRecord(value);
+  const localText = trimValue(concept.text) || undefined;
+  const internationalDisplay = asArray(concept.coding)
+    .map((coding) => trimValue(asRecord(coding).display))
+    .find(Boolean);
+  return buildCombinedLabel(localText, internationalDisplay);
+}
+
+function resolveCodeableConceptToken(value: unknown): string | undefined {
+  const coding = asArray(asRecord(value).coding)
+    .map((item) => asRecord(item))
+    .find((item) => trimValue(item.code));
+  if (!coding) return undefined;
+  const system = trimValue(coding.system);
+  const code = trimValue(coding.code);
+  return system ? `${system}|${code}` : code;
+}
+
+function flattenCompositionSections(values: unknown[]): Record<string, unknown>[] {
+  const out: Record<string, unknown>[] = [];
+  values.forEach((value) => {
+    const section = asRecord(value);
+    out.push(section);
+    out.push(...flattenCompositionSections(asArray(section.section)));
+  });
+  return out;
+}
+
+function indexEntriesByFhirReference(
+  entries: ClinicalResourceEntryLike[],
+): Map<string, ClinicalResourceEntryLike> {
+  const index = new Map<string, ClinicalResourceEntryLike>();
+  entries.forEach((entry) => {
+    const fullUrl = trimValue(entry.fullUrl);
+    const resourceType = trimValue(entry.resource?.resourceType);
+    const id = trimValue(entry.resource?.id);
+    if (fullUrl) index.set(fullUrl, entry);
+    if (resourceType && id) index.set(`${resourceType}/${id}`, entry);
+    if (id) index.set(`urn:uuid:${id}`, entry);
+  });
+  return index;
+}
+
+function resolveIndexedEntry(
+  index: Map<string, ClinicalResourceEntryLike>,
+  reference: string,
+): ClinicalResourceEntryLike | undefined {
+  const direct = index.get(reference);
+  if (direct) return direct;
+  const relativeReference = reference.match(/([A-Za-z]+\/[^/]+)$/)?.[1];
+  return relativeReference ? index.get(relativeReference) : undefined;
 }
 
 function firstDefinedText(values: Array<string | undefined>): string | undefined {

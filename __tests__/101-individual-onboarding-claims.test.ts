@@ -31,6 +31,9 @@ import {
   EXAMPLE_SERVICE_PROVIDER_DOMAIN,
   EXAMPLE_REGISTERED_SUBJECT_ALTERNATE_NAME,
   EXAMPLE_REGISTERED_SUBJECT_BIRTH_YEAR,
+  EXAMPLE_SELF_REGISTERED_INDIVIDUAL_ALTERNATE_NAME,
+  EXAMPLE_SELF_REGISTERED_INDIVIDUAL_BIRTH_YEAR,
+  EXAMPLE_SELF_REGISTERED_INDIVIDUAL_GENDER,
   EXAMPLE_SELF_REGISTERED_INDIVIDUAL_EMAIL_NORMALIZED,
 } from '../src/examples/shared';
 import {
@@ -45,7 +48,10 @@ import type {
   IndividualOrganizationKycProfile,
 } from '../src/models/individual-onboarding';
 import { createIndividualOnboardingEditor } from '../src/utils/individual-onboarding-editor';
-import { mergeIndividualOrganizationClaims } from '../src/utils/individual-organization-claims';
+import {
+  buildClaimsFromIndividualOrganizationForm,
+  mergeIndividualOrganizationClaims,
+} from '../src/utils/individual-organization-claims';
 
 const EXAMPLE_KYC_PROFILE: IndividualOrganizationKycProfile = Object.freeze({
   uuid: EXAMPLE_KYC_CONTROLLER_UUID,
@@ -149,5 +155,64 @@ describe('101: individual onboarding claims', () => {
       [ClaimsOrderSchemaorg.orderedItemServiceType]: EXAMPLE_SERVICE_PROVIDER_DOMAIN,
     }));
     expect(editorClaims).toEqual(expect.objectContaining(finalClaims));
+  });
+
+  it('shows where gender and birth date go when the indexed subject is the controller and when it is a different person', () => {
+    // Teaching goal:
+    // - controller demographics always live in Person.*
+    // - the indexed subject demographics live in Organization.member.*
+    // - in self-registration, controller values can seed both sides
+
+    // Step 1.
+    // Self-registration: the same human is both controller and subject.
+    const selfRegistration = buildClaimsFromIndividualOrganizationForm({
+      controllerIsSubject: true,
+      controllerAlternateName: EXAMPLE_SELF_REGISTERED_INDIVIDUAL_ALTERNATE_NAME,
+      controllerEmail: EXAMPLE_SELF_REGISTERED_INDIVIDUAL_EMAIL_NORMALIZED,
+      controllerGender: EXAMPLE_SELF_REGISTERED_INDIVIDUAL_GENDER,
+      controllerDateOfBirth: EXAMPLE_SELF_REGISTERED_INDIVIDUAL_BIRTH_YEAR,
+    }).claims;
+
+    expect(selfRegistration[ClaimsPersonSchemaorg.gender]).toBe(EXAMPLE_SELF_REGISTERED_INDIVIDUAL_GENDER);
+    expect(selfRegistration[ClaimsPersonSchemaorg.birthDate]).toBe(EXAMPLE_SELF_REGISTERED_INDIVIDUAL_BIRTH_YEAR);
+    expect(selfRegistration[ClaimsOrganizationSchemaorg.memberGender]).toBe(EXAMPLE_SELF_REGISTERED_INDIVIDUAL_GENDER);
+    expect(selfRegistration[ClaimsOrganizationSchemaorg.memberBirthDate]).toBe(EXAMPLE_SELF_REGISTERED_INDIVIDUAL_BIRTH_YEAR);
+    expect(selfRegistration[ClaimsOrganizationSchemaorg.memberRole]).toBe('ONESELF');
+
+    // Step 2.
+    // Different subject: the controller keeps their own demographics in Person.*
+    // and the subject gets the member.* values instead.
+    const delegatedRegistration = buildClaimsFromIndividualOrganizationForm({
+      controllerIsSubject: false,
+      controllerAlternateName: EXAMPLE_SELF_REGISTERED_INDIVIDUAL_ALTERNATE_NAME,
+      controllerEmail: EXAMPLE_SELF_REGISTERED_INDIVIDUAL_EMAIL_NORMALIZED,
+      controllerGender: EXAMPLE_SELF_REGISTERED_INDIVIDUAL_GENDER,
+      controllerDateOfBirth: EXAMPLE_SELF_REGISTERED_INDIVIDUAL_BIRTH_YEAR,
+      subjectAlternateName: EXAMPLE_REGISTERED_SUBJECT_ALTERNATE_NAME,
+      subjectGender: EXAMPLE_KYC_CONTROLLER_GENDER_MALE,
+      subjectDateOfBirth: EXAMPLE_REGISTERED_SUBJECT_BIRTH_YEAR,
+    }).claims;
+
+    expect(delegatedRegistration[ClaimsPersonSchemaorg.gender]).toBe(EXAMPLE_SELF_REGISTERED_INDIVIDUAL_GENDER);
+    expect(delegatedRegistration[ClaimsPersonSchemaorg.birthDate]).toBe(EXAMPLE_SELF_REGISTERED_INDIVIDUAL_BIRTH_YEAR);
+    expect(delegatedRegistration[ClaimsOrganizationSchemaorg.memberGender]).toBe(EXAMPLE_KYC_CONTROLLER_GENDER_MALE);
+    expect(delegatedRegistration[ClaimsOrganizationSchemaorg.memberBirthDate]).toBe(EXAMPLE_REGISTERED_SUBJECT_BIRTH_YEAR);
+    expect(delegatedRegistration[ClaimsOrganizationSchemaorg.memberRole]).toBe('ONESELF');
+
+    // Step 3.
+    // Negative path: if the subject fields are absent in a delegated flow,
+    // the controller demographics must not be copied into Organization.member.*.
+    const delegatedWithoutSubjectSeed = buildClaimsFromIndividualOrganizationForm({
+      controllerIsSubject: false,
+      controllerAlternateName: EXAMPLE_SELF_REGISTERED_INDIVIDUAL_ALTERNATE_NAME,
+      controllerEmail: EXAMPLE_SELF_REGISTERED_INDIVIDUAL_EMAIL_NORMALIZED,
+      controllerGender: EXAMPLE_SELF_REGISTERED_INDIVIDUAL_GENDER,
+      controllerDateOfBirth: EXAMPLE_SELF_REGISTERED_INDIVIDUAL_BIRTH_YEAR,
+    }).claims;
+
+    expect(delegatedWithoutSubjectSeed[ClaimsPersonSchemaorg.gender]).toBe(EXAMPLE_SELF_REGISTERED_INDIVIDUAL_GENDER);
+    expect(delegatedWithoutSubjectSeed[ClaimsPersonSchemaorg.birthDate]).toBe(EXAMPLE_SELF_REGISTERED_INDIVIDUAL_BIRTH_YEAR);
+    expect(delegatedWithoutSubjectSeed[ClaimsOrganizationSchemaorg.memberGender]).toBeUndefined();
+    expect(delegatedWithoutSubjectSeed[ClaimsOrganizationSchemaorg.memberBirthDate]).toBeUndefined();
   });
 });

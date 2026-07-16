@@ -40,6 +40,25 @@ It is not the same thing as:
 
 Keep those domains separate in the UI and in the mental model.
 
+## Related Entity Projection
+
+UNID contact and permission screens may use the RelatedPerson lifecycle
+container as a related-entity projection. The current demonstrable kinds are:
+
+- a person or professional
+- one organization, department, consultation or office
+
+`RelatedPerson.related-entity-type` records the logical kind.
+`RelatedPerson.actor-identifier` retains the original public values used by a
+Consent rule, such as an email, `tel:+...`, organization `did:web` or other
+public identifier. The opaque resource id is used for internal references but
+must not replace those public values because the blockchain rule asset id must
+remain independently reproducible.
+
+A future set of countries for role-scoped emergency permissions is a SOSChain
+flow. It is a country set, not a FHIR Group, and is not part of the current
+person/organization demonstration.
+
 ## Frontend Path
 
 The intended path for a frontend is:
@@ -72,6 +91,7 @@ row shape with:
 - business identifier
 - linked subject
 - relationship
+- optional functional roles
 - contact value
 - active flag
 - lifecycle status
@@ -180,6 +200,29 @@ A frontend usually cares about:
 - what relationship they have with the subject
 - whether the record is active/disabled in business terms
 - what identifier to keep in the UI for later actions
+
+### Relationship is not permission
+
+Keep three concepts separate in every editor and payload:
+
+1. `RelatedPerson.relationship` answers who the related entity is to the
+   subject. For an individual-organization member selector use `FAMMEMB` as the
+   neutral fallback or one of `WIFE`, `HUSB`, `DOMPART`, `SIS`, `BRO`, `SON`,
+   `DAU`, `PRN`, `GRPRN`, `GRNDCHILD`, `GGRPRN`, `FRND`, `NBOR`, `ROOM`.
+2. `RelatedPerson.role` is a GDC flat-claim extension, not a native FHIR R4
+   property. It may contain comma-separated functional codes represented as an
+   array by UI code. `CAREGIVER`, `ECON` and `DEPEN` are current RoleClass
+   values; `BILL` and `POWATT` are RoleCode values. `POWATT` is only valid when
+   a real power of attorney exists and must not be inferred merely because
+   someone is a controller.
+3. Consent/access says what that related entity may do. Never store the access
+   decision `PERMITTED` as an HL7 relationship.
+
+`DEPEN` is active in `v3-RoleClass` and included by the current FHIR
+RelatedPerson relationship ValueSet; the same code is retired only in the
+different `v3-RoleCode` system. Its definition still concerns dependency under
+a policy or program. Use `GGRPRN` for a gender-neutral great-grandparent;
+`GGRFTH` specifically means great-grandfather.
 
 It usually does not need to care first about:
 

@@ -45,7 +45,7 @@ describe('clinical-resource-converters', () => {
       [MedicationStatementClaim.Effective]: '2026-05-17T08:00:00Z',
       [MedicationStatementClaim.Code]: 'http://rxnorm|123',
       [MedicationStatementClaim.MedicationText]: 'Paracetamol 500mg capsule',
-      [MedicationStatementClaim.Note]: 'captured by voice assistant',
+      [MedicationStatementClaim.Note]: 'captured by [device]',
       [MedicationStatementClaim.DosageInstruction]: '1 capsule every 8 hours',
       [MedicationStatementClaim.MedicationIdentifier]: '08470001234567',
       [MedicationStatementClaim.MedicationSerialNumber]: 'LOT-2026-01',

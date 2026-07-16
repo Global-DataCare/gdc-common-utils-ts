@@ -69,6 +69,26 @@ In particular:
 - `buildDidcommPayloadFromCommunicationClaims(...)` should be explained as the
   BFF/runtime plaintext wrapping step for Communication-carried payloads
 
+Use the same header block at the top of every test file, immediately below the
+copyright line, so the test intent is visible before the imports:
+
+- `101 note` or `Teaching goal` comment block
+- the contract under test in one sentence
+- the fixtures/examples being reused from `gdc-common-utils-ts`
+- the positive path and at least one negative/validation path
+- the compatibility path when legacy aliases or fallback behavior exist
+- the rule that shared literals come from examples/constants, not ad hoc inline
+  strings
+- the note that helper functions belong in dedicated helper modules, not beside
+  the class under test
+
+TDD rule:
+
+1. add or update the failing test first
+2. implement the minimum change to pass
+3. add the compatibility case if the API supports legacy inputs
+4. refactor without changing behavior
+
 ## Naming Rule
 
 - `Editor`, `Reader`, `Builder`, `State` are preferred neutral names

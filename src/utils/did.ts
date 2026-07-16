@@ -128,6 +128,29 @@ export function createHostedDidWeb(
 }
 
 /**
+ * Extracts the tenant identifier from one hosted `did:web`.
+ *
+ * This is a compatibility helper for places that still receive a full hosted
+ * DID where a route tenant id is expected. It only returns the tenant segment
+ * used by the hosted organization form.
+ */
+export function extractTenantIdFromHostedDidWeb(did: string): string | undefined {
+  const normalizedDid = String(did || '').trim();
+  if (!normalizedDid.startsWith('did:web:')) {
+    return undefined;
+  }
+  const didParts = normalizedDid.slice('did:web:'.length).split(':');
+  if (didParts.length < 2) {
+    return undefined;
+  }
+  const tenantId = String(didParts[1] || '').trim();
+  if (!tenantId || /^cds-/i.test(tenantId)) {
+    return undefined;
+  }
+  return decodeURIComponent(tenantId);
+}
+
+/**
  * Builds the canonical hosted provider DID root used by hosted tenant services.
  *
  * Canonical form:

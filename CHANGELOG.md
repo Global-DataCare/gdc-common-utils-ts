@@ -2,12 +2,86 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [2.2.2] - 2026-07-13
+
+### Changed
+- Added one hosted `did:web` compatibility extractor so consumers that still
+  receive a full `serviceProviderDid` can normalize it back to the route tenant
+  id instead of duplicating the DID inside GW tenant paths:
+  - `extractTenantIdFromHostedDidWeb(...)`
+  in:
+  - `src/utils/did.ts`
+  - `__tests__/utils-did-extra.test.ts`
+
 ## [2.2.1] - 2026-07-06
 
 ### Changed
 - Bumped the package patch version to capture the current shared bundle, communication session, and tutorial cleanup work on a release branch for `main`.
 
 ## [Unreleased]
+
+- Added the canonical compact individual-member relationship catalog:
+  `FAMMEMB`, `WIFE`, `HUSB`, `DOMPART`, `SIS`, `BRO`, `SON`, `DAU`, `PRN`,
+  `GRPRN`, `GRNDCHILD`, `GGRPRN`, `FRND`, `NBOR` and `ROOM`. This explicitly
+  excludes the invented access token `PERMITTED` and the male-specific
+  `GGRFTH` as a generic great-grandparent fallback.
+- Added the documented `RelatedPerson.role` flat-claim extension for separate
+  comma-separated functional roles and read projection support. CAREGIVER,
+  ECON and DEPEN resolve to active `v3-RoleClass` codes; BILL/POWATT use
+  `v3-RoleCode`. `RelatedPerson.relationship` remains the single kinship or
+  legal relationship, and POWATT must never be inferred without legal basis.
+- Added canonical role-to-license ownership classification: FHIR v3-RoleCode
+  actors are members of an individual organization, while ISCO/ISCO-08 actors
+  are professionals whose employer owns their license. Individual license
+  issue helpers reject ISCO roles deterministically.
+- Extended shared license issue, purchase and search entries/records with
+  owner organization, authorized subject DID, telephone, RelatedPerson and
+  invitation metadata so hosted individual organizations can keep their seat
+  pools isolated and accepted recipients can resolve one exact card.
+
+- Added FHIR document import primitives that validate a Bundle document,
+  bind patient-facing resources to the selected subject, project Composition
+  section membership into `resource.meta.claims`, extract the official Patient
+  Full Name and provide the temporary uppercase-only comparison key.
+
+- Extended the existing `ClinicalResourceCardView` adapter to summarize native
+  IPS FHIR resources as well as UNID `resource.meta.claims`, and added
+  Composition-reference section grouping so `Observation` is never assigned to
+  a section by resource type alone.
+- Added non-exclusive IPS section resource-profile hints and completed the FHIR
+  R4 resource-type catalog needed by the IPS 2.0 profile library.
+- Aligned the existing section hierarchy instead of adding overlapping IPS
+  catalogs: `HealthcareSummarySections` is the ordered 16-section HL7 IPS 2.0
+  example, `HealthcareCoreSections` adds six clinical extensions and
+  `HealthcareAllSections` adds the remaining classification families.
+- Moved the enumerable IPS document descriptor to `HealthcareDocumentTypes`
+  and made `PlanOfCare` canonical for `18776-5`; the former core properties
+  remain accessible only as non-enumerable deprecated compatibility aliases.
+- Added canonical `RelatedPerson.related-entity-type` and
+  `RelatedPerson.actor-identifier` claims so related-entity references can keep
+  their original public Consent/blockchain rule inputs instead of replacing
+  them with an opaque resource id.
+
+### Added
+- Added one shared provider-scoped Unified Health ID control-digit helper
+  surface so callers can normalize separator characters and derive the same
+  provider-dependent check digit from a canonical decimal sequence:
+  - `computeDammCheckDigit(...)`
+  - `computeUnifiedHealthIdCheckDigit(...)`
+  - `buildUnifiedHealthIdPersonalDigits(...)`
+  in:
+  - `src/utils/unified-health-id.ts`
+  - `__tests__/utils-unified-health-id.test.ts`
+- Added one tutorial-style onboarding claims test and contract note that make
+  the individual subject split explicit:
+  - `Organization.member.gender` and `Organization.member.birthDate` come from
+    the indexed subject
+  - `Person.gender` and `Person.birthDate` stay with the controller/legal
+    representative
+  in:
+  - `__tests__/101-individual-onboarding-claims.test.ts`
+  - `docs/101-INDIVIDUAL_ONBOARDING_PDF_REQUEST.md`
+  - `src/models/individual-onboarding.ts`
 
 ### Changed
 - Linked the main shared `101` reading path to the neutral cross-repo user

@@ -54,6 +54,18 @@ export interface DeviceLicense {
    * @example "acme"
    */
   tenantId: string;
+
+  /**
+   * Organization that owns this seat pool.
+   *
+   * This is essential for hosted individual organizations because many
+   * households can share one UNID tenant vault. It is distinct from
+   * `subjectId`, which identifies the member currently assigned to the seat.
+   */
+  ownerOrganizationId?: string;
+
+  /** Subject/card DID made accessible when this member invitation is accepted. */
+  authorizedSubjectDid?: string;
   
   /**
    * Identifier for the purchase order or invoice that generated this license.
@@ -142,6 +154,21 @@ export interface DeviceLicense {
    * Populated when the status becomes 'issued'.
    */
   subjectId?: string;
+
+  /** Verified email selected from the invited contact, when email is used. */
+  issuedToEmail?: string;
+
+  /** Verified ITU telephone selected from the invited contact, when phone is used. */
+  issuedToPhone?: string;
+
+  /** Canonical FHIR v3 or ISCO role used to choose the owning license pool. */
+  issuedToRole?: string;
+
+  /** Relationship invitation workflow that reserved this seat. */
+  invitationId?: string;
+
+  /** RelatedPerson/contact selected before the invitation was sent. */
+  relatedPersonId?: string;
   
   /**
    * The unique identifier (`client_id`) of the device registered with this license.

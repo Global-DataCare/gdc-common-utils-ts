@@ -145,11 +145,11 @@ describe('101: consent template bundle editor', () => {
 
     // Step 3.
     // Open each Consent slot and save one template-derived decision into it.
-    const consentBundleEditor = createConsentAccessEditor({
+    const consentAccessEditor = createConsentAccessEditor({
       initialBundle: draftBundle,
     });
 
-    consentBundleEditor
+    consentAccessEditor
       .selectActiveEntry({ fullUrl: `urn:uuid:${EXAMPLE_CONSENT_IDENTIFIER}-1` })
       .patchActiveEntryClaims(exportConsentClaims(ipsReadDecision, {
         identifier: `${EXAMPLE_CONSENT_IDENTIFIER}-1`,
@@ -157,7 +157,7 @@ describe('101: consent template bundle editor', () => {
       }))
       .saveAndReleaseActiveEntry();
 
-    consentBundleEditor
+    consentAccessEditor
       .selectActiveEntry({ fullUrl: `urn:uuid:${EXAMPLE_CONSENT_IDENTIFIER}-2` })
       .patchActiveEntryClaims(exportConsentClaims(organizationEmergencyDecision, {
         identifier: `${EXAMPLE_CONSENT_IDENTIFIER}-2`,
@@ -165,7 +165,7 @@ describe('101: consent template bundle editor', () => {
       }))
       .saveAndReleaseActiveEntry();
 
-    consentBundleEditor
+    consentAccessEditor
       .selectActiveEntry({ fullUrl: `urn:uuid:${EXAMPLE_CONSENT_IDENTIFIER}-3` })
       .patchActiveEntryClaims(exportConsentClaims(jurisdictionEmergencyDecision, {
         identifier: `${EXAMPLE_CONSENT_IDENTIFIER}-3`,
@@ -176,7 +176,7 @@ describe('101: consent template bundle editor', () => {
     // Step 4.
     // The bundle is now ready to send, but before transport the app can still
     // reopen it and show the saved data again.
-    const readyToSendBundle = consentBundleEditor.getBundleInMemory();
+    const readyToSendBundle = consentAccessEditor.getBundleInMemory();
     expect(readyToSendBundle.data).toHaveLength(3);
 
     const reader = createConsentAccessEditor({

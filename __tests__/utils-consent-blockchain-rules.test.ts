@@ -327,4 +327,32 @@ describe('Consent blockchain rule primary-document utilities', () => {
     expect(activeRuleId).toBe(revokedRuleId);
     expect(buildConsentAtomicRuleCidV1(activeRuleId)).toBe(buildConsentAtomicRuleCidV1(revokedRuleId));
   });
+
+  /**
+   * Contract for role normalization:
+   *
+   * - role keys are normalized to the shared canonical namespace in lowercase
+   * - old HL7 value-set selectors must not leak their legacy namespace into the
+   *   computed rule key
+   */
+  it('normalizes HL7 role namespaces to the canonical lowercase code-system key', () => {
+    const roleCodeRuleId = buildConsentAtomicRuleId({
+      subject: 'subject-1',
+      decision: ConsentDecisions.Permit,
+      actorIdentifier: 'actor-1',
+      purpose: 'purpose-1',
+      role: 'v3-RoleCode|RESPRSN',
+    });
+    const personalRelationshipRuleId = buildConsentAtomicRuleId({
+      subject: 'subject-1',
+      decision: ConsentDecisions.Permit,
+      actorIdentifier: 'actor-1',
+      purpose: 'purpose-1',
+      role: 'v3-PersonalRelationshipRoleType|ONESELF',
+    });
+
+    expect(roleCodeRuleId).toContain('org.hl7.terminology.codesystem.v3-rolecode.resprsn');
+    expect(personalRelationshipRuleId).toContain('org.hl7.terminology.codesystem.v3-rolecode.oneself');
+    expect(personalRelationshipRuleId).toBe(roleCodeRuleId.replace('resprsn', 'oneself'));
+  });
 });

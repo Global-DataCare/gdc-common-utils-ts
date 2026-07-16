@@ -7,6 +7,7 @@ import {
   buildProfessionalDidWeb,
   buildProviderSectorDidWeb,
   createHostedDidWeb,
+  extractTenantIdFromHostedDidWeb,
   getBaseUrlFromDidWeb,
   normalizeDidWeb,
   toDidMemberRoleCode,
@@ -37,6 +38,14 @@ describe('did utilities', () => {
   it('derives base URL from did:web', () => {
     const url = getBaseUrlFromDidWeb('did:web:localhost%3A3000:acme:cds-es:v1:health-care');
     expect(url).toBe('http://localhost:3000/acme/cds-ES/v1/health-care/');
+  });
+
+  it('extracts the hosted tenant id from a hosted did:web', () => {
+    expect(
+      extractTenantIdFromHostedDidWeb('did:web:34.175.78.233:VATES-B42215152:cds-ES:v1:health-care'),
+    ).toBe('VATES-B42215152');
+    expect(extractTenantIdFromHostedDidWeb('did:web:api.example.org')).toBeUndefined();
+    expect(extractTenantIdFromHostedDidWeb('did:web:api.example.org:cds-ES:v1:health-care')).toBeUndefined();
   });
 
   it('builds organization/professional/individual data-space did:web values', () => {
