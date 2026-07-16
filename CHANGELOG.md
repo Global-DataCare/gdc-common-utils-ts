@@ -4,11 +4,15 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.3.1] - 2026-07-17
+
 ### Fixed
 - Corrected `buildHostedProviderDidWeb(...)` and dependent individual/member
   examples to use the colon-delimited `:organization:taxid:` DID path emitted
   by GW/ICA. The previous semicolon was a helper typo, not a supported DID
   variant.
+- Removed stale bundle-editor imports so the published source remains clean
+  under strict compiler and lint settings without changing its public API.
 
 ## [2.3.0] - 2026-07-16
 

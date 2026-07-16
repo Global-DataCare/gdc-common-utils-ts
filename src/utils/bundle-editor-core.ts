@@ -19,33 +19,13 @@ import {
   type BundleOperation,
   type ResourceTypeEntryEditor,
 } from '../models/bundle-editor-types';
-import { AllergyIntoleranceClaim } from '../models/interoperable-claims/allergy-intolerance-claims';
-import { CarePlanClaim } from '../models/interoperable-claims/care-plan-claims';
-import { ClinicalImpressionClaim } from '../models/interoperable-claims/clinical-impression-claims';
 import { CompositionClaim } from '../models/interoperable-claims/composition-claims';
-import { ConditionClaim } from '../models/interoperable-claims/condition-claims';
-import { CoverageClaim } from '../models/interoperable-claims/coverage-claims';
-import { DeviceClaim } from '../models/interoperable-claims/device-claims';
-import { DeviceUseStatementClaim } from '../models/interoperable-claims/device-use-statement-claims';
-import { DiagnosticReportClaim } from '../models/interoperable-claims/diagnostic-report-claims';
-import { DocumentReferenceClaim } from '../models/interoperable-claims/document-reference-claims';
-import { EncounterClaim } from '../models/interoperable-claims/encounter-claims';
-import { FlagClaim } from '../models/interoperable-claims/flag-claims';
-import { ImmunizationClaim } from '../models/interoperable-claims/immunization-claims';
-import {
-  MedicationStatementClaim,
-  MedicationStatementClaimsFhirApiExtended,
-} from '../models/interoperable-claims/medication-statement-claims';
-import { ObservationClaim } from '../models/interoperable-claims/observation-claims';
-import { ProcedureClaim } from '../models/interoperable-claims/procedure-claims';
 import { getClaimValues, setClaimValues } from '../claims/claim-list-helpers';
 import { buildBundleDocumentFromClaims, type ValidateBundleDocumentResult } from './bundle-document-builder';
 import {
   buildEmployeeBatchEntry,
   buildEmployeePurgeBundle,
   buildEmployeeSearchBundle,
-  EmployeeBatchEntryTypes,
-  EmployeeBundleMethods,
   EmployeeBundleOperations,
   EmployeeClaims,
   EmployeeResourceTypes,
@@ -53,15 +33,10 @@ import {
 } from './employee';
 import { BundleEntryEditor } from './bundle-entry-editor';
 import {
-  cloneClaimValue,
   cloneEntry,
   createCanonicalIdentifierUrn,
   inferGenericEntryType,
-  normalizeContainedReference,
   normalizeOptionalIdentifier,
-  resolveContainedFlagClaimKey,
-  resolveContainedParentReferenceClaimKey,
-  resolveContainedReferenceListClaimKey,
   resolveEntryTypeForOperation,
   resolveRequestMethodForOperation,
 } from './bundle-editor-helpers';
