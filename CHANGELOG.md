@@ -2,23 +2,17 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
-## [2.2.2] - 2026-07-13
-
-### Changed
-- Added one hosted `did:web` compatibility extractor so consumers that still
-  receive a full `serviceProviderDid` can normalize it back to the route tenant
-  id instead of duplicating the DID inside GW tenant paths:
-  - `extractTenantIdFromHostedDidWeb(...)`
-  in:
-  - `src/utils/did.ts`
-  - `__tests__/utils-did-extra.test.ts`
-
-## [2.2.1] - 2026-07-06
-
-### Changed
-- Bumped the package patch version to capture the current shared bundle, communication session, and tutorial cleanup work on a release branch for `main`.
-
 ## [Unreleased]
+
+## [2.3.0] - 2026-07-16
+
+- Clarified that `ConsentAccessEditor` is the high-level editor for data-access
+  authorization rules: permit/deny, actors, roles, purposes and scoped targets.
+  It is deliberately not named `ConsentBundleEditor`, and it does not model
+  informed consent for a clinical intervention, treatment or procedure.
+- Kept `CommMsgExtended` as the sector-neutral communication model; clinical
+  projections remain extensions owned by the relevant product SDK rather than
+  adding health-specific canonical message types to common utilities.
 
 - Added the canonical compact individual-member relationship catalog:
   `FAMMEMB`, `WIFE`, `HUSB`, `DOMPART`, `SIS`, `BRO`, `SON`, `DAU`, `PRN`,
@@ -152,6 +146,22 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 - Repointed the shared appointment participant-status example fixture to the
   canonical `AppointmentParticipantStatus` enum instead of a duplicated literal:
   - `src/examples/communication-didcomm-payload.ts`
+
+## [2.2.2] - 2026-07-13
+
+### Changed
+- Added one hosted `did:web` compatibility extractor so consumers that still
+  receive a full `serviceProviderDid` can normalize it back to the route tenant
+  id instead of duplicating the DID inside GW tenant paths:
+  - `extractTenantIdFromHostedDidWeb(...)`
+  in:
+  - `src/utils/did.ts`
+  - `__tests__/utils-did-extra.test.ts`
+
+## [2.2.1] - 2026-07-06
+
+### Changed
+- Bumped the package patch version to capture the current shared bundle, communication session, and tutorial cleanup work on a release branch for `main`.
 
 ## [2.1.2] - 2026-06-30
 

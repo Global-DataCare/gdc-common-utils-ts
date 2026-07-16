@@ -48,11 +48,15 @@ import {
 } from './communication-attached-bundle-session-helpers';
 
 /**
- * High-level consent-access editor alias for onboarding and app-facing code.
+ * High-level access-policy editor for onboarding and app-facing code.
  *
- * This keeps the business intent explicit for developers who are editing
- * Consent access rules inside a Communication-carried bundle and should not
- * need to start from the lower-level generic session name.
+ * This edits permit/deny rules governing who may access which data, for which
+ * purpose and scope, inside a Communication-carried bundle. It does not model
+ * informed consent for a clinical procedure, treatment or intervention.
+ *
+ * The name deliberately separates authorization consent from clinical
+ * intervention consent while retaining the FHIR-like `Consent` resource used
+ * by the existing access-rule contract.
  */
 export class ConsentAccessEditor extends CommunicationAttachedBundleSession {
   /** Returns duplicate atomic consent-rule conflicts across the current bundle. */

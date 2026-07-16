@@ -1,5 +1,11 @@
 # Consent Access 101
 
+`ConsentAccessEditor` edits authorization rules: who may access which data,
+with which permit/deny decision, purpose and scope. It is not an editor for
+informed consent to perform a clinical procedure, treatment or intervention.
+The explicit `Access` name prevents those two different meanings of consent
+from being conflated.
+
 > 101 note
 > - Teach here: the highest-level public `common-utils` helper available for this topic.
 > - Do not present raw `meta.claims`, `upsert*`, or pack/unpack as the main path unless the topic itself is transport.
@@ -32,10 +38,10 @@ It also does not replace the broader SDK flow documentation for:
 
 But it is one of the core building blocks those flows depend on.
 
-## 0. Editing Consents Inside A Communication Bundle
+## 0. Editing Access Rules Inside A Communication Bundle
 
-If frontend/backend is creating or editing real `Consent` resources, keep the
-mental model simple:
+If frontend/backend is creating or editing access-policy `Consent` resources,
+keep the mental model simple:
 
 - the permission lives as a `Consent` resource with `meta.claims`
 - one or more `Consent` resources live inside a `Bundle`
