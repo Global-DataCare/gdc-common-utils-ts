@@ -185,7 +185,7 @@ export const EXAMPLE_PROVIDER_SECTOR_DID = EXAMPLE_PROVIDER_DOMAIN_DID;
  *
  * There are two valid base roots:
  * - hosted provider root:
- *   `did:web:<host.domain>:<sector>;organization:taxid:<provider-tax-id>`
+ *   `did:web:<host.domain>:<sector>:organization:taxid:<provider-tax-id>`
  * - external provider custom-domain root:
  *   `did:web:<sector.provider.domain>`
  *

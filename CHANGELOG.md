@@ -4,6 +4,12 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- Corrected `buildHostedProviderDidWeb(...)` and dependent individual/member
+  examples to use the colon-delimited `:organization:taxid:` DID path emitted
+  by GW/ICA. The previous semicolon was a helper typo, not a supported DID
+  variant.
+
 ## [2.3.0] - 2026-07-16
 
 - Clarified that `ConsentAccessEditor` is the high-level editor for data-access

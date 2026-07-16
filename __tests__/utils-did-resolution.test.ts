@@ -31,15 +31,15 @@ describe('did-resolution utilities', () => {
   });
 
   it('derives organization/provider did from member did shapes', () => {
-    const familyDid = 'did:web:host.example.org:health-care;organization:taxid:VATES-B00112233:individual:multibase:z6MkhYExampleIndividualId';
+    const familyDid = 'did:web:host.example.org:health-care:organization:taxid:VATES-B00112233:individual:multibase:z6MkhYExampleIndividualId';
     const employeeDid = 'did:web:host.example.org:acme:cds-es:v1:health-care:employee:member-001:RESPRSN';
-    expect(getOrganizationDidFromIndividualDid(familyDid)).toBe('did:web:host.example.org:health-care;organization:taxid:VATES-B00112233');
+    expect(getOrganizationDidFromIndividualDid(familyDid)).toBe('did:web:host.example.org:health-care:organization:taxid:VATES-B00112233');
     expect(getProviderDidFromSubjectDid(employeeDid)).toBe('did:web:host.example.org:acme:cds-es:v1:health-care');
   });
 
   it('infers actor kind heuristically from did shape', () => {
     expect(getActorKindFromDid('did:web:host.example.org:acme:cds-es:v1:health-care:employee:member-001:RESPRSN')).toBe('organization_controller');
-    expect(getActorKindFromDid('did:web:host.example.org:health-care;organization:taxid:VATES-B00112233:individual:multibase:z6MkhYExampleIndividualId:member:role:ONESELF')).toBe('individual_controller');
-    expect(getActorKindFromDid('did:web:host.example.org:health-care;organization:taxid:VATES-B00112233:individual:multibase:z6MkhYExampleIndividualId:member:role:NMTH')).toBe('individual_member');
+    expect(getActorKindFromDid('did:web:host.example.org:health-care:organization:taxid:VATES-B00112233:individual:multibase:z6MkhYExampleIndividualId:member:role:ONESELF')).toBe('individual_controller');
+    expect(getActorKindFromDid('did:web:host.example.org:health-care:organization:taxid:VATES-B00112233:individual:multibase:z6MkhYExampleIndividualId:member:role:NMTH')).toBe('individual_member');
   });
 });
