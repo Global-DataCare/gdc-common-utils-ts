@@ -98,14 +98,12 @@ export function buildGaiaXLegalPersonCredentialDraft(input: Readonly<{
   legalRegistrationNumberCredentialId: string;
   validFrom: string;
 }>): GaiaXCredentialDraft<GaiaXLegalPersonCredentialSubject> {
-  const subdivision = optionalClaim(input.claims, ClaimsOrganizationSchemaorg.addressRegion);
-  const country = optionalClaim(input.claims, ClaimsOrganizationSchemaorg.addressCountry);
-  if (!subdivision && !country) {
-    throw new Error('Missing organization ISO 3166-2 address subdivision or ISO 3166-1 country.');
-  }
-  const gaiaXAddress = subdivision
-    ? { 'gx:countrySubdivisionCode': subdivision }
-    : { 'gx:countryCode': country! };
+  const country = requiredClaim(
+    input.claims,
+    ClaimsOrganizationSchemaorg.addressCountry,
+    'organization ISO 3166-1 country code',
+  ).toUpperCase();
+  const gaiaXAddress = { 'gx:countryCode': country };
   const website = optionalClaim(input.claims, ClaimsOrganizationSchemaorg.url);
 
   return {
@@ -144,7 +142,6 @@ export function buildGaiaXLegalPersonProjectionFromOrganizationCredential(input:
   credentialId?: string;
   issuerId: string;
   legalRegistrationNumberCredentialId: string;
-  addressSubdivisionCode?: string;
   addressCountryCode?: string;
   validFrom: string;
 }>): Readonly<{
@@ -161,7 +158,6 @@ export function buildGaiaXLegalPersonProjectionFromOrganizationCredential(input:
   const claims: ClaimsRecord = {
     [ClaimsOrganizationSchemaorg.legalName]: asString(subject.legalName || subject.name),
     [ClaimsOrganizationSchemaorg.url]: asString(subject.url),
-    [ClaimsOrganizationSchemaorg.addressRegion]: input.addressSubdivisionCode || asString(address?.addressRegion),
     [ClaimsOrganizationSchemaorg.addressCountry]: input.addressCountryCode || asString(address?.addressCountry),
     [ClaimsOrganizationSchemaorg.identifierType]: registrationIdentifier.additionalType,
     [ClaimsOrganizationSchemaorg.identifierValue]: registrationIdentifier.value,
@@ -203,6 +199,11 @@ export function buildGaiaXServiceOfferingCredentialDraft(input: Readonly<{
   const description = optionalClaim(input.claims, ClaimsServiceSchemaorg.description);
   const endpointUrl = optionalClaim(input.claims, ClaimsServiceSchemaorg.url);
 
+  const termsHash = requiredInput(input.termsAndConditionsHash, 'terms and conditions SHA-256 hash');
+  if (!/^[a-f0-9]{64}$/i.test(termsHash)) {
+    throw new Error('Gaia-X terms and conditions hash must be a 64-character SHA-256 hexadecimal digest of the published document bytes.');
+  }
+
   return {
     '@context': [W3C_VC_V2_CONTEXT],
     type: ['VerifiableCredential', 'ServiceOffering'],
@@ -215,7 +216,7 @@ export function buildGaiaXServiceOfferingCredentialDraft(input: Readonly<{
       'gx:providedBy': { id: requiredInput(input.providedByCredentialId, 'providedBy credential id') },
       'gx:serviceOfferingTermsAndConditions': [{
         'gx:url': requiredInput(input.termsAndConditionsUrl, 'terms and conditions URL'),
-        'gx:hash': requiredInput(input.termsAndConditionsHash, 'terms and conditions hash'),
+        'gx:hash': termsHash.toLowerCase(),
       }],
       ...(name ? { 'gx:name': name } : {}),
       ...(description ? { 'gx:description': description } : {}),

@@ -42,8 +42,8 @@ describe('did utilities', () => {
 
   it('extracts the hosted tenant id from a hosted did:web', () => {
     expect(
-      extractTenantIdFromHostedDidWeb('did:web:34.175.78.233:VATES-B42215152:cds-ES:v1:health-care'),
-    ).toBe('VATES-B42215152');
+      extractTenantIdFromHostedDidWeb('did:web:192.0.2.10:VATES-B00000000:cds-ES:v1:health-care'),
+    ).toBe('VATES-B00000000');
     expect(extractTenantIdFromHostedDidWeb('did:web:api.example.org')).toBeUndefined();
     expect(extractTenantIdFromHostedDidWeb('did:web:api.example.org:cds-ES:v1:health-care')).toBeUndefined();
   });

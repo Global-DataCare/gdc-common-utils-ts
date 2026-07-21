@@ -4,6 +4,20 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.3.3] - 2026-07-21
+
+### Fixed
+- Project Gaia-X LegalPerson addresses from the required ISO 3166-1 country
+  claim only. The optional Gaia-X region is no longer treated as a mandatory
+  country subdivision or synthesized from onboarding data.
+- Require the ServiceOffering terms hash to be the lowercase hexadecimal
+  SHA-256 digest of the published terms document bytes; storage multihashes and
+  hashes synthesized from a URL are rejected.
+- Preserve text-only FHIR Condition and AllergyIntolerance codes when no coded
+  terminology entry is present.
+- Replace organization identifiers in Gaia-X and hosted-DID fixtures with
+  explicitly synthetic values.
+
 ## [2.3.2] - 2026-07-21
 
 ### Added
