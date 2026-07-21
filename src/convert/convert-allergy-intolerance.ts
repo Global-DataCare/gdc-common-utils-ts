@@ -24,11 +24,12 @@ export function allergyIntoleranceFlatToFhirR4(claims: FlatClaims): FhirResource
 
 export function allergyIntoleranceFhirR4ToFlat(resource: FhirResource): FlatClaims {
   const subject = (resource.patient as { reference?: string } | undefined)?.reference;
+  const code = resource.code as { text?: string; coding?: Array<{ system?: string; code?: string }> } | undefined;
   return {
     [AllergyIntoleranceClaim.Identifier]: (resource.identifier as Array<{ value?: string }> | undefined)?.[0]?.value,
     [AllergyIntoleranceClaim.Subject]: subject,
     [AllergyIntoleranceClaim.Patient]: subject,
-    [AllergyIntoleranceClaim.Code]: codingToValue((resource.code as { coding?: Array<{ system?: string; code?: string }> } | undefined)?.coding?.[0]),
+    [AllergyIntoleranceClaim.Code]: codingToValue(code?.coding?.[0]) || code?.text,
     [AllergyIntoleranceClaim.ClinicalStatus]: (resource.clinicalStatus as { coding?: Array<{ code?: string }> } | undefined)?.coding?.[0]?.code,
     [AllergyIntoleranceClaim.VerificationStatus]: (resource.verificationStatus as { coding?: Array<{ code?: string }> } | undefined)?.coding?.[0]?.code,
     [AllergyIntoleranceClaim.Recorder]: (resource.recorder as { reference?: string } | undefined)?.reference,

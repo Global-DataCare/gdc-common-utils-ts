@@ -103,8 +103,8 @@ export interface GaiaXLegalPersonCredentialSubject extends JsonObject {
   type: 'gx:LegalPerson';
   'gx:legalName': string;
   'gx:legalRegistrationNumber': { id: string };
-  'gx:headquarterAddress': { 'gx:countrySubdivisionCode': string } | { 'gx:countryCode': string };
-  'gx:legalAddress': { 'gx:countrySubdivisionCode': string } | { 'gx:countryCode': string };
+  'gx:headquarterAddress': { 'gx:countryCode': string };
+  'gx:legalAddress': { 'gx:countryCode': string };
   'gx:website'?: string;
 }
 

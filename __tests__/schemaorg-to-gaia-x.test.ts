@@ -20,12 +20,12 @@ import {
 const issuedAt = '2026-07-21T12:00:00.000Z';
 const participantDid = 'did:web:provider.example';
 const participantCredentialId = 'https://provider.example/.well-known/gaia-x/legal-person.vc';
-const registrationCredentialId = 'https://notary.example/credentials/registration/ES-B42215152';
+const registrationCredentialId = 'https://notary.example/credentials/registration/ES-B00000000';
 
 const organizationClaims = {
-  [ClaimsOrganizationSchemaorg.legalName]: 'Global Data Care S.L.',
-  [ClaimsOrganizationSchemaorg.taxId]: 'VATES-B42215152',
-  [ClaimsOrganizationSchemaorg.identifierValue]: 'B42215152',
+  [ClaimsOrganizationSchemaorg.legalName]: 'Example Health Data Cooperative',
+  [ClaimsOrganizationSchemaorg.taxId]: 'VATES-B00000000',
+  [ClaimsOrganizationSchemaorg.identifierValue]: 'B00000000',
   [ClaimsOrganizationSchemaorg.addressCountry]: 'ES',
   [ClaimsOrganizationSchemaorg.addressRegion]: 'ES-M',
   [ClaimsOrganizationSchemaorg.url]: 'https://provider.example',
@@ -51,14 +51,14 @@ describe('schema.org to Gaia-X ICAM 25.11 conversion', () => {
       credentialSubject: {
         id: participantDid,
         type: 'gx:LegalPerson',
-        'gx:legalName': 'Global Data Care S.L.',
+        'gx:legalName': 'Example Health Data Cooperative',
         'gx:legalRegistrationNumber': { id: registrationCredentialId },
-        'gx:headquarterAddress': { 'gx:countrySubdivisionCode': 'ES-M' },
-        'gx:legalAddress': { 'gx:countrySubdivisionCode': 'ES-M' },
+        'gx:headquarterAddress': { 'gx:countryCode': 'ES' },
+        'gx:legalAddress': { 'gx:countryCode': 'ES' },
         'gx:website': 'https://provider.example',
       },
     });
-    expect(JSON.stringify(credential)).not.toContain('VATES-B42215152');
+    expect(JSON.stringify(credential)).not.toContain('VATES-B00000000');
     expect(JSON.stringify(credential)).not.toContain('LegalRepresentative');
   });
 
@@ -73,23 +73,23 @@ describe('schema.org to Gaia-X ICAM 25.11 conversion', () => {
         credentialSubject: {
           id: participantDid,
           '@type': 'Organization',
-          legalName: 'Global Data Care S.L.',
+          legalName: 'Example Health Data Cooperative',
           url: 'https://provider.example',
           identifier: {
             '@type': 'PropertyValue',
             additionalType: 'VAT',
-            value: 'VATES-B42215152',
+            value: 'VATES-B00000000',
           },
         },
       },
       issuerId: participantDid,
       legalRegistrationNumberCredentialId: registrationCredentialId,
-      addressSubdivisionCode: 'ES-M',
+      addressCountryCode: 'ES',
       validFrom: issuedAt,
     });
 
     expect(projection.sourceCredentialId).toBe('urn:gdc:organization-credential:1');
-    expect(projection.registrationIdentifier).toEqual({ additionalType: 'VAT', value: 'VATES-B42215152' });
+    expect(projection.registrationIdentifier).toEqual({ additionalType: 'VAT', value: 'VATES-B00000000' });
     expect(projection.credential.id).toBe('urn:gdc:organization-credential:1#gaia-x-legal-person');
     expect(projection.credential.credentialSubject.id).toBe(participantDid);
   });
@@ -106,7 +106,7 @@ describe('schema.org to Gaia-X ICAM 25.11 conversion', () => {
       issuerId: participantDid,
       providedByCredentialId: participantCredentialId,
       termsAndConditionsUrl: 'https://provider.example/terms',
-      termsAndConditionsHash: 'sha256:abc123',
+      termsAndConditionsHash: 'a'.repeat(64),
       validFrom: issuedAt,
     });
 
@@ -115,12 +115,25 @@ describe('schema.org to Gaia-X ICAM 25.11 conversion', () => {
       'gx:providedBy': { id: participantCredentialId },
       'gx:serviceOfferingTermsAndConditions': [{
         'gx:url': 'https://provider.example/terms',
-        'gx:hash': 'sha256:abc123',
+        'gx:hash': 'a'.repeat(64),
       }],
       'gx:name': 'Health data access',
       'gx:description': 'Consent-controlled health data service.',
       'gx:endpoint': [{ 'gx:endpointURL': 'https://provider.example/api' }],
     });
+  });
+
+  it('rejects a storage multihash or an invented URL hash as Gaia-X terms evidence', () => {
+    expect(() => buildGaiaXServiceOfferingCredentialDraft({
+      claims: {},
+      credentialId: 'urn:uuid:service-offering-invalid-terms',
+      subjectId: 'urn:uuid:service-offering-invalid-terms',
+      issuerId: participantDid,
+      providedByCredentialId: participantCredentialId,
+      termsAndConditionsUrl: 'https://provider.example/terms',
+      termsAndConditionsHash: 'zStorageMultihash',
+      validFrom: issuedAt,
+    })).toThrow(/64-character SHA-256 hexadecimal digest/);
   });
 
   it('places the Gaia-X participant VC-JWT first without duplicating VAT outside schema.org VC', () => {
@@ -130,7 +143,7 @@ describe('schema.org to Gaia-X ICAM 25.11 conversion', () => {
     });
     const discovery: IcaMemberDiscoveryData = buildIcaMemberDiscoveryData({
       id: participantDid,
-      vc: [{ credentialSubject: { taxID: 'VATES-B42215152' } }],
+      vc: [{ credentialSubject: { taxID: 'VATES-B00000000' } }],
       did: {
         document: { '@context': 'https://www.w3.org/ns/did/v1', id: participantDid },
         meta: { fetchedAt: issuedAt, sourceUrl: 'https://provider.example/.well-known/did.json' },

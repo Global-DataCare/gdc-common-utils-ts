@@ -18,10 +18,11 @@ export function conditionFlatToFhirR4(claims: FlatClaims): FhirResource {
 }
 
 export function conditionFhirR4ToFlat(resource: FhirResource): FlatClaims {
+  const code = resource.code as { text?: string; coding?: Array<{ system?: string; code?: string }> } | undefined;
   return {
     [ConditionClaim.Identifier]: (resource.identifier as Array<{ value?: string }> | undefined)?.[0]?.value,
     [ConditionClaim.Subject]: (resource.subject as { reference?: string } | undefined)?.reference,
-    [ConditionClaim.Code]: codingToValue((resource.code as { coding?: Array<{ system?: string; code?: string }> } | undefined)?.coding?.[0]),
+    [ConditionClaim.Code]: codingToValue(code?.coding?.[0]) || code?.text,
     [ConditionClaim.ClinicalStatus]: (resource.clinicalStatus as { coding?: Array<{ code?: string }> } | undefined)?.coding?.[0]?.code,
     [ConditionClaim.VerificationStatus]: (resource.verificationStatus as { coding?: Array<{ code?: string }> } | undefined)?.coding?.[0]?.code,
   };

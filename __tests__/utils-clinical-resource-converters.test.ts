@@ -36,6 +36,19 @@ import {
 } from '../src/utils/clinical-resource-converters';
 
 describe('clinical-resource-converters', () => {
+  it('preserves text-only Condition and AllergyIntolerance codes in canonical code claims', () => {
+    expect(conditionFhirR4ToFlat({
+      resourceType: 'Condition',
+      subject: { reference: 'Patient/patricia' },
+      code: { text: 'Type 2 diabetes' },
+    })[ConditionClaim.Code]).toBe('Type 2 diabetes');
+    expect(allergyIntoleranceFhirR4ToFlat({
+      resourceType: 'AllergyIntolerance',
+      patient: { reference: 'Patient/patricia' },
+      code: { text: 'Penicillin allergy' },
+    })[AllergyIntoleranceClaim.Code]).toBe('Penicillin allergy');
+  });
+
   // Reusable clinical claim keys must be imported from interoperable-claims, never duplicated inline in tests.
   it('roundtrips MedicationStatement flat -> FHIR -> flat', () => {
     const flat = {
