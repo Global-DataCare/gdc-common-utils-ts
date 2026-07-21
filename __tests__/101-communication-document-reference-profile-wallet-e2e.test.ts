@@ -10,13 +10,14 @@ import { describe, expect, it } from '@jest/globals';
 import { CryptographyService } from '../src/CryptographyService';
 import type { ICryptoHelper } from '../src/interfaces/ICryptoHelper';
 import { CommunicationCategoryCodes } from '../src/constants/communication.js';
-import { CommunicationClaim } from '../src/models/interoperable-claims/communication-claims.js';
 import { DocumentReferenceClaim } from '../src/models/interoperable-claims/document-reference-claims.js';
 import { MedicationStatementClaim } from '../src/models/interoperable-claims/medication-statement-claims.js';
 import {
-  BundleEntryClaimsContext,
-  CommunicationClaimsContext,
-} from '../src/models/communication-attached-bundle-session.js';
+  BundleEditableResourceTypes,
+  BundleEditor,
+  BundleOperations,
+  BundleTypes,
+} from '../src/utils/bundle-editor.js';
 import {
   EXAMPLE_DIDCOMM_ACK_BODY_OK_KEY,
   EXAMPLE_DIDCOMM_ACK_BODY_RECEIVED_DOCUMENT_IDENTIFIER_KEY,
@@ -50,7 +51,7 @@ import {
   EXAMPLE_MEDICATION_STATEMENT_TEXT,
   EXAMPLE_SUBJECT_DID,
 } from '../src/examples/shared.js';
-import { CommunicationAttachedBundleSession } from '../src/utils/communication-attached-bundle-session.js';
+import { CommunicationEditor } from '../src/utils/communication-editor.js';
 import { BundleReader } from '../src/utils/bundle-reader.js';
 import {
   buildDidcommPayloadFromCommunicationClaims,
@@ -94,40 +95,36 @@ describe('101: communication DocumentReference through profile manager and walle
     const gatewayWallet = new WalletMem({ cryptoHelper, cryptography: new CryptographyService(cryptoHelper) });
     await gatewayWallet.provisionKeys(EXAMPLE_PROFILE_MANAGER_MEM_GATEWAY_PROFILE_ID);
 
-    const session = new CommunicationAttachedBundleSession({
-      communicationClaims: {
-        '@context': CommunicationClaimsContext,
-        [CommunicationClaim.Identifier]: EXAMPLE_COMMUNICATION_IDENTIFIER,
-        [CommunicationClaim.Subject]: EXAMPLE_SUBJECT_DID,
-        [CommunicationClaim.Category]: CommunicationCategoryCodes.Notification.claim,
-      },
-    });
-
     // Step 1.
     // Frontend/app responsibility:
     // build the clinical payload that will later travel inside one Communication attachment.
-    // Context rule:
-    // - the attachment container is still one FHIR `Communication`, so it uses `FHIR_R4`
-    // - the authored bundle rows are stored as neutral `FHIR_API` claims for reuse
-    session.upsertActiveMedicationStatementEntry({
-      claims: {
-        '@context': BundleEntryClaimsContext,
-        [MedicationStatementClaim.Identifier]: EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER,
-        [MedicationStatementClaim.Subject]: EXAMPLE_SUBJECT_DID,
-        [MedicationStatementClaim.Status]: EXAMPLE_MEDICATION_STATEMENT_STATUS,
-        [MedicationStatementClaim.Code]: EXAMPLE_MEDICATION_STATEMENT_CODE,
-        [MedicationStatementClaim.MedicationText]: EXAMPLE_MEDICATION_STATEMENT_TEXT,
-      },
-      fullUrl: `urn:uuid:${EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER}`,
-    });
-    session.addContainedDocumentToActiveEntry({
-      identifier: EXAMPLE_DOCUMENT_REFERENCE_IDENTIFIER,
-      attachmentContentType: EXAMPLE_DOCUMENT_REFERENCE_CONTENT_TYPE_PDF,
-      attachmentUrl: EXAMPLE_DOCUMENT_REFERENCE_URL,
-      description: EXAMPLE_DOCUMENT_REFERENCE_DESCRIPTION,
-      date: EXAMPLE_DOCUMENT_REFERENCE_DATE,
-    });
-    session.saveAndReleaseActiveEntry();
+    const bundleEditor = new BundleEditor()
+      .setBundleOperation(BundleOperations.create)
+      .setBundleType(BundleTypes.document);
+    bundleEditor
+      .newEntryAs(BundleEditableResourceTypes.medicationStatement)
+      .setIdentifier(EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER)
+      .setSubject(EXAMPLE_SUBJECT_DID)
+      .setStatus(EXAMPLE_MEDICATION_STATEMENT_STATUS)
+      .setCode(EXAMPLE_MEDICATION_STATEMENT_CODE)
+      .setMedicationText(EXAMPLE_MEDICATION_STATEMENT_TEXT)
+      .newContainedResourceAs(
+        BundleEditableResourceTypes.documentReference,
+        EXAMPLE_DOCUMENT_REFERENCE_IDENTIFIER,
+      )
+      .setIdentifier(EXAMPLE_DOCUMENT_REFERENCE_IDENTIFIER)
+      .setSubject(EXAMPLE_SUBJECT_DID)
+      .setContentType(EXAMPLE_DOCUMENT_REFERENCE_CONTENT_TYPE_PDF)
+      .setLocation(EXAMPLE_DOCUMENT_REFERENCE_URL)
+      .setDescription(EXAMPLE_DOCUMENT_REFERENCE_DESCRIPTION)
+      .setDate(EXAMPLE_DOCUMENT_REFERENCE_DATE)
+      .doneEntry();
+
+    const session = new CommunicationEditor()
+      .setCommunicationIdentifier(EXAMPLE_COMMUNICATION_IDENTIFIER)
+      .setCommunicationSubject(EXAMPLE_SUBJECT_DID)
+      .setCommunicationCategory(CommunicationCategoryCodes.Notification.claim)
+      .setAttachedBundle(bundleEditor.buildJsonApi());
 
     // Step 2.
     // BFF/runtime responsibility:
@@ -168,7 +165,7 @@ describe('101: communication DocumentReference through profile manager and walle
           expect(documentReferenceEntryIndex).toBeDefined();
           expect(
             reader.getEntryClaimsByArrayIndex(medicationEntryIndex as number)[MedicationStatementClaim.ContainedReferenceList],
-          ).toBe(EXAMPLE_DOCUMENT_REFERENCE_IDENTIFIER);
+          ).toBe(`DocumentReference/${EXAMPLE_DOCUMENT_REFERENCE_IDENTIFIER}`);
           expect(
             reader.getEntryClaimsByArrayIndex(documentReferenceEntryIndex as number)[DocumentReferenceClaim.ContentType],
           ).toBe(EXAMPLE_DOCUMENT_REFERENCE_CONTENT_TYPE_PDF);

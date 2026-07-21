@@ -122,12 +122,13 @@ Target shape:
 
 ```ts
 import {
-  EmployeeBundleOperations,
+  BundleEditor,
+  BundleOperations,
   EmployeeResourceTypes,
-} from 'gdc-common-utils-ts/utils/employee';
+} from 'gdc-common-utils-ts';
 
 const bundle = new BundleEditor()
-  .setBundleOperation(EmployeeBundleOperations.create)
+  .setBundleOperation(BundleOperations.create)
   .setAllowedResourceType(EmployeeResourceTypes.employee);
 ```
 
@@ -137,9 +138,54 @@ The editor then manages one active entry at a time:
 bundle.newEntry(resourceId?);
 bundle.newEntryAs(resourceType, resourceId?);
 bundle.openEntry(resourceIdOrFullUrl);
+bundle.setBundle(previousBundleSnapshot);
 bundle.build();
 bundle.buildDocument();
 ```
+
+### Commit Boundary: One Or Several Entries
+
+The Bundle is the frontend editing unit. Adding an entry does not send it.
+Therefore the product may choose either policy without changing contracts:
+
+- build and attach after one new medication, Consent or RelatedPerson;
+- keep the editor open, add several entries, and attach once the user finishes
+  the section, contact list, permission set or complete history.
+
+In both cases the order is identical:
+
+1. edit the semantic Bundle;
+2. materialize one Bundle snapshot;
+3. attach that whole snapshot to one `Communication`;
+4. freeze the Communication into an outbox job;
+5. select API/FHIR projection and FHIR/DIDComm carrier at runtime.
+
+Do not call per-resource `upsert*` submit helpers from the authoring UI. Those
+are compatibility/runtime plumbing, not the public editing model.
+
+### Remote Command And Local Subject Copy Are Different
+
+`BundleEditor` only authors a snapshot. Calling `setBundle(...)`, adding an
+entry or calling `buildJsonApi()` changes no backend state.
+
+The frontend therefore performs two separate operations:
+
+1. optimistically add or replace the edited resources in its disposable
+   in-memory subject/ViewModel copy;
+2. submit the completed Bundle through Communication and reconcile the GW
+   per-entry result.
+
+Confirmed resources may remain in the local copy. Resources rejected by GW
+must produce a visible error and be removed from that copy. A missing or
+ambiguous result remains pending until authoritative `_search` readback; it
+must not be invented as either success or failure. That readback is specific
+to the aggregate: `Composition/_search` for clinical history,
+`Consent/_search` for permissions and `RelatedPerson/_search` for contacts.
+Its fresh Bundle replaces the corresponding local copy completely.
+
+The reusable frontend reconciliation surface is
+`gdc-sdk-front-ts.SubjectBundleWorkingCopy`; it is intentionally outside this
+authoring-only package.
 
 ### Identifier Rule
 
@@ -198,12 +244,13 @@ The current newbie-facing document shape is:
 import {
   BundleEditor,
   BundleEditableResourceTypes,
+  BundleOperations,
   BundleTypes,
   HealthcareBasicSections,
 } from 'gdc-common-utils-ts';
 
 const documentEditor = new BundleEditor()
-  .setBundleOperation(EmployeeBundleOperations.create)
+  .setBundleOperation(BundleOperations.create)
   .setBundleType(BundleTypes.document)
   .setCompositionSubject(subjectDid)
   .setCompositionType('http://loinc.org|60591-5')
@@ -266,7 +313,7 @@ The recommended teaching order is:
 
 ```ts
 const bundle = new BundleEditor()
-  .setBundleOperation(EmployeeBundleOperations.create)
+  .setBundleOperation(BundleOperations.create)
   .setAllowedResourceType(EmployeeResourceTypes.employee);
 
 const employeeEntry = bundle

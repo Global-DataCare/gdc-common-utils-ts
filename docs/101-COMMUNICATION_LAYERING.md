@@ -124,19 +124,23 @@ also:
 
 The client-facing contract is:
 
-- claims-first
-- FHIR-shaped
-- carried inside a DIDComm-style transport envelope
+- edit one semantic Bundle containing one or several resources
+- attach that completed Bundle to one claims-first `CommMsgExtended`
+  Communication draft
+- choose API/R4/product projection independently from the carrier
+- send the rendered body directly as FHIR JSON, wrap it as DIDComm/plain, or
+  protect that DIDComm message as JWE according to runtime policy
 
 It is not:
 
-- pure FHIR on the wire
-- pure JSON:API on the wire
-- `CommMsgExtended` sent directly by new clients
+- one network upsert per editor action
+- one DIDComm envelope per resource inside the Bundle
+- a rule that every FHIR JSON submission must be wrapped in DIDComm
+- a rule that form-encoded DIDComm JWE is therefore JAR or JARM
 
-## Two Canonical Wrapping Cases
+## Canonical Payload Cases
 
-There are two different stories, and mixing them is what usually confuses
+There are several different stories, and mixing them is what usually confuses
 new readers.
 
 ### 1. Individual Index Data
@@ -150,7 +154,8 @@ Shape:
    walkthrough, or reuse a shared fixture only as a setup shortcut
 2. build one outer delivery `Communication`
 3. attach that bundle to that `Communication`
-4. wrap that `Communication` in DIDComm/plain transport
+4. let the runtime render API/R4/product format and choose direct FHIR JSON or
+   DIDComm plaintext/encrypted transport
 
 Important details:
 
@@ -182,12 +187,17 @@ Newbie teaching rule:
 
 - do not start with "bundle of Communications"
 - first teach:
-  one document bundle -> one delivery `Communication` -> one DIDComm/plain payload
+  one document Bundle -> one delivery `Communication` -> one selected runtime
+  projection/carrier
 - only introduce batches of multiple `Communication` resources later, when the
   reader already distinguishes delivery envelope from clinical content
 - so the beginner mental model today is:
-  one `Communication` carrying one attached bundle, transported in one
-  DIDComm/plain payload
+  one `Communication` carrying one attached Bundle, rendered and transported
+  once by runtime policy
+- that attached Bundle may contain one item sent immediately or several items
+  committed after the user finishes editing a section, permission set,
+  contact list or complete history; entry count is a product commit decision,
+  not a different transport contract
 - if a transport example needs a ready-made bundle, treat that bundle as a
   fixture and not as the primary authoring path
 - and be precise about the attached bundle itself:
@@ -239,9 +249,12 @@ Important details:
 
 ## The Four Layers
 
-### 1. Transport Envelope
+### 1. Optional DIDComm Transport Envelope
 
-The outermost object is the DIDComm/FAPI-style envelope.
+The outermost object is a DIDComm message only for DIDComm transport profiles.
+Direct `application/fhir+json` carries the selected clinical body without this
+envelope. JAR/JARM secure OAuth authorization messages and are not names for
+the business Communication envelope.
 
 Relevant type:
 
@@ -364,34 +377,33 @@ Not:
 
 ## What A Client Should Usually Send
 
-For a communication flow, the recommended client payload is:
+For a communication flow, application code should hand runtime one frozen
+claims-first outbox job. Runtime then sends one of:
 
-- DIDComm-style envelope
-- `body` carrying a batch container
-- one entry whose `resource.resourceType` is `Communication`
-- canonical claims in `resource.meta.claims`
+- the selected API/FHIR body directly for `application/fhir+json`;
+- a DIDComm plaintext message whose `body` is that selected representation;
+- `request=<JWE(DIDComm)>` for protected DIDComm form transport.
 
-This is the main beginner mental model.
+All three come from the same job and preserve the same Communication intent.
 
 ## What `CommMsgExtended` Is
 
-`CommMsgExtended` is an internal canonical messaging representation used inside
-gateway processing.
+`CommMsgExtended` is the shared canonical, claims-first Communication message
+stored by the draft/outbox contract.
 
 Important rule:
 
-- `CommMsgExtended` is not the main payload new clients should construct
-- the GW may derive it internally from a FHIR-like `Communication`
+- app code should use `createCommMsgExtendedDraft(...)`, attach the completed
+  Bundle, and freeze the job rather than constructing its raw fields
+- renderers derive API/FHIR representations from this canonical message
+- DIDComm carriers wrap the rendered intent only when selected
 
-So the current flow is usually:
+So the public flow is:
 
-- client sends FHIR-like `Communication`
-- GW processes it
-- GW may convert it internally to `CommMsgExtended`
-
-Not:
-
-- client must send `CommMsgExtended` directly
+- typed Bundle editor -> completed Bundle
+- Communication draft -> claims-first outbox job
+- renderer -> API/R4/product body
+- carrier -> direct FHIR JSON or DIDComm plaintext/JWE
 
 ## Why `resource.meta.claims` Matters
 
@@ -416,37 +428,33 @@ Short rule:
 When building a new flow, think in this order:
 
 1. Which resource is this really?
-2. What are the canonical claims?
-3. Which entry carries that resource?
-4. Which batch container carries those entries?
-5. Which DIDComm envelope carries that batch payload?
+2. Does this UI commit one entry now or several together?
+3. Which Bundle contains those resources?
+4. Which Communication attachment carries that completed Bundle?
+5. Which projection and carrier does runtime policy select?
 
 ## What GW CORE Expects Today
 
-GW CORE expects, in most SDK-facing flows:
-
-- a DIDComm/FAPI-style outer envelope
-- a project batch body (`BundleJsonApi`)
-- entries that carry FHIR-like resources
-- canonical claims in `resource.meta.claims`
-
-It does not primarily expect:
-
-- pure FHIR REST payloads with no project envelope
-- `CommMsgExtended` directly from frontend/backend integrators
+SDK-facing code gives the runtime one canonical Communication outbox job. The
+GW route receives the representation required by the selected transport
+profile: direct FHIR JSON, DIDComm plaintext or protected form-encoded JWE.
+Authorization artifacts such as SMART bearer tokens, `client_assertion`, JAR
+and JARM remain a separate security layer.
 
 ## Communication-Specific Rule
 
 For `Communication` flows:
 
-- the client usually sends a FHIR-like `Communication`
-- the GW may convert that to `CommMsgExtended` internally
-- attached bundles/resources may travel inside the `Communication.payload`
+- the application authors a Bundle before creating the Communication
+- the complete Bundle travels as one Communication attachment
+- the canonical outbox stays `CommMsgExtended` claims-first
+- renderer and carrier selection happen after the outbox is frozen
 
 So:
 
-- external contract for new developers = `Communication` FHIR-like
-- internal GW representation = may become `CommMsgExtended`
+- authoring contract = typed Bundle editor
+- delivery contract = claims-first Communication outbox job
+- wire contract = selected clinical projection plus selected carrier
 
 ## Read This Next
 

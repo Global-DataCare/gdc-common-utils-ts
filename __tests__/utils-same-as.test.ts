@@ -1,5 +1,7 @@
 import {
+  buildPublicAliasLedgerAssetId,
   multibase58MultihashSha3_256,
+  normalizePublicAliasList,
   normalizeSameAsHash,
   normalizeSameAsHashCsv,
   normalizeSameAsHashList,
@@ -49,6 +51,21 @@ describe('SameAs Utils', () => {
       exampleUrnMultibase,
       exampleDid,
     ]);
+  });
+
+  it('preserves CID aliases while splitting and deduplicating public aliases', () => {
+    const exampleCid = 'zb2rhindividualidentifiercid';
+    expect(normalizePublicAliasList(`${exampleDid}, ${exampleCid},${exampleCid}`)).toEqual([
+      exampleDid,
+      exampleCid,
+    ]);
+  });
+
+  it('derives opaque ledger ids and preserves an already-derived retry', () => {
+    const assetId = buildPublicAliasLedgerAssetId(exampleDid);
+    expect(assetId.startsWith('urn:multibase:z')).toBe(true);
+    expect(assetId).not.toContain(exampleDid);
+    expect(buildPublicAliasLedgerAssetId(assetId)).toBe(assetId);
   });
 
   it('joins the normalized sameAs list back into the canonical CSV storage form', () => {

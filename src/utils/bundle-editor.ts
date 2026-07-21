@@ -19,3 +19,5 @@ export * from './immunization-entry-editor';
 export * from './procedure-entry-editor';
 export * from './diagnostic-report-entry-editor';
 export * from './employee-entry-editor';
+export * from './consent-entry-editor';
+export * from './related-person-entry-editor';

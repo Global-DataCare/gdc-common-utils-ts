@@ -123,12 +123,21 @@ describe('CryptographyService (PQC)', () => {
     const recipient = await service.generateKeyPairMlKem(undefined, 'ML-KEM-768');
     const recipientPrivate = { ...recipient.publicJWKey, dBytes: recipient.secretKeyBytes };
 
-    const payload = 'hello-compact';
+    const payload = 'hello-compact · 健康 · 🛡️';
     const protectedHeader = { typ: 'JWE', zip: 'DEF' };
     const compact = await service.encryptJweToCompact(payload, protectedHeader, recipientPrivate, recipient.publicJWKey);
     const parsed = service.parseCompactJwe(compact);
+    const wrappedCek = Content.base64UrlSafeToJSON(parsed.recipients[0].encrypted_key!);
+    expect(wrappedCek).toMatchObject({
+      v: 'gdc-mlkem-cek-wrap-v1',
+      kem: 'ML-KEM-768',
+      kdf: 'HKDF-SHA-256',
+      wrap: 'A256GCM',
+    });
     const decrypted = await service.decryptJwe(parsed, recipientPrivate);
     expect(Content.bytesToStringUTF8(decrypted.decryptedBytes)).toBe(payload);
+    const second = await service.encryptJweToCompact(payload, protectedHeader, recipientPrivate, recipient.publicJWKey);
+    expect(second).not.toBe(compact);
   });
 
   it('rejects multiple recipients in encryptJwe', async () => {

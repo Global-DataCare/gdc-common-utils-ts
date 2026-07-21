@@ -209,6 +209,11 @@ The `utils` export exposes reusable helpers for DID and message handling, such a
 - `utils/content`
 - `utils/normalize`
 - `utils/unified-health-id` for provider-scoped Damm control digits over normalized provider + personal numeric sequences
+- `utils/multibasehash` for `encodeMultibaseSha3(input, digestBits = 384)`,
+  returning a base58btc multibase-encoded SHA3 multihash
+- `utils/multiformat-profile` for
+  `buildRawCidV1FromUtf8String(canonicalValue)`, returning
+  `CIDv1(raw, SHA3-384)` by default
 - `utils/fhir-cid` for recursive FHIR canonicalization + CID generation + `meta.versionId` assignment
 - `utils/fhir-validator` for adapter-based FHIR validation (`validateFhirResource`, pluggable formal validator)
 - conversion, formatting, and multibase helpers
@@ -220,7 +225,24 @@ Example:
 ```ts
 import { normalizeDidWeb, generateServiceId } from 'gdc-common-utils-ts/utils/did';
 import { fhirResourceToCid, assignCidToFhirResourceVersionId } from 'gdc-common-utils-ts/utils/fhir-cid';
+import { encodeMultibaseSha3 } from 'gdc-common-utils-ts/utils/multibasehash';
+import { buildRawCidV1FromUtf8String } from 'gdc-common-utils-ts/utils/multiformat-profile';
+
+const lookupMultihash = encodeMultibaseSha3('DL|US-CA|D1234567');
+const blockchainAssetId = buildRawCidV1FromUtf8String('DL|US-CA|D1234567');
 ```
+
+Individual lookup tokens keep the identifier type and jurisdiction separate:
+`org.hl7.terminology.CodeSystem.v2-0203.NN|ES|12345678Z`. Import
+`buildIndividualIdentifierLedgerAssetId(...)` when a GW must derive the opaque
+SHA3-384 `urn:multibase` key used by the subject-identifier ledger. The raw
+identifier must never be written to that ledger.
+
+Both helpers hash the exact UTF-8 bytes supplied by the caller. Identifier,
+FHIR-token or JSON canonicalization belongs to the contract that owns the
+input. A multibase multihash is suitable as a deterministic lookup key; a CID
+is suitable when the key must identify a content-addressed record or
+blockchain asset.
 
 ### Convert
 

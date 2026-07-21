@@ -41,7 +41,7 @@ export const MULTICODEC_RAW_CODE = 0x55;
  */
 export const SHA3_256_MULTIHASH_PROFILE: MultihashProfile = Object.freeze({
   algorithm: 'sha3-256',
-  code: 0x14,
+  code: 0x16,
   digestLengthBytes: 32,
   digest: sha3_256,
 });
@@ -60,14 +60,16 @@ export const SHA3_384_MULTIHASH_PROFILE: MultihashProfile = Object.freeze({
 });
 
 /**
- * Builds a `CIDv1` over a UTF-8 string using the provided multihash profile.
+ * Builds a `CIDv1` over a UTF-8 string using SHA3-384 by default.
  *
  * This helper intentionally does not canonicalize the input string for you.
  * Callers must pass the final canonical logical identifier they want to anchor.
+ * A caller may supply another explicit multihash profile when an established
+ * external contract requires it.
  */
 export function buildRawCidV1FromUtf8String(
   value: string,
-  profile: MultihashProfile,
+  profile: MultihashProfile = SHA3_384_MULTIHASH_PROFILE,
 ): string {
   const digest = profile.digest(utf8ToBytes(String(value || '')));
   const multihash = concatBytes(
