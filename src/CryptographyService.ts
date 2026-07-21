@@ -14,6 +14,9 @@ import { JweObject, ProtectedHeadersJWE, RecipientDataJWE } from './models/jwe';
 import { MlkemPublicJwk, MldsaPublicJwk, PublicJwk, MlkemPrivateJwk, MldsaAlg, MlkemCurve, BaseJwk, EcBaseJwk } from './interfaces/Cryptography.types';
 import { ProtectedDataAES } from './models/aes';
 import { Content } from './utils/content';
+import { hkdf } from '@noble/hashes/hkdf.js';
+import { sha256 } from '@noble/hashes/sha2.js';
+import type { MlKemWrappedCekV1 } from './models/jwe';
 
 
 /**
@@ -128,11 +131,8 @@ export class CryptographyService implements ICryptography {
   // --- High-Level Workflows ---
 
   async encryptJwe(payload: object, protectedHeader: object, secretJWKey: MlkemPrivateJwk, recipientsJWKeys: MlkemPublicJwk[]): Promise<JweObject> {
-    // ARCHITECTURAL NOTE: This implementation is currently only suitable for a single recipient.
-    // A Key Encapsulation Mechanism (KEM) derives a *different* shared secret for each recipient's public key.
-    // A true multi-recipient JWE requires a single Content Encryption Key (CEK) that is then
-    // encrypted (wrapped) for each recipient. This code uses the KEM-derived shared secret as the CEK.
-    // This must be refactored to a key-wrapping approach to support multiple recipients correctly.
+    // v1 deliberately exposes one recipient while using a distinct random CEK.
+    // The recipient wrap is already compatible with a future General JWE profile.
     if (recipientsJWKeys.length !== 1) {
       // Temporarily throw until the architecture is fixed for multi-recipient.
       throw new Error("CryptographyService.encryptJwe currently only supports a single recipient.");
@@ -140,14 +140,9 @@ export class CryptographyService implements ICryptography {
     const recipient = recipientsJWKeys[0];
     const publicKeyBytes = Content.base64ToBytes(recipient.x);
 
-    // Per RFC 9278, we generate a random seed for the KEM. The KEM then derives both the
-    // final Content Encryption Key (CEK) and the encapsulated key from this seed.
-
-    const cekSeedBytes = await this.cryptoHelper.getRandomBytes(32);
-    const { 
-      derivedCekBytes,     // This is the actual Content Encryption Key
-      encapsulatedCekBytes // This is the encrypted key for the recipient
-    } = await this.encapsulate(cekSeedBytes, secretJWKey.dBytes, publicKeyBytes);
+    const cekBytes = await this.cryptoHelper.getRandomBytes(32);
+    const kemSeedBytes = await this.cryptoHelper.getRandomBytes(32);
+    const { derivedCekBytes: sharedSecret, encapsulatedCekBytes } = await this.encapsulate(kemSeedBytes, secretJWKey.dBytes, publicKeyBytes);
 
     // 2. Now, use the *derived* CEK to encrypt the payload with AES.
     const protectedHeaderB64Url = Content.objectToRawBase64UrlSafe(protectedHeader);
@@ -157,14 +152,14 @@ export class CryptographyService implements ICryptography {
       payloadBytes = pako.deflate(payloadBytes);
       payloadString = Content.bytesToRawBase64UrlSafe(payloadBytes);
     } else {
-      payloadString = Content.bytesToStringASCII(payloadBytes);
+      payloadString = Content.bytesToStringUTF8(payloadBytes);
     }
-    const encrypted = await this.encrypt(payloadString, derivedCekBytes, protectedHeaderB64Url);
+    const encrypted = await this.encrypt(payloadString, cekBytes, protectedHeaderB64Url);
 
-    // 3. Assemble the JWE. The `encrypted_key` is the result of the KEM encapsulation.
+    const wrappedCek = await this.wrapCekForRecipient(cekBytes, sharedSecret, encapsulatedCekBytes, protectedHeaderB64Url, recipient.kid!);
     const recipientData: RecipientDataJWE[] = [{
-      header: { alg: recipient.crv, kid: recipient.kid! },
-      encrypted_key: Content.bytesToRawBase64UrlSafe(encapsulatedCekBytes),
+      header: { alg: 'ML-KEM-768+HKDF-SHA256+A256GCMKW', kid: recipient.kid! },
+      encrypted_key: Content.objectToRawBase64UrlSafe(wrappedCek),
     }];
 
     return {
@@ -178,15 +173,17 @@ export class CryptographyService implements ICryptography {
 
   async encryptJweToCompact(payload: object | string, protectedHeader: object, secretJWKey: MlkemPrivateJwk, recipientJWKey: MlkemPublicJwk): Promise<string> {
     // 1. Construct the complete, final protected header by merging the main and recipient headers.
-    const recipientHeader = { alg: recipientJWKey.crv, kid: recipientJWKey.kid! };
+    const recipientHeader = { alg: 'ML-KEM-768+HKDF-SHA256+A256GCMKW', kid: recipientJWKey.kid! };
     const finalProtectedHeader = { ...protectedHeader, ...recipientHeader };
     const protectedHeaderB64Url = Content.objectToRawBase64UrlSafe(finalProtectedHeader);
 
-    // 2. Perform KEM to derive the Content Encryption Key (CEK).
+    // 2. Generate a fresh content key, then protect it for the ML-KEM recipient.
     const publicKeyBytes = Content.base64ToBytes(recipientJWKey.x);
-    const cekSeedBytes = await this.cryptoHelper.getRandomBytes(32);
-    const { derivedCekBytes, encapsulatedCekBytes } = await this.encapsulate(cekSeedBytes, secretJWKey.dBytes, publicKeyBytes);
-    const encapsulatedKeyB64Url = Content.bytesToRawBase64UrlSafe(encapsulatedCekBytes);
+    const cekBytes = await this.cryptoHelper.getRandomBytes(32);
+    const kemSeedBytes = await this.cryptoHelper.getRandomBytes(32);
+    const { derivedCekBytes: sharedSecret, encapsulatedCekBytes } = await this.encapsulate(kemSeedBytes, secretJWKey.dBytes, publicKeyBytes);
+    const wrappedCek = await this.wrapCekForRecipient(cekBytes, sharedSecret, encapsulatedCekBytes, protectedHeaderB64Url, recipientJWKey.kid!);
+    const encryptedKeyB64Url = Content.objectToRawBase64UrlSafe(wrappedCek);
 
     // 3. Encrypt the payload using the derived CEK and the *final* protected header as AAD.
     const payloadBytes = typeof payload === 'string'
@@ -197,15 +194,15 @@ export class CryptographyService implements ICryptography {
       // Note: Compressing a compact JWS string is often inefficient, but supported.
       const compressedPayload = pako.deflate(payloadBytes);
       const payloadString = Content.bytesToRawBase64UrlSafe(compressedPayload);
-      const encrypted = await this.encrypt(payloadString, derivedCekBytes, protectedHeaderB64Url);
-      return `${protectedHeaderB64Url}.${encapsulatedKeyB64Url}.${encrypted.iv}.${encrypted.ciphertext}.${encrypted.tag}`;
+      const encrypted = await this.encrypt(payloadString, cekBytes, protectedHeaderB64Url);
+      return `${protectedHeaderB64Url}.${encryptedKeyB64Url}.${encrypted.iv}.${encrypted.ciphertext}.${encrypted.tag}`;
     }
 
-    const payloadString = Content.bytesToStringASCII(payloadBytes);
-    const encrypted = await this.encrypt(payloadString, derivedCekBytes, protectedHeaderB64Url);
+    const payloadString = Content.bytesToStringUTF8(payloadBytes);
+    const encrypted = await this.encrypt(payloadString, cekBytes, protectedHeaderB64Url);
 
     // 4. Assemble the 5 parts of the compact JWE.
-    return `${protectedHeaderB64Url}.${encapsulatedKeyB64Url}.${encrypted.iv}.${encrypted.ciphertext}.${encrypted.tag}`;
+    return `${protectedHeaderB64Url}.${encryptedKeyB64Url}.${encrypted.iv}.${encrypted.ciphertext}.${encrypted.tag}`;
   }  
 
   async decryptJwe(
@@ -219,9 +216,7 @@ export class CryptographyService implements ICryptography {
       throw new Error(`JWE does not contain a recipient with kid=${secretKeyJwk.kid}`);
     }
 
-    // Decapsulate to get the CEK
-    const encapsulatedKeyBytes = Content.base64ToBytes(recipient.encrypted_key);
-    const cekBytes = await this.decapsulate(encapsulatedKeyBytes, secretKeyJwk.dBytes);
+    const cekBytes = await this.unwrapRecipientCek(recipient.encrypted_key, secretKeyJwk, jweObject.protected);
 
     // Decrypt the payload
     const encryptedData = { ciphertext: jweObject.ciphertext, iv: jweObject.iv, tag: jweObject.tag };
@@ -307,12 +302,9 @@ export class CryptographyService implements ICryptography {
   }
   
   async encapsulate(cekSeedBytes: Uint8Array, secretKeyBytes: Uint8Array, recipientPublicKeyBytes: Uint8Array): Promise<{ encapsulatedCekBytes: Uint8Array; derivedCekBytes: Uint8Array; }> {
-    // According to RFC 9278 (JWE with ML-KEM), a seed is used for the KEM encapsulation.
-    // The KEM then derives a shared secret from this seed. It is this *derived* shared secret
-    // that is used to encrypt the content, NOT the original seed.
-    // The `encapsulate` function from the noble library handles this correctly by accepting the
-    // seed as the second argument. It returns both the encapsulated key (`cipherText`)
-    // and the derived shared secret, which we must use as the actual AES key.
+    // FIPS 203 ML-KEM encapsulation returns a ciphertext and a 32-byte shared secret.
+    // `secretKeyBytes` is retained only for public API compatibility; encapsulation
+    // requires the recipient public key, not a sender private key.
     const mlKem = await this.loadMlKem();
     const { sharedSecret, cipherText } = await mlKem.ml_kem768.encapsulate(recipientPublicKeyBytes, cekSeedBytes);
     return { derivedCekBytes: sharedSecret, encapsulatedCekBytes: cipherText };
@@ -321,6 +313,55 @@ export class CryptographyService implements ICryptography {
   async decapsulate(encapsulatedBytes: Uint8Array, secretKeyBytes: Uint8Array): Promise<Uint8Array> {
     const mlKem = await this.loadMlKem();
     return mlKem.ml_kem768.decapsulate(encapsulatedBytes, secretKeyBytes);
+  }
+
+  private async wrapCekForRecipient(
+    cekBytes: Uint8Array,
+    sharedSecret: Uint8Array,
+    kemCiphertext: Uint8Array,
+    protectedHeader: string,
+    recipientKid: string,
+  ): Promise<MlKemWrappedCekV1> {
+    const kek = this.deriveRecipientKek(sharedSecret, protectedHeader, recipientKid);
+    const wrapped = await this.encrypt(Content.bytesToRawBase64UrlSafe(cekBytes), kek, `${protectedHeader}.${recipientKid}.cek`);
+    return {
+      v: 'gdc-mlkem-cek-wrap-v1',
+      kem: 'ML-KEM-768',
+      kdf: 'HKDF-SHA-256',
+      wrap: 'A256GCM',
+      kemCiphertext: Content.bytesToRawBase64UrlSafe(kemCiphertext),
+      iv: wrapped.iv,
+      ciphertext: wrapped.ciphertext,
+      tag: wrapped.tag,
+    };
+  }
+
+  private async unwrapRecipientCek(encryptedKey: string, secretKeyJwk: MlkemPrivateJwk, protectedHeader: string): Promise<Uint8Array> {
+    let wrapped: MlKemWrappedCekV1 | undefined;
+    try {
+      wrapped = Content.base64UrlSafeToJSON(encryptedKey) as MlKemWrappedCekV1;
+    } catch {
+      // Legacy v0 used the raw ML-KEM ciphertext and the shared secret as CEK.
+      return this.decapsulate(Content.base64ToBytes(encryptedKey), secretKeyJwk.dBytes);
+    }
+    if (wrapped?.v !== 'gdc-mlkem-cek-wrap-v1' || wrapped.kem !== 'ML-KEM-768' || wrapped.kdf !== 'HKDF-SHA-256' || wrapped.wrap !== 'A256GCM') {
+      throw new Error('Unsupported ML-KEM CEK wrap profile.');
+    }
+    const sharedSecret = await this.decapsulate(Content.base64ToBytes(wrapped.kemCiphertext), secretKeyJwk.dBytes);
+    const kek = this.deriveRecipientKek(sharedSecret, protectedHeader, secretKeyJwk.kid!);
+    const cek = Content.base64ToBytes(await this.decrypt({ iv: wrapped.iv, ciphertext: wrapped.ciphertext, tag: wrapped.tag }, kek, `${protectedHeader}.${secretKeyJwk.kid}.cek`));
+    if (cek.byteLength !== 32) throw new Error('Invalid wrapped AES-256-GCM CEK.');
+    return cek;
+  }
+
+  private deriveRecipientKek(sharedSecret: Uint8Array, protectedHeader: string, recipientKid: string): Uint8Array {
+    return hkdf(
+      sha256,
+      sharedSecret,
+      Content.stringToBytesUTF8('gdc-confidential-pqc-v1'),
+      Content.stringToBytesUTF8(`${protectedHeader}.${recipientKid}.document-at-rest`),
+      32,
+    );
   }
 
   async signBytes(payloadBytes: Uint8Array, secretKeyBytes: Uint8Array, alg: MldsaAlg): Promise<Uint8Array> {

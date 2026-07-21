@@ -59,6 +59,7 @@ export * from './clinical-resource-view';
 export * from './fhir-validator';
 export * from './family-registration-test-data';
 export * from './individual-form-pdf';
+export * from './individual-identifier';
 export * from './individual-smart';
 export * from './individual-organization-claims';
 export * from './inter-tenant-access-contract';

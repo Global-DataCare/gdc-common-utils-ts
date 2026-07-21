@@ -101,70 +101,56 @@ row shape with:
 
 For create/update, the shared canonical example lives in:
 
-- [src/examples/related-person.ts](../src/examples/related-person.ts)
+- [__tests__/101-bundle-communication-authoring.test.ts](../__tests__/101-bundle-communication-authoring.test.ts)
 
 Example:
 
 ```ts
 import {
-  EXAMPLE_BUNDLE_TYPE_BATCH,
-  EXAMPLE_INTEROPERABLE_CONTEXT_FHIR_API,
-  EXAMPLE_RELATED_PERSON_ROLE,
-  InteroperableOperationMethods,
-  RelatedPersonClaim,
-  ResourceTypesFhirR4,
-  setRelatedPersonActive,
-  setRelatedPersonIdentifier,
+  BundleEditableResourceTypes,
+  BundleEditor,
+  BundleOperations,
+  BundleTypes,
+  CommunicationEditor,
 } from 'gdc-common-utils-ts';
 
-const relatedPersonIdentifier = draft.identifier;
-const relatedPersonDisplayName = draft.name;
-const relatedPersonTelecom = `mailto:${draft.email}`;
+const contacts = new BundleEditor()
+  .setBundleOperation(BundleOperations.create)
+  .setBundleType(BundleTypes.batch)
+  .setAllowedResourceType(BundleEditableResourceTypes.relatedPerson);
 
-let relatedPersonClaims = {
-  '@context': EXAMPLE_INTEROPERABLE_CONTEXT_FHIR_API,
-};
+contacts
+  .newEntryAs(BundleEditableResourceTypes.relatedPerson)
+  .setIdentifier(draft.identifier)
+  .setActive(true)
+  .setSubject(subjectDid)
+  .setRelationship(draft.relationship)
+  .setName(draft.name)
+  .setTelecom(`mailto:${draft.email}`)
+  .doneEntry();
 
-relatedPersonClaims = setRelatedPersonIdentifier(
-  relatedPersonClaims,
-  relatedPersonIdentifier,
-);
-relatedPersonClaims = setRelatedPersonActive(relatedPersonClaims, true);
-relatedPersonClaims = {
-  ...relatedPersonClaims,
-  [RelatedPersonClaim.Patient]: subjectDid,
-  [RelatedPersonClaim.Relationship]: EXAMPLE_RELATED_PERSON_ROLE,
-  [RelatedPersonClaim.Name]: relatedPersonDisplayName,
-  [RelatedPersonClaim.Telecom]: relatedPersonTelecom,
-};
+// The UI may send now, or keep the same Bundle open and add more contacts.
+const contactsBundle = contacts.buildJsonApi();
 
-const relatedPersonPayload = {
-  resourceType: ResourceTypesFhirR4.Bundle,
-  type: EXAMPLE_BUNDLE_TYPE_BATCH,
-  entry: [{
-    request: { method: InteroperableOperationMethods.Post },
-    resource: {
-      resourceType: ResourceTypesFhirR4.RelatedPerson,
-      meta: { claims: relatedPersonClaims },
-    },
-  }],
-};
+const communication = new CommunicationEditor()
+  .setCommunicationSubject(subjectDid)
+  .setAttachedBundle(contactsBundle);
 ```
 
 Read that as:
 
-- one bundle payload
-- one relationship record entry
-- semantic relationship content prepared locally
-- ready for the next SDK/runtime layer to wrap or submit
+- one typed Bundle editor owned by the contact screen
+- one or several relationship entries chosen by the UI before commit
+- one completed Bundle attached to one delivery Communication
+- projection, authorization, transport, submit and polling left to later layers
 
 The important teaching point is not the fixture itself. It is the sequence:
 
-1. start one claims object
-2. apply shared `get/set` helpers for canonical fields
-3. add the remaining semantic relationship values
-4. place those claims into one `RelatedPerson` bundle entry
-5. pass that payload to the next runtime/backend layer
+1. start one contact Bundle
+2. add or reopen typed `RelatedPerson` entries
+3. decide whether to commit after one edit or after several edits
+4. attach the completed Bundle to one Communication
+5. pass that Communication intent to the SDK/runtime layer
 
 ## Disable Example
 
@@ -264,6 +250,8 @@ Executable teaching references:
   - shows the identifier-first disable contract
 - [__tests__/101-related-person-list-reader.test.ts](../__tests__/101-related-person-list-reader.test.ts)
   - shows how one frontend can read returned related-person rows back into a list
+- [__tests__/101-bundle-communication-authoring.test.ts](../__tests__/101-bundle-communication-authoring.test.ts)
+  - shows one-or-many contact authoring before the Communication boundary
 - [src/examples/related-person.ts](../src/examples/related-person.ts)
   - shared create/update and disable fixtures
 

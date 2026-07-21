@@ -29,14 +29,25 @@ import type { CoverageEntryEditor } from '../utils/coverage-entry-editor';
 import type { ImmunizationEntryEditor } from '../utils/immunization-entry-editor';
 import type { ProcedureEntryEditor } from '../utils/procedure-entry-editor';
 import type { DiagnosticReportEntryEditor } from '../utils/diagnostic-report-entry-editor';
+import type { ConsentEntryEditor } from '../utils/consent-entry-editor';
+import type { RelatedPersonEntryEditor } from '../utils/related-person-entry-editor';
+
+/** Runtime-neutral business operations staged by `BundleEditor`. */
+export const BundleOperations = Object.freeze({
+  create: EmployeeBundleOperations.create,
+  search: EmployeeBundleOperations.search,
+  disable: EmployeeBundleOperations.disable,
+  purge: EmployeeBundleOperations.purge,
+} as const);
 
 export type BundleOperation =
-  (typeof EmployeeBundleOperations)[keyof typeof EmployeeBundleOperations];
+  (typeof BundleOperations)[keyof typeof BundleOperations];
 
 /** Resource types that the shared bundle editors currently know how to open as typed entry editors. */
 export const BundleEditableResourceTypes = Object.freeze({
   employee: EmployeeResourceTypes.employee,
   consent: ResourceTypesFhirR4.Consent,
+  relatedPerson: ResourceTypesFhirR4.RelatedPerson,
   observation: ResourceTypesFhirR4.Observation,
   vitalSign: ResourceTypesFhirR4.Observation,
   allergyIntolerance: ResourceTypesFhirR4.AllergyIntolerance,
@@ -106,7 +117,9 @@ export type BundleJsonApiShape = BundleJsonApi<BundleEntry>;
  */
 export type ResourceTypeEntryEditor<T extends AllowedResourceType> =
   T extends typeof BundleEditableResourceTypes.employee ? EmployeeEntryEditor
-    : T extends typeof BundleEditableResourceTypes.vitalSign ? VitalSignEntryEditor
+    : T extends typeof BundleEditableResourceTypes.consent ? ConsentEntryEditor
+      : T extends typeof BundleEditableResourceTypes.relatedPerson ? RelatedPersonEntryEditor
+        : T extends typeof BundleEditableResourceTypes.vitalSign ? VitalSignEntryEditor
       : T extends typeof BundleEditableResourceTypes.observation ? ObservationEntryEditor
         : T extends typeof BundleEditableResourceTypes.allergyIntolerance ? AllergyIntoleranceEntryEditor
           : T extends typeof BundleEditableResourceTypes.condition ? ConditionEntryEditor
@@ -122,4 +135,4 @@ export type ResourceTypeEntryEditor<T extends AllowedResourceType> =
                               : T extends typeof BundleEditableResourceTypes.immunization ? ImmunizationEntryEditor
                                 : T extends typeof BundleEditableResourceTypes.procedure ? ProcedureEntryEditor
                                   : T extends typeof BundleEditableResourceTypes.diagnosticReport ? DiagnosticReportEntryEditor
-                                    : BundleEntryEditor;
+                                      : BundleEntryEditor;

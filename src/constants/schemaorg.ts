@@ -7,7 +7,9 @@ export enum ClaimsServiceSchemaorg {
     areaServed = "org.schema.Service.areaServed",
     additionalType = "org.schema.Service.additionalType",
     category = "org.schema.Service.category",
+    description = "org.schema.Service.description",
     identifier = "org.schema.Service.identifier",
+    name = "org.schema.Service.name",
     serviceType = "org.schema.Service.serviceType",
     termsOfService = "org.schema.Service.termsOfService",
     url = "org.schema.Service.url",
@@ -42,6 +44,8 @@ export enum ClaimsSoftwareApplicationSchemaorg {
  * based on Schema.org vocabulary.
  */
 export enum ClaimsOrganizationSchemaorg {
+  /** Public aliases used for exact organization or individual resolution. */
+  sameAs = 'org.schema.Organization.sameAs',
     /** ISO 3166-1 alpha-2 (two-letter country code). The jurisdiction could be the country or the region (county, province or state) */
     addressCountry = "org.schema.Organization.address.addressCountry",
     /** ISO 3166-2 code for administrative divisions. The jurisdiction could be the country or the region (county, province or state) */

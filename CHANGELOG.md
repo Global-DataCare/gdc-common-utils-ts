@@ -4,6 +4,46 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.3.2] - 2026-07-21
+
+### Added
+- Added versioned Gaia-X ICAM 25.11 LegalPerson and ServiceOffering draft
+  converters plus the shared ICA `data[]` discovery aggregate. Schema.org VCs
+  remain in `vc[]`; signed Gaia-X VC-JWTs use typed DIDComm attachments, and
+  resolved DID/DCAT documents retain cache provenance in adjacent `meta`.
+- Added neutral `BundleOperations` plus typed `ConsentEntryEditor` and
+  `RelatedPersonEntryEditor` surfaces. A frontend can now build one-item or
+  multi-item permission/contact Bundles without using raw `upsert*` helpers.
+- Added an executable 101 proving the authoring boundary: edit the Bundle,
+  choose the one-or-many commit point, then attach the completed Bundle to one
+  Communication before any projection or transport decision.
+- Added `BundleEditor.setBundle(...)` so a later authoring session can reopen
+  a returned/in-memory Bundle and append resources without using `upsert*`
+  session plumbing.
+- Added typed individual-identifier normalization using the canonical
+  `<reverse-DNS type>|<ISO jurisdiction>|<value>` token. National identifiers
+  now use `.NN|ES` instead of repeating the country as `NNESP|ES`.
+- Added deterministic CIDv1 and `urn:multibase` SHA3-384 derivation helpers,
+  typed global-ledger provider payloads, and CSV alias parsing that preserves
+  CID values without confusing them with legacy bare multibase hashes.
+- Added `encodeMultibaseSha3(input, digestBits = 384)` with typed SHA3-224,
+  SHA3-256, SHA3-384 and SHA3-512 multihash profiles. The existing
+  `encodeMultibaseSha384(...)` name remains as a deprecated SHA3-384 alias.
+- Added the versioned single-recipient `confidential-pqc-v1` KEM-DEM envelope:
+  every document receives a random AES-256-GCM CEK, while FIPS 203 ML-KEM-768
+  plus HKDF-SHA-256 derives a recipient KEK that protects the CEK. Legacy raw
+  ML-KEM recipient ciphertexts remain decryptable during migration.
+
+### Changed
+- `buildRawCidV1FromUtf8String(...)` now defaults to
+  `CIDv1(raw, SHA3-384)` while retaining its explicit profile override.
+
+### Fixed
+- Corrected the former `encodeMultibaseSha384(...)` implementation, which
+  calculated SHA-2 SHA-384 while labelling the multihash as SHA3-384.
+- Corrected the SHA3-256 multihash profile code from the SHA3-512 code `0x14`
+  to the canonical SHA3-256 code `0x16`.
+
 ## [2.3.1] - 2026-07-17
 
 ### Fixed

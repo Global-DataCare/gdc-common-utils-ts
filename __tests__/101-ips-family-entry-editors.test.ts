@@ -14,7 +14,6 @@ import {
   BundleEditor,
   BundleQuery,
   BundleReader,
-  CommunicationAttachedBundleSession,
   ConditionClinicalStatuses,
   ConditionVerificationStatuses,
   EmployeeBundleOperations,
@@ -913,16 +912,16 @@ describe('101: IPS family entry editors', () => {
     expect(observationIds).toContain(EXAMPLE_LAB_PANEL_IDENTIFIER);
     expect(hemoglobinFullUrl).toBe(EXAMPLE_LAB_RESULT_HEMOGLOBIN_IDENTIFIER);
 
-    const reloadedSession = new CommunicationAttachedBundleSession({
-      initialBundle: draftBundle,
-    }).selectEntry({
-      fullUrl: hemoglobinFullUrl,
-    });
+    if (hemoglobinEntryIndex === undefined) {
+      throw new Error('Expected the authored hemoglobin entry in the Bundle readback.');
+    }
+    clinicalBundleReader.openEntry(hemoglobinEntryIndex);
+    const reloadedClaims = clinicalBundleReader.getActiveEntryClaims();
 
-    expect(reloadedSession.getSelectedEntryClaim(ObservationClaim.Identifier)).toBe(EXAMPLE_LAB_RESULT_HEMOGLOBIN_IDENTIFIER);
-    expect(reloadedSession.getSelectedEntryClaim(ObservationClaim.CodeTextLocal)).toBe(EXAMPLE_LAB_RESULT_HEMOGLOBIN_DISPLAY);
-    expect(reloadedSession.getSelectedEntryClaim(ObservationClaim.CodeDisplay)).toBe(EXAMPLE_LAB_RESULT_HEMOGLOBIN_DISPLAY);
-    expect(reloadedSession.getSelectedEntryClaim(ObservationClaim.ValueQuantityNumber)).toBe(
+    expect(reloadedClaims[ObservationClaim.Identifier]).toBe(EXAMPLE_LAB_RESULT_HEMOGLOBIN_IDENTIFIER);
+    expect(reloadedClaims[ObservationClaim.CodeTextLocal]).toBe(EXAMPLE_LAB_RESULT_HEMOGLOBIN_DISPLAY);
+    expect(reloadedClaims[ObservationClaim.CodeDisplay]).toBe(EXAMPLE_LAB_RESULT_HEMOGLOBIN_DISPLAY);
+    expect(reloadedClaims[ObservationClaim.ValueQuantityNumber]).toBe(
       String(EXAMPLE_LAB_RESULT_HEMOGLOBIN_VALUE + 0.1),
     );
   });

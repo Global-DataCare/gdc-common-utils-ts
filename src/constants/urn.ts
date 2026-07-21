@@ -9,6 +9,7 @@
  */
 export const UrnPrefixes = Object.freeze({
   JwkThumbprintSha256KeyId: 'urn:ietf:params:oauth:jwk-thumbprint:sha-256:',
+  Multibase: 'urn:multibase:',
 } as const);
 
 export type UrnPrefix = typeof UrnPrefixes[keyof typeof UrnPrefixes];

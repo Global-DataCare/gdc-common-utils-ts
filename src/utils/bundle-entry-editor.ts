@@ -29,6 +29,8 @@ import type { MedicationStatementEntryEditor } from './medication-statement-entr
 import type { ObservationEntryEditor } from './observation-entry-editor';
 import type { ProcedureEntryEditor } from './procedure-entry-editor';
 import type { VitalSignEntryEditor } from './vital-sign-entry-editor';
+import type { ConsentEntryEditor } from './consent-entry-editor';
+import type { RelatedPersonEntryEditor } from './related-person-entry-editor';
 import { ObservationClaim } from '../models/interoperable-claims/observation-claims';
 import { ClaimsPersonSchemaorg } from '../constants/schemaorg';
 import {
@@ -55,6 +57,10 @@ export class BundleEntryEditor {
     switch (normalized) {
       case BundleEditableResourceTypes.employee:
         return this.asEmployee() as ResourceTypeEntryEditor<T>;
+      case BundleEditableResourceTypes.consent:
+        return this.asConsent() as ResourceTypeEntryEditor<T>;
+      case BundleEditableResourceTypes.relatedPerson:
+        return this.asRelatedPerson() as ResourceTypeEntryEditor<T>;
       case BundleEditableResourceTypes.vitalSign:
         return this.asVitalSign() as ResourceTypeEntryEditor<T>;
       case BundleEditableResourceTypes.observation:
@@ -99,6 +105,24 @@ export class BundleEntryEditor {
       throw new Error(`BundleEntryEditor cannot open this entry as Employee: ${String(entry.resource?.resourceType || '')}`);
     }
     return createRegisteredBundleEntryEditor<EmployeeEntryEditor>(BundleEditableResourceTypes.employee, this.bundleEditor, this.entryIndex);
+  }
+
+  /** Opens the current entry as one Consent permission editor. */
+  public asConsent(): ConsentEntryEditor {
+    const entry = this.getMutableEntry();
+    if (entry.resource?.resourceType !== ResourceTypesFhirR4.Consent) {
+      throw new Error(`BundleEntryEditor cannot open this entry as Consent: ${String(entry.resource?.resourceType || '')}`);
+    }
+    return createRegisteredBundleEntryEditor<ConsentEntryEditor>(BundleEditableResourceTypes.consent, this.bundleEditor, this.entryIndex);
+  }
+
+  /** Opens the current entry as one RelatedPerson/contact editor. */
+  public asRelatedPerson(): RelatedPersonEntryEditor {
+    const entry = this.getMutableEntry();
+    if (entry.resource?.resourceType !== ResourceTypesFhirR4.RelatedPerson) {
+      throw new Error(`BundleEntryEditor cannot open this entry as RelatedPerson: ${String(entry.resource?.resourceType || '')}`);
+    }
+    return createRegisteredBundleEntryEditor<RelatedPersonEntryEditor>(BundleEditableResourceTypes.relatedPerson, this.bundleEditor, this.entryIndex);
   }
 
   /** Opens the current entry as one vital-sign-specific Observation editor. */

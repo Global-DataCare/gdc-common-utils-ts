@@ -1,7 +1,10 @@
-import { createHash } from 'crypto';
+import { sha3_256 } from '@noble/hashes/sha3.js';
+import { utf8ToBytes } from '@noble/hashes/utils.js';
 
 import { normalizePhone } from './consent';
 import { encodeMultibase58btc } from './multibase58';
+import { encodeMultibaseSha3 } from './multibasehash';
+import { UrnPrefixes } from '../constants/urn';
 
 /**
  * Builds the ICA-compatible multibase58(multihash(sha3-256)) payload for a
@@ -20,8 +23,8 @@ export function multibase58MultihashSha3_256(value: string): string {
   if (!normalized) {
     throw new Error('Cannot create multihash from empty value.');
   }
-  const digest = createHash('sha3-256').update(normalized, 'utf8').digest();
-  const multihash = Buffer.concat([Buffer.from([0x16, 0x20]), digest]);
+  const digest = sha3_256(utf8ToBytes(normalized));
+  const multihash = Uint8Array.from([0x16, 0x20, ...digest]);
   return encodeMultibase58btc(multihash);
 }
 
@@ -107,6 +110,30 @@ export function normalizeSameAsHashList(
     .map((candidate) => normalizeSameAsHash(candidate))
     .filter(Boolean);
   return [...new Set(normalized)];
+}
+
+/**
+ * Splits a public alias CSV without changing the aliases themselves.
+ *
+ * Use this for mixed DID/CID `sameAs` indexes. Unlike
+ * `normalizeSameAsHashList`, it deliberately does not interpret a CIDv1
+ * beginning with `z` as a bare `urn:multibase` value.
+ */
+export function normalizePublicAliasList(
+  value: string | readonly string[] | undefined,
+): string[] {
+  const candidates = Array.isArray(value)
+    ? value.flatMap((entry) => splitCommaSeparatedValues(entry))
+    : splitCommaSeparatedValues(String(value || ''));
+  return [...new Set(candidates.map((candidate) => candidate.trim()).filter(Boolean))];
+}
+
+/** Derives an opaque SHA3-384 multihash URN for a global-ledger alias key. */
+export function buildPublicAliasLedgerAssetId(alias: string): string {
+  const normalized = String(alias || '').trim().normalize('NFKC');
+  if (!normalized) throw new Error('Public alias is required');
+  if (normalized.startsWith(UrnPrefixes.Multibase)) return normalized;
+  return `${UrnPrefixes.Multibase}${encodeMultibaseSha3(normalized)}`;
 }
 
 /**

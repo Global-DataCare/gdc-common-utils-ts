@@ -178,7 +178,7 @@ describe('101: consent permission bundle read/write', () => {
         subject: EXAMPLE_SUBJECT_DID,
         fullUrl: `urn:uuid:${EXAMPLE_CONSENT_IDENTIFIER}-${index + 1}`,
       });
-      consentBundleEditor.upsertActiveConsentEntry({
+      consentBundleEditor.addConsent({
         claims: {
           ...(consentEntry.resource?.meta?.claims || {}),
         },

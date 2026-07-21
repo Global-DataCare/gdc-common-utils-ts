@@ -20,3 +20,4 @@ export * from './convert-encounter';
 export * from './convert-related-person';
 export * from './convert-coverage';
 export * from './convert-clinical-impression';
+export * from './schemaorg-to-gaia-x';

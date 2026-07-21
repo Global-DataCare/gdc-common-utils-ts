@@ -21,6 +21,12 @@ export interface ProtectedHeadersJWE {
     kid?: string; // Recipient's key ID
     skid?: string; // Sender's key ID
     zip?: string; // Compression algorithm
+    /** Versioned private profile while the JOSE ML-KEM binding remains an IETF draft. */
+    gdc_pq_profile?: 'confidential-pqc-v1';
+    /** Domain-separated purpose for storage envelopes. */
+    gdc_key_purpose?: 'document-at-rest';
+    /** Non-reversible binding to the profile/tenant storage owner. */
+    gdc_owner_binding?: string;
 }
 
 /**
@@ -39,6 +45,26 @@ export interface RecipientDataJWE {
         alg: string;
         kid: string;
     };
+}
+
+/**
+ * Opaque recipient payload carried by JWE `encrypted_key` for
+ * `confidential-pqc-v1`.
+ *
+ * The content is encrypted once with a random AES-256-GCM CEK. ML-KEM derives
+ * a recipient KEK, and that KEK protects the CEK with AES-256-GCM. Keeping the
+ * CEK distinct from the KEM shared secret makes a future General JWE
+ * multi-recipient profile possible without re-encrypting the document.
+ */
+export interface MlKemWrappedCekV1 {
+    v: 'gdc-mlkem-cek-wrap-v1';
+    kem: 'ML-KEM-768';
+    kdf: 'HKDF-SHA-256';
+    wrap: 'A256GCM';
+    kemCiphertext: string;
+    iv: string;
+    ciphertext: string;
+    tag: string;
 }
 
 /**

@@ -15,6 +15,7 @@ import {
 import type { DataspaceSector } from '../constants/sectors';
 import { ClaimConsent } from '../models/consent-rule';
 import type {
+  ActiveEntrySelection,
   CommunicationAttachedBundleSessionOptions,
   ConsentEditorClassifiedActors,
   ConsentEditorClassifiedPurpose,
@@ -22,6 +23,7 @@ import type {
   ConsentEditorClassifiedRoles,
   ConsentEditorClassifiedTarget,
   ConsentViewModel,
+  UpsertClaimsResourceEntryInput,
 } from '../models/communication-attached-bundle-session';
 import {
   ConsentEditorScopeCodes,
@@ -59,6 +61,39 @@ import {
  * by the existing access-rule contract.
  */
 export class ConsentAccessEditor extends CommunicationAttachedBundleSession {
+  /**
+   * Adds one authored Consent to the in-memory permission Bundle and selects it.
+   *
+   * Prefer this semantic name in app code and tutorials. Saving, attaching the
+   * completed Bundle to a Communication and transporting it are later steps.
+   */
+  addConsent(input: UpsertClaimsResourceEntryInput<Record<string, unknown>>): this {
+    return super.upsertActiveConsentEntry(input);
+  }
+
+  /** Reopens one Consent already present in the in-memory permission Bundle. */
+  openConsent(selection: ActiveEntrySelection): this {
+    this.selectActiveEntry(selection);
+    const resourceType = this.getActiveEntry()?.resource?.resourceType;
+    if (resourceType !== ResourceTypesFhirR4.Consent) {
+      this.clearActiveEntry();
+      throw new Error(`ConsentAccessEditor cannot open resource type: ${String(resourceType || '')}`);
+    }
+    return this;
+  }
+
+  /** Saves the active Consent and closes its editing selection. */
+  saveConsent(): this {
+    return this.saveAndReleaseActiveEntry();
+  }
+
+  /** @deprecated Internal compatibility plumbing. Use `addConsent(...)`. */
+  override upsertActiveConsentEntry(
+    input: UpsertClaimsResourceEntryInput<Record<string, unknown>>,
+  ): this {
+    return this.addConsent(input);
+  }
+
   /** Returns duplicate atomic consent-rule conflicts across the current bundle. */
   getConsentRuleDuplicateConflicts(): ConsentDuplicateRuleConflict[] {
     return detectDuplicateConsentRuleConflicts(this.getBundleInMemory().data);

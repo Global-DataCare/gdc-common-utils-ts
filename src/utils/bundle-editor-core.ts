@@ -110,6 +110,57 @@ export class BundleEditor {
     return this.bundleType;
   }
 
+  /**
+   * Replaces staged entries with one previously materialized JSON-API-like
+   * Bundle snapshot so a later UI session can reopen, edit or append entries.
+   *
+   * This is an in-memory authoring operation only. It does not imply that the
+   * supplied Bundle came from authoritative GW readback and it performs no
+   * Communication wrapping, submission or polling.
+   */
+  public setBundle(bundle: BundleJsonApi<BundleEntry>): this {
+    if (!bundle || bundle.resourceType !== ResourceTypesFhirR4.Bundle || !Array.isArray(bundle.data)) {
+      throw new TypeError('BundleEditor.setBundle requires a Bundle with data[].');
+    }
+    if (!Object.values(BundleTypes).includes(bundle.type as BundleType)) {
+      throw new TypeError(`BundleEditor.setBundle does not support Bundle.type: ${String(bundle.type || '')}`);
+    }
+    const operation = this.requireBundleOperation();
+    const nextEntries = bundle.data.map((source, index): BuiltBundleEntry => {
+      const resource = source?.resource;
+      const resourceType = normalizeOptionalIdentifier(resource?.resourceType);
+      if (!resource || !resourceType) {
+        throw new TypeError(`BundleEditor.setBundle requires data[${index}].resource.resourceType.`);
+      }
+      if (
+        bundle.type !== BundleTypes.document
+        && this.allowedResourceType
+        && resourceType !== this.allowedResourceType
+      ) {
+        throw new Error(
+          `BundleEditor cannot mix resource types in ${bundle.type} mode: ${this.allowedResourceType} vs ${resourceType}`,
+        );
+      }
+      const cloned = cloneEntry(source);
+      return {
+        type: normalizeOptionalIdentifier(cloned.type) || inferGenericEntryType(resourceType, operation),
+        request: cloned.request || { method: resolveRequestMethodForOperation(operation) },
+        ...(cloned.fullUrl ? { fullUrl: cloned.fullUrl } : {}),
+        resource: {
+          ...cloned.resource,
+          resourceType,
+          meta: {
+            ...(cloned.resource?.meta || {}),
+            claims: { ...(cloned.resource?.meta?.claims || {}) },
+          },
+        },
+      };
+    });
+    this.bundleType = bundle.type as BundleType;
+    this.entries.splice(0, this.entries.length, ...nextEntries);
+    return this;
+  }
+
   public setCompositionIdentifier(identifier?: string | null): this {
     return this.setCompositionScalarClaim(CompositionClaim.Identifier, identifier);
   }

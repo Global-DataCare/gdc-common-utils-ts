@@ -106,7 +106,7 @@ describe('101: consent bundle editor', () => {
     });
 
     // Step 2.
-    // Create or upsert one Consent entry in the bundle. This is the consent the
+    // Add one Consent entry to the bundle. This is the consent the
     // user selected or the consent the UI is creating now.
     let consentBaseClaims: Record<string, unknown> = { '@context': BundleEntryClaimsContext };
     consentBaseClaims = setConsentDecision(consentBaseClaims, ConsentDecisions.Permit);
@@ -116,7 +116,7 @@ describe('101: consent bundle editor', () => {
     consentBaseClaims = setConsentPeriodStart(consentBaseClaims, EXAMPLE_CONSENT_PERIOD_START);
     consentBaseClaims = setConsentPeriodEnd(consentBaseClaims, EXAMPLE_CONSENT_PERIOD_END);
 
-    consentBundleEditor.upsertActiveConsentEntry({
+    consentBundleEditor.addConsent({
       claims: consentBaseClaims,
       fullUrl: `urn:uuid:${EXAMPLE_CONSENT_IDENTIFIER}`,
     });
@@ -171,7 +171,7 @@ describe('101: consent bundle editor', () => {
     // or advanced cases, but it is intentionally not the main 101 UI path.
     const consentBundleEditor = createConsentAccessEditor();
 
-    consentBundleEditor.upsertActiveConsentEntry({
+    consentBundleEditor.addConsent({
       claims: {
         '@context': BundleEntryClaimsContext,
         [ClaimConsent.identifier]: EXAMPLE_CONSENT_IDENTIFIER,
@@ -205,7 +205,7 @@ describe('101: consent bundle editor', () => {
       HealthcareBasicSections.HistoryOfMedicationUse.attributeValue,
     ]);
 
-    consentBundleEditor.upsertActiveConsentEntry({
+    consentBundleEditor.addConsent({
       claims: firstConsentClaims,
       fullUrl: 'urn:uuid:consent-1',
     });
@@ -222,7 +222,7 @@ describe('101: consent bundle editor', () => {
       HealthcareBasicSections.Results.attributeValue,
     ]);
 
-    consentBundleEditor.upsertActiveConsentEntry({
+    consentBundleEditor.addConsent({
       claims: secondConsentClaims,
       fullUrl: 'urn:uuid:consent-2',
     });
@@ -293,7 +293,7 @@ describe('101: consent bundle editor', () => {
     consentClaims = setSectionList(consentClaims, templateDraft.sections);
     consentClaims = setClaimValues(consentClaims, ClaimConsent.resourceType, templateDraft.resourceTypes);
 
-    consentBundleEditor.upsertActiveConsentEntry({
+    consentBundleEditor.addConsent({
       claims: consentClaims,
       fullUrl: `urn:uuid:${EXAMPLE_CONSENT_IDENTIFIER}`,
     });
