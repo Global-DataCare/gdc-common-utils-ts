@@ -24,6 +24,8 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
   Communication payloads in R4/R5 projections.
 - Normalized `LOINC|code` and `http://loinc.org|code` section lookups and
   recognized clinical datetime claim suffixes in Bundle date filters.
+- Fixed portable TypeScript typing for vital-sign resource metadata,
+  Bundle-entry claim initialization and generated client-assertion JWKs.
 - Stopped the legal-organization onboarding helper from copying the technical
   `Service.identifier` into `organization.did`.
 - Added explicit public organization DID/domain inputs so portals can derive
