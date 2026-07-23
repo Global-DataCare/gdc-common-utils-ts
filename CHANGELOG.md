@@ -4,7 +4,11 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.3.5] - 2026-07-23
+
 ### Added
+- Added the canonical reusable clinical resource filter shape
+  `{ sections, types, date: { start, end } }` for Bundle queries.
 - Added the canonical self/authorized clinical-read capability and expanded
   `BundleReader` section APIs so `$summary` consumers can count references,
   resolve section resources and filter them by resource type and date.
@@ -14,6 +18,11 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
   resolve the support document `subject` before matching an identity binding.
 
 ### Fixed
+- Aligned every clinical 101 with the high-level immutable
+  `FhirDocumentFacade` filtering flow instead of teaching raw filter objects.
+- Clarified that omitting `$summary.filterSections` requests all available
+  sections; `section=*` remains a SMART permission wildcard, not the summary
+  selector taught to applications.
 - Completed the 101 clinical read lifecycle with current
   `ClinicalSummaryReadResult` examples for section enumeration, declared and
   filtered counts, resource resolution, date filters and UHC-style rendering;
@@ -35,6 +44,10 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 - Added explicit public organization DID/domain inputs so portals can derive
   `did:web:<portal-domain>:<sector>:organization:taxid:<tax-id>` without using
   the GW host name or backing IP.
+
+### Deprecated
+- Deprecated `resourceTypes`, `dateFrom` and `dateTo` Bundle-query filters.
+  They remain compatibility aliases for `types`, `date.start` and `date.end`.
 
 ## [2.3.3] - 2026-07-21
 

@@ -212,7 +212,7 @@ document with `Composition` first.
 
 For daily measurement batches and phone-assisted vital-sign capture, use the
 bundle reader's date filters as the primary way to find the current day batch.
-The shared model already exposes `dateFrom` / `dateTo` filtering on bundle
+The shared model exposes canonical `date.start` / `date.end` filtering on bundle
 entries, so today's bundle should be selected by entry dates and job timestamp
 metadata, not by a per-entry `_patch` flow.
 

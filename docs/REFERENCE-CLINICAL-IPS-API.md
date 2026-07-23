@@ -109,7 +109,8 @@ Rules:
 |---|---|---|---|---|---|---|---|
 | `getSections()` | none | section list | none | `sdk-core` | yes | no | IPS traversal baseline |
 | `getSectionResources(section, type?)` | section + optional type | resources | section / type | `sdk-core` | yes | no | low-level section helper |
-| `getByDates(type, start, end)` | resource type + dates | resources | date | `sdk-core` | yes | no | generic low-level date helper |
+| `filterByTypes(...).filterByClinicalDateRange(...).getResources()` | resource type + clinical query range | resources | point dates inside range; FHIR Period overlap | `sdk-core` | yes | no | canonical immutable facade flow |
+| `getByDates(type, start, end)` | resource type + dates | resources | date | `sdk-core` | deprecated | no | compatibility helper; do not teach in 101 |
 | `getResources({ sections, resourceType, start, end, searchText, count, page, offset })` | query object | resources | generic | `sdk-core` | yes/target | no | preferred generic query API |
 | `getSectionCounts({ sections })` | sections | counts | section | `sdk-core` / `sdk-node` | yes/target | no | preferred count API |
 | `getSectionSummary({ sections })` | sections | counts | section | `sdk-core` / `sdk-node` | yes/compat | yes | compatibility alias; prefer `getSectionCounts(...)` |

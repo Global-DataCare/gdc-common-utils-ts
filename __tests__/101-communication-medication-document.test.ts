@@ -306,18 +306,22 @@ describe('101: medication document communication orchestration', () => {
         scenario.receivedDocumentBundleReader.getDocumentSectionResourceIds(
           HealthcareCoreSections.HistoryOfMedicationUse.attributeValue,
           {
-            resourceTypes: [ResourceTypesFhirR4.MedicationStatement],
-            dateFrom: EXAMPLE_MEDICATION_IBUPROFEN_EFFECTIVE,
-            dateTo: EXAMPLE_MEDICATION_IBUPROFEN_EFFECTIVE,
+            types: [ResourceTypesFhirR4.MedicationStatement],
+            date: {
+              start: EXAMPLE_MEDICATION_IBUPROFEN_EFFECTIVE,
+              end: EXAMPLE_MEDICATION_IBUPROFEN_EFFECTIVE,
+            },
           },
         );
       const medicationsInSection =
         scenario.receivedDocumentBundleReader.getDocumentSectionResourceEntries(
           HealthcareCoreSections.HistoryOfMedicationUse.attributeValue,
           {
-            resourceTypes: [ResourceTypesFhirR4.MedicationStatement],
-            dateFrom: EXAMPLE_MEDICATION_IBUPROFEN_EFFECTIVE,
-            dateTo: EXAMPLE_MEDICATION_IBUPROFEN_EFFECTIVE,
+            types: [ResourceTypesFhirR4.MedicationStatement],
+            date: {
+              start: EXAMPLE_MEDICATION_IBUPROFEN_EFFECTIVE,
+              end: EXAMPLE_MEDICATION_IBUPROFEN_EFFECTIVE,
+            },
           },
         );
       expect(medicationIdsInSection).toEqual([scenario.medicationStatementIdentifier]);

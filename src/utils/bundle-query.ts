@@ -2,10 +2,28 @@
 
 import type { BundleEntry, BundleJsonApi } from '../models/bundle.js';
 
+/** Canonical date interval shared by clinical Bundle read filters. */
+export type BundleResourceDateFilter = Readonly<{
+  start?: string;
+  end?: string;
+}>;
+
+/**
+ * Filters Bundle resources by section, resource type and clinical date.
+ *
+ * Use `types` and `date` in new code. The flat names remain temporary
+ * compatibility aliases for callers created before the document readers were
+ * aligned with `FhirDocumentFacade`.
+ */
 export type BundleResourceIdFilters = Readonly<{
   sections?: string | readonly string[];
+  types?: string | readonly string[];
+  date?: BundleResourceDateFilter;
+  /** @deprecated Use `types`. */
   resourceTypes?: string | readonly string[];
+  /** @deprecated Use `date.start`. */
   dateFrom?: string;
+  /** @deprecated Use `date.end`. */
   dateTo?: string;
 }>;
 
@@ -105,7 +123,9 @@ export class BundleQuery {
 
   private matchesResourceFilters(entry: BundleEntry, filters: BundleResourceIdFilters): boolean {
     const resourceType = asTrimmedString(entry?.resource?.resourceType);
-    const resourceTypeFilters = normalizeTokenInput(filters.resourceTypes);
+    const resourceTypeFilters = normalizeTokenInput(
+      filters.types !== undefined ? filters.types : filters.resourceTypes,
+    );
     if (resourceTypeFilters.length > 0 && !resourceTypeFilters.includes(resourceType)) {
       return false;
     }
@@ -117,7 +137,9 @@ export class BundleQuery {
     }
 
     const entryDate = this.resolveEntryDate(claims);
-    if (!this.matchesDateRange(entryDate, filters.dateFrom, filters.dateTo)) {
+    const dateFrom = filters.date !== undefined ? filters.date.start : filters.dateFrom;
+    const dateTo = filters.date !== undefined ? filters.date.end : filters.dateTo;
+    if (!this.matchesDateRange(entryDate, dateFrom, dateTo)) {
       return false;
     }
 
