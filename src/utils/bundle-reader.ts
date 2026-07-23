@@ -208,7 +208,13 @@ export class BundleReader {
 
     const entries = this.getEntries();
     for (let index = 0; index < entries.length; index += 1) {
-      if (this.resolveEntryIdentifier(entries[index]) === normalizedIdentifier) {
+      const resource = asRecord(entries[index].resource);
+      const resourceType = asNonEmptyString(resource.resourceType) || 'resource';
+      const candidates = new Set([
+        ...this.resolveEntryReferenceCandidates(entries[index]),
+        `${resourceType}#${index}`,
+      ]);
+      if (candidates.has(normalizedIdentifier)) {
         return index;
       }
     }

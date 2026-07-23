@@ -2,6 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { ResourceTypesFhirR4 } from '../src/constants/fhir-resource-types.js';
 import { ClaimConsent } from '../src/models/consent-rule.js';
 import { MedicationStatementClaim } from '../src/models/interoperable-claims/medication-statement-claims.js';
+import { BundleReader } from '../src/utils/bundle-reader.js';
 import { BundleQuery } from '../src/utils/bundle-query.js';
 
 describe('utils/bundle-query', () => {
@@ -77,5 +78,36 @@ describe('utils/bundle-query', () => {
 
     expect(query.getEntryUrl('med-1')).toBe('urn:uuid:med-1');
     expect(query.getEntryUrl('missing-id')).toBeUndefined();
+  });
+
+  it('navigates visible resources in a native FHIR document by fullUrl, resource id and fallback id', () => {
+    const reader = new BundleReader({
+      resourceType: 'Bundle',
+      type: 'document',
+      entry: [
+        {
+          resource: {
+            resourceType: ResourceTypesFhirR4.Composition,
+          },
+        },
+        {
+          fullUrl: 'urn:uuid:allergy-1',
+          resource: {
+            resourceType: ResourceTypesFhirR4.AllergyIntolerance,
+            id: 'allergy-1',
+          },
+        },
+      ],
+    });
+
+    expect(reader.getEntryCount()).toBe(2);
+    expect(reader.getVisibleResourceCount()).toBe(2);
+    expect(reader.getVisibleResourceIds()).toEqual([
+      `${ResourceTypesFhirR4.Composition}#0`,
+      'urn:uuid:allergy-1',
+    ]);
+    expect(reader.getVisibleEntryIndexes()).toEqual([0, 1]);
+    expect(reader.getEntryIndexByIdentifier('allergy-1')).toBe(1);
+    expect(reader.getEntryIndexByIdentifier('missing')).toBeUndefined();
   });
 });
