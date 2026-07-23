@@ -84,7 +84,15 @@ const allergyIds = summary.reader.getDocumentSectionResourceIds(
 const allergyEntries = summary.reader.getDocumentSectionResourceEntries(
   allergySection,
 );
+
+const totalEntryCount = summary.reader.getEntryCount();
+const visibleResourceCount = summary.reader.getVisibleResourceCount();
+const visibleResourceIds = summary.reader.getVisibleResourceIds();
 ```
+
+The visible helpers exclude flattened entries that represent native FHIR
+`contained[]` children. Use them for UI cards; use the total entries for audit,
+debugging or FHIR reconstruction. They do not filter active/inactive status.
 
 Use the document facade when the caller wants resolved FHIR resources:
 
@@ -95,7 +103,7 @@ const allergyView = summary.document
   .filterByClinicalDateRange('2026-01-01', '2026-12-31');
 
 const resources = allergyView.getResources();
-const visibleCount = allergyView.getResourceCount();
+const filteredCount = allergyView.getResourceCount();
 ```
 
 Both calls are local reads over `summary.bundle`; neither performs a new GW

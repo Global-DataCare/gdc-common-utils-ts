@@ -96,6 +96,19 @@ const allergyEntries = summary.reader.getDocumentSectionResourceEntries(
 Use IDs when the UI needs stable selection keys. Use entries when it also needs
 `fullUrl`, request/response metadata or the complete Bundle entry wrapper.
 
+The reader also distinguishes top-level UI resources from flattened
+`contained[]` children:
+
+```ts
+const totalEntryCount = summary.reader.getEntryCount();
+const visibleResourceCount = summary.reader.getVisibleResourceCount();
+const visibleResourceIds = summary.reader.getVisibleResourceIds();
+```
+
+Use the visible helpers for cards and UI navigation. Use all entries for audit,
+debugging or rebuilding native FHIR `contained[]`. This is structural
+visibility, not the resource's active/inactive clinical status.
+
 ## 5. Obtain And Filter FHIR Resources
 
 ```ts
