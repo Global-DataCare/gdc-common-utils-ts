@@ -51,6 +51,14 @@ export const IndividualCredentialTypes = Object.freeze({
   IndividualControllerCredential: 'IndividualControllerCredential',
   IndividualMemberCredential: 'IndividualMemberCredential',
   IndividualSubjectCredential: 'IndividualSubjectCredential',
+  /**
+   * Credential issued by a trusted portal/identity authority to bind two or
+   * more DIDs that identify the same individual.
+   *
+   * A physical card/support DID is not an individual alias: clients resolve
+   * the support document's `subject` first and bind that subject DID instead.
+   */
+  SubjectIdentityBindingCredential: 'SubjectIdentityBindingCredential',
 });
 
 /**

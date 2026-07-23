@@ -4,6 +4,12 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- Added the generic `SubjectIdentityBindingCredential` contract and matching
+  helpers for trusted-sector portal bindings between individual DIDs.
+- Kept physical support/card DIDs outside authorization aliases: clients must
+  resolve the support document `subject` before matching an identity binding.
+
 ## [2.3.3] - 2026-07-21
 
 ### Fixed
