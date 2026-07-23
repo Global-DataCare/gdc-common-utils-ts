@@ -24,6 +24,15 @@ function isDidWeb(value: string): boolean {
   return /^did:web:[^:\s]+(?::[^:\s]+)*$/.test(value);
 }
 
+function isPhysicalSupportDid(value: string): boolean {
+  const segments = value.toLowerCase().split(':');
+  return segments.includes('card') || segments.includes('petd');
+}
+
+function isIndividualIdentityDid(value: string): boolean {
+  return isDidWeb(value) && !isPhysicalSupportDid(value);
+}
+
 function includesCredentialType(credential: any): boolean {
   const types = uniqueStrings(credential?.type);
   return types.includes(IndividualCredentialTypes.SubjectIdentityBindingCredential);
@@ -55,9 +64,11 @@ export function buildSubjectIdentityBindingCredential(input: Readonly<{
   const aliasDids = uniqueStrings(input.aliasDids).filter((did) => did !== subjectDid);
   const sectors = uniqueStrings(input.sectors);
   if (!isDidWeb(issuerDid)) throw new Error('issuerDid must be a did:web identifier.');
-  if (!isDidWeb(subjectDid)) throw new Error('subjectDid must be a did:web identifier.');
-  if (aliasDids.length === 0 || aliasDids.some((did) => !isDidWeb(did))) {
-    throw new Error('aliasDids must contain at least one distinct did:web individual identifier.');
+  if (!isIndividualIdentityDid(subjectDid)) {
+    throw new Error('subjectDid must be a did:web individual identifier, not a physical support DID.');
+  }
+  if (aliasDids.length === 0 || aliasDids.some((did) => !isIndividualIdentityDid(did))) {
+    throw new Error('aliasDids must contain at least one distinct did:web individual identifier and no physical support DID.');
   }
   if (sectors.length === 0) throw new Error('sectors must contain at least one sector.');
   if (!String(input.validFrom || '').trim() || Number.isNaN(Date.parse(input.validFrom))) {
@@ -97,8 +108,8 @@ export function summarizeSubjectIdentityBinding(
   const aliasDids = uniqueStrings(subject[SubjectIdentityBindingClaims.SameAs])
     .filter((did) => did !== subjectDid);
   const sectors = uniqueStrings(subject[SubjectIdentityBindingClaims.Sector]);
-  if (!isDidWeb(issuerDid) || !isDidWeb(subjectDid) || aliasDids.length === 0) return undefined;
-  if (aliasDids.some((did) => !isDidWeb(did)) || sectors.length === 0) return undefined;
+  if (!isDidWeb(issuerDid) || !isIndividualIdentityDid(subjectDid) || aliasDids.length === 0) return undefined;
+  if (aliasDids.some((did) => !isIndividualIdentityDid(did)) || sectors.length === 0) return undefined;
   return {
     issuerDid,
     subjectDid,
