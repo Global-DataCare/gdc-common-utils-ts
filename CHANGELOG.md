@@ -17,6 +17,9 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 - Made `communication.setRequestSummaryOperation(...)` the explicit 101 read
   contract: `Subject/$summary` plus an attached FHIR `Parameters` resource,
   distinct from Communication ingestion and legacy flattened `_search`.
+- Clarified that native R4/R5 rendering keeps the operation reference and
+  Parameters attachment as two payloads of one Communication, and documented
+  every `ClinicalSummaryReadResult` field.
 - Preserved the operation reference and attached Parameters as two native FHIR
   Communication payloads in R4/R5 projections.
 - Normalized `LOINC|code` and `http://loinc.org|code` section lookups and

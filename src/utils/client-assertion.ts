@@ -1,6 +1,6 @@
 // Copyright 2026 Antifraud Services Inc. under the Apache License, Version 2.0.
 
-import { generateKeyPairSync, type JsonWebKey, type KeyObject } from 'node:crypto';
+import { generateKeyPairSync, type KeyObject } from 'node:crypto';
 import { exportJWK, SignJWT, type JWK, type JWTHeaderParameters } from 'jose';
 
 export type ClientAssertionJwtAlgorithm = 'ES256' | 'ES384' | 'ES512' | 'EdDSA';
@@ -102,11 +102,11 @@ export async function buildClientAssertionJwt(input: BuildClientAssertionJwtInpu
  */
 export async function buildClientAssertionFixture(input: BuildClientAssertionJwtInput): Promise<{
   jwt: string;
-  publicJwk: JsonWebKey;
+  publicJwk: JWK;
 }> {
   const algorithm = input.algorithm || 'ES384';
   const { privateKey, publicKey } = resolveAlgorithmDefaults(algorithm);
-  const publicJwk = await exportJWK(publicKey) as JsonWebKey;
+  const publicJwk = await exportJWK(publicKey) as JWK;
   const protectedHeader: JWTHeaderParameters = {
     alg: algorithm,
     typ: 'JWT',
