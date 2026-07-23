@@ -192,14 +192,15 @@ is for write/projection flows.
 | show the badge for one section | `summary.reader.getDocumentSectionResourceCount(section)` |
 | inspect its declared references | `summary.reader.getDocumentSectionResourceReferences(section)` |
 | resolve its Bundle entries | `summary.reader.getDocumentSectionResourceEntries(section, filters)` |
-| resolve resources for cards | `summary.document.getResourcesByFilter(filter)` |
-| show the filtered result count | `summary.document.getResourceCount(filter)` |
+| scope resources for cards | `summary.document.filterBySections(...).filterByTypes(...).filterByClinicalDateRange(...)` |
+| resolve the scoped resources | `filteredDocument.getResources()` |
+| show the scoped result count | `filteredDocument.getResourceCount()` |
 
 The section badge and the filtered result count are deliberately different:
 
 - `getDocumentSectionResourceCount(...)` counts references declared by the
   `Composition`
-- `getResourceCount(...)` counts resources resolved after the chosen
+- the filtered facade's `getResourceCount()` counts resources resolved after the chosen
   section/type/date filters
 
 Continue with [101-CLINICAL_READ_AND_SEARCH.md](./101-CLINICAL_READ_AND_SEARCH.md)

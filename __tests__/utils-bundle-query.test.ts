@@ -45,14 +45,31 @@ describe('utils/bundle-query', () => {
 
     const query = new BundleQuery(bundle);
 
-    const ids = query.getResourceIds({
+    // Compatibility path: existing callers keep working during migration.
+    const legacyIds = query.getResourceIds({
       sections: ['LOINC|10160-0'],
       resourceTypes: [ResourceTypesFhirR4.MedicationStatement],
       dateFrom: '2026-07-01',
       dateTo: '2026-07-31',
     });
 
+    expect(legacyIds).toEqual(['med-1']);
+
+    // Canonical path: BundleReader and FhirDocumentFacade use one filter shape.
+    const ids = query.getResourceIds({
+      sections: ['LOINC|10160-0'],
+      types: [ResourceTypesFhirR4.MedicationStatement],
+      date: {
+        start: '2026-07-01',
+        end: '2026-07-31',
+      },
+    });
+
     expect(ids).toEqual(['med-1']);
+    expect(query.getResourceIds({
+      types: [ResourceTypesFhirR4.AllergyIntolerance],
+      date: { start: '2026-07-01', end: '2026-07-31' },
+    })).toEqual([]);
 
     const entries = query.getResourceEntriesByIds(ids);
     expect(entries).toHaveLength(1);

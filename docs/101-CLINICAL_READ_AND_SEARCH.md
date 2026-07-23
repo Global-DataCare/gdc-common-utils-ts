@@ -79,30 +79,23 @@ entries:
 ```ts
 const allergyIds = summary.reader.getDocumentSectionResourceIds(
   allergySection,
-  { resourceTypes: [ResourceTypesFhirR4.AllergyIntolerance] },
 );
 
 const allergyEntries = summary.reader.getDocumentSectionResourceEntries(
   allergySection,
-  {
-    resourceTypes: [ResourceTypesFhirR4.AllergyIntolerance],
-    dateFrom: '2026-01-01',
-    dateTo: '2026-12-31',
-  },
 );
 ```
 
 Use the document facade when the caller wants resolved FHIR resources:
 
 ```ts
-const filter = {
-  sections: [allergySection],
-  types: [ResourceTypesFhirR4.AllergyIntolerance],
-  date: { start: '2026-01-01', end: '2026-12-31' },
-};
+const allergyView = summary.document
+  .filterBySections([allergySection])
+  .filterByTypes([ResourceTypesFhirR4.AllergyIntolerance])
+  .filterByClinicalDateRange('2026-01-01', '2026-12-31');
 
-const resources = summary.document.getResourcesByFilter(filter);
-const visibleCount = summary.document.getResourceCount(filter);
+const resources = allergyView.getResources();
+const visibleCount = allergyView.getResourceCount();
 ```
 
 Both calls are local reads over `summary.bundle`; neither performs a new GW
@@ -114,11 +107,6 @@ request.
 const allResources = summary.document.getResources();
 const allAllergies =
   summary.document.getResources(ResourceTypesFhirR4.AllergyIntolerance);
-const datedAllergies = summary.document.getByDates(
-  ResourceTypesFhirR4.AllergyIntolerance,
-  '2026-01-01',
-  '2026-12-31',
-);
 const matchingText = summary.document.getContainingTextOrDisplay(
   ResourceTypesFhirR4.AllergyIntolerance,
   'ibuprofeno',

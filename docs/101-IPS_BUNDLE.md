@@ -130,15 +130,14 @@ const { bundleInMemory } = buildIpsClinicalHistoryBundleExample();
 const document = createFhirDocumentFacade(bundleInMemory);
 
 const sections = document.getSections();
-const medications = document.getResourcesByFilter({
-  sections: [HealthcareBasicSections.HistoryOfMedicationUse.attributeValue],
-  types: [ResourceTypesFhirR4.MedicationStatement],
-  date: { start: '2026-01-01', end: '2026-12-31' },
-});
-const medicationCount = document.getResourceCount({
-  sections: [HealthcareBasicSections.HistoryOfMedicationUse.attributeValue],
-  types: [ResourceTypesFhirR4.MedicationStatement],
-});
+const medicationView = document
+  .filterBySections([
+    HealthcareBasicSections.HistoryOfMedicationUse.attributeValue,
+  ])
+  .filterByTypes([ResourceTypesFhirR4.MedicationStatement])
+  .filterByClinicalDateRange('2026-01-01', '2026-12-31');
+const medications = medicationView.getResources();
+const medicationCount = medicationView.getResourceCount();
 ```
 
 For generic structural navigation over the same returned Bundle:
@@ -151,11 +150,6 @@ const medicationReferences = reader.getDocumentSectionResourceReferences(
 );
 const medicationEntries = reader.getDocumentSectionResourceEntries(
   HealthcareBasicSections.HistoryOfMedicationUse.attributeValue,
-  {
-    resourceTypes: [ResourceTypesFhirR4.MedicationStatement],
-    dateFrom: '2026-01-01',
-    dateTo: '2026-12-31',
-  },
 );
 ```
 

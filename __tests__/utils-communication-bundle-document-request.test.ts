@@ -85,6 +85,14 @@ describe('utils/communication-bundle-document-request', () => {
     );
   });
 
+  it('uses omission for all sections and rejects the SMART wildcard as a summary filter', () => {
+    expect(createSummaryOperationRequestParameters(EXAMPLE_SUBJECT_DID)).toHaveLength(2);
+    expect(() => createSummaryOperationRequestParameters(
+      EXAMPLE_SUBJECT_DID,
+      ['*'],
+    )).toThrow(/omit filterSections.*all available sections/i);
+  });
+
   it('builds a FHIR R4 Communication resource and wrapped payload from the same claims', () => {
     const input = {
       subjectDid: EXAMPLE_SUBJECT_DID,

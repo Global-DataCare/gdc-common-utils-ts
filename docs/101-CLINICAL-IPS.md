@@ -30,6 +30,10 @@ The SDK sends one read-only Communication:
 The operation returns one `ClinicalSummaryReadResult`. It does not ingest or
 project resources.
 
+To request every available section, omit `filterSections`. Do not send `'*'`:
+`section=*` is a SMART authorization wildcard, not the `$summary` selector
+taught to application code.
+
 ## 2. Understand The Result
 
 ```ts
@@ -82,20 +86,10 @@ const allergyReferences =
 ```ts
 const allergyIds = summary.reader.getDocumentSectionResourceIds(
   allergySection,
-  {
-    resourceTypes: [ResourceTypesFhirR4.AllergyIntolerance],
-    dateFrom: '2026-01-01',
-    dateTo: '2026-12-31',
-  },
 );
 
 const allergyEntries = summary.reader.getDocumentSectionResourceEntries(
   allergySection,
-  {
-    resourceTypes: [ResourceTypesFhirR4.AllergyIntolerance],
-    dateFrom: '2026-01-01',
-    dateTo: '2026-12-31',
-  },
 );
 ```
 
@@ -105,24 +99,23 @@ Use IDs when the UI needs stable selection keys. Use entries when it also needs
 ## 5. Obtain And Filter FHIR Resources
 
 ```ts
-const allergyFilter = {
-  sections: [allergySection],
-  types: [ResourceTypesFhirR4.AllergyIntolerance],
-  date: {
-    start: '2026-01-01',
-    end: '2026-12-31',
-  },
-};
+const allergyView = summary.document
+  .filterBySections([allergySection])
+  .filterByTypes([ResourceTypesFhirR4.AllergyIntolerance])
+  .filterByClinicalDateRange('2026-01-01', '2026-12-31');
 
-const recentAllergies =
-  summary.document.getResourcesByFilter(allergyFilter);
-const recentAllergyCount =
-  summary.document.getResourceCount(allergyFilter);
+const recentAllergies = allergyView.getResources();
+const recentAllergyCount = allergyView.getResourceCount();
 ```
 
 Resources without a canonical clinical date are excluded when a date filter is
-active. Use full ISO timestamps for `start` and `end` when time-of-day precision
-or an end-of-day boundary matters.
+active. Use full ISO timestamps when time-of-day precision matters.
+
+The clinical date range supports both native FHIR temporal shapes:
+
+- `date`, `dateTime` or `instant` values must fall inside the range
+- `Period` values must overlap the range
+- a date-only upper bound includes the complete selected day
 
 Other local reads:
 
@@ -130,11 +123,6 @@ Other local reads:
 const everyDocumentResource = summary.document.getResources();
 const everyAllergy = summary.document.getResources(
   ResourceTypesFhirR4.AllergyIntolerance,
-);
-const allergiesByDate = summary.document.getByDates(
-  ResourceTypesFhirR4.AllergyIntolerance,
-  '2026-01-01',
-  '2026-12-31',
 );
 const allergiesContainingIbuprofen =
   summary.document.getContainingTextOrDisplay(
@@ -151,15 +139,14 @@ network request.
 ```ts
 const sectionCards = summary.reader.getDocumentSections().map((section) => {
   const sectionKey = section.claim ?? section.code ?? '';
-  const resources = summary.document.getResourcesByFilter({
-    sections: sectionKey,
-  });
+  const sectionView = summary.document.filterBySections([sectionKey]);
+  const resources = sectionView.getResources();
 
   return {
     key: sectionKey,
     declaredCount:
       summary.reader.getDocumentSectionResourceCount(sectionKey),
-    visibleCount: resources.length,
+    visibleCount: sectionView.getResourceCount(),
     resources,
   };
 });

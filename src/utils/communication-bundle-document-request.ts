@@ -381,11 +381,17 @@ export function createSummaryOperationRequestParameters(
   if (!documentTypeDescriptor) {
     throw new Error(`Unsupported documentType: ${String(documentType)}`);
   }
+  const sections = normalizeStringArray(input.filterSections);
+  if (sections.includes('*')) {
+    throw new Error(
+      'Omit filterSections to request all available sections; "*" is reserved for SMART permission scopes.',
+    );
+  }
 
   return [
     buildSubjectParameter(subjectDid),
     buildDocumentTypeParameter(documentTypeDescriptor.id, documentTypeDescriptor.attributeValue),
-    ...buildSectionParameters(input.filterSections),
+    ...buildSectionParameters(sections),
   ];
 }
 

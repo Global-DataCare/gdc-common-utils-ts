@@ -900,9 +900,11 @@ describe('101: IPS family entry editors', () => {
       EXAMPLE_LAB_RESULT_HEMOGLOBIN_IDENTIFIER,
     );
     const observationIds = clinicalBundleQuery.getResourceIds({
-      resourceTypes: [ResourceTypesFhirR4.Observation],
-      dateFrom: EXAMPLE_VITAL_SIGNS_EFFECTIVE_DATE_TIME,
-      dateTo: EXAMPLE_VITAL_SIGNS_EFFECTIVE_DATE_TIME,
+      types: [ResourceTypesFhirR4.Observation],
+      date: {
+        start: EXAMPLE_VITAL_SIGNS_EFFECTIVE_DATE_TIME,
+        end: EXAMPLE_VITAL_SIGNS_EFFECTIVE_DATE_TIME,
+      },
     });
     const hemoglobinFullUrl = clinicalBundleQuery.getEntryUrl(EXAMPLE_LAB_RESULT_HEMOGLOBIN_IDENTIFIER);
 
