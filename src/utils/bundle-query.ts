@@ -148,6 +148,11 @@ export class BundleQuery {
       if (
         normalized.endsWith('.date')
         || normalized.endsWith('.effective')
+        || normalized.endsWith('.effective-datetime')
+        || normalized.endsWith('.effective-period-start')
+        || normalized.endsWith('.onset-datetime')
+        || normalized.endsWith('.occurrence-datetime')
+        || normalized.endsWith('.recorded-date')
         || normalized.endsWith('.sent')
         || normalized.endsWith('.authored-on')
       ) {

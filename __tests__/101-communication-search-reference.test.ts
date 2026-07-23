@@ -10,8 +10,10 @@ import { CommunicationClaim } from '../src/models/interoperable-claims/communica
 import {
   communication,
   createSummaryOperationRequestParameters,
+  createSummaryOperationRequestParametersResource,
   createSummaryOperationRequestReferencePath,
   createSummaryOperationRequestReferenceUrl,
+  SummaryOperationCommunicationDefaults,
 } from '../src/utils/communication-bundle-document-request';
 import {
   EXAMPLE_INDEX_PROVIDER_SECTOR_DID_WEB,
@@ -22,6 +24,43 @@ import {
 } from '../src/examples/shared';
 
 describe('101: IPS summary search Communication', () => {
+  it('builds the canonical $summary Communication with attached FHIR Parameters', () => {
+    // Teaching goal:
+    // Read the clinical data currently available for one individual. This is a
+    // read operation; it must not be described or invoked as index ingestion.
+
+    // Step 1.
+    // Define the semantic summary parameters independently from transport.
+    const parameters = createSummaryOperationRequestParameters({
+      subjectId: EXAMPLE_SUBJECT_DID,
+      filterSections: [HealthcareBasicSections.HistoryOfMedicationUse.attributeValue],
+    });
+
+    // Step 2.
+    // Author one auditable Communication whose content-reference selects
+    // Subject/$summary and whose JSON attachment is the FHIR Parameters body.
+    const communicationClaims = communication.setRequestSummaryOperation({
+      subjectId: EXAMPLE_SUBJECT_DID,
+      requesterId: EXAMPLE_SUBJECT_DID,
+      filterSections: [HealthcareBasicSections.HistoryOfMedicationUse.attributeValue],
+    });
+
+    // Step 3.
+    // Decode only in the test to prove the wire-independent semantic contract.
+    // Product code delegates this Communication to the SDK read operation.
+    const attachedParameters = JSON.parse(Buffer.from(
+      String(communicationClaims[CommunicationClaim.ContentAttachmentData]),
+      'base64',
+    ).toString('utf8'));
+
+    expect(communicationClaims[CommunicationClaim.ContentReference]).toBe(
+      SummaryOperationCommunicationDefaults.OperationPath,
+    );
+    expect(attachedParameters).toEqual(
+      createSummaryOperationRequestParametersResource(parameters),
+    );
+  });
+
   it('documents the step-by-step IPS search flow used by frontend code today', () => {
     // Step 1.
     // Frontend/runtime already knows:
