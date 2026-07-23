@@ -286,7 +286,7 @@ export class BundleEntryEditor {
       resourceType: this.bundleEditor.getAllowedResourceType() || EmployeeResourceTypes.employee,
       meta: { claims: {} },
     };
-    entry.resource.meta = entry.resource.meta || {};
+    entry.resource.meta = entry.resource.meta || { claims: {} };
     entry.resource.meta.claims = {
       ...(entry.resource.meta.claims || {}),
       [String(key).trim()]: cloneClaimValue(value),
@@ -318,7 +318,7 @@ export class BundleEntryEditor {
       resourceType: this.bundleEditor.getAllowedResourceType() || EmployeeResourceTypes.employee,
       meta: { claims: {} },
     };
-    entry.resource.meta = entry.resource.meta || {};
+    entry.resource.meta = entry.resource.meta || { claims: {} };
     entry.resource.meta.claims = claims;
     return this;
   }

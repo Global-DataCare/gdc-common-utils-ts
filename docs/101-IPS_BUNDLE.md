@@ -76,6 +76,24 @@ That is the 101 path: `Communication.content-reference` selects
 `Parameters` resource. The runtime executes this through
 `requestClinicalSummary(...)`; it must not call an ingestion method.
 
+When rendered as native FHIR R4 or UHC R5, those two flat claims become two
+elements of the same `Communication.payload[]` array:
+
+```ts
+payload: [
+  { contentReference: { reference: 'Subject/$summary' } },
+  {
+    contentAttachment: {
+      contentType: 'application/fhir+json',
+      data: '<base64 FHIR Parameters>',
+    },
+  },
+]
+```
+
+This is one read request in one Communication. It is not two Communications,
+and the attachment is request criteria, not a clinical Bundle to ingest.
+
 If a caller later needs the lower-level search path builders or operation-style
 request serialization, those belong in deeper docs and code references, not in
 the first onboarding flow.
@@ -96,6 +114,11 @@ The reader hierarchy is:
   does not read the clinical document
 - Node/Front actor facades return the same `ClinicalSummaryReadResult`
 - UHC SDKs reuse those readers and only add product projections such as R5
+
+`ClinicalSummaryReadResult` always has four fields: `operation` for transport
+and polling evidence, `bundle` for the authoritative FHIR document,
+`reader` for structural navigation and `document` for clinical resource
+queries.
 
 Shortest path:
 

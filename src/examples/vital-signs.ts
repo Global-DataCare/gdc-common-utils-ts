@@ -122,7 +122,7 @@ export function buildVitalSignObservationEntry(
     resource: {
       ...resource,
       meta: {
-        ...(resource.meta || {}),
+        ...((resource.meta as Record<string, unknown> | undefined) || {}),
         claims: flatClaims,
       },
     },
