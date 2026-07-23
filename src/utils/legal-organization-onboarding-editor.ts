@@ -14,6 +14,7 @@ import {
   validateLegalOrganizationOnboardingClaims,
   type ValidateLegalOrganizationOnboardingClaimsOptions,
 } from './legal-organization-onboarding';
+import { buildHostedProviderDidWeb } from './did';
 
 export type LegalOrganizationFormTemplateFields = Readonly<{
   legalName?: string;
@@ -53,6 +54,19 @@ export type LegalOrganizationGatewayVerificationSignatureFlow = 'certificate' | 
 
 export type LegalOrganizationGatewayVerificationRequestInput = Readonly<{
   controller: LegalOrganizationVerificationTransactionController;
+  /**
+   * Explicit public organization DID controlled by the registering portal.
+   * This is independent from the GW/service DID and from its network address.
+   */
+  publicOrganizationDid?: string;
+  /**
+   * Public portal domain used to derive the canonical path DID when
+   * `publicOrganizationDid` is omitted.
+   *
+   * Result:
+   * `did:web:<domain>:<sector>:organization:taxid:<tax-id>`
+   */
+  publicOrganizationDomain?: string;
   signatureFlow?: LegalOrganizationGatewayVerificationSignatureFlow;
   representativeSameAs?: string;
   verificationResourceType?: string;
@@ -509,17 +523,29 @@ export function createLegalOrganizationOnboardingFacade(): LegalOrganizationOnbo
 
     buildGatewayVerificationRequest(fields, input) {
       const controllerEmail = facade.getControllerEmail(fields);
-      const serviceIdentifier = facade.getServiceIdentifier(fields);
       const serviceUrl = facade.getServiceUrl(fields);
+      const publicOrganizationDid = normalizeOptionalText(input.publicOrganizationDid);
+      const publicOrganizationDomain = normalizeOptionalText(input.publicOrganizationDomain);
+      const organizationDid = publicOrganizationDid || (
+        publicOrganizationDomain
+        && facade.getServiceCategory(fields)
+        && facade.getTaxId(fields)
+          ? buildHostedProviderDidWeb({
+              hostDomain: publicOrganizationDomain,
+              sector: facade.getServiceCategory(fields)!,
+              providerTaxId: facade.getTaxId(fields)!,
+            })
+          : undefined
+      );
       const signatureFlow = normalizeText(input.signatureFlow || 'certificate').toLowerCase();
       const representativeSameAs = normalizeOptionalText(input.representativeSameAs || controllerEmail);
       const signedTermsPdfUrl = normalizeOptionalText(input.signedTermsPdfUrl);
 
       return facade.buildVerificationTransactionInput(fields, {
         controller: input.controller,
-        organization: serviceIdentifier || serviceUrl
+        organization: organizationDid || serviceUrl
           ? {
-              ...(serviceIdentifier ? { did: serviceIdentifier } : {}),
+              ...(organizationDid ? { did: organizationDid } : {}),
               ...(serviceUrl ? { url: serviceUrl } : {}),
             }
           : undefined,

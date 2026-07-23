@@ -160,6 +160,8 @@ export const EXAMPLE_GATEWAY_PUBLIC_ORIGIN = 'https://gateway.example.com' as co
 export const EXAMPLE_HOST_PUBLIC_HOSTNAME = 'host.example.com' as const;
 export const EXAMPLE_PROVIDER_TAX_ID = 'VATES-B00112233' as const;
 export const EXAMPLE_PROVIDER_DOMAIN = 'health-care.provider.example.org' as const;
+/** Synthetic public portal domain used to derive organization path DIDs. */
+export const EXAMPLE_PUBLIC_PORTAL_DOMAIN = 'portal.example.org' as const;
 export const EXAMPLE_INDIVIDUAL_MULTIBASE_ID =
   encodeHexToMultibase58btc('a87e5b15aea444759c7c40aa88354b6f');
 export const EXAMPLE_INDIVIDUAL_MULTIBASE_ID_SECONDARY =

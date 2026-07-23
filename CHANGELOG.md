@@ -10,6 +10,13 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 - Kept physical support/card DIDs outside authorization aliases: clients must
   resolve the support document `subject` before matching an identity binding.
 
+### Fixed
+- Stopped the legal-organization onboarding helper from copying the technical
+  `Service.identifier` into `organization.did`.
+- Added explicit public organization DID/domain inputs so portals can derive
+  `did:web:<portal-domain>:<sector>:organization:taxid:<tax-id>` without using
+  the GW host name or backing IP.
+
 ## [2.3.3] - 2026-07-21
 
 ### Fixed

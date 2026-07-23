@@ -13,6 +13,7 @@ import {
   EXAMPLE_JURISDICTION,
   EXAMPLE_LEGAL_ORGANIZATION_TAX_ID,
   EXAMPLE_ORGANIZATION_LEGAL_NAME,
+  EXAMPLE_PUBLIC_PORTAL_DOMAIN,
   EXAMPLE_SECTOR,
   EXAMPLE_SIGNED_TERMS_PDF_URL,
   EXAMPLE_TENANT_SERVICE_DID,
@@ -66,13 +67,14 @@ describe('101: legal-organization onboarding editor', () => {
     // Step 3: the BFF asks the editor for the host-side verification request.
     const verificationRequest = editor.buildGatewayVerificationRequest({
       controller: exampleControllerBinding,
+      publicOrganizationDomain: EXAMPLE_PUBLIC_PORTAL_DOMAIN,
       signedTermsPdfUrl: EXAMPLE_SIGNED_TERMS_PDF_URL,
     });
 
     expect(verificationRequest.claims['org.schema.Organization.legalName']).toBe(EXAMPLE_ORGANIZATION_LEGAL_NAME);
     expect(verificationRequest.controller.did).toBe(exampleControllerBinding.did);
     expect(verificationRequest.organization).toEqual({
-      did: EXAMPLE_TENANT_SERVICE_DID,
+      did: `did:web:${EXAMPLE_PUBLIC_PORTAL_DOMAIN}:${EXAMPLE_SECTOR}:organization:taxid:${EXAMPLE_LEGAL_ORGANIZATION_TAX_ID}`,
       url: 'https://provider.example.org',
     });
     expect(verificationRequest.legalRepresentativePayload).toEqual({
@@ -85,5 +87,27 @@ describe('101: legal-organization onboarding editor', () => {
         links: [EXAMPLE_SIGNED_TERMS_PDF_URL],
       },
     });
+  });
+
+  it('does not confuse the technical service DID with the public organization DID', () => {
+    const editor = createLegalOrganizationOnboardingEditor()
+      .setLegalName(EXAMPLE_ORGANIZATION_LEGAL_NAME)
+      .setTaxId(EXAMPLE_LEGAL_ORGANIZATION_TAX_ID)
+      .setLegalIdentifierValue(EXAMPLE_LEGAL_ORGANIZATION_TAX_ID)
+      .setLegalIdentifierType('taxID')
+      .setAddressCountry(EXAMPLE_JURISDICTION)
+      .setControllerEmail(EXAMPLE_EMAIL_CONTROLLER_ORG)
+      .setServiceCategory(EXAMPLE_SECTOR)
+      .setServiceIdentifier(EXAMPLE_TENANT_SERVICE_DID)
+      .setServiceUrl('https://provider.example.org');
+
+    const verificationRequest = editor.buildGatewayVerificationRequest({
+      controller: exampleControllerBinding,
+    });
+
+    expect(verificationRequest.organization).toEqual({
+      url: 'https://provider.example.org',
+    });
+    expect(verificationRequest.organization?.did).not.toBe(EXAMPLE_TENANT_SERVICE_DID);
   });
 });
