@@ -65,13 +65,16 @@ import {
   EXAMPLE_SUBJECT_DID,
 } from 'gdc-common-utils-ts/examples/shared';
 
-const communicationClaims = communication.newIpsSummarySearchCommunication({
+const communicationClaims = communication.setRequestSummaryOperation({
   subjectId: EXAMPLE_SUBJECT_DID,
   requesterId: EXAMPLE_PROFESSIONAL_DID,
 });
 ```
 
-That is the 101 path.
+That is the 101 path: `Communication.content-reference` selects
+`Subject/$summary` and `Communication.content-attachment-data` carries the FHIR
+`Parameters` resource. The runtime executes this through
+`requestClinicalSummary(...)`; it must not call an ingestion method.
 
 If a caller later needs the lower-level search path builders or operation-style
 request serialization, those belong in deeper docs and code references, not in
@@ -83,19 +86,16 @@ The high-level reading path is documented in:
 
 - [101-CLINICAL-IPS.md](./101-CLINICAL-IPS.md)
 
-The reader mental model is:
+The reader hierarchy is:
 
-- `ipsBundleReader.getSections()`
-- `ipsBundleReader.getSectionCounts(...)`
-- `ipsBundleReader.getEntries(...)`
-- `ipsBundleReader.getResources(...)`
-- `ipsBundleReader.getAllergies(...)`
-- `ipsBundleReader.getConditions(...)`
-- `ipsBundleReader.getMedications(...)`
-- `ipsBundleReader.getVitalSigns(...)`
-- `ipsBundleReader.getLocalTextAndIntDisplay(...)`
-- `ipsBundleReader.getXhtmlOrDerived(...)`
-- `ipsBundleReader.getNarrative(...)`
+- `BundleReader` in `gdc-common-utils-ts` owns generic Bundle structure,
+  Composition sections, counts, references and entry resolution
+- `FhirDocumentFacade` in `gdc-sdk-core-ts` owns clinical resource retrieval and
+  combined section/type/date filtering
+- `LifecycleResultReader` owns command/search outcome statuses and issues; it
+  does not read the clinical document
+- Node/Front actor facades return the same `ClinicalSummaryReadResult`
+- UHC SDKs reuse those readers and only add product projections such as R5
 
 Shortest path:
 
@@ -104,10 +104,36 @@ import { createFhirDocumentFacade } from 'gdc-sdk-core-ts';
 import { buildIpsClinicalHistoryBundleExample } from 'gdc-common-utils-ts';
 
 const { bundleInMemory } = buildIpsClinicalHistoryBundleExample();
-const ipsBundleReader = createFhirDocumentFacade(bundleInMemory);
+const document = createFhirDocumentFacade(bundleInMemory);
 
-const sections = ipsBundleReader.getSections();
-const medications = ipsBundleReader.getMedications();
+const sections = document.getSections();
+const medications = document.getResourcesByFilter({
+  sections: [HealthcareBasicSections.HistoryOfMedicationUse.attributeValue],
+  types: [ResourceTypesFhirR4.MedicationStatement],
+  date: { start: '2026-01-01', end: '2026-12-31' },
+});
+const medicationCount = document.getResourceCount({
+  sections: [HealthcareBasicSections.HistoryOfMedicationUse.attributeValue],
+  types: [ResourceTypesFhirR4.MedicationStatement],
+});
+```
+
+For generic structural navigation over the same returned Bundle:
+
+```ts
+const reader = new BundleReader(bundleInMemory);
+const sectionCount = reader.getDocumentSectionCount();
+const medicationReferences = reader.getDocumentSectionResourceReferences(
+  HealthcareBasicSections.HistoryOfMedicationUse.attributeValue,
+);
+const medicationEntries = reader.getDocumentSectionResourceEntries(
+  HealthcareBasicSections.HistoryOfMedicationUse.attributeValue,
+  {
+    resourceTypes: [ResourceTypesFhirR4.MedicationStatement],
+    dateFrom: '2026-01-01',
+    dateTo: '2026-12-31',
+  },
+);
 ```
 
 ## 3. Build Or Edit One IPS Bundle

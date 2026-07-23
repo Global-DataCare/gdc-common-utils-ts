@@ -321,8 +321,10 @@ export class BundleReader {
     if (!normalized) {
       return undefined;
     }
+    const normalizedClaim = normalizeSectionClaim(normalized);
     return this.getDocumentSections().find((section) =>
-      section.claim === normalized || section.code === normalized);
+      section.code === normalized
+      || (section.claim !== undefined && normalizeSectionClaim(section.claim) === normalizedClaim));
   }
 
   /** Returns the number of resource references inside one document section. */
@@ -333,6 +335,44 @@ export class BundleReader {
   /** Returns bundle resource references listed under one document section. */
   public getDocumentSectionResourceReferences(sectionCodeOrClaim: string): string[] {
     return [...(this.getDocumentSectionByCode(sectionCodeOrClaim)?.entryReferences || [])];
+  }
+
+  /**
+   * Returns stable resource IDs that both belong to one Composition section
+   * and match the optional resource-type/date filters.
+   *
+   * Use this after `$summary` when a screen or channel needs the concrete
+   * resources for one section. `getDocumentSectionResourceCount(...)` counts
+   * declared Composition references; this method resolves those references
+   * against the returned Bundle and can narrow the result.
+   */
+  public getDocumentSectionResourceIds(
+    sectionCodeOrClaim: string,
+    filters: BundleResourceIdFilters = {},
+  ): string[] {
+    const references = new Set(
+      this.getDocumentSectionResourceReferences(sectionCodeOrClaim),
+    );
+    if (references.size === 0) {
+      return [];
+    }
+    return this.getResourceIds(filters).filter((resourceId) =>
+      this.getEntriesByIds([resourceId]).some((entry) =>
+        this.resolveEntryReferenceCandidates(entry)
+          .some((reference) => references.has(reference))));
+  }
+
+  /**
+   * Returns cloned Bundle entries for the resources selected from one
+   * Composition section, optionally filtered by type and inclusive date range.
+   */
+  public getDocumentSectionResourceEntries(
+    sectionCodeOrClaim: string,
+    filters: BundleResourceIdFilters = {},
+  ): BundleReaderEntry[] {
+    return this.getEntriesByIds(
+      this.getDocumentSectionResourceIds(sectionCodeOrClaim, filters),
+    );
   }
 
   /** Returns the active entry response status when present. */
@@ -564,10 +604,34 @@ export class BundleReader {
       .find((key) => String(key || '').toLowerCase().endsWith('.identifier'));
     return identifierKey ? normalizeOptionalString(claims[identifierKey]) : undefined;
   }
+
+  private resolveEntryReferenceCandidates(entry: BundleReaderEntry): string[] {
+    const resource = asRecord(entry.resource);
+    const resourceType = asNonEmptyString(resource.resourceType);
+    const resourceId = asNonEmptyString(resource.id);
+    return Array.from(new Set([
+      asNonEmptyString(entry.id),
+      asNonEmptyString(entry.fullUrl),
+      resourceId,
+      resourceType && resourceId ? `${resourceType}/${resourceId}` : undefined,
+      this.resolveEntryIdentifier(entry),
+    ].filter((value): value is string => Boolean(value))));
+  }
 }
 
 function normalizeOptionalString(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim() ? value.trim() : undefined;
+}
+
+function normalizeSectionClaim(value: string): string {
+  const [system, ...codeParts] = value.split('|');
+  if (codeParts.length === 0) {
+    return value.trim().toLowerCase();
+  }
+  const normalizedSystem = system.trim().toLowerCase() === 'http://loinc.org'
+    ? 'loinc'
+    : system.trim().toLowerCase();
+  return `${normalizedSystem}|${codeParts.join('|').trim().toLowerCase()}`;
 }
 
 export function unwrapBundleLikeResponseBody(input: unknown): Record<string, unknown> {

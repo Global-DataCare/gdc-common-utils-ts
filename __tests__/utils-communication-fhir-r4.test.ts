@@ -46,12 +46,32 @@ describe('utils/communication-fhir-r4', () => {
     ).toThrow(/more than one payload kind/i);
   });
 
+  it('keeps the operation reference and attached FHIR Parameters as separate native payloads', () => {
+    const result = transformCommunicationClaimsToResourceFhirR4([
+      {
+        [CommunicationClaim.ContentReference]: 'Subject/$summary',
+        [CommunicationClaim.ContentAttachmentType]: 'application/fhir+json',
+        [CommunicationClaim.ContentAttachmentData]: 'eyJyZXNvdXJjZVR5cGUiOiJQYXJhbWV0ZXJzIn0=',
+      },
+    ], { mode: 'strict' });
+
+    expect((result.resources[0] as any).payload).toEqual([
+      { contentReference: { reference: 'Subject/$summary' } },
+      {
+        contentAttachment: {
+          contentType: 'application/fhir+json',
+          data: 'eyJyZXNvdXJjZVR5cGUiOiJQYXJhbWV0ZXJzIn0=',
+        },
+      },
+    ]);
+  });
+
   it('normalize mode keeps deterministic payload and note', () => {
     const result = transformCommunicationClaimsToResourceFhirR4(
       [
         {
           [CommunicationClaim.ContentAttachmentType]: 'text/plain',
-          [CommunicationClaim.ContentReference]: 'DocumentReference/doc-1',
+          [CommunicationClaim.ContentCode]: 'http://loinc.org|LP173418-7',
           [CommunicationClaim.NoteText]: ['first', 'second'],
         },
       ],

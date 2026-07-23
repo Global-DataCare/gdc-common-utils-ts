@@ -58,8 +58,10 @@ export function transformCommunicationClaimsToResourceFhirR4(
     const hasReference = Boolean(payloadReference);
     const hasCode = Boolean(payloadCodeRaw);
     const payloadKinds = [hasAttachment, hasReference, hasCode].filter(Boolean).length;
+    const isOperationReferenceWithParameters =
+      hasAttachment && hasReference && !hasCode;
 
-    if (payloadKinds > 1) {
+    if (payloadKinds > 1 && !isOperationReferenceWithParameters) {
       const msg = `Communication[${index}] has more than one payload kind (attachment/reference/code).`;
       if (mode === 'strict') throw new Error(msg);
       warnings.push(`${msg} Keeping attachment > reference > code.`);
@@ -76,10 +78,10 @@ export function transformCommunicationClaimsToResourceFhirR4(
       warnings.push(`${msg} Keeping first note only.`);
     }
 
-    const payload = buildPayload({
+    const payload = buildPayloads({
       hasAttachment,
-      hasReference,
-      hasCode,
+      hasReference: isOperationReferenceWithParameters || (!hasAttachment && hasReference),
+      hasCode: !hasAttachment && !hasReference && hasCode,
       payloadAttachmentData,
       payloadAttachmentType,
       payloadAttachmentTitle,
@@ -122,7 +124,7 @@ export function transformCommunicationClaimsToResourceFhirR4(
     if (sender) resource['sender'] = { reference: sender };
 
     if (partOf) resource['partOf'] = [{ reference: partOf }];
-    if (payload) resource['payload'] = [payload];
+    if (payload.length) resource['payload'] = payload;
     if (noteValues.length) resource['note'] = [{ text: noteValues[0] }];
 
     return resource;
@@ -160,10 +162,16 @@ export function extractCommunicationClaimsFromResourceFhirR4(
   const noteText = (resource?.note as Array<{ text?: unknown }> | undefined)?.[0]?.text;
 
   const categoryCoding = (resource?.category as Array<{ coding?: Array<{ system?: unknown; code?: unknown }> }> | undefined)?.[0]?.coding?.[0];
-  const payload = (resource?.payload as Array<Record<string, unknown>> | undefined)?.[0];
-  const contentReference = (payload?.contentReference as { reference?: unknown } | undefined)?.reference;
-  const contentAttachment = payload?.contentAttachment as Record<string, unknown> | undefined;
-  const contentCodeableConcept = (payload?.contentCodeableConcept as { coding?: Array<{ system?: unknown; code?: unknown }> } | undefined)?.coding?.[0];
+  const payloads = (resource?.payload as Array<Record<string, unknown>> | undefined) || [];
+  const referencePayload = payloads.find((payload) => payload.contentReference !== undefined);
+  const attachmentPayload = payloads.find((payload) => payload.contentAttachment !== undefined);
+  const codePayload = payloads.find((payload) => payload.contentCodeableConcept !== undefined);
+  const contentReference =
+    (referencePayload?.contentReference as { reference?: unknown } | undefined)?.reference;
+  const contentAttachment =
+    attachmentPayload?.contentAttachment as Record<string, unknown> | undefined;
+  const contentCodeableConcept =
+    (codePayload?.contentCodeableConcept as { coding?: Array<{ system?: unknown; code?: unknown }> } | undefined)?.coding?.[0];
 
   setIf(claims, CommunicationClaim.Identifier, identifierValue);
   setIf(claims, CommunicationClaim.Status, status);
@@ -212,7 +220,7 @@ function normalizeNoteValues(raw: unknown): string[] {
   return [];
 }
 
-function buildPayload(input: {
+function buildPayloads(input: {
   hasAttachment: boolean;
   hasReference: boolean;
   hasCode: boolean;
@@ -222,7 +230,7 @@ function buildPayload(input: {
   payloadAttachmentUrl?: string;
   payloadReference?: string;
   payloadCodeRaw?: string;
-}): Record<string, unknown> | undefined {
+}): Record<string, unknown>[] {
   const {
     hasAttachment,
     hasReference,
@@ -235,17 +243,22 @@ function buildPayload(input: {
     payloadCodeRaw,
   } = input;
 
+  const payloads: Record<string, unknown>[] = [];
+  if (hasReference) {
+    payloads.push({ contentReference: { reference: payloadReference } });
+  }
   if (hasAttachment) {
     const value: Record<string, unknown> = {};
     if (payloadAttachmentData) value['data'] = payloadAttachmentData;
     if (payloadAttachmentType) value['contentType'] = payloadAttachmentType;
     if (payloadAttachmentTitle) value['title'] = payloadAttachmentTitle;
     if (payloadAttachmentUrl) value['url'] = payloadAttachmentUrl;
-    return { contentAttachment: value };
+    payloads.push({ contentAttachment: value });
   }
-  if (hasReference) return { contentReference: { reference: payloadReference } };
-  if (hasCode && payloadCodeRaw) return { contentCodeableConcept: { coding: [parseSystemCode(payloadCodeRaw)] } };
-  return undefined;
+  if (hasCode && payloadCodeRaw) {
+    payloads.push({ contentCodeableConcept: { coding: [parseSystemCode(payloadCodeRaw)] } });
+  }
+  return payloads;
 }
 
 function parseSystemCode(value: string): { system?: string; code: string } {

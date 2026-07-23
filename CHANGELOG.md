@@ -5,12 +5,22 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Added the canonical self/authorized clinical-read capability and expanded
+  `BundleReader` section APIs so `$summary` consumers can count references,
+  resolve section resources and filter them by resource type and date.
 - Added the generic `SubjectIdentityBindingCredential` contract and matching
   helpers for trusted-sector portal bindings between individual DIDs.
 - Kept physical support/card DIDs outside authorization aliases: clients must
   resolve the support document `subject` before matching an identity binding.
 
 ### Fixed
+- Made `communication.setRequestSummaryOperation(...)` the explicit 101 read
+  contract: `Subject/$summary` plus an attached FHIR `Parameters` resource,
+  distinct from Communication ingestion and legacy flattened `_search`.
+- Preserved the operation reference and attached Parameters as two native FHIR
+  Communication payloads in R4/R5 projections.
+- Normalized `LOINC|code` and `http://loinc.org|code` section lookups and
+  recognized clinical datetime claim suffixes in Bundle date filters.
 - Stopped the legal-organization onboarding helper from copying the technical
   `Service.identifier` into `organization.did`.
 - Added explicit public organization DID/domain inputs so portals can derive

@@ -11,6 +11,9 @@ describe('actor capability docs', () => {
     expect(ActorCapabilities.HostingConfirmOrder).toBe('hosting.confirm_order');
     expect(ActorCapabilities.HostingDisableHost).toBe('hosting.disable_host');
     expect(ActorCapabilities.HostingPurgeHost).toBe('hosting.purge_host');
+    expect(ActorCapabilities.IndividualReadClinicalSummary).toBe(
+      'individual.read_clinical_summary',
+    );
 
     expect(getActorCapabilityDoc(ActorCapabilities.HostingDisableHost)).toEqual({
       actorKind: ActorKinds.HostOnboarding,

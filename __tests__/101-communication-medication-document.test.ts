@@ -39,6 +39,7 @@ import {
   EXAMPLE_DOCUMENT_REFERENCE_IDENTIFIER,
   EXAMPLE_DOCUMENT_REFERENCE_LANGUAGE,
   EXAMPLE_DOCUMENT_REFERENCE_TYPE,
+  EXAMPLE_MEDICATION_IBUPROFEN_EFFECTIVE,
   EXAMPLE_MEDICATION_STATEMENT_CODE,
   EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER,
   EXAMPLE_MEDICATION_STATEMENT_TEXT,
@@ -107,6 +108,7 @@ describe('101: medication document communication orchestration', () => {
         .setStatus(MedicationStatementStatuses.Active)
         .setCode(EXAMPLE_MEDICATION_STATEMENT_CODE)
         .setMedicationText(EXAMPLE_MEDICATION_STATEMENT_TEXT)
+        .setEffective(EXAMPLE_MEDICATION_IBUPROFEN_EFFECTIVE)
         .setUserSelected(true)
         .setCategoryList([HealthcareBasicSections.HistoryOfMedicationUse.attributeValue])
         .doneEntry();
@@ -300,6 +302,31 @@ describe('101: medication document communication orchestration', () => {
         `MedicationStatement/${scenario.medicationStatementIdentifier}`,
         `DocumentReference/${scenario.documentReferenceIdentifier}`,
       ]);
+      const medicationIdsInSection =
+        scenario.receivedDocumentBundleReader.getDocumentSectionResourceIds(
+          HealthcareCoreSections.HistoryOfMedicationUse.attributeValue,
+          {
+            resourceTypes: [ResourceTypesFhirR4.MedicationStatement],
+            dateFrom: EXAMPLE_MEDICATION_IBUPROFEN_EFFECTIVE,
+            dateTo: EXAMPLE_MEDICATION_IBUPROFEN_EFFECTIVE,
+          },
+        );
+      const medicationsInSection =
+        scenario.receivedDocumentBundleReader.getDocumentSectionResourceEntries(
+          HealthcareCoreSections.HistoryOfMedicationUse.attributeValue,
+          {
+            resourceTypes: [ResourceTypesFhirR4.MedicationStatement],
+            dateFrom: EXAMPLE_MEDICATION_IBUPROFEN_EFFECTIVE,
+            dateTo: EXAMPLE_MEDICATION_IBUPROFEN_EFFECTIVE,
+          },
+        );
+      expect(medicationIdsInSection).toEqual([scenario.medicationStatementIdentifier]);
+      expect(medicationsInSection).toHaveLength(1);
+      expect(
+        (medicationsInSection[0]?.resource as Record<string, unknown> | undefined)?.resourceType,
+      ).toBe(
+        ResourceTypesFhirR4.MedicationStatement,
+      );
       expect(visibleClinicalEntryIndexes).toHaveLength(2);
       expect(scenario.receivedDocumentBundleReader.getVisibleResourceCount({
         resourceTypes: [

@@ -360,9 +360,10 @@ export function buildBundleSearchReferenceUrl(input: Readonly<{
 /**
  * Creates the canonical semantic parameters for an IPS summary-style request.
  *
- * These parameters are the source of truth. Current search flows flatten them
- * to `Communication.content-reference`, while future operation flows may attach
- * them directly as FHIR `Parameters`.
+ * These parameters are the source of truth. The canonical `$summary` read
+ * attaches them as one FHIR `Parameters` resource to an auditable
+ * `Communication`. Flattening them into a `Bundle/_search` reference is a
+ * compatibility path and must not be taught as the primary 101 read flow.
  */
 export function createSummaryOperationRequestParameters(
   subjectIdOrInput: string | CreateSummaryOperationParametersInput,
@@ -418,8 +419,8 @@ export function createSummaryOperationRequestReferencePath(
 }
 
 /**
- * Builds the preferred FHIR `Parameters` body for the same semantic summary
- * search represented by `createSummaryOperationRequestReferencePath(...)`.
+ * Builds the canonical FHIR `Parameters` body attached to a `$summary`
+ * request `Communication`.
  */
 export function createSummaryOperationRequestParametersResource(
   parameters: ReadonlyArray<ParameterData>,
@@ -527,11 +528,11 @@ export const flattenParametersToSearchReference = createSummaryOperationRequestR
  * carried inside `Communication`.
  *
  * Current split:
- * - `newSearchWithReferencePath(...)` keeps the existing `content-reference`
- *   search-url contract
- * - `setRequestSummaryOperation(...)` builds the operation contract where
+ * - `setRequestSummaryOperation(...)` is the canonical 101 read contract where
  *   `content-reference` points to the operation path and
  *   `content-attachment-data` carries the serialized FHIR `Parameters`
+ * - `newSearchWithReferencePath(...)` keeps the older flattened `_search`
+ *   compatibility contract
  */
 export const communication = Object.freeze({
   /**

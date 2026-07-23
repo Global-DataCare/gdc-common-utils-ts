@@ -42,6 +42,7 @@ export const ActorCapabilities = Object.freeze({
   IndividualImportIps: 'individual.import_ips',
   IndividualGenerateDigitalTwin: 'individual.generate_digital_twin',
   IndividualIngestCommunication: 'individual.ingest_communication',
+  IndividualReadClinicalSummary: 'individual.read_clinical_summary',
   IndividualUpsertRelatedPerson: 'individual.upsert_related_person',
   IndividualMemberDisable: 'individual_member.disable',
   IndividualMemberPurge: 'individual_member.purge',
@@ -181,6 +182,12 @@ export const ActorCapabilityDocs: Readonly<Record<ActorCapabilitiesValue, ActorC
     summary: 'Ingests one communication payload and updates the individual clinical index.',
     programmingHint: 'Choose the route family carefully (`api`, `didcomm-plain`, `legacy-fhir`) to match the runtime transport profile.',
     relatedMethods: ['ingestCommunicationAndUpdateIndex'],
+  },
+  [ActorCapabilities.IndividualReadClinicalSummary]: {
+    actorKind: ActorKinds.IndividualController,
+    summary: 'Reads the clinical summary currently available for one subject through an auditable Communication.',
+    programmingHint: 'Use requestClinicalSummary with Subject/$summary and attached FHIR Parameters. Do not route reads through ingestion methods.',
+    relatedMethods: ['requestClinicalSummary'],
   },
   [ActorCapabilities.IndividualUpsertRelatedPerson]: {
     actorKind: ActorKinds.IndividualController,
