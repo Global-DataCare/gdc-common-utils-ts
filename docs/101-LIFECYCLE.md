@@ -156,6 +156,55 @@ They usually do not need to know:
 - how submit/poll is wired
 - where claims are normalized
 
+## Clinical Summary Read Lifecycle
+
+Reading the clinical data already available for an individual is not an
+`enable`, `disable`, `delete`, import or ingestion operation. It is a separate,
+read-only lifecycle:
+
+1. the app has an authenticated individual or consent-authorized actor
+2. the SDK sends one `Communication` that requests `Subject/$summary`
+3. the same Communication carries the FHIR `Parameters` for subject, document
+   type and optional repeated section filters
+4. GW returns the authoritative FHIR `Bundle` document
+5. the app consumes that same Bundle through:
+   - `ClinicalSummaryReadResult.reader` for section structure and references
+   - `ClinicalSummaryReadResult.document` for resolved resources and filters
+
+Application code starts at the SDK facade:
+
+```ts
+const summary = await individualSdk.requestClinicalSummary(tenantContext, {
+  subjectId,
+  requesterId,
+});
+```
+
+It must not call `ingestCommunicationAndUpdateIndex(...)` to read. That method
+is for write/projection flows.
+
+### Map the returned document to a screen
+
+| UI need | Public reader call |
+|---|---|
+| list the sections present | `summary.reader.getDocumentSections()` |
+| show the number of sections | `summary.reader.getDocumentSectionCount()` |
+| show the badge for one section | `summary.reader.getDocumentSectionResourceCount(section)` |
+| inspect its declared references | `summary.reader.getDocumentSectionResourceReferences(section)` |
+| resolve its Bundle entries | `summary.reader.getDocumentSectionResourceEntries(section, filters)` |
+| resolve resources for cards | `summary.document.getResourcesByFilter(filter)` |
+| show the filtered result count | `summary.document.getResourceCount(filter)` |
+
+The section badge and the filtered result count are deliberately different:
+
+- `getDocumentSectionResourceCount(...)` counts references declared by the
+  `Composition`
+- `getResourceCount(...)` counts resources resolved after the chosen
+  section/type/date filters
+
+Continue with [101-CLINICAL_READ_AND_SEARCH.md](./101-CLINICAL_READ_AND_SEARCH.md)
+for the complete executable consumption example.
+
 ## Source Of Truth Split
 
 Use this split consistently:

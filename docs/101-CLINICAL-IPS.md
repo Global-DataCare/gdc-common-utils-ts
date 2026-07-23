@@ -1,224 +1,212 @@
 # 101 Clinical IPS
 
 > 101 note
-> - Teach here: the highest-level public `common-utils` helper available for this topic.
-> - Do not present raw `meta.claims`, `upsert*`, or pack/unpack as the main path unless the topic itself is transport.
-> - Read [101-README.md](./101-README.md) for the ordered path, then continue upward into `gdc-sdk-core-ts` and `gdc-sdk-node-ts`.
+> - Teach the SDK actor facade first.
+> - Read the returned Bundle through the public readers.
+> - Do not mix readback with ingestion or raw transport wiring.
 
+This guide explains how an application consumes the clinical summary already
+available for an individual.
 
-This is the shortest high-level entry point for developers who receive one IPS
-and want to use the shared SDK helpers immediately.
+## 1. Request The Summary
 
-Use this document to learn:
-
-- what to read with `ipsBundleReader`
-- what to edit with `BundleEditor`
-- which shared constants and fixtures to use
-- which APIs are high-level and which are only fallback
-
-Do not hardcode clinical literals in docs or tests. Use shared constants and
-shared example data from `gdc-common-utils-ts`.
-
-## What You Use Today
-
-- `HealthcareBasicSections.*`
-- shared IPS fixtures such as `buildIpsClinicalHistoryBundleExample()`
-- `ipsBundleReader` for reading
-- `BundleEditor` and typed entry editors for editing
-- `setClaim(...)` / `getClaim(...)` only as fallback escape hatches
-- [REFERENCE-CLINICAL-IPS-API.md](./REFERENCE-CLINICAL-IPS-API.md) for the
-  complete shared API/claim matrix, including `TODO` coverage
-
-Technical persistence helpers and internal bundle session APIs are intentionally
-left out of this 101. Keep those in JSDoc, code comments, and reference docs.
-
-## Create One IPS Bundle Reader
+From Node or Front SDK application code:
 
 ```ts
-import { createFhirDocumentFacade } from 'gdc-sdk-core-ts';
-import { buildIpsClinicalHistoryBundleExample } from 'gdc-common-utils-ts';
-
-const { bundleInMemory } = buildIpsClinicalHistoryBundleExample();
-
-// In this guide we call this the IPS bundle reader.
-const ipsBundleReader = createFhirDocumentFacade(bundleInMemory);
+const summary = await individualSdk.requestClinicalSummary(tenantContext, {
+  subjectId,
+  requesterId,
+  // Optional. Omit this property to request every available section.
+  filterSections: [
+    HealthcareBasicSections.AllergiesAndIntolerances.attributeValue,
+  ],
+});
 ```
 
-## Shared Section Constants
+The SDK sends one read-only Communication:
 
-Use these only when the caller truly wants to limit one query to one or more
-selected sections.
+`Communication -> Subject/$summary -> attached FHIR Parameters`
+
+The operation returns one `ClinicalSummaryReadResult`. It does not ingest or
+project resources.
+
+## 2. Understand The Result
 
 ```ts
-import { HealthcareBasicSections } from 'gdc-common-utils-ts';
+summary.operation; // submit/poll evidence
+summary.bundle;    // authoritative FHIR Bundle document
+summary.reader;    // BundleReader
+summary.document;  // FhirDocumentFacade
+```
+
+Use `summary.reader` for document structure:
+
+- sections
+- section counts
+- declared references
+- resolved Bundle IDs and entries
+
+Use `summary.document` for clinical resources:
+
+- all resources or one resource type
+- combined section/type/date filters
+- filtered counts
+- text/display lookup
+- typed vital-sign helpers
+
+`LifecycleResultReader` reads operation outcomes. It does not navigate the
+clinical Bundle.
+
+## 3. List Sections And Counts
+
+```ts
+const sections = summary.reader.getDocumentSections();
+const numberOfSections = summary.reader.getDocumentSectionCount();
 
 const allergySection =
   HealthcareBasicSections.AllergiesAndIntolerances.attributeValue;
 
-const medicationSection =
-  HealthcareBasicSections.HistoryOfMedicationUse.attributeValue;
-
-const conditionSection =
-  HealthcareBasicSections.ProblemList.attributeValue;
-
-const vitalSignsSection =
-  HealthcareBasicSections.VitalSigns.attributeValue;
+const allergySectionInfo =
+  summary.reader.getDocumentSectionByCode(allergySection);
+const allergyReferenceCount =
+  summary.reader.getDocumentSectionResourceCount(allergySection);
+const allergyReferences =
+  summary.reader.getDocumentSectionResourceReferences(allergySection);
 ```
 
-## IPS Reader API
+`allergyReferenceCount` is the number of references declared in that
+`Composition.section`. It is the natural unfiltered badge for a section.
 
-| API | Kind | Input | Output | Scope | Exists today? | Notes |
-|---|---|---|---|---|---|---|
-| `ipsBundleReader.getSections()` | read | none | section list | all IPS | yes | discover the sections present in the IPS |
-| `ipsBundleReader.getSectionCounts({ sections? })` | read | section selector | section counts | all IPS | yes/target | counts by section and resource type |
-| `ipsBundleReader.getEntries({ sections?, resourceTypes?, start?, end?, searchText?, count?, page?, offset? })` | read | generic entry filter | bundle entries | all IPS | yes/target | returns `fullUrl + resource` |
-| `ipsBundleReader.getResources({ sections?, resourceType?, start?, end?, searchText?, count?, page?, offset? })` | read | generic query | resources | all IPS | yes/compat | compatibility path only |
-| `ipsBundleReader.getAllergies({ sections?, clinicalStatus?, verificationStatus?, criticality?, start?, end?, count?, page?, offset? })` | read | allergy filter | bundle entries | allergies | yes/target | filtered entries with `fullUrl` and `resource` |
-| `ipsBundleReader.getConditions({ sections?, clinicalStatus?, verificationStatus?, severity?, start?, end?, count?, page?, offset? })` | read | condition filter | bundle entries | conditions | yes/target | filtered entries with `fullUrl` and `resource` |
-| `ipsBundleReader.getMedications({ sections?, status?, start?, end?, count?, page?, offset? })` | read | medication filter | bundle entries | medications | yes/target | filtered entries with `fullUrl` and `resource` |
-| `ipsBundleReader.getVitalSigns({ sections?, code?, start?, end?, count?, page?, offset? })` | read | vital-sign filter | bundle entries | vital signs | yes/target | filtered entries with `fullUrl` and `resource` |
-| `ipsBundleReader.getLocalTextAndIntDisplay(resourceOrEntry)` | render | resource or entry | label DTO | all IPS | yes | UI-ready label |
-| `ipsBundleReader.getXhtmlOrDerived(resourceOrEntry)` | render | resource or entry | xhtml | all IPS | yes | prefers stored `text.div`, derives when needed |
-| `ipsBundleReader.getNarrative(resourceOrEntry)` | render | resource or entry | narrative DTO | all IPS | yes | UI-ready narrative |
-
-## Read Sections And Summary
+## 4. Obtain Bundle Entries From One Section
 
 ```ts
-const sections = ipsBundleReader.getSections();
+const allergyIds = summary.reader.getDocumentSectionResourceIds(
+  allergySection,
+  {
+    resourceTypes: [ResourceTypesFhirR4.AllergyIntolerance],
+    dateFrom: '2026-01-01',
+    dateTo: '2026-12-31',
+  },
+);
 
-const fullCounts = ipsBundleReader.getSectionCounts({
-  sections: [],
+const allergyEntries = summary.reader.getDocumentSectionResourceEntries(
+  allergySection,
+  {
+    resourceTypes: [ResourceTypesFhirR4.AllergyIntolerance],
+    dateFrom: '2026-01-01',
+    dateTo: '2026-12-31',
+  },
+);
+```
+
+Use IDs when the UI needs stable selection keys. Use entries when it also needs
+`fullUrl`, request/response metadata or the complete Bundle entry wrapper.
+
+## 5. Obtain And Filter FHIR Resources
+
+```ts
+const allergyFilter = {
+  sections: [allergySection],
+  types: [ResourceTypesFhirR4.AllergyIntolerance],
+  date: {
+    start: '2026-01-01',
+    end: '2026-12-31',
+  },
+};
+
+const recentAllergies =
+  summary.document.getResourcesByFilter(allergyFilter);
+const recentAllergyCount =
+  summary.document.getResourceCount(allergyFilter);
+```
+
+Resources without a canonical clinical date are excluded when a date filter is
+active. Use full ISO timestamps for `start` and `end` when time-of-day precision
+or an end-of-day boundary matters.
+
+Other local reads:
+
+```ts
+const everyDocumentResource = summary.document.getResources();
+const everyAllergy = summary.document.getResources(
+  ResourceTypesFhirR4.AllergyIntolerance,
+);
+const allergiesByDate = summary.document.getByDates(
+  ResourceTypesFhirR4.AllergyIntolerance,
+  '2026-01-01',
+  '2026-12-31',
+);
+const allergiesContainingIbuprofen =
+  summary.document.getContainingTextOrDisplay(
+    ResourceTypesFhirR4.AllergyIntolerance,
+    'ibuprofeno',
+  );
+```
+
+All of these read the already returned Bundle. They do not make another
+network request.
+
+## 6. Build A UI View Model
+
+```ts
+const sectionCards = summary.reader.getDocumentSections().map((section) => {
+  const sectionKey = section.claim ?? section.code ?? '';
+  const resources = summary.document.getResourcesByFilter({
+    sections: sectionKey,
+  });
+
+  return {
+    key: sectionKey,
+    declaredCount:
+      summary.reader.getDocumentSectionResourceCount(sectionKey),
+    visibleCount: resources.length,
+    resources,
+  };
 });
 ```
 
-`getSectionCounts(...)` returns counts only. It does not return entries or
+This is the same model used by the UHC UNID viewer:
+
+- `Composition.section` decides placement
+- each section card displays its current visible resource count
+- section/type/text/date filters narrow the in-memory resources
+
+For text filtering in a generic UI, render a card DTO or use
+`getContainingTextOrDisplay(...)` for one resource type. UHC UNID uses the
+shared `toClinicalSectionViews(bundle)` rendering projection before applying
+its UI text filter.
+
+## 7. Empty And Missing Data
+
+- no sections: `getDocumentSections()` returns `[]`
+- missing section: `getDocumentSectionByCode(...)` returns `undefined`
+- missing section count: `getDocumentSectionResourceCount(...)` returns `0`
+- no matching resources: entry/resource queries return `[]`
+- a `$summary` operation that does not return a document Bundle is rejected
+  instead of being presented as an empty authoritative summary
+
+## 8. Read And Write Are Different
+
+Read:
+
+```ts
+await individualSdk.requestClinicalSummary(...);
+```
+
+Write/project:
+
+```ts
+await individualSdk.ingestCommunicationAndUpdateIndex(...);
+```
+
+Do not call the write method to retrieve clinical data. Use `BundleEditor` and
+the Communication ingestion lifecycle only when the user is adding or changing
 resources.
 
-## Section Selector Rule
+## Executable References
 
-Use `sections?: readonly string[]` everywhere.
-
-- `sections === undefined` means all sections
-- `sections.length === 0` means all sections
-- otherwise only the listed sections are included
-
-Examples:
-
-```ts
-ipsBundleReader.getResources({ sections: undefined });
-ipsBundleReader.getResources({ sections: [] });
-ipsBundleReader.getResources({ sections: [allergySection] });
-```
-
-## Read By Family
-
-```ts
-import {
-  AllergyIntoleranceClinicalStatuses,
-  AllergyIntoleranceVerificationStatuses,
-  ConditionClinicalStatuses,
-  MedicationStatementStatuses,
-} from 'gdc-common-utils-ts';
-
-const allergies = ipsBundleReader.getAllergies({
-  clinicalStatus: [AllergyIntoleranceClinicalStatuses.Active],
-  verificationStatus: [AllergyIntoleranceVerificationStatuses.Confirmed],
-});
-
-const conditions = ipsBundleReader.getConditions({
-  clinicalStatus: [ConditionClinicalStatuses.Active],
-});
-
-const medications = ipsBundleReader.getMedications({
-  status: [MedicationStatementStatuses.Active],
-});
-
-const vitalSigns = ipsBundleReader.getVitalSigns();
-```
-
-## Filter By Dates
-
-```ts
-const recentMedications = ipsBundleReader.getMedications({
-  start: '2026-01-01',
-  end: '2026-12-31',
-});
-```
-
-## Render Labels And Narrative
-
-```ts
-const firstMedication = ipsBundleReader.getMedications({
-  count: 1,
-  page: 1,
-})[0];
-
-const label = ipsBundleReader.getLocalTextAndIntDisplay(firstMedication);
-const xhtml = ipsBundleReader.getXhtmlOrDerived(firstMedication);
-const narrative = ipsBundleReader.getNarrative(firstMedication);
-const fullUrl = firstMedication.fullUrl;
-const claims = firstMedication.resource?.meta?.claims;
-```
-
-## Limit Queries To Selected Sections
-
-Only introduce `sections` when the caller truly wants a subset of the IPS.
-
-```ts
-const selectedResources = ipsBundleReader.getResources({
-  sections: [allergySection, medicationSection],
-});
-
-const selectedMedicationEntries = ipsBundleReader.getMedications({
-  sections: [medicationSection],
-  status: [MedicationStatementStatuses.Active],
-});
-```
-
-## Reading And Editing Are Different
-
-`ipsBundleReader` is read-only.
-
-Use `BundleEditor` or typed entry editors when you want to add or update
-clinical entries. After editing, recreate or refresh the reader.
-
-```ts
-const updatedBundle = editor.build();
-const updatedIpsBundleReader = createFhirDocumentFacade(updatedBundle);
-```
-
-## What Still Remains Fallback Or TODO
-
-High-level reading exists today, but some editor/query surface is still growing.
-
-Still fallback:
-
-- `setClaim(...)`
-- `getClaim(...)`
-
-Still desirable upstream:
-
-- `asAllergy()`
-- `asMedicationStatement()`
-- `asCondition()`
-- more typed high-level entry editors for the rest of the IPS families
-
-## Reference Split
-
-This 101 is intentionally short.
-
-Use separate docs for deeper detail:
-
-- `101-IPS_BUNDLE.md`
-- `101-BUNDLE_EDITOR_READER.md`
-- `REFERENCE-CLINICAL-IPS-API.md`
-- `101-VITAL_SIGN_ENTRY_EDITOR.md`
-- future section-specific docs such as:
-  - allergies
-  - medications
-  - conditions
-  - vital signs
-  - immunizations
-  - observations
-  - procedures
-  - diagnostic reports
+- `__tests__/101-communication-medication-document.test.ts`
+- `gdc-sdk-core-ts/tests/101-clinical-summary-communication.test.mjs`
+- `gdc-sdk-node-ts/tests/101-individual-summary-communication.test.mjs`
+- `gdc-sdk-node-ts/docs/101-SDK_END_TO_END.md`, section 7.13
+- `custom/uhc-unidonline-next/src/components/portal/IpsClinicalViewer.tsx`
