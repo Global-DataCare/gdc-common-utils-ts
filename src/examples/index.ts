@@ -11,6 +11,7 @@ export * from './employee';
 export * from './license';
 export * from './invoice';
 export * from './inter-tenant-access-contract';
+export * from './subject-identity-binding';
 export * from './related-person';
 export * from './consent-access';
 export * from './relationship-access';

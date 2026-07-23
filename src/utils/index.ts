@@ -99,6 +99,7 @@ export * from './permission-templates';
 export * from './smart-scope';
 export * from './service-act-reasons';
 export * from './same-as';
+export * from './subject-identity-binding';
 export * from './activation-request';
 export * from './vp-token';
 export * from './vital-sign-day-batch';
