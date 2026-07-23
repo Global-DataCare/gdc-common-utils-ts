@@ -94,6 +94,14 @@ describe('subject identity binding utils', () => {
       validFrom: '2026-01-01T00:00:00.000Z',
     })).toThrow('aliasDids');
 
+    expect(() => buildSubjectIdentityBindingCredential({
+      issuerDid: EXAMPLE_TRUSTED_HEALTH_PORTAL_DID,
+      subjectDid: EXAMPLE_PORTAL_INDIVIDUAL_DID,
+      aliasDids: [EXAMPLE_PHYSICAL_SUPPORT_DID],
+      sectors: [DataspaceSectors.HealthCare],
+      validFrom: '2026-01-01T00:00:00.000Z',
+    })).toThrow('physical support DID');
+
     expect(summarizeSubjectIdentityBinding({
       ...EXAMPLE_SUBJECT_IDENTITY_BINDING_CREDENTIAL,
       credentialSubject: {
