@@ -1,99 +1,140 @@
 # Clinical Read And Search 101
 
 > 101 note
-> - Teach here: the highest-level public `common-utils` helper available for this topic.
-> - Do not present raw `meta.claims`, `upsert*`, or pack/unpack as the main path unless the topic itself is transport.
-> - Read [101-README.md](./101-README.md) for the ordered path, then continue upward into `gdc-sdk-core-ts` and `gdc-sdk-node-ts`.
+> - Teach the actor-facade read operation and the public readers.
+> - Do not present ingestion, raw claims or query-string assembly as the read path.
 
-
-This is the frontend/integrator guide for the most common read-side clinical
-flows.
-
-Use this when you need to understand:
-
-- how a frontend asks for an IPS summary or filtered sections
-- how a frontend builds a communication-attached bundle for clinical content
-- how the shared helpers hide the lower-level search/reference wiring
+This is the frontend/integrator guide for reading the clinical data currently
+available for an individual.
 
 Read in this order:
 
 1. [101-LIFECYCLE.md](./101-LIFECYCLE.md)
 2. this file
 3. [101-COMMUNICATION_LAYERING.md](./101-COMMUNICATION_LAYERING.md)
-   if you need to understand why `Communication` appears in the flow
+   only when transport details are relevant
 
-## Two Common Frontend Jobs
+## Canonical Read Job
 
-The two read-side jobs most frontends need are:
+The application flow is:
 
-1. request or reconstruct an IPS summary
-2. build or inspect one clinical bundle carried in `Communication`
+1. call the actor facade `requestClinicalSummary(...)`
+2. receive one `ClinicalSummaryReadResult`
+3. paint the returned Bundle without another network request
 
-## IPS Summary Search
+The runtime represents the operation as:
 
-The shortest teaching reference is:
+`Communication -> Subject/$summary -> FHIR Parameters -> Bundle document`
 
-- [__tests__/101-communication-search-reference.test.ts](../__tests__/101-communication-search-reference.test.ts)
+The Communication has two native FHIR payloads: the operation
+`contentReference` and the attached `Parameters`. They are parts of the same
+request, not two Communications and not clinical data to ingest.
 
-That test shows the intended frontend path:
+## Request The Available Summary
 
-1. the app knows the subject
-2. the app knows the requester
-3. the app asks the shared helper to build the IPS summary request
-4. the helper hides the internal flattening of Parameters into a search reference
+The high-level call is owned by `gdc-sdk-node-ts` and `gdc-sdk-front-ts`:
 
-The important frontend concept is:
+```ts
+const summary = await individualSdk.requestClinicalSummary(tenantContext, {
+  subjectId,
+  requesterId,
+  // Omit filterSections to request every available section.
+  filterSections: [allergySection],
+});
+```
 
-- "request IPS for this subject, maybe with section filters"
+`summary` is a `ClinicalSummaryReadResult`:
 
-not:
+- `summary.operation`: submit/poll evidence
+- `summary.bundle`: authoritative returned FHIR document
+- `summary.reader`: `BundleReader` for sections, references and Bundle entries
+- `summary.document`: `FhirDocumentFacade` for resources and combined filters
 
-- "manually compose the internal `_search` reference string"
+`LifecycleResultReader` is not used to read the clinical document. It inspects
+command results, statuses and issues.
 
-## Clinical Bundle Editing
+## Consume Sections
 
-The shortest teaching reference is:
+```ts
+const sections = summary.reader.getDocumentSections();
+const sectionCount = summary.reader.getDocumentSectionCount();
 
-- [__tests__/101-ips-bundle-editor.test.ts](../__tests__/101-ips-bundle-editor.test.ts)
+const allergyCount =
+  summary.reader.getDocumentSectionResourceCount(allergySection);
+const allergyReferences =
+  summary.reader.getDocumentSectionResourceReferences(allergySection);
+```
 
-That test shows the intended editor path:
+An unknown or absent section returns:
 
-1. create or load one bundle editor
-2. build one medication statement with semantic setters
-3. persist the edited entry into the carried bundle
-4. later inspect the carried bundle content
+- `undefined` from `getDocumentSectionByCode(...)`
+- `0` from `getDocumentSectionResourceCount(...)`
+- `[]` from the references/IDs/entries methods
 
-This is the same broad pattern as other frontend flows:
+## Obtain The Resources Of One Section
 
-- semantic editing first
-- lower-level transport later
+Use the structural reader when the caller needs Bundle IDs, `fullUrl` or full
+entries:
 
-For the main onboarding story, use the high-level docs:
+```ts
+const allergyIds = summary.reader.getDocumentSectionResourceIds(
+  allergySection,
+  { resourceTypes: [ResourceTypesFhirR4.AllergyIntolerance] },
+);
 
-- [101-CLINICAL-IPS.md](./101-CLINICAL-IPS.md)
-- [101-IPS_BUNDLE.md](./101-IPS_BUNDLE.md)
+const allergyEntries = summary.reader.getDocumentSectionResourceEntries(
+  allergySection,
+  {
+    resourceTypes: [ResourceTypesFhirR4.AllergyIntolerance],
+    dateFrom: '2026-01-01',
+    dateTo: '2026-12-31',
+  },
+);
+```
 
-Leave technical persistence method names and plumbing details in code/JSDoc and
-focused tests.
+Use the document facade when the caller wants resolved FHIR resources:
 
-## What The Frontend Usually Needs To Keep
+```ts
+const filter = {
+  sections: [allergySection],
+  types: [ResourceTypesFhirR4.AllergyIntolerance],
+  date: { start: '2026-01-01', end: '2026-12-31' },
+};
 
-A frontend usually cares about:
+const resources = summary.document.getResourcesByFilter(filter);
+const visibleCount = summary.document.getResourceCount(filter);
+```
 
-- subject
-- requester
-- section filters
-- which entries exist in the returned bundle
-- how to show medication/clinical summaries in UI
+Both calls are local reads over `summary.bundle`; neither performs a new GW
+request.
 
-It usually does not need to start from:
+## Other Local Queries
 
-- raw querystring assembly
-- internal `_search` path generation
-- backend route wiring
+```ts
+const allResources = summary.document.getResources();
+const allAllergies =
+  summary.document.getResources(ResourceTypesFhirR4.AllergyIntolerance);
+const datedAllergies = summary.document.getByDates(
+  ResourceTypesFhirR4.AllergyIntolerance,
+  '2026-01-01',
+  '2026-12-31',
+);
+const matchingText = summary.document.getContainingTextOrDisplay(
+  ResourceTypesFhirR4.AllergyIntolerance,
+  'ibuprofeno',
+);
+```
 
-## Related Shared Material
+## Executable References
 
-- [101-IPS_BUNDLE.md](./101-IPS_BUNDLE.md)
-- [101-VITAL_SIGN_ENTRY_EDITOR.md](./101-VITAL_SIGN_ENTRY_EDITOR.md)
-- [101-BUNDLE_EDITOR_READER.md](./101-BUNDLE_EDITOR_READER.md)
+- Common section navigation and filters:
+  [__tests__/101-communication-medication-document.test.ts](../__tests__/101-communication-medication-document.test.ts)
+- Node facade request and UI-style consumption:
+  `gdc-sdk-node-ts/tests/101-individual-summary-communication.test.mjs`
+- Complete SDK lifecycle:
+  `gdc-sdk-node-ts/docs/101-SDK_END_TO_END.md`, section 7.13
+- UHC UNID screen using the same Bundle semantics:
+  `custom/uhc-unidonline-next/src/components/portal/IpsClinicalViewer.tsx`
+
+For authoring and ingestion, which is a different lifecycle, continue with
+[101-IPS_BUNDLE.md](./101-IPS_BUNDLE.md).

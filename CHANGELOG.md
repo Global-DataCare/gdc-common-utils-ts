@@ -14,6 +14,10 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
   resolve the support document `subject` before matching an identity binding.
 
 ### Fixed
+- Completed the 101 clinical read lifecycle with current
+  `ClinicalSummaryReadResult` examples for section enumeration, declared and
+  filtered counts, resource resolution, date filters and UHC-style rendering;
+  removed stale target-only IPS reader method names.
 - Made `communication.setRequestSummaryOperation(...)` the explicit 101 read
   contract: `Subject/$summary` plus an attached FHIR `Parameters` resource,
   distinct from Communication ingestion and legacy flattened `_search`.
