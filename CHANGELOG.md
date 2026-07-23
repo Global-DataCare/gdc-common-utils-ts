@@ -4,6 +4,17 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.3.6] - 2026-07-23
+
+### Fixed
+- Made visible-resource navigation resolve native FHIR `resource.id`,
+  `fullUrl` and deterministic fallback IDs consistently, not only claims-first
+  entries.
+- Added a prepack syntax gate over every generated JavaScript file so npm
+  publishing cannot accept a truncated or otherwise invalid `dist` artifact.
+- Superseded `2.3.5`, whose published tarball contained one truncated generated
+  example despite the source and test suite being valid.
+
 ## [2.3.5] - 2026-07-23
 
 ### Added
@@ -18,6 +29,8 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
   resolve the support document `subject` before matching an identity binding.
 
 ### Fixed
+- Made the package build remove stale `dist` artifacts before compilation so
+  deleted experimental APIs cannot leak into the published tarball.
 - Aligned every clinical 101 with the high-level immutable
   `FhirDocumentFacade` filtering flow instead of teaching raw filter objects.
 - Clarified that omitting `$summary.filterSections` requests all available

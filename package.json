@@ -1,6 +1,6 @@
 {
   "name": "gdc-common-utils-ts",
-  "version": "2.3.5",
+  "version": "2.3.6",
   "publishConfig": {
     "access": "public"
   },
@@ -19,7 +19,10 @@
     "test": "jest",
     "test:coverage": "jest --coverage",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "build": "tsc -p tsconfig.build.json && node patch-esm-imports.mjs",
+    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
+    "build": "npm run clean && tsc -p tsconfig.build.json && node patch-esm-imports.mjs",
+    "verify:dist": "node scripts/verify-dist-syntax.mjs",
+    "prepack": "npm run verify:dist",
     "prepublishOnly": "npm run typecheck && npm test -- --watchman=false && npm run build"
   },
   "main": "./dist/index.js",
