@@ -4,6 +4,16 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.3.7] - 2026-07-24
+
+### Fixed
+- Preserve FHIR R4 `AllergyIntolerance.category`, `criticality` and
+  `onsetDateTime` in the canonical flat-claims conversion and its reverse
+  projection.
+- Cover the complete allergy conversion with a deterministic roundtrip test so
+  EHR-native resources can be normalized before indexed storage without
+  requiring a pre-existing `resource.meta.claims`.
+
 ## [2.3.6] - 2026-07-23
 
 ### Fixed

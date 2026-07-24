@@ -1,6 +1,6 @@
 {
   "name": "gdc-common-utils-ts",
-  "version": "2.3.6",
+  "version": "2.3.7",
   "publishConfig": {
     "access": "public"
   },

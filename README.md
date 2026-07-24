@@ -59,6 +59,10 @@ boundaries used in `gdc-common-utils-ts`.
 - Only define custom names when no canonical FHIR SearchParameter exists.
 - `resource.meta.claims` is the canonical project-specific claims container and must be preserved across conversions/transports.
 - `resource.meta.claims` is not part of base FHIR; it is a claims-first extension carried by FHIR-like resources in GDC contracts.
+- Native FHIR resources received from EHR systems do not need that extension:
+  normalize them with `normalizeClaimsFromFhirResource(...)` at the processing
+  boundary before indexed storage. Existing `resource.meta.claims` take
+  precedence so SDK-authored semantics survive transport conversion.
 
 ## Identity Continuity
 
