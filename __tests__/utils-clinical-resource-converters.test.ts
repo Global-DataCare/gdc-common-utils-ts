@@ -35,6 +35,10 @@ import {
   organizationFlatToFhirR4,
 } from '../src/utils/clinical-resource-converters';
 
+const EXAMPLE_ALLERGY_CATEGORY = 'food';
+const EXAMPLE_ALLERGY_CRITICALITY = 'high';
+const EXAMPLE_ALLERGY_ONSET = '2026-01-10T10:00:00Z';
+
 describe('clinical-resource-converters', () => {
   it('preserves text-only Condition and AllergyIntolerance codes in canonical code claims', () => {
     expect(conditionFhirR4ToFlat({
@@ -95,6 +99,9 @@ describe('clinical-resource-converters', () => {
       [AllergyIntoleranceClaim.Code]: 'http://snomed.info/sct|227493005',
       [AllergyIntoleranceClaim.ClinicalStatus]: 'active',
       [AllergyIntoleranceClaim.VerificationStatus]: 'confirmed',
+      [AllergyIntoleranceClaim.Category]: EXAMPLE_ALLERGY_CATEGORY,
+      [AllergyIntoleranceClaim.Criticality]: EXAMPLE_ALLERGY_CRITICALITY,
+      [AllergyIntoleranceClaim.OnsetDateTime]: EXAMPLE_ALLERGY_ONSET,
       [AllergyIntoleranceClaim.Recorder]: 'did:web:example.com:organization:taxid:123456789:member:987:MD',
     };
 
@@ -118,6 +125,9 @@ describe('clinical-resource-converters', () => {
       [AllergyIntoleranceClaim.Code]: 'http://snomed.info/sct|91936005',
       [AllergyIntoleranceClaim.ClinicalStatus]: undefined,
       [AllergyIntoleranceClaim.VerificationStatus]: undefined,
+      [AllergyIntoleranceClaim.Category]: undefined,
+      [AllergyIntoleranceClaim.Criticality]: undefined,
+      [AllergyIntoleranceClaim.OnsetDateTime]: undefined,
       [AllergyIntoleranceClaim.Recorder]: undefined,
     });
   });
