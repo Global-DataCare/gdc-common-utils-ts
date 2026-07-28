@@ -1,3 +1,8 @@
+/**
+ * Flow contract: consumers select one typed sector catalog, render its shared
+ * i18n descriptors, and still authorize concrete actions independently. A role
+ * appearing in a catalog never grants clinical or ledger permissions itself.
+ */
 import { describe, expect, it } from '@jest/globals';
 import {
   HealthcareActorRoles,
@@ -42,6 +47,8 @@ describe('healthcare role catalogs', () => {
 
   it('returns professional ISCO roles by health and animal sectors', () => {
     const healthRoles = getHealthcareProfessionalRolesBySector(DataspaceSectors.HealthCare);
+    const healthResearchRoles = getHealthcareProfessionalRolesBySector(DataspaceSectors.HealthResearch);
+    const oneHealthResearchRoles = getHealthcareProfessionalRolesBySector(DataspaceSectors.OneHealthResearch);
     const animalRoles = getHealthcareProfessionalRolesBySector(DataspaceSectors.AnimalCare);
     const healthRolesByClaim = getHealthcareProfessionalRolesBySectorAndClaim(DataspaceSectors.HealthCare);
 
@@ -50,6 +57,9 @@ describe('healthcare role catalogs', () => {
     expect(healthRoles['2211']?.claim).toBe(HealthcareActorRoles.GeneralistMedicalPractitioner);
     expect(healthRoles['2212']?.claim).toBe(HealthcareActorRoles.SpecialistMedicalPractitioner);
     expect(healthRoles['2222']?.claim).toBe(HealthcareActorRoles.MidwiferyProfessional);
+    expect(healthRoles['3344']?.claim).toBe(HealthcareActorRoles.MedicalSecretary);
+    expect(healthResearchRoles['3344']?.claim).toBe(HealthcareActorRoles.MedicalSecretary);
+    expect(oneHealthResearchRoles['3344']?.claim).toBe(HealthcareActorRoles.MedicalSecretary);
     expect(
       healthRolesByClaim[HealthcareActorRoles.GeneralistMedicalPractitioner]?.code,
     ).toBe('2211');
@@ -59,6 +69,7 @@ describe('healthcare role catalogs', () => {
     expect(Object.keys(animalRoles).length).toBeGreaterThan(0);
     expect(animalRoles['2250']?.claim).toBe(HealthcareActorRoles.Veterinarian);
     expect(animalRoles['2211']).toBeUndefined();
+    expect(animalRoles['3344']).toBeUndefined();
   });
 
   it('exposes per-sector family catalogs for professional and personal roles', () => {
@@ -82,6 +93,7 @@ describe('healthcare role catalogs', () => {
     expect(roleCodeI18nEn['org.ilo.isco-08.2211']).toBe('Generalist medical practitioner');
     expect(roleCodeI18nEn['org.ilo.isco-08.2212']).toBe('Specialist medical practitioner');
     expect(roleCodeI18nEn['org.ilo.isco-08.2222']).toBe('Midwifery professional');
+    expect(roleCodeI18nEn['org.ilo.isco-08.3344']).toBe('Medical secretary');
     expect(roleCodeI18nEn['org.ilo.isco-08.2250']).toBe('Veterinarian');
     expect(roleCodeI18nEn['org.hl7.terminology.CodeSystem.v3-RoleCode.ONESELF']).toBeDefined();
     expect(roleCodeI18nEn['org.hl7.terminology.CodeSystem.v3-RoleCode.RESPRSN']).toBeDefined();

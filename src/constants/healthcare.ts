@@ -574,6 +574,8 @@ export const HealthcareActorRoles = Object.freeze({
   MidwiferyProfessional: 'ISCO-08|2222',
   Paramedic: 'ISCO-08|2240',
   Veterinarian: 'ISCO-08|2250',
+  /** Administrative health occupation; it does not imply clinical authority. */
+  MedicalSecretary: 'ISCO-08|3344',
 } as const);
 
 export const HealthcareActorRoleCodes = Object.freeze({
@@ -595,6 +597,7 @@ export const HealthcareActorRoleCodes = Object.freeze({
   MidwiferyProfessional: '2222',
   Paramedic: '2240',
   Veterinarian: '2250',
+  MedicalSecretary: '3344',
 } as const);
 
 function buildProfessionalIscoRoles(): Readonly<Record<string, HealthcareActorRoleDescriptor>> {
@@ -687,6 +690,17 @@ function buildProfessionalIscoRoles(): Readonly<Record<string, HealthcareActorRo
         titleEn: 'Veterinarian',
       }),
     ],
+    [
+      HealthcareActorRoleCodes.MedicalSecretary,
+      Object.freeze({
+        family: HealthcareRoleFamilies.ProfessionalOccupationIsco08,
+        codingSystem: ISCO08_CODING_SYSTEM,
+        code: HealthcareActorRoleCodes.MedicalSecretary,
+        claim: HealthcareActorRoles.MedicalSecretary,
+        i18nKey: `${ISCO08_I18N_NAMESPACE}.${HealthcareActorRoleCodes.MedicalSecretary}`,
+        titleEn: 'Medical secretary',
+      }),
+    ],
   ];
 
   return Object.freeze(Object.fromEntries(entries));
@@ -776,12 +790,14 @@ export const HealthcareProfessionalRoleCodesBySector = Object.freeze({
     HealthcareActorRoleCodes.NursingProfessional,
     HealthcareActorRoleCodes.MidwiferyProfessional,
     HealthcareActorRoleCodes.Paramedic,
+    HealthcareActorRoleCodes.MedicalSecretary,
   ]),
   [DataspaceSectors.HealthResearch]: Object.freeze([
     HealthcareActorRoleCodes.Controller,
     HealthcareActorRoleCodes.MedicalDoctors,
     HealthcareActorRoleCodes.GeneralistMedicalPractitioner,
     HealthcareActorRoleCodes.SpecialistMedicalPractitioner,
+    HealthcareActorRoleCodes.MedicalSecretary,
   ]),
   [DataspaceSectors.HealthTech]: Object.freeze([HealthcareActorRoleCodes.Controller]),
   [DataspaceSectors.HealthInsurance]: Object.freeze([HealthcareActorRoleCodes.Controller]),
@@ -801,6 +817,7 @@ export const HealthcareProfessionalRoleCodesBySector = Object.freeze({
     HealthcareActorRoleCodes.GeneralistMedicalPractitioner,
     HealthcareActorRoleCodes.SpecialistMedicalPractitioner,
     HealthcareActorRoleCodes.Veterinarian,
+    HealthcareActorRoleCodes.MedicalSecretary,
   ]),
   [DataspaceSectors.OneHealthTech]: Object.freeze([HealthcareActorRoleCodes.Controller]),
 } as const);

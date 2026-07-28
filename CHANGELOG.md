@@ -4,6 +4,13 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.3.8] - 2026-07-28
+
+### Added
+
+- Add ISCO-08 `3344` (`Medical secretary`) to the shared health-care,
+  health-research and onehealth-research professional role catalogs.
+
 ## [2.3.7] - 2026-07-28
 
 ### Fixed
