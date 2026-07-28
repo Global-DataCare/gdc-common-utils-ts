@@ -152,7 +152,7 @@ export const EXAMPLE_SERVICE_PUBLIC_DID = 'did:web:public.acme.org' as const;
 export const EXAMPLE_PROFESSIONAL_DID = buildProfessionalDidWeb({
   organizationDidWeb: 'did:web:api.acme.org',
   email: 'doctor.oncall@example.org',
-  role: HealthcareActorRoles.Physician,
+  role: HealthcareActorRoles.GeneralistMedicalPractitioner,
 });
 export const EXAMPLE_PROVIDER_ORGANIZATION_DID = 'did:web:hospital.acme.org' as const;
 export const EXAMPLE_PROVIDER_ORGANIZATION_URL = 'https://hospital.acme.org' as const;

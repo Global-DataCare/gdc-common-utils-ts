@@ -13,6 +13,7 @@ import {
   toDidMemberRoleCode,
 } from '../src/utils/did.js';
 import { HealthcareActorRoles } from '../src/constants/healthcare.js';
+import { normalizeSameAsHash } from '../src/utils/same-as.js';
 
 describe('did utilities', () => {
   it('normalizes did:web values and role codes', () => {
@@ -60,10 +61,26 @@ describe('did utilities', () => {
     const professionalDid = buildProfessionalDidWeb({
       organizationDidWeb: organizationDid,
       email: 'Doctor@Example.Org',
-      role: HealthcareActorRoles.Physician,
+      role: HealthcareActorRoles.GeneralistMedicalPractitioner,
     });
     expect(professionalDid).toContain(`${organizationDid}:employee:`);
-    expect(professionalDid.endsWith(`:${HealthcareActorRoles.Physician}`)).toBe(true);
+    expect(
+      professionalDid.endsWith(
+        `:${HealthcareActorRoles.GeneralistMedicalPractitioner}`,
+      ),
+    ).toBe(true);
+    expect(professionalDid).not.toContain('doctor@example.org');
+    const sameAsMultibase = normalizeSameAsHash('Doctor@Example.Org').replace(
+      'urn:multibase:',
+      '',
+    );
+    const professionalMemberId = professionalDid
+      .split(':employee:')[1]
+      ?.split(':')[0];
+    expect(professionalMemberId).toBe(sameAsMultibase);
+    expect(normalizeSameAsHash('Doctor@Example.Org')).toBe(
+      `urn:multibase:${professionalMemberId}`,
+    );
 
     const hostedProviderDid = buildHostedProviderDidWeb({
       hostDomain: 'host.example.org',

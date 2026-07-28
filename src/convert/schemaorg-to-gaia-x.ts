@@ -6,6 +6,7 @@ import {
   GaiaXCredentialAttachmentFormat,
   GaiaXCredentialAttachmentRole,
   GaiaXCredentialMediaType,
+  type GaiaXCredentialAttachmentRoleValue,
   type GaiaXCredentialDraft,
   type GaiaXLegalPersonCredentialSubject,
   type GaiaXServiceOfferingCredentialSubject,
@@ -242,13 +243,100 @@ export function buildGaiaXVcJwtAttachment(input: Readonly<{
   jwt: string;
   role: GaiaXVcJwtAttachment['role'];
 }>): GaiaXVcJwtAttachment {
+  const jwt = requiredInput(input.jwt, 'VC-JWT');
+  assertGaiaXDiscoveryAttachmentSemantics(jwt, input.role);
   return {
     id: requiredInput(input.id, 'attachment id'),
     format: GaiaXCredentialAttachmentFormat,
     role: input.role,
     media_type: GaiaXCredentialMediaType.VcJwt,
-    data: { json: { jwt: requiredInput(input.jwt, 'VC-JWT') } },
+    data: { json: { jwt } },
   };
+}
+
+function decodeVcJwtCredential(jwt: string): Record<string, unknown> {
+  const parts = jwt.split('.');
+  if (parts.length !== 3 || parts.some((part) => !part)) {
+    throw new Error('Gaia-X attachment must contain one compact three-part VC-JWT.');
+  }
+  let payload: Record<string, unknown>;
+  try {
+    payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8')) as Record<string, unknown>;
+  } catch {
+    throw new Error('Gaia-X attachment VC-JWT payload is not valid base64url JSON.');
+  }
+  return asObject(payload.vc) || payload;
+}
+
+function gaiaXCredentialSubject(document: Record<string, unknown>): Record<string, unknown> | undefined {
+  const raw = document.credentialSubject;
+  if (Array.isArray(raw)) {
+    return raw.map(asObject).find((value): value is Record<string, unknown> => Boolean(value));
+  }
+  return asObject(raw);
+}
+
+function requireGaiaXProperties(
+  subject: Record<string, unknown>,
+  names: string[],
+  role: string,
+): void {
+  const missing = names.filter((name) => !(name in subject));
+  if (missing.length) {
+    throw new Error(`Gaia-X ${role} VC-JWT is missing required semantic properties: ${missing.join(', ')}.`);
+  }
+}
+
+/**
+ * Enforces the semantic contract of a signed Gaia-X discovery VC-JWT.
+ *
+ * This assertion deliberately does not verify the cryptographic signature.
+ * Signature, issuer, status and trust-chain verification remain the verifier's
+ * responsibility. It prevents a validly shaped schema.org
+ * OrganizationCredential from being merely serialized as JWT and mislabeled
+ * as the distinct Gaia-X participant credential.
+ *
+ * Participant attachments require `gx:LegalPerson` with the ICAM 25.11 legal
+ * properties. Service-offering attachments require `gx:ServiceOffering`,
+ * `gx:providedBy` and `gx:serviceOfferingTermsAndConditions`.
+ *
+ * This validates member-level `data[].attachments[]`; it does not describe
+ * `_retrieve?format=vc+jwt` or credential-internal
+ * `credential.evidence[].attachments`.
+ *
+ * @see https://docs.gaia-x.eu/technical-committee/identity-credential-access-management/25.11/gaia-x_credentials/
+ * @see https://docs.gaia-x.eu/technical-committee/identity-credential-access-management/25.11/semantic_model/
+ */
+export function assertGaiaXDiscoveryAttachmentSemantics(
+  jwt: string,
+  role: GaiaXCredentialAttachmentRoleValue,
+): void {
+  const document = decodeVcJwtCredential(jwt);
+  const subject = gaiaXCredentialSubject(document);
+  if (!subject) throw new Error(`Gaia-X ${role} VC-JWT requires one credentialSubject object.`);
+  const subjectType = asString(subject.type);
+
+  if (role === GaiaXCredentialAttachmentRole.Participant) {
+    if (subjectType !== 'gx:LegalPerson') {
+      throw new Error('Gaia-X participant VC-JWT credentialSubject.type must be gx:LegalPerson.');
+    }
+    requireGaiaXProperties(subject, [
+      'gx:legalName',
+      'gx:legalRegistrationNumber',
+      'gx:headquarterAddress',
+      'gx:legalAddress',
+    ], 'participant');
+  }
+
+  if (role === GaiaXCredentialAttachmentRole.ServiceOffering) {
+    if (subjectType !== 'gx:ServiceOffering') {
+      throw new Error('Gaia-X service-offering VC-JWT credentialSubject.type must be gx:ServiceOffering.');
+    }
+    requireGaiaXProperties(subject, [
+      'gx:providedBy',
+      'gx:serviceOfferingTermsAndConditions',
+    ], 'service-offering');
+  }
 }
 
 /**

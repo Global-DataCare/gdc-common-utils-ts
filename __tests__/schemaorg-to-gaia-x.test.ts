@@ -1,12 +1,16 @@
 // Flow contract: schema.org remains the internal credential vocabulary. These
 // tests protect the deterministic projection into unsigned Gaia-X ICAM 25.11
-// credential drafts and the discovery aggregate that transports signed VC-JWTs.
+// credential drafts and the discovery aggregate that transports signed
+// VC-JWTs. Member-level attachments must decode to the required `gx:` semantic
+// model; a schema.org OrganizationCredential merely encoded as JWT is not a
+// Gaia-X participant credential.
 
 import { ClaimsOrganizationSchemaorg, ClaimsServiceSchemaorg } from '../src/constants/schemaorg';
 import {
   buildGaiaXLegalPersonCredentialDraft,
   buildGaiaXServiceOfferingCredentialDraft,
   buildGaiaXParticipantAttachment,
+  assertGaiaXDiscoveryAttachmentSemantics,
   buildIcaMemberDiscoveryData,
   buildGaiaXLegalPersonProjectionFromOrganizationCredential,
 } from '../src/convert/schemaorg-to-gaia-x';
@@ -30,6 +34,20 @@ const organizationClaims = {
   [ClaimsOrganizationSchemaorg.addressRegion]: 'ES-M',
   [ClaimsOrganizationSchemaorg.url]: 'https://provider.example',
 };
+
+function vcJwt(credentialSubject: Record<string, unknown>, type: 'LegalPerson' | 'ServiceOffering'): string {
+  const header = Buffer.from(JSON.stringify({ alg: 'ES384', typ: 'vc+jwt' })).toString('base64url');
+  const payload = Buffer.from(JSON.stringify({
+    iss: participantDid,
+    sub: String(credentialSubject.id || participantDid),
+    vc: {
+      '@context': ['https://www.w3.org/ns/credentials/v2'],
+      type: ['VerifiableCredential', type],
+      credentialSubject,
+    },
+  })).toString('base64url');
+  return `${header}.${payload}.synthetic-signature`;
+}
 
 describe('schema.org to Gaia-X ICAM 25.11 conversion', () => {
   it('projects the legal entity as gx:LegalPerson without projecting a natural representative', () => {
@@ -137,9 +155,17 @@ describe('schema.org to Gaia-X ICAM 25.11 conversion', () => {
   });
 
   it('places the Gaia-X participant VC-JWT first without duplicating VAT outside schema.org VC', () => {
+    const participantJwt = vcJwt({
+      id: participantDid,
+      type: 'gx:LegalPerson',
+      'gx:legalName': 'Example Health Data Cooperative',
+      'gx:legalRegistrationNumber': { id: registrationCredentialId },
+      'gx:headquarterAddress': { 'gx:countryCode': 'ES' },
+      'gx:legalAddress': { 'gx:countryCode': 'ES' },
+    }, 'LegalPerson');
     const participantAttachment = buildGaiaXParticipantAttachment({
       id: 'participant-vc-jwt',
-      jwt: 'header.payload.signature',
+      jwt: participantJwt,
     });
     const discovery: IcaMemberDiscoveryData = buildIcaMemberDiscoveryData({
       id: participantDid,
@@ -156,8 +182,54 @@ describe('schema.org to Gaia-X ICAM 25.11 conversion', () => {
       format: GaiaXCredentialAttachmentFormat,
       role: GaiaXCredentialAttachmentRole.Participant,
       media_type: GaiaXCredentialMediaType.VcJwt,
-      data: { json: { jwt: 'header.payload.signature' } },
+      data: { json: { jwt: participantJwt } },
     });
     expect('vat' in discovery).toBe(false);
+  });
+
+  it('rejects a schema.org OrganizationCredential mislabeled as a Gaia-X participant VC-JWT', () => {
+    const schemaOrgJwt = vcJwt({
+      id: participantDid,
+      '@type': 'Organization',
+      legalName: 'Example Health Data Cooperative',
+      taxID: 'VATES-B00000000',
+    }, 'LegalPerson');
+
+    expect(() => assertGaiaXDiscoveryAttachmentSemantics(
+      schemaOrgJwt,
+      GaiaXCredentialAttachmentRole.Participant,
+    )).toThrow(/credentialSubject.type must be gx:LegalPerson/);
+
+    expect(() => buildGaiaXParticipantAttachment({
+      id: 'invalid-participant-vc-jwt',
+      jwt: schemaOrgJwt,
+    })).toThrow(/credentialSubject.type must be gx:LegalPerson/);
+  });
+
+  it('requires gx:ServiceOffering provider and terms properties', () => {
+    const serviceOfferingJwt = vcJwt({
+      id: 'urn:uuid:service-offering-1',
+      type: 'gx:ServiceOffering',
+      'gx:providedBy': { id: participantCredentialId },
+      'gx:serviceOfferingTermsAndConditions': [{
+        'gx:url': 'https://provider.example/terms',
+        'gx:hash': 'a'.repeat(64),
+      }],
+    }, 'ServiceOffering');
+
+    expect(() => assertGaiaXDiscoveryAttachmentSemantics(
+      serviceOfferingJwt,
+      GaiaXCredentialAttachmentRole.ServiceOffering,
+    )).not.toThrow();
+
+    const missingTermsJwt = vcJwt({
+      id: 'urn:uuid:service-offering-2',
+      type: 'gx:ServiceOffering',
+      'gx:providedBy': { id: participantCredentialId },
+    }, 'ServiceOffering');
+    expect(() => assertGaiaXDiscoveryAttachmentSemantics(
+      missingTermsJwt,
+      GaiaXCredentialAttachmentRole.ServiceOffering,
+    )).toThrow(/gx:serviceOfferingTermsAndConditions/);
   });
 });
