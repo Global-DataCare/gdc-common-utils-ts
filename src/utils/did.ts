@@ -2,7 +2,7 @@
 // Copyright 2025 Antifraud Services Inc. under the Apache License, Version 2.0.
 
 import { ServiceEndpointSelector } from "../models/did";
-import { encodeMultibaseSha384 } from './multibasehash';
+import { multibase58MultihashSha3_256 } from './same-as';
 import { HL7_CLAIMS_CODING_SYSTEM, HL7_DEFAULT_ROLE_HEALTH } from '../constants/hl7-roles';
 
 /**
@@ -289,7 +289,13 @@ export function buildOrganizationDidWeb(input: {
 /**
  * Builds a professional/member DID under a hosted organization DID.
  *
- * The stable actor identifier is derived from the email using multibase(base58btc(multihash(sha384))).
+ * The stable actor path identifier is derived from the lower-cased email using
+ * multibase(base58btc(multihash(SHA3-256))). The raw email is never embedded
+ * in the DID.
+ *
+ * This is the same multibase payload used by the ICA-compatible credential
+ * `sameAs`; only the representation differs: the DID path uses `z...` and the
+ * credential alias uses `urn:multibase:z...`.
  *
  * @param input.organizationDidWeb Canonical hosted organization DID.
  * @param input.email Professional email used to derive a stable member identifier.
@@ -306,7 +312,7 @@ export function buildProfessionalDidWeb(input: {
   const role = String(input.role || '').trim();
   if (!normalizedEmail) throw new Error('buildProfessionalDidWeb requires email.');
   if (!role) throw new Error('buildProfessionalDidWeb requires role.');
-  const memberId = encodeMultibaseSha384(normalizedEmail);
+  const memberId = multibase58MultihashSha3_256(normalizedEmail);
   return [
     String(input.organizationDidWeb).trim(),
     'employee',

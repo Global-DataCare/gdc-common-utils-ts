@@ -307,7 +307,7 @@ These rules exist so developers and AI agents do not repeat the same mistakes.
 Prefer:
 
 - `subjectDid`
-- `professionalDid`
+- `professionalActorDid`
 - `orgControllerDid`
 - `individualControllerDid`
 - `emailProfessional`
@@ -324,6 +324,7 @@ Use:
 
 - `HealthcareActorRoles`
 - `HealthcareConsentPurposes`
+- `HealthcareConsentActions`
 - `HealthcareBasicSections`
 
 Do not teach new flows from inline literals like:
@@ -347,6 +348,26 @@ A consent example should always make clear whether a value comes from:
 
 When docs need to show subject DID construction, prefer `buildIndividualDidWeb(...)`
 instead of handwritten `did:web` concatenation.
+
+### Reuse one professional actor identity
+
+Build `professionalActorDid` once with `buildProfessionalDidWeb(...)` and use
+that exact value for employee/profile identity, Consent `actorId`, professional
+VP credential-subject id and SMART `actorDid`. An email-addressed compatibility
+grant does not authorize a later request made by the derived DID.
+
+The professional DID path does not contain the plaintext email. It uses a
+SHA3-256 multihash of the normalized email. The professional credential
+`sameAs` uses that exact multibase value with the ICA-compatible
+`urn:multibase:` prefix.
+
+Professional DIDs created by the previous SHA3-384 derivation are different
+identities. Existing profiles, grants and cached VP material must be migrated
+or reissued together; do not mix an old actor DID with the SHA3-256 identity.
+
+Application code also omits SMART `audience`: the runtime resolves the
+provider's concrete SMART service endpoint. The index/discovery base URL is a
+bootstrap input, not the token audience.
 
 ## Where This Fits In The Bigger Flow Map
 

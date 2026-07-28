@@ -4,15 +4,28 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
-## [2.3.7] - 2026-07-24
+## [2.3.7] - 2026-07-28
 
 ### Fixed
+
+- Unify professional actor DID derivation with ICA `sameAs`: both hash the
+  normalized email with SHA3-256 and use the same multibase payload; `sameAs`
+  adds only the `urn:multibase:` prefix. Existing SHA3-384-derived actor DIDs
+  require coordinated profile, Consent and VP migration or reissuance.
+- Align shared professional Consent/SMART examples on one derived actor DID,
+  canonical role/action constants and clinical scopes without an ungranted
+  `organization/Consent.cruds`.
 - Preserve FHIR R4 `AllergyIntolerance.category`, `criticality` and
   `onsetDateTime` in the canonical flat-claims conversion and its reverse
   projection.
 - Cover the complete allergy conversion with a deterministic roundtrip test so
   EHR-native resources can be normalized before indexed storage without
   requiring a pre-existing `resource.meta.claims`.
+- Export the shared Gaia-X discovery VC-JWT semantic assertion and enforce it
+  in attachment builders. Participant attachments require `gx:LegalPerson`;
+  service-offering attachments require `gx:ServiceOffering` with provider and
+  terms properties. A schema.org OrganizationCredential merely serialized as
+  JWT is rejected.
 
 ## [2.3.6] - 2026-07-23
 

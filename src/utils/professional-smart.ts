@@ -39,6 +39,10 @@ export type ProfessionalSmartVpPayloadInput = Readonly<{
  * - otherwise the public employee email
  *
  * When both are present they are merged and deduplicated after normalization.
+ * Plain emails become ICA-compatible
+ * `urn:multibase:<base58btc(multihash(SHA3-256))>` values. The multibase
+ * payload is the same value used in the professional DID actor path; `sameAs`
+ * adds only the `urn:multibase:` prefix.
  *
  * @param input Professional identity source values.
  */

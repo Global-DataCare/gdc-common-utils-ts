@@ -3,10 +3,10 @@
 import {
   HealthcareActorRoles,
   HealthcareBasicSections,
+  HealthcareConsentActions,
   HealthcareConsentPurposes,
 } from '../constants/healthcare';
 import { ResourceTypesFhirR4 } from '../constants/fhir-resource-types';
-import { SmartGatewayScopesFhirR4 } from '../constants/smart';
 import { buildSmartCompositionReadScope } from '../utils/smart-scope';
 import {
   EXAMPLE_CLINICAL_SECTION_ALLERGIES,
@@ -25,7 +25,7 @@ import {
  * - the actor role of the professional (`Physician`, `NursingProfessional`, ...)
  * - the consented action/section over an individual subject
  * - the SMART scope ultimately requested against GW CORE
- * - the difference between a minimal read scope and an elevated consent-management scope
+ * - a read scope containing only capabilities covered by the consent
  *
  * This differs from organization-controller and individual-owner bootstrap
  * examples, where the main concern is identity/bootstrap rather than
@@ -41,11 +41,6 @@ const EXAMPLE_CANONICAL_SMART_READ_SCOPES = [
     subjectDid: EXAMPLE_SMART_SUBJECT_DID,
     sections: EXAMPLE_CLINICAL_SECTION_ALLERGIES,
   }),
-] as const;
-
-const EXAMPLE_CANONICAL_SMART_SCOPES = [
-  ...EXAMPLE_CANONICAL_SMART_READ_SCOPES,
-  SmartGatewayScopesFhirR4.ConsentCruds,
 ] as const;
 
 export const EXAMPLE_TOKEN_EXCHANGE_SMART_INPUT = {
@@ -122,20 +117,19 @@ export const EXAMPLE_SEARCH_CLINICAL_BUNDLE_INPUT = {
  *
  * - use `EXAMPLE_TOKEN_EXCHANGE_SMART_INPUT` or `EXAMPLE_OPENID_SMART_TOKEN_INPUT`
  *   for the first read-only examples
- * - use the scenarios below when you explicitly want the composition read scope
- *   plus `organization/Consent.cruds`
+ * - do not append `organization/Consent.cruds` to a clinical read unless a
+ *   separate rule explicitly grants that resource capability
  */
 export const EXAMPLE_PROFESSIONAL_ACCESS_SCENARIOS = Object.freeze({
   physicianAllergiesRead: {
-    actorRole: HealthcareActorRoles.Physician,
+    actorRole: HealthcareActorRoles.GeneralistMedicalPractitioner,
     purpose: HealthcareConsentPurposes.Treatment,
-    consentActions: [HealthcareBasicSections.AllergiesAndIntolerances.claim],
+    consentActions: [HealthcareConsentActions.AllergiesAndIntolerances],
     smartScopes: [
       buildSmartCompositionReadScope({
         subjectDid: EXAMPLE_SMART_SUBJECT_DID,
-        sections: HealthcareBasicSections.AllergiesAndIntolerances.claim,
+        sections: HealthcareConsentActions.AllergiesAndIntolerances,
       }),
-      SmartGatewayScopesFhirR4.ConsentCruds,
     ],
     includedTypes: [
       ResourceTypesFhirR4.Composition,
@@ -152,7 +146,6 @@ export const EXAMPLE_PROFESSIONAL_ACCESS_SCENARIOS = Object.freeze({
         subjectDid: EXAMPLE_SMART_SUBJECT_DID,
         sections: HealthcareBasicSections.HistoryOfMedicationUse.claim,
       }),
-      SmartGatewayScopesFhirR4.ConsentCruds,
     ],
     includedTypes: [
       ResourceTypesFhirR4.Composition,
@@ -169,7 +162,6 @@ export const EXAMPLE_PROFESSIONAL_ACCESS_SCENARIOS = Object.freeze({
         subjectDid: EXAMPLE_SMART_SUBJECT_DID,
         sections: HealthcareBasicSections.PatientSummaryDocument.claim,
       }),
-      SmartGatewayScopesFhirR4.ConsentCruds,
     ],
     includedTypes: [
       ResourceTypesFhirR4.Composition,
@@ -178,7 +170,7 @@ export const EXAMPLE_PROFESSIONAL_ACCESS_SCENARIOS = Object.freeze({
     ],
   },
   physicianResultsAndProblemsRead: {
-    actorRole: HealthcareActorRoles.Physician,
+    actorRole: HealthcareActorRoles.GeneralistMedicalPractitioner,
     purpose: HealthcareConsentPurposes.Treatment,
     consentActions: [
       HealthcareBasicSections.Results.claim,
@@ -192,7 +184,6 @@ export const EXAMPLE_PROFESSIONAL_ACCESS_SCENARIOS = Object.freeze({
           HealthcareBasicSections.ProblemList.claim,
         ],
       }),
-      SmartGatewayScopesFhirR4.ConsentCruds,
     ],
     includedTypes: [
       ResourceTypesFhirR4.Composition,
@@ -223,7 +214,6 @@ function buildConsentDecisionScenario(params: {
         subjectDid: EXAMPLE_SMART_SUBJECT_DID,
         sections: params.requestedSections,
       }),
-      SmartGatewayScopesFhirR4.ConsentCruds,
     ],
     includedTypes: [...params.includedTypes],
     expectedSmartTokenDecision: params.expectedSmartTokenDecision,
@@ -246,7 +236,7 @@ function buildConsentDecisionScenario(params: {
 export const EXAMPLE_PROFESSIONAL_CONSENT_SCENARIOS = Object.freeze({
   physicianByEmailContinuousCareAllergiesAllowed: buildConsentDecisionScenario({
     actorId: EXAMPLE_PHYSICIAN_EMAIL,
-    actorRole: HealthcareActorRoles.Physician,
+    actorRole: HealthcareActorRoles.GeneralistMedicalPractitioner,
     purpose: HealthcareConsentPurposes.Treatment,
     consentActions: [HealthcareBasicSections.AllergiesAndIntolerances.claim],
     requestedSections: HealthcareBasicSections.AllergiesAndIntolerances.claim,
@@ -260,7 +250,7 @@ export const EXAMPLE_PROFESSIONAL_CONSENT_SCENARIOS = Object.freeze({
   }),
   physicianByEmailEmergencySummaryAllowed: buildConsentDecisionScenario({
     actorId: EXAMPLE_PHYSICIAN_EMAIL,
-    actorRole: HealthcareActorRoles.Physician,
+    actorRole: HealthcareActorRoles.GeneralistMedicalPractitioner,
     purpose: HealthcareConsentPurposes.EmergencyTreatment,
     consentActions: [HealthcareBasicSections.PatientSummaryDocument.claim],
     requestedSections: HealthcareBasicSections.PatientSummaryDocument.claim,
@@ -274,7 +264,7 @@ export const EXAMPLE_PROFESSIONAL_CONSENT_SCENARIOS = Object.freeze({
   }),
   physicianByOrganizationResultsAllowed: buildConsentDecisionScenario({
     actorId: { organizationUrl: EXAMPLE_PROVIDER_ORG_URL },
-    actorRole: HealthcareActorRoles.Physician,
+    actorRole: HealthcareActorRoles.GeneralistMedicalPractitioner,
     purpose: HealthcareConsentPurposes.Treatment,
     consentActions: [HealthcareBasicSections.Results.claim],
     requestedSections: HealthcareBasicSections.Results.claim,
@@ -288,7 +278,7 @@ export const EXAMPLE_PROFESSIONAL_CONSENT_SCENARIOS = Object.freeze({
   }),
   physicianByJurisdictionEmergencySummaryAllowed: buildConsentDecisionScenario({
     actorId: EXAMPLE_JURISDICTION,
-    actorRole: HealthcareActorRoles.Physician,
+    actorRole: HealthcareActorRoles.GeneralistMedicalPractitioner,
     purpose: HealthcareConsentPurposes.EmergencyTreatment,
     consentActions: [HealthcareBasicSections.PatientSummaryDocument.claim],
     requestedSections: HealthcareBasicSections.PatientSummaryDocument.claim,
@@ -330,7 +320,7 @@ export const EXAMPLE_PROFESSIONAL_CONSENT_SCENARIOS = Object.freeze({
   }),
   physicianObstetricianDeniedWhenOnlyAllergiesConsent: buildConsentDecisionScenario({
     actorId: EXAMPLE_PHYSICIAN_EMAIL,
-    actorRole: `${HealthcareActorRoles.Physician}:obstetrician`,
+    actorRole: `${HealthcareActorRoles.GeneralistMedicalPractitioner}:obstetrician`,
     purpose: HealthcareConsentPurposes.Treatment,
     consentActions: [HealthcareBasicSections.AllergiesAndIntolerances.claim],
     requestedSections: HealthcareBasicSections.Results.claim,
@@ -344,7 +334,7 @@ export const EXAMPLE_PROFESSIONAL_CONSENT_SCENARIOS = Object.freeze({
   }),
   physicianByEmailDeniedWhenConsentRevokedAndNoOrgNorJurisdictionConsentIsActive: buildConsentDecisionScenario({
     actorId: EXAMPLE_PHYSICIAN_EMAIL,
-    actorRole: HealthcareActorRoles.Physician,
+    actorRole: HealthcareActorRoles.GeneralistMedicalPractitioner,
     purpose: HealthcareConsentPurposes.EmergencyTreatment,
     consentActions: [HealthcareBasicSections.PatientSummaryDocument.claim],
     requestedSections: HealthcareBasicSections.PatientSummaryDocument.claim,
