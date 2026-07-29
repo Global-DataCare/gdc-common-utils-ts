@@ -14,7 +14,7 @@ type Collection = Map<string, RecordBase>;
  * - Short-lived runtime contexts (transient sessions)
  *
  * Each instance is independent — instantiate one per actor/session context
- * (e.g. one per CallSid in uhc-unid-chat-node) and discard on cleanup.
+ * (e.g. one per channel session) and discard on cleanup.
  *
  * TODO: For text channels with persistent sessions, use:
  *   - storage-sdk-firestore-ts → FirestoreVaultRepository (Google Cloud)

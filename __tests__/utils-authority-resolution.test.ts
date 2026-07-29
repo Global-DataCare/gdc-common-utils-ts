@@ -24,7 +24,7 @@ describe('authority resolution helpers', () => {
       tenantId: 'acme-id',
       jurisdiction: 'ES',
       sector: 'health-care',
-      subjectSameAs: 'UHC-724-0000-111-222-333-444',
+      subjectSameAs: 'CARD-724-0000-111-222-333-444',
     });
 
     expect(resolution.authorityDidWeb).toBe('did:web:gw.example.org');

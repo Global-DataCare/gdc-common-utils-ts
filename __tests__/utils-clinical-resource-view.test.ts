@@ -19,7 +19,7 @@ import {
 
 describe('clinical resource common view', () => {
   /**
-   * Flow contract: adapters turn both UNID `meta.claims` entries and native
+   * Flow contract: adapters turn both contextualized `meta.claims` entries and native
    * FHIR IPS resources into the same compact cards. IPS section placement is
    * always read from Composition references, never guessed from resourceType.
    */

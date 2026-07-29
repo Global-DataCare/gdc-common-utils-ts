@@ -76,7 +76,7 @@ describe('101: license examples', () => {
       userClass: DeviceUserClasses.Individual,
       type: DeviceAppTypes.Web,
       ownerOrganizationId: 'individual-org-patricia',
-      subjectDid: 'did:web:unid.online:card:uhc:personal:patricia',
+      subjectDid: 'did:web:subject.example:card:personal:patricia',
       relatedPersonId: 'related-person-fernando',
       invitationId: 'invitation-patricia-fernando',
     });
@@ -94,7 +94,7 @@ describe('101: license examples', () => {
     // Step 3. Seat ownership, contact linkage and invitation lifecycle remain
     // separate identifiers even though one invitation reserves one seat.
     expect(entry.meta.ownerOrganizationId).toBe('individual-org-patricia');
-    expect(entry.meta.subjectDid).toBe('did:web:unid.online:card:uhc:personal:patricia');
+    expect(entry.meta.subjectDid).toBe('did:web:subject.example:card:personal:patricia');
     expect(entry.meta.relatedPersonId).toBe('related-person-fernando');
     expect(entry.meta.invitationId).toBe('invitation-patricia-fernando');
   });

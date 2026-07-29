@@ -42,7 +42,7 @@ Keep those domains separate in the UI and in the mental model.
 
 ## Related Entity Projection
 
-UNID contact and permission screens may use the RelatedPerson lifecycle
+Application contact and permission screens may use the RelatedPerson lifecycle
 container as a related-entity projection. The current demonstrable kinds are:
 
 - a person or professional

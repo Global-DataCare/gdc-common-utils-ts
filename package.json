@@ -1,6 +1,6 @@
 {
   "name": "gdc-common-utils-ts",
-  "version": "2.3.11",
+  "version": "2.3.12",
   "publishConfig": {
     "access": "public"
   },
@@ -22,8 +22,9 @@
     "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
     "build": "npm run clean && tsc -p tsconfig.build.json && node patch-esm-imports.mjs",
     "verify:dist": "node scripts/verify-dist-syntax.mjs",
+    "check:product-neutrality": "node scripts/check-product-neutrality.mjs",
     "prepack": "npm run verify:dist",
-    "prepublishOnly": "npm run typecheck && npm test -- --watchman=false && npm run build"
+    "prepublishOnly": "npm run check:product-neutrality && npm run typecheck && npm test -- --watchman=false && npm run build"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

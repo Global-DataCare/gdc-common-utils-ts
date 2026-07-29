@@ -548,7 +548,7 @@ This document does not by itself define:
 - invitation OTP providers
 - relationship PIN storage
 - GW routing details
-- UNID reminder runtime
+- product reminder runtime
 
 Those belong to the corresponding runtime or extension packages, but they must
 consume this consent model instead of duplicating it.

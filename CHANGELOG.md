@@ -4,6 +4,14 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.3.12] - 2026-07-30
+
+### Changed
+
+- Remove product-consumer names, links and fixtures from the shared package.
+- Add `check:product-neutrality` to the publication gate so product names
+  cannot be introduced into shared GDC sources, tests or documentation.
+
 ## [2.3.11] - 2026-07-30
 
 ### Added
@@ -103,7 +111,7 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
   selector taught to applications.
 - Completed the 101 clinical read lifecycle with current
   `ClinicalSummaryReadResult` examples for section enumeration, declared and
-  filtered counts, resource resolution, date filters and UHC-style rendering;
+  filtered counts, resource resolution, date filters and application rendering;
   removed stale target-only IPS reader method names.
 - Made `communication.setRequestSummaryOperation(...)` the explicit 101 read
   contract: `Subject/$summary` plus an attached FHIR `Parameters` resource,
@@ -226,7 +234,7 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
   Full Name and provide the temporary uppercase-only comparison key.
 
 - Extended the existing `ClinicalResourceCardView` adapter to summarize native
-  IPS FHIR resources as well as UNID `resource.meta.claims`, and added
+  IPS FHIR resources as well as contextualized `resource.meta.claims`, and added
   Composition-reference section grouping so `Observation` is never assigned to
   a section by resource type alone.
 - Added non-exclusive IPS section resource-profile hints and completed the FHIR

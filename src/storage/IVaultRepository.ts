@@ -45,12 +45,12 @@ export abstract class IVaultRepository {
 }
 
 // ---------------------------------------------------------------------------
-// Server/multi-tenant extension — used by GW nodes (gdc-unid-node-ts, gwtemplate-node-ts)
+// Server/multi-tenant extension — used by GW node implementations.
 //
 // Adds multi-vault management, sections, history, and purge operations
 // needed by server-side vault repositories (Firestore, Postgres, Mem-backend).
 //
-// TODO: migrate gdc-unid-node-ts and gwtemplate-node-ts vault.repository.ts
+// TODO: migrate GW vault.repository.ts implementations
 //       to extend this interface once storage-sdk-firestore-ts and
 //       storage-sdk-postgres-ts are created as separate packages.
 // ---------------------------------------------------------------------------

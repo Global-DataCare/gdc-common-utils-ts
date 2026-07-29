@@ -40,7 +40,7 @@ import { BundleReader } from '../src/utils/bundle-reader.js';
 describe('bundle document builder', () => {
   it('prepares an imported document for one subject and records Composition section membership in meta.claims', () => {
     // Step 1. Model an external IPS whose Patient-local references cannot be
-    // trusted as the destination subject in the UNID index.
+    // trusted as the destination subject in the receiving index.
     const imported = {
       resourceType: 'Bundle',
       type: 'document',
