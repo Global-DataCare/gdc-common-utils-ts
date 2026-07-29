@@ -11,18 +11,32 @@ export function conditionFlatToFhirR4(claims: FlatClaims): FhirResource {
     resourceType: 'Condition',
     identifier: claims[ConditionClaim.Identifier] ? [{ value: claims[ConditionClaim.Identifier] }] : undefined,
     subject: { reference: subject },
-    code: claims[ConditionClaim.Code] ? { coding: codingFromValue(claims[ConditionClaim.Code]) } : undefined,
+    code: claims[ConditionClaim.Code]
+      ? {
+        coding: codingFromValue(claims[ConditionClaim.Code])?.map((coding) => ({
+          ...coding,
+          ...(claims[ConditionClaim.CodeDisplay]
+            ? { display: claims[ConditionClaim.CodeDisplay] }
+            : {}),
+        })),
+        ...(claims[ConditionClaim.CodeText]
+          ? { text: claims[ConditionClaim.CodeText] }
+          : {}),
+      }
+      : undefined,
     clinicalStatus: claims[ConditionClaim.ClinicalStatus] ? { coding: [{ code: claims[ConditionClaim.ClinicalStatus] }] } : undefined,
     verificationStatus: claims[ConditionClaim.VerificationStatus] ? { coding: [{ code: claims[ConditionClaim.VerificationStatus] }] } : undefined,
   };
 }
 
 export function conditionFhirR4ToFlat(resource: FhirResource): FlatClaims {
-  const code = resource.code as { text?: string; coding?: Array<{ system?: string; code?: string }> } | undefined;
+  const code = resource.code as { text?: string; coding?: Array<{ system?: string; code?: string; display?: string }> } | undefined;
   return {
     [ConditionClaim.Identifier]: (resource.identifier as Array<{ value?: string }> | undefined)?.[0]?.value,
     [ConditionClaim.Subject]: (resource.subject as { reference?: string } | undefined)?.reference,
     [ConditionClaim.Code]: codingToValue(code?.coding?.[0]) || code?.text,
+    [ConditionClaim.CodeText]: code?.text,
+    [ConditionClaim.CodeDisplay]: code?.coding?.[0]?.display,
     [ConditionClaim.ClinicalStatus]: (resource.clinicalStatus as { coding?: Array<{ code?: string }> } | undefined)?.coding?.[0]?.code,
     [ConditionClaim.VerificationStatus]: (resource.verificationStatus as { coding?: Array<{ code?: string }> } | undefined)?.coding?.[0]?.code,
   };

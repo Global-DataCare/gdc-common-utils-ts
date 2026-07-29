@@ -40,6 +40,14 @@ export class ConditionEntryEditor extends ClinicalResourceEntryEditor {
   public getSubject(): string | undefined { return this.getSubjectClaims(ConditionClaim.Subject, ConditionClaim.Subject); }
   public setCode(code?: string | null): this { return this.setScalarClaim(ConditionClaim.Code, code); }
   public getCode(): string | undefined { return this.getScalarClaim(ConditionClaim.Code); }
+  /** Writes the local-language condition name projected to FHIR `code.text`. */
+  public setCodeTextLocal(text?: string | null): this { return this.setScalarClaim(ConditionClaim.CodeText, text); }
+  /** Reads the local-language condition name. */
+  public getCodeTextLocal(): string | undefined { return this.getScalarClaim(ConditionClaim.CodeText); }
+  /** Writes the English/international terminology display. */
+  public setCodeDisplay(display?: string | null): this { return this.setScalarClaim(ConditionClaim.CodeDisplay, display); }
+  /** Reads the English/international terminology display. */
+  public getCodeDisplay(): string | undefined { return this.getScalarClaim(ConditionClaim.CodeDisplay); }
   public setClinicalStatus(status?: string | null): this { return this.setScalarClaim(ConditionClaim.ClinicalStatus, status); }
   public getClinicalStatus(): string | undefined { return this.getScalarClaim(ConditionClaim.ClinicalStatus); }
   public setVerificationStatus(status?: string | null): this { return this.setScalarClaim(ConditionClaim.VerificationStatus, status); }

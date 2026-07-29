@@ -43,6 +43,14 @@ export class MedicationStatementEntryEditor extends ClinicalResourceEntryEditor 
   public setMedicationText(text?: string | null): this { return this.setScalarClaim(MedicationStatementClaim.MedicationText, text); }
   /** Returns the human-readable medication text. */
   public getMedicationText(): string | undefined { return this.getScalarClaim(MedicationStatementClaim.MedicationText); }
+  /** Alias used consistently by coded IPS editors for local FHIR text. */
+  public setCodeTextLocal(text?: string | null): this { return this.setMedicationText(text); }
+  /** Returns the local-language medication text. */
+  public getCodeTextLocal(): string | undefined { return this.getMedicationText(); }
+  /** Sets the English/international terminology display. */
+  public setCodeDisplay(display?: string | null): this { return this.setScalarClaim(MedicationStatementClaim.CodeDisplay, display); }
+  /** Returns the English/international terminology display. */
+  public getCodeDisplay(): string | undefined { return this.getScalarClaim(MedicationStatementClaim.CodeDisplay); }
   /** Sets one free-text note attached to the medication entry. */
   public setNote(note?: string | null): this { return this.setScalarClaim(MedicationStatementClaim.Note, note); }
   /** Returns the current medication note. */

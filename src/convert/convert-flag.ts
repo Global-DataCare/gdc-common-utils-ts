@@ -12,7 +12,13 @@ export function flagFlatToFhirR4(claims: FlatClaims): FhirResource {
     identifier: claims[FlagClaim.Identifier] ? [{ value: claims[FlagClaim.Identifier] }] : undefined,
     status: claims[FlagClaim.Status],
     category: claims[FlagClaim.Category] ? { coding: codingFromValue(claims[FlagClaim.Category]) } : undefined,
-    code: claims[FlagClaim.Code] ? { coding: codingFromValue(claims[FlagClaim.Code]) } : undefined,
+    code: claims[FlagClaim.Code] ? {
+      coding: codingFromValue(claims[FlagClaim.Code])?.map((coding) => ({
+        ...coding,
+        ...(claims[FlagClaim.CodeDisplay] ? { display: claims[FlagClaim.CodeDisplay] } : {}),
+      })),
+      ...(claims[FlagClaim.CodeText] ? { text: claims[FlagClaim.CodeText] } : {}),
+    } : undefined,
     subject: subject ? { reference: subject } : undefined,
     author: claims[FlagClaim.Author] ? { reference: claims[FlagClaim.Author] } : undefined,
     encounter: claims[FlagClaim.Encounter] ? { reference: claims[FlagClaim.Encounter] } : undefined,
@@ -32,6 +38,8 @@ export function flagFhirR4ToFlat(resource: FhirResource): FlatClaims {
     [FlagClaim.Status]: resource.status as string | undefined,
     [FlagClaim.Category]: codingToValue((resource.category as { coding?: Array<{ system?: string; code?: string }> } | undefined)?.coding?.[0]),
     [FlagClaim.Code]: codingToValue((resource.code as { coding?: Array<{ system?: string; code?: string }> } | undefined)?.coding?.[0]),
+    [FlagClaim.CodeText]: (resource.code as { text?: string } | undefined)?.text,
+    [FlagClaim.CodeDisplay]: (resource.code as { coding?: Array<{ display?: string }> } | undefined)?.coding?.[0]?.display,
     [FlagClaim.PeriodStart]: period?.start,
     [FlagClaim.PeriodEnd]: period?.end,
   };

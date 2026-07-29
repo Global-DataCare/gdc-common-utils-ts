@@ -23,7 +23,7 @@ import { ObservationClaim } from '../src/models/interoperable-claims/observation
 import { ProcedureClaim } from '../src/models/interoperable-claims/procedure-claims.js';
 import { extractBundleDocumentClaimsList } from '../src/utils/bundle-document-builder.js';
 
-const IPS_BUNDLE_PATH = path.resolve(process.cwd(), '..', 'Bundle-bundle-ips-all-sections.json');
+const IPS_BUNDLE_PATH = path.resolve(process.cwd(), 'fixtures', 'fhir-ips-bundle-all-sections.json');
 
 describe('101 IPS bundle all sections claims', () => {
   it('extracts one flat-claims object per non-demographic resource from the real IPS bundle', () => {

@@ -4,6 +4,22 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.3.9] - 2026-07-29
+
+### Fixed
+
+- Preserve manually authored coded-clinical names as canonical
+  `<ResourceType>.code-text` claims and FHIR `CodeableConcept.text`, alongside
+  English/international `<ResourceType>.code-display` / `Coding.display`.
+- Resolve clinical card titles by resource language and UI locale.
+  `system|code` is now only a terminology translation key and is never used as
+  a visible or editable fallback title.
+- Cover the real 16-section IPS fixture, every declared section resource type,
+  and create/read/edit/second-save regressions for coded clinical records.
+- Publish the official HL7 IPS all-sections example as the shared
+  `fixtures/fhir-ips-bundle-all-sections.json` test fixture; gateways and
+  portals no longer need private copies.
+
 ## [2.3.8] - 2026-07-28
 
 ### Added

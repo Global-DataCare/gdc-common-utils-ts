@@ -17,6 +17,8 @@ export const MedicationStatementClaim = {
   PartOf: 'MedicationStatement.part-of',
   Source: 'MedicationStatement.source',
   MedicationText: 'MedicationStatement.medication-text',
+  /** English/international display for the coded medication. */
+  CodeDisplay: 'MedicationStatement.code-display',
   UserSelected: 'MedicationStatement.user-selected',
   /**
    * Free-text clinical note.

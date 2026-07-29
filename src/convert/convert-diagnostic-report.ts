@@ -12,7 +12,13 @@ export function diagnosticReportFlatToFhirR4(claims: FlatClaims): FhirResource {
     identifier: claims[DiagnosticReportClaim.Identifier] ? [{ value: claims[DiagnosticReportClaim.Identifier] }] : undefined,
     status: claims[DiagnosticReportClaim.Status],
     category: claims[DiagnosticReportClaim.Category] ? [{ coding: codingFromValue(claims[DiagnosticReportClaim.Category]) }] : undefined,
-    code: claims[DiagnosticReportClaim.Code] ? { coding: codingFromValue(claims[DiagnosticReportClaim.Code]) } : undefined,
+    code: claims[DiagnosticReportClaim.Code] ? {
+      coding: codingFromValue(claims[DiagnosticReportClaim.Code])?.map((coding) => ({
+        ...coding,
+        ...(claims[DiagnosticReportClaim.CodeDisplay] ? { display: claims[DiagnosticReportClaim.CodeDisplay] } : {}),
+      })),
+      ...(claims[DiagnosticReportClaim.CodeText] ? { text: claims[DiagnosticReportClaim.CodeText] } : {}),
+    } : undefined,
     subject: subject ? { reference: subject } : undefined,
     encounter: claims[DiagnosticReportClaim.Encounter] ? { reference: claims[DiagnosticReportClaim.Encounter] } : undefined,
     effectiveDateTime: claims[DiagnosticReportClaim.Date],
@@ -41,6 +47,8 @@ export function diagnosticReportFhirR4ToFlat(resource: FhirResource): FlatClaims
     [DiagnosticReportClaim.BasedOn]: referenceListToCsv(resource.basedOn as Array<{ reference?: string }> | undefined),
     [DiagnosticReportClaim.Category]: codingToValue((resource.category as Array<{ coding?: Array<{ system?: string; code?: string }> }> | undefined)?.[0]?.coding?.[0]),
     [DiagnosticReportClaim.Code]: codingToValue((resource.code as { coding?: Array<{ system?: string; code?: string }> } | undefined)?.coding?.[0]),
+    [DiagnosticReportClaim.CodeText]: (resource.code as { text?: string } | undefined)?.text,
+    [DiagnosticReportClaim.CodeDisplay]: (resource.code as { coding?: Array<{ display?: string }> } | undefined)?.coding?.[0]?.display,
     [DiagnosticReportClaim.Date]: (resource.effectiveDateTime as string | undefined) || (resource.issued as string | undefined),
     [DiagnosticReportClaim.Encounter]: referenceToValue(resource.encounter as { reference?: string } | undefined),
     [DiagnosticReportClaim.Identifier]: (resource.identifier as Array<{ value?: string }> | undefined)?.[0]?.value,

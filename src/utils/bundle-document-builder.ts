@@ -389,7 +389,15 @@ export function convertClaimsToFhirResource(
   void version;
   const flatClaims = claimsToFlatStrings(claims);
   const resourceType = detectClaimsResourceType(claims);
+  const resource = convertClaimsToFhirResourceByType(flatClaims, resourceType);
+  const language = resourceType ? asTrimmedString(claims[`${resourceType}.language`]) : '';
+  return language ? { ...resource, language } : resource;
+}
 
+function convertClaimsToFhirResourceByType(
+  flatClaims: FlatClaims,
+  resourceType: string | undefined,
+): FhirResource {
   switch (resourceType) {
     case ResourceTypesFhirR4.MedicationStatement:
       return medicationStatementFlatToFhirR4(flatClaims);

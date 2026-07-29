@@ -15,7 +15,19 @@ export function allergyIntoleranceFlatToFhirR4(claims: FlatClaims): FhirResource
     resourceType: 'AllergyIntolerance',
     identifier: claims[AllergyIntoleranceClaim.Identifier] ? [{ value: claims[AllergyIntoleranceClaim.Identifier] }] : undefined,
     patient: { reference: patient },
-    code: claims[AllergyIntoleranceClaim.Code] ? { coding: codingFromValue(claims[AllergyIntoleranceClaim.Code]) } : undefined,
+    code: claims[AllergyIntoleranceClaim.Code]
+      ? {
+        coding: codingFromValue(claims[AllergyIntoleranceClaim.Code])?.map((coding) => ({
+          ...coding,
+          ...(claims[AllergyIntoleranceClaim.CodeDisplay]
+            ? { display: claims[AllergyIntoleranceClaim.CodeDisplay] }
+            : {}),
+        })),
+        ...(claims[AllergyIntoleranceClaim.CodeText]
+          ? { text: claims[AllergyIntoleranceClaim.CodeText] }
+          : {}),
+      }
+      : undefined,
     clinicalStatus: claims[AllergyIntoleranceClaim.ClinicalStatus] ? { coding: [{ code: claims[AllergyIntoleranceClaim.ClinicalStatus] }] } : undefined,
     verificationStatus: claims[AllergyIntoleranceClaim.VerificationStatus] ? { coding: [{ code: claims[AllergyIntoleranceClaim.VerificationStatus] }] } : undefined,
     category: claims[AllergyIntoleranceClaim.Category] ? [claims[AllergyIntoleranceClaim.Category]] : undefined,
@@ -27,12 +39,14 @@ export function allergyIntoleranceFlatToFhirR4(claims: FlatClaims): FhirResource
 
 export function allergyIntoleranceFhirR4ToFlat(resource: FhirResource): FlatClaims {
   const subject = (resource.patient as { reference?: string } | undefined)?.reference;
-  const code = resource.code as { text?: string; coding?: Array<{ system?: string; code?: string }> } | undefined;
+  const code = resource.code as { text?: string; coding?: Array<{ system?: string; code?: string; display?: string }> } | undefined;
   return {
     [AllergyIntoleranceClaim.Identifier]: (resource.identifier as Array<{ value?: string }> | undefined)?.[0]?.value,
     [AllergyIntoleranceClaim.Subject]: subject,
     [AllergyIntoleranceClaim.Patient]: subject,
     [AllergyIntoleranceClaim.Code]: codingToValue(code?.coding?.[0]) || code?.text,
+    [AllergyIntoleranceClaim.CodeText]: code?.text,
+    [AllergyIntoleranceClaim.CodeDisplay]: code?.coding?.[0]?.display,
     [AllergyIntoleranceClaim.ClinicalStatus]: (resource.clinicalStatus as { coding?: Array<{ code?: string }> } | undefined)?.coding?.[0]?.code,
     [AllergyIntoleranceClaim.VerificationStatus]: (resource.verificationStatus as { coding?: Array<{ code?: string }> } | undefined)?.coding?.[0]?.code,
     [AllergyIntoleranceClaim.Category]: (resource.category as string[] | undefined)?.[0],

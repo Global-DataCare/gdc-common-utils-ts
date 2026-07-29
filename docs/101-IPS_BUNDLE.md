@@ -164,6 +164,22 @@ Start from:
 - resource-specific entry editors when available
 - `BundleEditor.setBundleType('document')` for individual clinical documents
 
+### Coded names and languages
+
+For every coded clinical resource, keep these values separate:
+
+- `<ResourceType>.code`: `system|code`, the terminology identity and lookup key.
+- `<ResourceType>.code-text`: the manual/local label, projected to
+  `CodeableConcept.text`; its language is `<ResourceType>.language`.
+- `<ResourceType>.code-display`: the English/international display, projected
+  to `Coding.display`.
+
+The UI uses local text when its locale matches the resource language, English
+display for English, and a terminology translation resolved from `system|code`
+for another locale. If translation is unavailable it falls back to display and
+then local text. It must never show `system|code` as the clinical name or copy
+that token into an editable name field.
+
 The generic path is documented in:
 
 - [101-BUNDLE_EDITOR_READER.md](./101-BUNDLE_EDITOR_READER.md)

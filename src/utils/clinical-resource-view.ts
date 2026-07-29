@@ -65,6 +65,26 @@ export type ClinicalResourceCardView = Readonly<{
   actorsCount: number;
 }>;
 
+export type ClinicalTerminologyTranslationInput = Readonly<{
+  resourceType: string;
+  system?: string;
+  code: string;
+  token: string;
+  locale: string;
+}>;
+
+export type ClinicalResourceDisplayOptions = Readonly<{
+  /** UI language requested by the current user, for example `es` or `es-ES`. */
+  locale?: string;
+  /**
+   * Product terminology lookup keyed by canonical `system|code`.
+   *
+   * Return `undefined` when the product has no translation so the shared
+   * reader can fall back to the international `Coding.display`.
+   */
+  translateCode?: (input: ClinicalTerminologyTranslationInput) => string | undefined;
+}>;
+
 export type ClinicalResourceExpandedView = Readonly<{
   common: ClinicalResourceCommonView;
   xhtml?: string;
@@ -122,11 +142,14 @@ export type ClinicalResourceBundleLike = Readonly<{
 /**
  * Maps one bundle entry to a UI-friendly common clinical view contract.
  */
-export function toClinicalResourceCommonView(entry: ClinicalResourceEntryLike): ClinicalResourceCommonView {
+export function toClinicalResourceCommonView(
+  entry: ClinicalResourceEntryLike,
+  options: ClinicalResourceDisplayOptions = {},
+): ClinicalResourceCommonView {
   const claims = readClaims(entry);
   const resourceType = resolveResourceType(entry, claims);
   const resource = entry.resource as ClinicalResourceLike | undefined;
-  const title = resolveTitle(resourceType, claims, resource);
+  const title = resolveTitle(resourceType, claims, resource, options);
 
   return {
     title,
@@ -144,15 +167,21 @@ export function toClinicalResourceCommonView(entry: ClinicalResourceEntryLike): 
 /**
  * Maps all entries from a Bundle into common clinical views.
  */
-export function toClinicalResourceCommonViews(bundle: ClinicalResourceBundleLike): ClinicalResourceCommonView[] {
-  return readBundleEntries(bundle).map((entry) => toClinicalResourceCommonView(entry));
+export function toClinicalResourceCommonViews(
+  bundle: ClinicalResourceBundleLike,
+  options: ClinicalResourceDisplayOptions = {},
+): ClinicalResourceCommonView[] {
+  return readBundleEntries(bundle).map((entry) => toClinicalResourceCommonView(entry, options));
 }
 
 /**
  * Maps one bundle entry to a minimal card view for section counters/list cards.
  */
-export function toClinicalResourceCardView(entry: ClinicalResourceEntryLike): ClinicalResourceCardView {
-  const common = toClinicalResourceCommonView(entry);
+export function toClinicalResourceCardView(
+  entry: ClinicalResourceEntryLike,
+  options: ClinicalResourceDisplayOptions = {},
+): ClinicalResourceCardView {
+  const common = toClinicalResourceCommonView(entry, options);
   return {
     title: common.title,
     resourceType: common.resourceType,
@@ -165,8 +194,11 @@ export function toClinicalResourceCardView(entry: ClinicalResourceEntryLike): Cl
 /**
  * Maps all entries from a Bundle into minimal card views.
  */
-export function toClinicalResourceCardViews(bundle: ClinicalResourceBundleLike): ClinicalResourceCardView[] {
-  return readBundleEntries(bundle).map((entry) => toClinicalResourceCardView(entry));
+export function toClinicalResourceCardViews(
+  bundle: ClinicalResourceBundleLike,
+  options: ClinicalResourceDisplayOptions = {},
+): ClinicalResourceCardView[] {
+  return readBundleEntries(bundle).map((entry) => toClinicalResourceCardView(entry, options));
 }
 
 /**
@@ -248,6 +280,8 @@ export function getLocalTextAndIntDisplay(resource: ClinicalResourceLike): Local
   const localText = firstDefinedText([
     resolveResourceCodeText(resource),
     findBySuffix(claims, '.code-text'),
+    findBySuffix(claims, '.code-text-local'),
+    findBySuffix(claims, '.codetextlocal'),
     findBySuffix(claims, '.medication-text'),
     findBySuffix(claims, '.vaccine-code-text'),
     findBySuffix(claims, '.value-concept-text'),
@@ -256,6 +290,7 @@ export function getLocalTextAndIntDisplay(resource: ClinicalResourceLike): Local
   const internationalDisplay = firstDefinedText([
     resolveResourceCodeDisplay(resource),
     findBySuffix(claims, '.code-display'),
+    findBySuffix(claims, '.codedisplay'),
     findBySuffix(claims, '.vaccine-code-display'),
     findBySuffix(claims, '.value-concept-display'),
   ]);
@@ -340,6 +375,7 @@ function resolveTitle(
   resourceType: string,
   claims: ClinicalViewClaims,
   resource?: ClinicalResourceLike,
+  options: ClinicalResourceDisplayOptions = {},
 ): string {
   if (resourceType === ResourceTypesFhirR4.Communication) {
     return (
@@ -355,7 +391,15 @@ function resolveTitle(
     const firstCategory = splitCsv(claims[ClaimConsent.category])[0];
     const firstAction = splitCsv(claims[ClaimConsent.action])[0];
     const firstPurpose = splitCsv(claims[ClaimConsent.purpose])[0];
-    return firstCategory || firstAction || firstPurpose || resolveFhirResourceTitle(resourceType, resource) || resourceType;
+    const categoryConcept = asArray(resource?.category)[0];
+    return resolveLocalizedCodedTitle({
+      resourceType,
+      claims,
+      resource,
+      options,
+      concept: categoryConcept,
+      token: firstCategory || resolveCodeableConceptToken(categoryConcept),
+    }) || humanTitleCandidate(firstAction) || humanTitleCandidate(firstPurpose) || resourceType;
   }
 
   if (resourceType === ResourceTypesFhirR4.MedicationStatement) {
@@ -363,14 +407,33 @@ function resolveTitle(
       MedicationStatementClaim.MedicationText,
       MedicationStatementClaimsFhirApi.Medication,
     ]);
+    const codeText = findFirstClaimBySuffixes(claims, ['.code-text', '.code-text-local', '.codetextlocal']);
+    const codeDisplay = findFirstClaimBySuffixes(claims, ['.code-display', '.codedisplay']);
     const firstCode = firstClaimCsvValue(claims, [
       MedicationStatementClaim.Code,
       MedicationStatementClaimsFhirApi.Code,
     ]);
-    return text || firstCode || resolveFhirResourceTitle(resourceType, resource) || resourceType;
+    return resolveLocalizedCodedTitle({
+      resourceType,
+      claims,
+      resource,
+      options,
+      localText: text || codeText,
+      internationalDisplay: codeDisplay,
+      token: firstCode,
+      concept: resource?.medicationCodeableConcept,
+    }) || resourceType;
   }
 
   if (resourceType === ResourceTypesFhirR4.Condition) {
+    const codeText = firstClaimValue(claims, [
+      ConditionClaim.CodeText,
+      ConditionClaimsFhirApi.CodeText,
+    ]);
+    const codeDisplay = firstClaimValue(claims, [
+      ConditionClaim.CodeDisplay,
+      ConditionClaimsFhirApi.CodeDisplay,
+    ]);
     const firstCode = firstClaimCsvValue(claims, [
       ConditionClaim.Code,
       ConditionClaimsFhirApi.Code,
@@ -379,10 +442,27 @@ function resolveTitle(
       ConditionClaim.Category,
       ConditionClaimsFhirApi.Category,
     ]);
-    return firstCode || firstCategory || resolveFhirResourceTitle(resourceType, resource) || resourceType;
+    return resolveLocalizedCodedTitle({
+      resourceType,
+      claims,
+      resource,
+      options,
+      localText: codeText,
+      internationalDisplay: codeDisplay,
+      token: firstCode,
+      concept: resource?.code,
+    }) || humanTitleCandidate(firstCategory) || resourceType;
   }
 
   if (resourceType === ResourceTypesFhirR4.AllergyIntolerance) {
+    const codeText = firstClaimValue(claims, [
+      AllergyIntoleranceClaim.CodeText,
+      AllergyIntoleranceClaimsFhirApi.CodeText,
+    ]);
+    const codeDisplay = firstClaimValue(claims, [
+      AllergyIntoleranceClaim.CodeDisplay,
+      AllergyIntoleranceClaimsFhirApi.CodeDisplay,
+    ]);
     const firstCode = firstClaimCsvValue(claims, [
       AllergyIntoleranceClaim.Code,
       AllergyIntoleranceClaimsFhirApi.Code,
@@ -391,10 +471,87 @@ function resolveTitle(
       AllergyIntoleranceClaim.Category,
       AllergyIntoleranceClaimsFhirApi.Category,
     ]);
-    return firstCode || firstCategory || resolveFhirResourceTitle(resourceType, resource) || resourceType;
+    return resolveLocalizedCodedTitle({
+      resourceType,
+      claims,
+      resource,
+      options,
+      localText: codeText,
+      internationalDisplay: codeDisplay,
+      token: firstCode,
+      concept: resource?.code,
+    }) || humanTitleCandidate(firstCategory) || resourceType;
   }
 
-  return resolveFhirResourceTitle(resourceType, resource) || resourceType;
+  const primaryConcept = resolvePrimaryCodeableConcept(resourceType, resource);
+  return resolveLocalizedCodedTitle({
+    resourceType,
+    claims,
+    resource,
+    options,
+    concept: primaryConcept,
+    token: resolveCodeableConceptToken(primaryConcept),
+  }) || resolveFhirResourceTitle(resourceType, resource) || resourceType;
+}
+
+function resolveLocalizedCodedTitle(input: Readonly<{
+  resourceType: string;
+  claims: ClinicalViewClaims;
+  resource?: ClinicalResourceLike;
+  options: ClinicalResourceDisplayOptions;
+  concept?: unknown;
+  localText?: string;
+  internationalDisplay?: string;
+  token?: string;
+}>): string | undefined {
+  const concept = asRecord(input.concept);
+  const localText = trimValue(input.localText)
+    || trimValue(concept.text)
+    || findFirstClaimBySuffixes(input.claims, ['.code-text', '.code-text-local', '.codetextlocal']);
+  const internationalDisplay = trimValue(input.internationalDisplay)
+    || asArray(concept.coding)
+      .map((coding) => trimValue(asRecord(coding).display))
+      .find(Boolean)
+    || findFirstClaimBySuffixes(input.claims, ['.code-display', '.codedisplay']);
+  const token = trimValue(input.token) || resolveCodeableConceptToken(input.concept);
+  const locale = normalizeLanguage(input.options.locale);
+  const resourceLanguage = normalizeLanguage(
+    trimValue(input.resource?.language)
+      || findBySuffix(input.claims, '.language'),
+  );
+
+  if (!locale) {
+    return localText || internationalDisplay || resolveFhirResourceTitle(input.resourceType, input.resource);
+  }
+  if (resourceLanguage && locale === resourceLanguage && localText) {
+    return localText;
+  }
+  if (locale === 'en') {
+    return internationalDisplay || (resourceLanguage === 'en' ? localText : undefined) || localText;
+  }
+  if (token && input.options.translateCode) {
+    const [system, ...codeParts] = token.split('|');
+    const code = codeParts.length ? codeParts.join('|') : system;
+    const translated = trimValue(input.options.translateCode({
+      resourceType: input.resourceType,
+      ...(codeParts.length ? { system } : {}),
+      code,
+      token,
+      locale,
+    }));
+    if (translated) return translated;
+  }
+  return internationalDisplay || localText || resolveFhirResourceTitle(input.resourceType, input.resource);
+}
+
+function normalizeLanguage(value: unknown): string | undefined {
+  const normalized = trimValue(value).toLowerCase().replace('_', '-');
+  return normalized ? normalized.split('-')[0] : undefined;
+}
+
+function humanTitleCandidate(value: unknown): string | undefined {
+  const normalized = trimValue(value);
+  return normalized && !/^\S+\|\S+$/.test(normalized) ? normalized : undefined;
 }
 
 function resolveIdentifier(
@@ -703,6 +860,13 @@ function findBySuffix(claims: ClinicalViewClaims, keySuffix: string): string | u
   return undefined;
 }
 
+function findFirstClaimBySuffixes(
+  claims: ClinicalViewClaims,
+  suffixes: readonly string[],
+): string | undefined {
+  return firstDefinedText(suffixes.map((suffix) => findBySuffix(claims, suffix)));
+}
+
 function resolveResourceCodeText(resource: ClinicalResourceLike): string | undefined {
   return trimValue(asRecord(resource?.code).text) || undefined;
 }
@@ -716,6 +880,31 @@ function resolveResourceCodeDisplay(resource: ClinicalResourceLike): string | un
     }
   }
   return undefined;
+}
+
+function resolvePrimaryCodeableConcept(
+  resourceType: string,
+  resource?: ClinicalResourceLike,
+): unknown {
+  if (!resource) return undefined;
+  if (
+    resourceType === ResourceTypesFhirR4.MedicationStatement
+    || resourceType === ResourceTypesFhirR4.MedicationRequest
+    || resourceType === ResourceTypesFhirR4.Medication
+  ) {
+    return resource.medicationCodeableConcept || resource.code;
+  }
+  if (resourceType === ResourceTypesFhirR4.Immunization) return resource.vaccineCode;
+  if (resourceType === ResourceTypesFhirR4.Device) return resource.type;
+  if (resourceType === ResourceTypesFhirR4.DocumentReference) return resource.type;
+  if (resourceType === ResourceTypesFhirR4.Specimen) return resource.type;
+  if (resourceType === ResourceTypesFhirR4.ImagingStudy) return asArray(resource.procedureCode)[0];
+  if (resourceType === ResourceTypesFhirR4.PractitionerRole) return asArray(resource.code)[0];
+  if (resourceType === ResourceTypesFhirR4.ImmunizationRecommendation) {
+    const recommendation = asRecord(asArray(resource.recommendation)[0]);
+    return asArray(recommendation.vaccineCode)[0];
+  }
+  return resource.code || asArray(resource.category)[0];
 }
 
 function resolveFhirResourceTitle(
@@ -749,12 +938,20 @@ function resolveFhirResourceTitle(
     const deviceDisplay = trimValue(asRecord(resource.device).display);
     if (deviceDisplay) return deviceDisplay;
   }
+  if (resourceType === ResourceTypesFhirR4.Practitioner) {
+    const humanName = asRecord(asArray(resource.name)[0]);
+    const given = asArray(humanName.given).map((value) => trimValue(value)).filter(Boolean);
+    const family = trimValue(humanName.family);
+    const formatted = [...given, ...(family ? [family] : [])].join(' ').trim();
+    if (formatted) return formatted;
+  }
 
   codeableConceptCandidates.push(
     resource.code,
     resource.title,
     resource.name,
     resource.description,
+    resource.summary,
     resource.scope,
     resource.category,
   );
@@ -764,12 +961,12 @@ function resolveFhirResourceTitle(
     if (plainText && typeof candidate !== 'object') {
       return plainText;
     }
-    const label = resolveCodeableConceptLabel(candidate);
+    const label = resolveCodeableConceptPreferredLabel(candidate);
     if (label) {
       return label;
     }
     for (const item of asArray(candidate)) {
-      const arrayLabel = resolveCodeableConceptLabel(item);
+      const arrayLabel = resolveCodeableConceptPreferredLabel(item);
       if (arrayLabel) return arrayLabel;
     }
   }
@@ -884,6 +1081,20 @@ function resolveCodeableConceptLabel(value: unknown): string | undefined {
     .map((coding) => trimValue(asRecord(coding).display))
     .find(Boolean);
   return buildCombinedLabel(localText, internationalDisplay);
+}
+
+/**
+ * Compact clinical cards show one human label. The local FHIR
+ * `CodeableConcept.text` wins; the terminology `Coding.display` is the
+ * English/international fallback. `system|code` is never treated as a label.
+ */
+function resolveCodeableConceptPreferredLabel(value: unknown): string | undefined {
+  const concept = asRecord(value);
+  const localText = trimValue(concept.text) || undefined;
+  if (localText) return localText;
+  return asArray(concept.coding)
+    .map((coding) => trimValue(asRecord(coding).display))
+    .find(Boolean);
 }
 
 function resolveCodeableConceptToken(value: unknown): string | undefined {

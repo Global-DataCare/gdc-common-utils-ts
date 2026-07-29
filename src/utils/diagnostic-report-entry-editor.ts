@@ -82,6 +82,26 @@ export class DiagnosticReportEntryEditor extends ClinicalResourceEntryEditor {
     return this.getScalarClaim(DiagnosticReportClaim.Code);
   }
 
+  /** Sets the local-language report name projected to FHIR `code.text`. */
+  public setCodeTextLocal(text?: string | null): this {
+    return this.setScalarClaim(DiagnosticReportClaim.CodeText, text);
+  }
+
+  /** Returns the local-language report name. */
+  public getCodeTextLocal(): string | undefined {
+    return this.getScalarClaim(DiagnosticReportClaim.CodeText);
+  }
+
+  /** Sets the English/international terminology display. */
+  public setCodeDisplay(display?: string | null): this {
+    return this.setScalarClaim(DiagnosticReportClaim.CodeDisplay, display);
+  }
+
+  /** Returns the English/international terminology display. */
+  public getCodeDisplay(): string | undefined {
+    return this.getScalarClaim(DiagnosticReportClaim.CodeDisplay);
+  }
+
   /** Sets the encounter reference linked to this report. */
   public setEncounter(reference?: string | null): this {
     return this.setScalarClaim(DiagnosticReportClaim.Encounter, reference);
