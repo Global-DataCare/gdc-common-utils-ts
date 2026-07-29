@@ -59,7 +59,7 @@ export interface DeviceLicense {
    * Organization that owns this seat pool.
    *
    * This is essential for hosted individual organizations because many
-   * households can share one UNID tenant vault. It is distinct from
+   * households can share one tenant vault. It is distinct from
    * `subjectId`, which identifies the member currently assigned to the seat.
    */
   ownerOrganizationId?: string;

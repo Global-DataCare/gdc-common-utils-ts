@@ -129,8 +129,5 @@ const matchingText = summary.document.getContainingTextOrDisplay(
   `gdc-sdk-node-ts/tests/101-individual-summary-communication.test.mjs`
 - Complete SDK lifecycle:
   `gdc-sdk-node-ts/docs/101-SDK_END_TO_END.md`, section 7.13
-- UHC UNID screen using the same Bundle semantics:
-  `custom/uhc-unidonline-next/src/components/portal/IpsClinicalViewer.tsx`
-
 For authoring and ingestion, which is a different lifecycle, continue with
 [101-IPS_BUNDLE.md](./101-IPS_BUNDLE.md).

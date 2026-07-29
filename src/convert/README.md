@@ -14,12 +14,7 @@ Current contract:
 These converters are used by `gdc-common-utils-ts` to keep a claims-first
 workflow while still regenerating canonical FHIR R4 resources when needed.
 
-Prior work:
-
-- `uhc-fhir-utils-ts`
-- https://github.com/Universal-Health-Chain/uhc-fhir-utils-ts
-
-This folder adapts that earlier line of work to:
+This folder supports:
 
 - reverse-DNS flat claims
 - IPS bundle extraction/regeneration

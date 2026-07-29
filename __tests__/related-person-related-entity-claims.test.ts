@@ -25,7 +25,7 @@ describe('RelatedPerson related-entity claims', () => {
 
   it('offers the documented compact family selector without invented or gendered fallback codes', () => {
     // Step 1. FAMMEMB is the neutral member fallback and specific choices stay
-    // small enough for the UHC/VetChain selector shared by non-employees.
+    // small enough for an application selector shared by non-employees.
     expect(HL7_INDIVIDUAL_MEMBER_RELATIONSHIP_CODES).toEqual([
       'FAMMEMB', 'WIFE', 'HUSB', 'DOMPART', 'SIS', 'BRO', 'SON', 'DAU',
       'PRN', 'GRPRN', 'GRNDCHILD', 'GGRPRN', 'FRND', 'NBOR', 'ROOM',
@@ -59,7 +59,7 @@ describe('RelatedPerson related-entity claims', () => {
             meta: {
               claims: {
                 [RelatedPersonClaim.IdentifierValue]: 'urn:uuid:country-group-1',
-                [RelatedPersonClaim.Patient]: 'did:web:unid.online:card:subject-1',
+                [RelatedPersonClaim.Patient]: 'did:web:subject.example:card:subject-1',
                 [RelatedPersonClaim.Name]: 'Emergencias España y Portugal',
                 [RelatedPersonClaim.RelatedEntityType]: 'country-set',
                 [RelatedPersonClaim.ActorIdentifier]: 'ES,PT',

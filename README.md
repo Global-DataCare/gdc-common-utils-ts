@@ -40,18 +40,6 @@ Shared TypeScript utilities for GDC client and connector code. This package prov
 
 It is intentionally not a full backend orchestration layer.
 
-## Prior Work
-
-Part of the FHIR conversion layer in this repository builds on earlier work
-from the Universal Health Chain repository:
-
-- `uhc-fhir-utils-ts`
-- https://github.com/Universal-Health-Chain/uhc-fhir-utils-ts
-
-The current `src/convert` and `src/claims` layers adapt and extend that prior
-work to the claims-first contracts, IPS bundle workflows, and package
-boundaries used in `gdc-common-utils-ts`.
-
 ## Non-Negotiable Conventions
 
 - FHIR SearchParameter names must use canonical FHIR naming (lowercase, with `-` when defined by FHIR).

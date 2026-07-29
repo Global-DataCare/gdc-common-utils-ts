@@ -165,16 +165,16 @@ for (const section of sectionCards) {
 }
 ```
 
-This is the same model used by the UHC UNID viewer:
+This is the model applications use to render a clinical viewer:
 
 - `Composition.section` decides placement
 - each section card displays its current visible resource count
 - section/type/text/date filters narrow the in-memory resources
 
 For text filtering in a generic UI, render the returned card DTOs or use
-`getContainingTextOrDisplay(...)` for one resource type. UHC UNID uses the
-shared `toClinicalSectionViews(bundle)` rendering projection before applying
-its UI text filter.
+`getContainingTextOrDisplay(...)` for one resource type. Apply the shared
+`toClinicalSectionViews(bundle)` projection before any application-owned UI
+text filter.
 
 ## 7. Empty And Missing Data
 
@@ -221,4 +221,3 @@ with authoritative `requestClinicalSummary(...)` readback.
 - `gdc-sdk-core-ts/tests/101-clinical-summary-communication.test.mjs`
 - `gdc-sdk-node-ts/tests/101-individual-summary-communication.test.mjs`
 - `gdc-sdk-node-ts/docs/101-SDK_END_TO_END.md`, section 7.13
-- `custom/uhc-unidonline-next/src/components/portal/IpsClinicalViewer.tsx`

@@ -81,6 +81,6 @@ export interface IssuerElectronicRecordBase {
 export interface IssuerElectronicRecordDLT extends
     IssuerElectronicRecordBase
 {
-    id?:            string; // custom UHC property instead of 'name'
-    type?:          string; // custom UHC property
+    id?:            string; // extension property used instead of 'name'
+    type?:          string; // extension property
 }

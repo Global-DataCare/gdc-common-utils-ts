@@ -263,7 +263,7 @@ export async function decryptDataRecipient(privateKeyBytes:Uint8Array, kid:strin
         throw new Error(`missing key for recipient kid ${kid}`);
     }
 
-    // decrypt or decapsulate the CEK by the UHC supported algorithm used for the recipient (Kyber-768 or X25519)
+    // decrypt or decapsulate the CEK with the recipient algorithm (Kyber-768 or X25519)
     if (!kidRecipient.header.alg){
         throw new Error(`missing key for recipient kid ${kid}`);
     }
@@ -355,7 +355,7 @@ export async function cekDecryptBytes(jsonJWE:StandardJWE, privateKeyBytes:Uint8
         throw new Error(`missing key for recipient kid ${kid}`);
     }
 
-    // decrypt or decapsulate the CEK by the UHC supported algorithm used for the recipient (Kyber-768 or X25519)
+    // decrypt or decapsulate the CEK with the recipient algorithm (Kyber-768 or X25519)
     if (!kidRecipient.header.alg){
         throw new Error(`missing key for recipient kid ${kid}`);
     }

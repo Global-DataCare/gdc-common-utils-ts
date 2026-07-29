@@ -76,7 +76,7 @@ That is the 101 path: `Communication.content-reference` selects
 `Parameters` resource. The runtime executes this through
 `requestClinicalSummary(...)`; it must not call an ingestion method.
 
-When rendered as native FHIR R4 or UHC R5, those two flat claims become two
+When rendered as a native FHIR projection, those two flat claims become two
 elements of the same `Communication.payload[]` array:
 
 ```ts
@@ -113,7 +113,7 @@ The reader hierarchy is:
 - `LifecycleResultReader` owns command/search outcome statuses and issues; it
   does not read the clinical document
 - Node/Front actor facades return the same `ClinicalSummaryReadResult`
-- UHC SDKs reuse those readers and only add product projections such as R5
+- extension packages reuse those readers and may add product-owned projections
 
 `ClinicalSummaryReadResult` always has four fields: `operation` for transport
 and polling evidence, `bundle` for the authoritative FHIR document,

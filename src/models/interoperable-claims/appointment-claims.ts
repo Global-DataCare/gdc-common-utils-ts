@@ -7,7 +7,6 @@
  * This model aligns with FHIR R5 conventions (using `note.text` instead of `comment`)
  * for forward compatibility and consistency with other resources like Communication.
  * 
- * @basedon https://github.com/Universal-Health-Chain/uhc-fhir-utils-ts/blob/main/src/models/templates/Appointment.template.model.ts
  */
 
 /**

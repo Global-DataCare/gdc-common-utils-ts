@@ -6,7 +6,7 @@ import {
 } from '../src/utils/unified-health-id.js';
 
 describe('utils/unified-health-id', () => {
-  it('computes the provider-scoped control digit for the UNID example and ignores separators', () => {
+  it('computes a provider-scoped control digit and ignores separators', () => {
     const providerId = '72400-0000';
     const personalPayload = '000-000-000-00';
 
@@ -15,8 +15,8 @@ describe('utils/unified-health-id', () => {
 
     expect(checkDigit).toBe('1');
     expect(personalDigits).toBe('000000000001');
-    expect(`did:web:unid.online:personal:${personalDigits.slice(0, 3)}-${personalDigits.slice(3, 6)}-${personalDigits.slice(6, 9)}-${personalDigits.slice(9, 12)}`)
-      .toBe('did:web:unid.online:personal:000-000-000-001');
+    expect(`did:web:subject.example:personal:${personalDigits.slice(0, 3)}-${personalDigits.slice(3, 6)}-${personalDigits.slice(6, 9)}-${personalDigits.slice(9, 12)}`)
+      .toBe('did:web:subject.example:personal:000-000-000-001');
   });
 
   it('changes the control digit for the 84000-0000 provider with the same personal payload', () => {

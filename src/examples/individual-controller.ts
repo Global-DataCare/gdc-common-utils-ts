@@ -5,7 +5,7 @@
  *
  * CORE canonical examples in this file avoid phone-specific subject/controller
  * fields unless the flow truly requires them. Telephone-driven notification or
- * consent targeting is treated as an extension concern (for example UNID GW),
+ * consent targeting is treated as an extension concern,
  * not a CORE GW contract requirement.
  *
  * Semantic split:
