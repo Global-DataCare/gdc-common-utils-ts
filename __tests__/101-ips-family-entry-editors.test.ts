@@ -419,6 +419,7 @@ describe('101: IPS family entry editors', () => {
       .asAllergy()
       .setIdentifier(EXAMPLE_ALLERGY_IDENTIFIER)
       .setSubject(EXAMPLE_SUBJECT_DID)
+      .setSectionList([HealthcareBasicSections.AllergiesAndIntolerances.attributeValue])
       .setCode(EXAMPLE_ALLERGY_CODE)
       .setCodeTextLocal('Penicilina')
       .setCodeDisplay('Penicillin')
@@ -436,6 +437,7 @@ describe('101: IPS family entry editors', () => {
       [AllergyIntoleranceClaim.Identifier]: EXAMPLE_ALLERGY_IDENTIFIER,
       [AllergyIntoleranceClaim.Subject]: EXAMPLE_SUBJECT_DID,
       [AllergyIntoleranceClaim.Patient]: EXAMPLE_SUBJECT_DID,
+      'AllergyIntolerance.section': HealthcareBasicSections.AllergiesAndIntolerances.attributeValue,
       [AllergyIntoleranceClaim.Code]: EXAMPLE_ALLERGY_CODE,
       [AllergyIntoleranceClaim.CodeText]: 'Penicilina',
       [AllergyIntoleranceClaim.CodeDisplay]: 'Penicillin',

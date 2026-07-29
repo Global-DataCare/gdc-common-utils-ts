@@ -4,6 +4,14 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.3.11] - 2026-07-30
+
+### Added
+
+- Add `setSectionList(...)`, `getSectionList()` and `addSection(...)` to every
+  typed clinical entry editor. IPS Composition placement is now authored
+  independently from clinical category fields.
+
 ## [2.3.10] - 2026-07-29
 
 ### Fixed

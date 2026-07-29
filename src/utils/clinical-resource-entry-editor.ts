@@ -363,6 +363,32 @@ export class ClinicalResourceEntryEditor extends BundleEntryEditor {
     return this.getScalarClaim(this.getResourceScopedClaimKey('language'));
   }
 
+  /**
+   * Assigns the resource to one or more Composition sections.
+   *
+   * Section placement is document structure, not the resource's clinical
+   * category. `BundleEditor.buildDocument()` consumes this
+   * `<ResourceType>.section` claim to create `Composition.section.entry`
+   * references without overloading fields such as
+   * `AllergyIntolerance.category`.
+   */
+  public setSectionList(sectionCodes: readonly string[]): this {
+    return this.setCsvClaimList(this.getResourceScopedClaimKey('section'), sectionCodes);
+  }
+
+  /** Returns the explicit Composition section codes staged for this resource. */
+  public getSectionList(): string[] {
+    return this.getCsvClaimList(this.getResourceScopedClaimKey('section'));
+  }
+
+  /** Adds one Composition section code while preserving existing assignments. */
+  public addSection(sectionCode: string): this {
+    const normalized = String(sectionCode || '').trim();
+    return normalized
+      ? this.setSectionList([...new Set([...this.getSectionList(), normalized])])
+      : this;
+  }
+
   /** Stores the generic `<ResourceType>.user-selected` flag used by self-managed user flows. */
   public setUserSelected(value?: boolean | null): this {
     return this.setBooleanClaim(this.getResourceScopedClaimKey('user-selected'), value);
