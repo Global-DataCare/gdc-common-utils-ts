@@ -225,9 +225,13 @@ export function toClinicalResourceExpandedViews(bundle: ClinicalResourceBundleLi
  *
  * The Composition is authoritative for grouping. Resource type is deliberately
  * not used to guess a section because Observation and supporting resources can
- * be referenced from several IPS sections.
+ * be referenced from several IPS sections. Display options are propagated to
+ * every generated card.
  */
-export function toClinicalSectionViews(bundle: ClinicalResourceBundleLike): ClinicalSectionView[] {
+export function toClinicalSectionViews(
+  bundle: ClinicalResourceBundleLike,
+  options: ClinicalResourceDisplayOptions = {},
+): ClinicalSectionView[] {
   const entries = readBundleEntries(bundle);
   const composition = entries.find((entry) => entry.resource?.resourceType === ResourceTypesFhirR4.Composition);
   if (!composition?.resource) {
@@ -263,7 +267,7 @@ export function toClinicalSectionViews(bundle: ClinicalResourceBundleLike): Clin
       ...(resolveCodeableConceptLabel(section.emptyReason)
         ? { emptyReason: resolveCodeableConceptLabel(section.emptyReason) }
         : {}),
-      resources: resolvedEntries.map((entry) => toClinicalResourceCardView(entry)),
+      resources: resolvedEntries.map((entry) => toClinicalResourceCardView(entry, options)),
       unresolvedReferences,
     };
   });
