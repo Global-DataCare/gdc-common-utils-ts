@@ -408,6 +408,52 @@ describe('clinical resource common view', () => {
     expect(sections[1].resources.map((resource) => resource.title)).toEqual(['Presion arterial']);
   });
 
+  it('propagates UI locale and terminology translation while building section cards', () => {
+    const bundle = {
+      resourceType: 'Bundle',
+      type: 'document',
+      entry: [
+        {
+          resource: {
+            resourceType: ResourceTypesFhirR4.Composition,
+            section: [{
+              title: 'Problems',
+              code: { coding: [{ system: 'http://loinc.org', code: '11450-4' }] },
+              entry: [{ reference: 'Condition/diabetes' }],
+            }],
+          },
+        },
+        {
+          fullUrl: 'Condition/diabetes',
+          resource: {
+            resourceType: ResourceTypesFhirR4.Condition,
+            id: 'diabetes',
+            language: 'es',
+            code: {
+              text: 'Diabetes mellitus tipo 2',
+              coding: [{
+                system: 'http://snomed.info/sct',
+                code: '44054006',
+                display: 'Type 2 diabetes mellitus',
+              }],
+            },
+          },
+        },
+      ],
+    };
+
+    expect(toClinicalSectionViews(bundle, { locale: 'es-ES' })[0].resources[0].title)
+      .toBe('Diabetes mellitus tipo 2');
+    expect(toClinicalSectionViews(bundle, { locale: 'en' })[0].resources[0].title)
+      .toBe('Type 2 diabetes mellitus');
+    expect(toClinicalSectionViews(bundle, {
+      locale: 'fr',
+      translateCode: ({ token }) => token === 'http://snomed.info/sct|44054006'
+        ? 'Diabète de type 2'
+        : undefined,
+    })[0].resources[0].title).toBe('Diabète de type 2');
+  });
+
   it('keeps unresolved Composition references visible to the caller', () => {
     const sections = toClinicalSectionViews({
       resourceType: 'Bundle',

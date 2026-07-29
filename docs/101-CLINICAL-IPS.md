@@ -150,19 +150,19 @@ network request.
 ## 6. Build A UI View Model
 
 ```ts
-const sectionCards = summary.reader.getDocumentSections().map((section) => {
-  const sectionKey = section.claim ?? section.code ?? '';
-  const sectionView = summary.document.filterBySections([sectionKey]);
-  const resources = sectionView.getResources();
-
-  return {
-    key: sectionKey,
-    declaredCount:
-      summary.reader.getDocumentSectionResourceCount(sectionKey),
-    visibleCount: sectionView.getResourceCount(),
-    resources,
-  };
+const sectionCards = toClinicalSectionViews(summary.bundle, {
+  locale: currentUserLocale,
+  translateCode: terminology.translate,
 });
+
+for (const section of sectionCards) {
+  renderSection({
+    code: section.code,
+    title: section.title,
+    cards: section.resources,
+    unresolvedReferences: section.unresolvedReferences,
+  });
+}
 ```
 
 This is the same model used by the UHC UNID viewer:
@@ -171,7 +171,7 @@ This is the same model used by the UHC UNID viewer:
 - each section card displays its current visible resource count
 - section/type/text/date filters narrow the in-memory resources
 
-For text filtering in a generic UI, render a card DTO or use
+For text filtering in a generic UI, render the returned card DTOs or use
 `getContainingTextOrDisplay(...)` for one resource type. UHC UNID uses the
 shared `toClinicalSectionViews(bundle)` rendering projection before applying
 its UI text filter.
@@ -193,15 +193,27 @@ Read:
 await individualSdk.requestClinicalSummary(...);
 ```
 
-Write/project:
+Author and display the change locally in the UI:
 
 ```ts
-await individualSdk.ingestCommunicationAndUpdateIndex(...);
+const submittedBundle = editor.build();
+renderBundle(workingCopy.applyOptimisticBundle(submittedBundle));
+await portalBff.submitClinicalBundle(submittedBundle);
 ```
 
-Do not call the write method to retrieve clinical data. Use `BundleEditor` and
-the Communication ingestion lifecycle only when the user is adding or changing
-resources.
+The UI does not ingest or update an index. It edits a disposable in-memory
+Bundle/ViewModel and submits the command to its authenticated BFF.
+
+Only the backend/BFF executes the write:
+
+```ts
+await backendProfile.sdk.ingestCommunicationAndUpdateIndex(ctx, {
+  communicationJob,
+});
+```
+
+The UI reconciles per-entry GW errors and finally replaces its local projection
+with authoritative `requestClinicalSummary(...)` readback.
 
 ## Executable References
 

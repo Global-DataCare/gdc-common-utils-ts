@@ -4,6 +4,17 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.3.10] - 2026-07-29
+
+### Fixed
+
+- Propagate UI locale and terminology translation through
+  `toClinicalSectionViews(...)`, so the complete Bundle-to-sections-to-cards
+  projection follows the same display contract as individual clinical cards.
+- Clarify the 101 boundary: browser UI authors and renders a disposable
+  in-memory Bundle, while only the authenticated backend/BFF calls
+  `ingestCommunicationAndUpdateIndex(...)`.
+
 ## [2.3.9] - 2026-07-29
 
 ### Fixed
