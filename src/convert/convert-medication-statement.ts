@@ -33,7 +33,13 @@ export function medicationStatementFlatToFhirR4(claims: FlatClaims): FhirResourc
     subject: { reference: subject },
     effectiveDateTime,
     medicationCodeableConcept: claims[MedicationStatementClaim.Code]
-      ? { coding: codingFromValue(claims[MedicationStatementClaim.Code]) }
+      ? {
+        coding: codingFromValue(claims[MedicationStatementClaim.Code])?.map((coding) => ({
+          ...coding,
+          ...(claims[MedicationStatementClaim.CodeDisplay] ? { display: claims[MedicationStatementClaim.CodeDisplay] } : {}),
+        })),
+        ...(medicationText ? { text: medicationText } : {}),
+      }
       : (!hasContainedMedication && medicationText ? { text: medicationText } : undefined),
     medicationReference: hasContainedMedication ? { reference: `#${containedMedicationId}` } : undefined,
     contained: containedMedication ? [containedMedication] : undefined,
@@ -51,8 +57,9 @@ export function medicationStatementFhirR4ToFlat(resource: FhirResource): FlatCla
   const containedMedicationIdentifier = (containedMedication?.identifier as Array<{ value?: string }> | undefined)?.[0]?.value;
   const containedMedicationText = (containedMedication?.code as { text?: string } | undefined)?.text;
   const batch = containedMedication?.batch as { lotNumber?: string; expirationDate?: string } | undefined;
-  const medicationCode = codingToValue((resource.medicationCodeableConcept as { coding?: Array<{ system?: string; code?: string }> } | undefined)?.coding?.[0]);
-  const medicationText = containedMedicationText || (resource.medicationCodeableConcept as { text?: string } | undefined)?.text || undefined;
+  const medicationConcept = resource.medicationCodeableConcept as { text?: string; coding?: Array<{ system?: string; code?: string; display?: string }> } | undefined;
+  const medicationCode = codingToValue(medicationConcept?.coding?.[0]);
+  const medicationText = containedMedicationText || medicationConcept?.text || undefined;
   return {
     [MedicationStatementClaim.Identifier]: (resource.identifier as Array<{ value?: string }> | undefined)?.[0]?.value,
     [MedicationStatementClaim.Subject]: (resource.subject as { reference?: string } | undefined)?.reference,
@@ -60,6 +67,7 @@ export function medicationStatementFhirR4ToFlat(resource: FhirResource): FlatCla
     [MedicationStatementClaim.Effective]: resource.effectiveDateTime as string | undefined,
     [MedicationStatementClaim.Code]: medicationCode,
     [MedicationStatementClaim.MedicationText]: medicationText,
+    [MedicationStatementClaim.CodeDisplay]: medicationConcept?.coding?.[0]?.display,
     [MedicationStatementClaim.Note]: (resource.note as Array<{ text?: string }> | undefined)?.[0]?.text,
     [MedicationStatementClaim.DosageInstruction]: (resource.dosage as Array<{ text?: string }> | undefined)?.[0]?.text,
     [MedicationStatementClaim.MedicationIdentifier]: containedMedicationIdentifier,

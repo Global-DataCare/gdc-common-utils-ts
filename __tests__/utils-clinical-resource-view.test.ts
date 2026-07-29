@@ -46,7 +46,7 @@ describe('clinical resource common view', () => {
     const view = toClinicalResourceCommonView(consentEntry);
 
     expect(view.resourceType).toBe(ResourceTypesFhirR4.Consent);
-    expect(view.title).toBe('LOINC|64292-6');
+    expect(view.title).toBe(ResourceTypesFhirR4.Consent);
     expect(view.identifier).toBe('consent-1');
     expect(view.date).toBe('2026-06-01');
     expect(view.periodStart).toBe('2026-06-01T00:00:00Z');
@@ -266,7 +266,7 @@ describe('clinical resource common view', () => {
     const views = toClinicalResourceCommonViews(bundle);
 
     expect(views[0]).toEqual(expect.objectContaining({
-      title: 'http://snomed.info/sct|44054006',
+      title: ResourceTypesFhirR4.Condition,
       resourceType: ResourceTypesFhirR4.Condition,
       identifier: 'condition-1',
       date: '2026-05-03T09:00:00Z',
@@ -277,7 +277,7 @@ describe('clinical resource common view', () => {
     ]));
 
     expect(views[1]).toEqual(expect.objectContaining({
-      title: 'http://snomed.info/sct|227493005',
+      title: ResourceTypesFhirR4.AllergyIntolerance,
       resourceType: ResourceTypesFhirR4.AllergyIntolerance,
       identifier: 'allergy-1',
       date: '2026-05-01T08:30:00Z',
@@ -343,7 +343,7 @@ describe('clinical resource common view', () => {
 
     expect(cards).toEqual([
       {
-        title: 'Metformina 850 mg (Metformin 850 mg oral tablet)',
+        title: 'Metformina 850 mg',
         resourceType: ResourceTypesFhirR4.MedicationStatement,
         date: '2026-07-01',
         fullUrl: 'urn:uuid:medication-statement-ips-1',

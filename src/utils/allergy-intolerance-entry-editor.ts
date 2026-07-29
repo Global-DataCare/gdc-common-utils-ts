@@ -47,6 +47,14 @@ export class AllergyIntoleranceEntryEditor extends ClinicalResourceEntryEditor {
   public setCode(code?: string | null): this { return this.setScalarClaim(AllergyIntoleranceClaim.Code, code); }
   /** Reads the coded allergy substance. */
   public getCode(): string | undefined { return this.getScalarClaim(AllergyIntoleranceClaim.Code); }
+  /** Writes the local-language allergy name projected to FHIR `code.text`. */
+  public setCodeTextLocal(text?: string | null): this { return this.setScalarClaim(AllergyIntoleranceClaim.CodeText, text); }
+  /** Reads the local-language allergy name. */
+  public getCodeTextLocal(): string | undefined { return this.getScalarClaim(AllergyIntoleranceClaim.CodeText); }
+  /** Writes the English/international terminology display. */
+  public setCodeDisplay(display?: string | null): this { return this.setScalarClaim(AllergyIntoleranceClaim.CodeDisplay, display); }
+  /** Reads the English/international terminology display. */
+  public getCodeDisplay(): string | undefined { return this.getScalarClaim(AllergyIntoleranceClaim.CodeDisplay); }
   /** Writes the clinical status. */
   public setClinicalStatus(status?: string | null): this { return this.setScalarClaim(AllergyIntoleranceClaim.ClinicalStatus, status); }
   /** Reads the clinical status. */

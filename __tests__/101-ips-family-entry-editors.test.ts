@@ -351,6 +351,8 @@ describe('101: IPS family entry editors', () => {
       .setDate(EXAMPLE_DIAGNOSTIC_REPORT_DATE)
       .setCategory(EXAMPLE_DIAGNOSTIC_REPORT_CATEGORY)
       .setCode(EXAMPLE_DIAGNOSTIC_REPORT_CODE)
+      .setCodeTextLocal('Hemograma completo')
+      .setCodeDisplay('Complete blood count panel')
       .setEncounter(EXAMPLE_DIAGNOSTIC_REPORT_ENCOUNTER_REFERENCE)
       .setPerformerList([EXAMPLE_DIAGNOSTIC_REPORT_PERFORMER_REFERENCE])
       .setResultList([EXAMPLE_DIAGNOSTIC_REPORT_RESULT_REFERENCE])
@@ -363,6 +365,8 @@ describe('101: IPS family entry editors', () => {
     // Step 2.
     expect(entryEditor.getCategory()).toBe(EXAMPLE_DIAGNOSTIC_REPORT_CATEGORY);
     expect(entryEditor.getCode()).toBe(EXAMPLE_DIAGNOSTIC_REPORT_CODE);
+    expect(entryEditor.getCodeTextLocal()).toBe('Hemograma completo');
+    expect(entryEditor.getCodeDisplay()).toBe('Complete blood count panel');
     expect(entryEditor.getPerformerList()).toEqual([EXAMPLE_DIAGNOSTIC_REPORT_PERFORMER_REFERENCE]);
     expect(entryEditor.getResultList()).toEqual([EXAMPLE_DIAGNOSTIC_REPORT_RESULT_REFERENCE]);
     expect(entryEditor.getSpecimenList()).toEqual([EXAMPLE_DIAGNOSTIC_REPORT_SPECIMEN_REFERENCE]);
@@ -386,6 +390,8 @@ describe('101: IPS family entry editors', () => {
       [DiagnosticReportClaim.Date]: EXAMPLE_DIAGNOSTIC_REPORT_DATE,
       [DiagnosticReportClaim.Category]: EXAMPLE_DIAGNOSTIC_REPORT_CATEGORY,
       [DiagnosticReportClaim.Code]: EXAMPLE_DIAGNOSTIC_REPORT_CODE,
+      [DiagnosticReportClaim.CodeText]: 'Hemograma completo',
+      [DiagnosticReportClaim.CodeDisplay]: 'Complete blood count panel',
       [DiagnosticReportClaim.PresentedFormContentType]:
         EXAMPLE_DIAGNOSTIC_REPORT_PRESENTED_FORM_CONTENT_TYPE,
       [DiagnosticReportClaim.PresentedFormData]:
@@ -414,6 +420,8 @@ describe('101: IPS family entry editors', () => {
       .setIdentifier(EXAMPLE_ALLERGY_IDENTIFIER)
       .setSubject(EXAMPLE_SUBJECT_DID)
       .setCode(EXAMPLE_ALLERGY_CODE)
+      .setCodeTextLocal('Penicilina')
+      .setCodeDisplay('Penicillin')
       .setClinicalStatus(AllergyIntoleranceClinicalStatuses.Active)
       .setVerificationStatus(AllergyIntoleranceVerificationStatuses.Confirmed)
       .setCategory(EXAMPLE_ALLERGY_CATEGORY)
@@ -429,6 +437,8 @@ describe('101: IPS family entry editors', () => {
       [AllergyIntoleranceClaim.Subject]: EXAMPLE_SUBJECT_DID,
       [AllergyIntoleranceClaim.Patient]: EXAMPLE_SUBJECT_DID,
       [AllergyIntoleranceClaim.Code]: EXAMPLE_ALLERGY_CODE,
+      [AllergyIntoleranceClaim.CodeText]: 'Penicilina',
+      [AllergyIntoleranceClaim.CodeDisplay]: 'Penicillin',
       [AllergyIntoleranceClaim.ClinicalStatus]: AllergyIntoleranceClinicalStatuses.Active,
       [AllergyIntoleranceClaim.VerificationStatus]: AllergyIntoleranceVerificationStatuses.Confirmed,
       [AllergyIntoleranceClaim.ContainedReferenceList]: EXAMPLE_ALLERGY_DOCUMENT_IDENTIFIER,
@@ -445,6 +455,8 @@ describe('101: IPS family entry editors', () => {
       .setIdentifier(EXAMPLE_CONDITION_IDENTIFIER_SECONDARY)
       .setSubject(EXAMPLE_SUBJECT_DID)
       .setCode(EXAMPLE_CONDITION_CODE)
+      .setCodeTextLocal('Diabetes mellitus tipo 2')
+      .setCodeDisplay('Type 2 diabetes mellitus')
       .setClinicalStatus(ConditionClinicalStatuses.Active)
       .setVerificationStatus(ConditionVerificationStatuses.Confirmed)
       .setCategory(EXAMPLE_CONDITION_CATEGORY_PROBLEM_LIST_ITEM)
@@ -459,6 +471,8 @@ describe('101: IPS family entry editors', () => {
       [ConditionClaim.Identifier]: EXAMPLE_CONDITION_IDENTIFIER_SECONDARY,
       [ConditionClaim.Subject]: EXAMPLE_SUBJECT_DID,
       [ConditionClaim.Code]: EXAMPLE_CONDITION_CODE,
+      [ConditionClaim.CodeText]: 'Diabetes mellitus tipo 2',
+      [ConditionClaim.CodeDisplay]: 'Type 2 diabetes mellitus',
       [ConditionClaim.ClinicalStatus]: ConditionClinicalStatuses.Active,
       [ConditionClaim.VerificationStatus]: ConditionVerificationStatuses.Confirmed,
       [ConditionClaim.Severity]: EXAMPLE_CONDITION_SEVERITY,
@@ -479,6 +493,7 @@ describe('101: IPS family entry editors', () => {
       .setEffective(EXAMPLE_MEDICATION_IBUPROFEN_EFFECTIVE)
       .setCode(EXAMPLE_MEDICATION_CODE_RXNORM)
       .setMedicationText(EXAMPLE_MEDICATION_IBUPROFEN_TEXT)
+      .setCodeDisplay('Ibuprofen')
       .setNote(EXAMPLE_MEDICATION_IBUPROFEN_NOTE)
       .setCategoryList([HealthcareBasicSections.HistoryOfMedicationUse.attributeValue])
       .setDoseQuantityValue(400)
@@ -496,6 +511,7 @@ describe('101: IPS family entry editors', () => {
       [MedicationStatementClaim.Patient]: EXAMPLE_SUBJECT_DID,
       [MedicationStatementClaim.Code]: EXAMPLE_MEDICATION_CODE_RXNORM,
       [MedicationStatementClaim.MedicationText]: EXAMPLE_MEDICATION_IBUPROFEN_TEXT,
+      [MedicationStatementClaim.CodeDisplay]: 'Ibuprofen',
       [MedicationStatementClaim.Note]: EXAMPLE_MEDICATION_IBUPROFEN_NOTE,
     });
 
@@ -576,6 +592,8 @@ describe('101: IPS family entry editors', () => {
           .setStatus(EXAMPLE_FLAG_STATUS_ACTIVE)
           .setCategory(EXAMPLE_FLAG_CATEGORY)
           .setCode(EXAMPLE_FLAG_CODE)
+          .setCodeTextLocal('Dieta sin marisco')
+          .setCodeDisplay('Shellfish free diet')
           .setDate(EXAMPLE_FLAG_DATE)
           .setEncounter(EXAMPLE_FLAG_ENCOUNTER_REFERENCE)
           .setPeriodStart(EXAMPLE_FLAG_PERIOD_START)
@@ -588,6 +606,8 @@ describe('101: IPS family entry editors', () => {
       [FlagClaim.Subject]: EXAMPLE_SUBJECT_DID,
       [FlagClaim.Patient]: EXAMPLE_SUBJECT_DID,
       [FlagClaim.Status]: EXAMPLE_FLAG_STATUS_ACTIVE,
+      [FlagClaim.CodeText]: 'Dieta sin marisco',
+      [FlagClaim.CodeDisplay]: 'Shellfish free diet',
     });
 
     // Step 3. ClinicalImpression

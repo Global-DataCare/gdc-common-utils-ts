@@ -173,6 +173,17 @@ export function convertFhirResourceToClaims(
   resource: FhirResource,
   context: string = 'org.hl7.fhir.r4',
 ): FlatClaims {
+  const claims = convertFhirResourceToClaimsByType(resource, context);
+  const language = typeof resource.language === 'string' ? resource.language.trim() : '';
+  return language
+    ? { ...claims, [`${resource.resourceType}.language`]: language }
+    : claims;
+}
+
+function convertFhirResourceToClaimsByType(
+  resource: FhirResource,
+  context: string,
+): FlatClaims {
   switch (resource.resourceType) {
     case 'MedicationStatement':
       return medicationStatementFhirR4ToFlat(resource);

@@ -55,6 +55,14 @@ export class FlagEntryEditor extends ClinicalResourceEntryEditor {
   public setCode(value?: string | null): this { return this.setScalarClaim(FlagClaim.Code, value); }
   /** Reads the flag code. */
   public getCode(): string | undefined { return this.getScalarClaim(FlagClaim.Code); }
+  /** Writes the local-language alert name projected to FHIR `code.text`. */
+  public setCodeTextLocal(value?: string | null): this { return this.setScalarClaim(FlagClaim.CodeText, value); }
+  /** Reads the local-language alert name. */
+  public getCodeTextLocal(): string | undefined { return this.getScalarClaim(FlagClaim.CodeText); }
+  /** Writes the English/international terminology display. */
+  public setCodeDisplay(value?: string | null): this { return this.setScalarClaim(FlagClaim.CodeDisplay, value); }
+  /** Reads the English/international terminology display. */
+  public getCodeDisplay(): string | undefined { return this.getScalarClaim(FlagClaim.CodeDisplay); }
   /** Writes the flag date. */
   public setDate(value?: string | null): this { return this.setScalarClaim(FlagClaim.Date, value); }
   /** Reads the flag date. */

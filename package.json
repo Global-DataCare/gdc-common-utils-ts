@@ -1,6 +1,6 @@
 {
   "name": "gdc-common-utils-ts",
-  "version": "2.3.8",
+  "version": "2.3.9",
   "publishConfig": {
     "access": "public"
   },
@@ -115,10 +115,14 @@
     "./storage/*": {
       "types": "./dist/storage/*.d.ts",
       "default": "./dist/storage/*.js"
+    },
+    "./fixtures/fhir-ips-bundle-all-sections.json": {
+      "default": "./fixtures/fhir-ips-bundle-all-sections.json"
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "fixtures"
   ],
   "devDependencies": {
     "@babel/preset-env": "^7.24.0",

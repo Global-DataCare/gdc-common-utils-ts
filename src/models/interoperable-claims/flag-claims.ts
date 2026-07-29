@@ -13,6 +13,9 @@ export const FlagClaim = {
   Status: 'Flag.status',
   Category: 'Flag.category',
   Code: 'Flag.code',
+  CodeText: 'Flag.code-text',
+  CodeTextLocal: 'Flag.code-text',
+  CodeDisplay: 'Flag.code-display',
   PeriodStart: 'Flag.period-start',
   PeriodEnd: 'Flag.period-end',
 } as const;
@@ -29,6 +32,8 @@ export const FlagClaimSpecs: ClaimSpec[] = [
   { key: FlagClaim.Status, meaning: 'Flag status.', example: 'active' },
   { key: FlagClaim.Category, meaning: 'Flag category token.', example: 'http://terminology.hl7.org/CodeSystem/flag-category|safety' },
   { key: FlagClaim.Code, meaning: 'Flag code token.', example: 'http://loinc.org|104605-1' },
+  { key: FlagClaim.CodeText, meaning: 'Local-language alert name matching resource language.', example: 'Dieta sin marisco' },
+  { key: FlagClaim.CodeDisplay, meaning: 'English/international terminology display.', example: 'Shellfish free diet' },
   { key: FlagClaim.PeriodStart, meaning: 'Flag period start.', example: '2026-06-01T10:00:00Z' },
   { key: FlagClaim.PeriodEnd, meaning: 'Flag period end.', example: '2026-07-01T10:00:00Z' },
 ];
