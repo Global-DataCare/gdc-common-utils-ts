@@ -44,6 +44,13 @@ It is intentionally not a full backend orchestration layer.
 
 - FHIR SearchParameter names must use canonical FHIR naming (lowercase, with `-` when defined by FHIR).
 - Never use invented camelCase parameter names for FHIR claims/search keys (example: `Communication.part-of` is valid, `Communication.partOf` is not).
+- FHIR claims use exactly `<ResourceType>.<concrete-parameter>` and never add
+  pseudo-path segments. For example, the section/topic claim is
+  `Communication.topic`; the native projection may contain
+  `Communication.topic.coding`, but `Communication.topic.coding` is not a
+  claims key.
+- Schema.org claims are a different vocabulary and preserve the canonical
+  Schema.org camelCase property name.
 - Only define custom names when no canonical FHIR SearchParameter exists.
 - `resource.meta.claims` is the canonical project-specific claims container and must be preserved across conversions/transports.
 - `resource.meta.claims` is not part of base FHIR; it is a claims-first extension carried by FHIR-like resources in GDC contracts.
@@ -51,6 +58,12 @@ It is intentionally not a full backend orchestration layer.
   normalize them with `normalizeClaimsFromFhirResource(...)` at the processing
   boundary before indexed storage. Existing `resource.meta.claims` take
   precedence so SDK-authored semantics survive transport conversion.
+
+For a `Communication` whose attached Bundle is `batch` or `collection`, the
+application section code belongs in `Communication.topic`. A LOINC section code
+is serialized as native FHIR `topic.coding`; it is not inferred from
+`payload.contentCodeableConcept`. A document Bundle instead remains organized
+by its attached `Composition.section` graph.
 
 ## Identity Continuity
 
@@ -134,6 +147,7 @@ read first:
 - [`docs/101-CLINICAL-IPS.md`](docs/101-CLINICAL-IPS.md)
 - [`docs/REFERENCE-CLINICAL-IPS-API.md`](docs/REFERENCE-CLINICAL-IPS-API.md)
 - [`docs/101-CONSENT_PERMISSION_TEMPLATES.md`](docs/101-CONSENT_PERMISSION_TEMPLATES.md)
+- [`docs/101-INDIVIDUAL-MEMBER-SMART.md`](docs/101-INDIVIDUAL-MEMBER-SMART.md)
 
 Shared batch model for high-frequency clinical measurements:
 

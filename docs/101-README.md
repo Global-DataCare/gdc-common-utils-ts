@@ -12,6 +12,7 @@
 3. [gdc-sdk-core-ts/docs/101-USER_STORY_CANON.md](https://github.com/Global-DataCare/gdc-sdk-core-ts/blob/main/docs/101-USER_STORY_CANON.md)
 4. [101-BUNDLE_EDITOR_READER.md](./101-BUNDLE_EDITOR_READER.md)
 5. [101-LIFECYCLE.md](./101-LIFECYCLE.md)
+6. [101-INDIVIDUAL-MEMBER-SMART.md](./101-INDIVIDUAL-MEMBER-SMART.md)
 
 ## User Story Start
 

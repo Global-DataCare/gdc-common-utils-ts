@@ -32,6 +32,8 @@ export type ConsentActorDescriptor = Readonly<{
   actorKind?: ConsentActorKind;
   email?: string;
   did?: string;
+  /** Additional verified identifiers bound to the same actor. */
+  aliases?: readonly string[];
   phone?: string;
   organizationDid?: string;
   organizationUrl?: string;
