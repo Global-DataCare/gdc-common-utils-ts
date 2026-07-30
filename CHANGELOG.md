@@ -4,6 +4,18 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.3.17] - 2026-07-30
+
+### Fixed
+
+- Preserve the resource-specific primary coded claim, local text and
+  international display through the real all-sections IPS conversion/readback
+  flow for Device, DocumentReference, Consent, PractitionerRole and CarePlan.
+- Rebuild Observation `Coding.display` as display metadata instead of
+  incorrectly copying it into `CodeableConcept.text`.
+- Resolve translations only from the exact canonical primary claim for each
+  resource type; unrelated coded claims are no longer compatibility fallbacks.
+
 ## [2.3.16] - 2026-07-30
 
 ### Fixed

@@ -8,10 +8,15 @@ import {
   AllergyIntoleranceClaimsFhirApi,
 } from '../models/interoperable-claims/allergy-intolerance-claims.js';
 import { CommunicationClaim } from '../models/interoperable-claims/communication-claims.js';
+import { CarePlanClaim } from '../models/interoperable-claims/care-plan-claims.js';
 import {
   ConditionClaim,
   ConditionClaimsFhirApi,
 } from '../models/interoperable-claims/condition-claims.js';
+import { DeviceClaim } from '../models/interoperable-claims/device-claims.js';
+import { DiagnosticReportClaim } from '../models/interoperable-claims/diagnostic-report-claims.js';
+import { DocumentReferenceClaim } from '../models/interoperable-claims/document-reference-claims.js';
+import { FlagClaim } from '../models/interoperable-claims/flag-claims.js';
 import { ImmunizationClaim } from '../models/interoperable-claims/immunization-claims.js';
 import {
   MedicationStatementClaim,
@@ -19,6 +24,8 @@ import {
   MedicationStatementClaimsFhirApiExtended,
 } from '../models/interoperable-claims/medication-statement-claims.js';
 import { ObservationClaim } from '../models/interoperable-claims/observation-claims.js';
+import { PractitionerRoleClaim } from '../models/interoperable-claims/practitioner-role-claims.js';
+import { ProcedureClaim } from '../models/interoperable-claims/procedure-claims.js';
 
 const CONSENT_ACTOR_REFERENCE_CLAIM = 'Consent.actor-reference';
 const GENERIC_CREATOR_CLAIM_SUFFIX = '.creator';
@@ -79,8 +86,11 @@ export type ClinicalResourceDisplayOptions = Readonly<{
   /**
    * Product terminology lookup keyed by canonical `system|code`.
    *
-   * The token is resolved claims-first, so translations remain available when
-   * a `$summary` readback keeps `Coding.display` but omits native coding fields.
+   * The token is resolved claims-first from the resource-specific primary
+   * coded claim (for example `Observation.code`, `Immunization.vaccine-code`
+   * or `Device.type`). Other coded claims on the resource are never guessed.
+   * This keeps translations available when a `$summary` readback retains
+   * `Coding.display` but omits native coding identity fields.
    *
    * Return `undefined` when the product has no translation so the shared
    * reader can fall back to the international `Coding.display`.
@@ -879,30 +889,42 @@ function resolvePrimaryClaimCodeToken(
   resourceType: string,
   claims: ClinicalViewClaims,
 ): string | undefined {
-  const suffixes = resourceType === ResourceTypesFhirR4.Immunization
-    || resourceType === ResourceTypesFhirR4.ImmunizationRecommendation
-    ? ['vaccine-code', 'code']
-    : resourceType === ResourceTypesFhirR4.Device
-      || resourceType === ResourceTypesFhirR4.DocumentReference
-      || resourceType === ResourceTypesFhirR4.Specimen
-      ? ['type', 'code']
-      : resourceType === ResourceTypesFhirR4.ImagingStudy
-        ? ['procedure-code', 'code']
-        : resourceType === ResourceTypesFhirR4.CarePlan
-          ? ['category', 'code']
-          : ['code'];
-  const normalizedResourceType = resourceType.toLowerCase();
+  const claimKey = resourceType === ResourceTypesFhirR4.Observation
+    ? ObservationClaim.Code
+    : resourceType === ResourceTypesFhirR4.Flag
+      ? FlagClaim.Code
+      : resourceType === ResourceTypesFhirR4.Immunization
+        ? ImmunizationClaim.VaccineCode
+        : resourceType === ResourceTypesFhirR4.Procedure
+          ? ProcedureClaim.Code
+          : resourceType === ResourceTypesFhirR4.DiagnosticReport
+            ? DiagnosticReportClaim.Code
+            : resourceType === ResourceTypesFhirR4.Device
+              ? DeviceClaim.Type
+              : resourceType === ResourceTypesFhirR4.DocumentReference
+                ? DocumentReferenceClaim.Type
+                : resourceType === ResourceTypesFhirR4.CarePlan
+                  ? CarePlanClaim.Category
+                  : resourceType === ResourceTypesFhirR4.PractitionerRole
+                    ? PractitionerRoleClaim.Code
+                    : undefined;
+  const token = claimKey ? readCanonicalClaimValue(claims, claimKey) : undefined;
+  if (token) return splitCsv(token)[0];
 
-  for (const suffix of suffixes) {
-    const token = findBySuffix(claims, `${normalizedResourceType}.${suffix}`);
-    const firstToken = splitCsv(token)[0];
-    if (firstToken) return firstToken;
+  if (resourceType === ResourceTypesFhirR4.Observation) {
+    const system = readCanonicalClaimValue(claims, ObservationClaim.CodeSystem);
+    const code = readCanonicalClaimValue(claims, ObservationClaim.CodeValue);
+    if (code) return system ? `${system}|${code}` : code;
   }
-
-  const system = findBySuffix(claims, `${normalizedResourceType}.code-system`);
-  const code = findBySuffix(claims, `${normalizedResourceType}.code-value`);
-  if (code) return system ? `${system}|${code}` : code;
   return undefined;
+}
+
+function readCanonicalClaimValue(
+  claims: ClinicalViewClaims,
+  claimKey: string,
+): string | undefined {
+  return trimValue(claims[claimKey])
+    || findBySuffix(claims, `.${claimKey.toLowerCase()}`);
 }
 
 function resolveResourceCodeText(resource: ClinicalResourceLike): string | undefined {

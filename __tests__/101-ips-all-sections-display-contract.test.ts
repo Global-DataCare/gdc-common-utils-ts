@@ -12,6 +12,22 @@ import {
   HealthcareIpsSharedResourceTypes,
 } from '../src/constants/healthcare.js';
 import { ResourceTypesFhirR4 } from '../src/constants/fhir-resource-types.js';
+import { ClaimConsent } from '../src/models/consent-rule.js';
+import { AllergyIntoleranceClaim } from '../src/models/interoperable-claims/allergy-intolerance-claims.js';
+import { CarePlanClaim } from '../src/models/interoperable-claims/care-plan-claims.js';
+import { ConditionClaim } from '../src/models/interoperable-claims/condition-claims.js';
+import { DeviceClaim } from '../src/models/interoperable-claims/device-claims.js';
+import { DocumentReferenceClaim } from '../src/models/interoperable-claims/document-reference-claims.js';
+import { FlagClaim } from '../src/models/interoperable-claims/flag-claims.js';
+import { ImmunizationClaim } from '../src/models/interoperable-claims/immunization-claims.js';
+import { MedicationStatementClaim } from '../src/models/interoperable-claims/medication-statement-claims.js';
+import { ObservationClaim } from '../src/models/interoperable-claims/observation-claims.js';
+import { PractitionerRoleClaim } from '../src/models/interoperable-claims/practitioner-role-claims.js';
+import { ProcedureClaim } from '../src/models/interoperable-claims/procedure-claims.js';
+import {
+  convertClaimsToFhirResource,
+  prepareBundleDocumentForSubject,
+} from '../src/utils/bundle-document-builder.js';
 import {
   toClinicalResourceCardView,
   toClinicalSectionViews,
@@ -21,6 +37,21 @@ import {
 const IPS_BUNDLE_PATH = path.resolve(process.cwd(), 'fixtures', 'fhir-ips-bundle-all-sections.json');
 const SYSTEM = 'http://snomed.info/sct';
 const CODE = '123456';
+const SUBJECT = 'did:web:example.test:individual:ips-reader';
+
+const PRIMARY_CODE_CLAIM_BY_RESOURCE_TYPE: Readonly<Record<string, string>> = {
+  [ResourceTypesFhirR4.AllergyIntolerance]: AllergyIntoleranceClaim.Code,
+  [ResourceTypesFhirR4.Condition]: ConditionClaim.Code,
+  [ResourceTypesFhirR4.MedicationStatement]: MedicationStatementClaim.Code,
+  [ResourceTypesFhirR4.Immunization]: ImmunizationClaim.VaccineCode,
+  [ResourceTypesFhirR4.Observation]: ObservationClaim.Code,
+  [ResourceTypesFhirR4.Flag]: FlagClaim.Code,
+  [ResourceTypesFhirR4.Procedure]: ProcedureClaim.Code,
+  [ResourceTypesFhirR4.Device]: DeviceClaim.Type,
+  [ResourceTypesFhirR4.DocumentReference]: DocumentReferenceClaim.Type,
+  [ResourceTypesFhirR4.Consent]: ClaimConsent.category,
+  [ResourceTypesFhirR4.PractitionerRole]: PractitionerRoleClaim.Code,
+};
 
 function concept(resourceType: string) {
   return {
@@ -64,6 +95,30 @@ function resourceFor(resourceType: string): ClinicalResourceLike {
     default:
       return { ...common, code: coded };
   }
+}
+
+function primaryConcept(resource: Record<string, any>): Record<string, any> | undefined {
+  switch (resource.resourceType) {
+    case ResourceTypesFhirR4.MedicationStatement:
+      return resource.medicationCodeableConcept;
+    case ResourceTypesFhirR4.Immunization:
+      return resource.vaccineCode;
+    case ResourceTypesFhirR4.Device:
+    case ResourceTypesFhirR4.DocumentReference:
+      return resource.type;
+    case ResourceTypesFhirR4.Consent:
+      return resource.category?.[0];
+    case ResourceTypesFhirR4.PractitionerRole:
+      return resource.code?.[0];
+    default:
+      return resource.code;
+  }
+}
+
+function firstConceptToken(concept: Record<string, any> | undefined): string | undefined {
+  const coding = concept?.coding?.find((item: Record<string, any>) => item?.code);
+  if (!coding?.code) return undefined;
+  return coding.system ? `${coding.system}|${coding.code}` : coding.code;
 }
 
 describe('101: all IPS sections and declared resource types are display-ready', () => {
@@ -122,5 +177,69 @@ describe('101: all IPS sections and declared resource types are display-ready', 
       expect(english.title).toBe(`International ${resourceType}`);
       expect(translated.title).toBe(`Traduit ${resourceType}`);
     }
+  });
+
+  it('roundtrips and translates every coded resource in the real IPS fixture from its specific canonical claim', () => {
+    // Step 1. Import the real all-sections IPS and generate the same canonical
+    // claims that the authenticated backend sends to persistence.
+    const imported = JSON.parse(fs.readFileSync(IPS_BUNDLE_PATH, 'utf8'));
+    const prepared = prepareBundleDocumentForSubject(imported, SUBJECT) as Record<string, any>;
+    const codedResources = prepared.entry
+      .map((entry: Record<string, any>) => entry.resource)
+      .filter((resource: Record<string, any>) => PRIMARY_CODE_CLAIM_BY_RESOURCE_TYPE[resource.resourceType])
+      .filter((resource: Record<string, any>) => firstConceptToken(primaryConcept(resource)));
+
+    expect(codedResources.length).toBeGreaterThan(0);
+
+    for (const resource of codedResources) {
+      const sourceConcept = primaryConcept(resource);
+      const sourceToken = firstConceptToken(sourceConcept)!;
+      const sourceDisplay = sourceConcept?.coding?.[0]?.display;
+      const claimKey = PRIMARY_CODE_CLAIM_BY_RESOURCE_TYPE[resource.resourceType];
+      const claims = resource.meta.claims;
+
+      // Step 2. Every resource type owns one explicit canonical token claim.
+      expect(claims[claimKey]).toBe(sourceToken);
+
+      // Step 3. Claims rebuild the same native coding identity and display.
+      const rebuilt = convertClaimsToFhirResource(claims) as Record<string, any>;
+      const rebuiltConcept = primaryConcept(rebuilt);
+      expect(firstConceptToken(rebuiltConcept)).toBe(sourceToken);
+      expect(rebuiltConcept?.coding?.[0]?.display).toBe(sourceDisplay);
+
+      // Step 4. Simulate a summary projection that retains only display in the
+      // native coding. Translation must still use this resource's exact claim.
+      const displayOnly = JSON.parse(JSON.stringify(rebuilt)) as Record<string, any>;
+      const displayOnlyConcept = primaryConcept(displayOnly);
+      expect(displayOnlyConcept).toBeDefined();
+      displayOnlyConcept!.coding = displayOnlyConcept!.coding.map((coding: Record<string, any>) => ({
+        ...(coding.display ? { display: coding.display } : {}),
+      }));
+      displayOnly.language = 'en';
+      displayOnly.meta = { claims };
+      const card = toClinicalResourceCardView({ resource: displayOnly }, {
+        locale: 'fr',
+        translateCode: ({ resourceType, token }) => (
+          resourceType === resource.resourceType && token === sourceToken
+            ? `Traduit ${resource.resourceType}`
+            : undefined
+        ),
+      });
+      expect(card.title).toBe(`Traduit ${resource.resourceType}`);
+    }
+  });
+
+  it('preserves the text-only CarePlan category without treating it as a translatable code', () => {
+    const imported = JSON.parse(fs.readFileSync(IPS_BUNDLE_PATH, 'utf8'));
+    const prepared = prepareBundleDocumentForSubject(imported, SUBJECT) as Record<string, any>;
+    const carePlan = prepared.entry
+      .map((entry: Record<string, any>) => entry.resource)
+      .find((resource: Record<string, any>) => resource.resourceType === ResourceTypesFhirR4.CarePlan);
+
+    expect(carePlan.meta.claims[CarePlanClaim.Category]).toBeUndefined();
+    expect(carePlan.meta.claims[CarePlanClaim.CategoryText]).toBe('Weight management plan');
+
+    const rebuilt = convertClaimsToFhirResource(carePlan.meta.claims) as Record<string, any>;
+    expect(rebuilt.category?.[0]?.text).toBe('Weight management plan');
   });
 });

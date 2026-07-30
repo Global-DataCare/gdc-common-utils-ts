@@ -517,6 +517,27 @@ describe('clinical resource common view', () => {
     expect(card.title).toBe('Blood pressure');
   });
 
+  it('does not translate from a different coded claim on the same resource', () => {
+    const card = toClinicalResourceCardView({
+      resource: {
+        resourceType: ResourceTypesFhirR4.Device,
+        meta: {
+          claims: {
+            'Device.code': 'http://snomed.info/sct|wrong-field',
+          },
+        },
+        type: {
+          coding: [{ display: 'Insulin pump' }],
+        },
+      },
+    }, {
+      locale: 'fr',
+      translateCode: () => 'must not use Device.code for Device.type',
+    });
+
+    expect(card.title).toBe('Insulin pump');
+  });
+
   it('keeps unresolved Composition references visible to the caller', () => {
     const sections = toClinicalSectionViews({
       resourceType: 'Bundle',

@@ -28,6 +28,8 @@ export const DocumentReferenceClaim = {
   Relation: 'DocumentReference.relation',
   Subject: 'DocumentReference.subject',
   Type: 'DocumentReference.type',
+  TypeText: 'DocumentReference.type-text',
+  TypeDisplay: 'DocumentReference.type-display',
   UserSelected: 'DocumentReference.user-selected',
 } as const;
 
@@ -60,6 +62,8 @@ export const DocumentReferenceClaimSpecs: ClaimSpec[] = [
   { key: DocumentReferenceClaim.Relation, meaning: 'Relation type to related document.', example: 'appends' },
   { key: DocumentReferenceClaim.Subject, meaning: 'URN for the section in the individual index.', example: 'urn:uhix:section:vitals' },
   { key: DocumentReferenceClaim.Type, meaning: 'Lower-level, sector-specific type.', example: 'http://hl7.org/fhir/ValueSet/c80-doc-typecodes|34133-9' },
+  { key: DocumentReferenceClaim.TypeText, meaning: 'Local-language document type label.', example: 'Resumen clínico' },
+  { key: DocumentReferenceClaim.TypeDisplay, meaning: 'Canonical/international document type display.', example: 'Patient summary Document' },
   { key: DocumentReferenceClaim.UserSelected, meaning: 'Custom provenance flag telling whether the document was explicitly created or selected by the end user/controller.', example: 'true' },
 ];
 

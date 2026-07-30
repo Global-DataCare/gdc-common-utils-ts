@@ -171,6 +171,28 @@ This is the model applications use to render a clinical viewer:
 - each section card displays its current visible resource count
 - section/type/text/date filters narrow the in-memory resources
 
+`translateCode` translates terminology labels only. It never translates
+`CodeableConcept.text` or `Coding.display`. The lookup key is the exact
+primary coded claim for that resource:
+
+| FHIR resource field | Canonical claim |
+| --- | --- |
+| `Condition.code` | `Condition.code` |
+| `AllergyIntolerance.code` | `AllergyIntolerance.code` |
+| `MedicationStatement.medicationCodeableConcept` | `MedicationStatement.code` |
+| `Observation.code` | `Observation.code` |
+| `Flag.code` | `Flag.code` |
+| `Procedure.code` | `Procedure.code` |
+| `Immunization.vaccineCode` | `Immunization.vaccine-code` |
+| `Device.type` | `Device.type` |
+| `DocumentReference.type` | `DocumentReference.type` |
+| `Consent.category[0]` | `Consent.category` |
+| `PractitionerRole.code[0]` | `PractitionerRole.code` |
+
+The renderer does not search unrelated coded fields. If the exact claim and
+native `coding.system`/`coding.code` are both absent, it does not call
+`translateCode`; it falls back to the existing display or local text.
+
 For text filtering in a generic UI, render the returned card DTOs or use
 `getContainingTextOrDisplay(...)` for one resource type. Apply the shared
 `toClinicalSectionViews(bundle)` projection before any application-owned UI

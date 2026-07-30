@@ -7,13 +7,22 @@ import { codingFromValue, codingToValue, referenceListToCsv, referenceToValue } 
 
 export function carePlanFlatToFhirR4(claims: FlatClaims): FhirResource {
   const subject = claims[CarePlanClaim.Subject] ?? claims[CarePlanClaim.Patient];
+  const categoryCoding = codingFromValue(claims[CarePlanClaim.Category])?.map((coding) => ({
+    ...coding,
+    ...(claims[CarePlanClaim.CategoryDisplay] ? { display: claims[CarePlanClaim.CategoryDisplay] } : {}),
+  }));
   return {
     resourceType: 'CarePlan',
     identifier: claims[CarePlanClaim.Identifier] ? [{ value: claims[CarePlanClaim.Identifier] }] : undefined,
     status: claims[CarePlanClaim.Status],
     intent: claims[CarePlanClaim.Intent],
     subject: subject ? { reference: subject } : undefined,
-    category: claims[CarePlanClaim.Category] ? [{ coding: codingFromValue(claims[CarePlanClaim.Category]) }] : undefined,
+    category: claims[CarePlanClaim.Category] || claims[CarePlanClaim.CategoryText] || claims[CarePlanClaim.CategoryDisplay]
+      ? [{
+        ...(categoryCoding ? { coding: categoryCoding } : {}),
+        ...(claims[CarePlanClaim.CategoryText] ? { text: claims[CarePlanClaim.CategoryText] } : {}),
+      }]
+      : undefined,
     created: claims[CarePlanClaim.Date],
     note: claims[CarePlanClaim.Note] ? [{ text: claims[CarePlanClaim.Note] }] : undefined,
     basedOn: claims[CarePlanClaim.BasedOn] ? claims[CarePlanClaim.BasedOn]!.split(',').map((reference) => ({ reference: reference.trim() })) : undefined,
@@ -45,6 +54,8 @@ export function carePlanFhirR4ToFlat(resource: FhirResource): FlatClaims {
     [CarePlanClaim.BasedOn]: referenceListToCsv(resource.basedOn as Array<{ reference?: string }> | undefined),
     [CarePlanClaim.CareTeam]: referenceListToCsv(resource.careTeam as Array<{ reference?: string }> | undefined),
     [CarePlanClaim.Category]: codingToValue((resource.category as Array<{ coding?: Array<{ system?: string; code?: string }> }> | undefined)?.[0]?.coding?.[0]),
+    [CarePlanClaim.CategoryText]: (resource.category as Array<{ text?: string }> | undefined)?.[0]?.text,
+    [CarePlanClaim.CategoryDisplay]: (resource.category as Array<{ coding?: Array<{ display?: string }> }> | undefined)?.[0]?.coding?.[0]?.display,
     [CarePlanClaim.Condition]: referenceListToCsv(resource.addresses as Array<{ reference?: string }> | undefined),
     [CarePlanClaim.Date]: (resource.created as string | undefined) || period?.start,
     [CarePlanClaim.Encounter]: referenceToValue(resource.encounter as { reference?: string } | undefined),
