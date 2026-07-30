@@ -5,6 +5,7 @@ import {
 } from '../constants/verifiable-credentials';
 import { normalizeSameAsHashCsv, normalizeSameAsHashList, normalizeTelephoneHash } from './same-as';
 import { buildUnsignedVpJwt } from './jwt';
+import { getVpCredentials } from './vp-token';
 
 export type IndividualActorIdentityCredentialInput = Readonly<{
   actorDid: string;
@@ -139,6 +140,16 @@ export type IndividualControllerVpPayloadInput = IndividualActorIdentityVpPayloa
 export type IndividualMemberCredentialInput = IndividualActorIdentityCredentialInput;
 export type IndividualMemberVpPayloadInput = IndividualActorIdentityVpPayloadInput;
 
+export type IndividualMemberCredentialSummary = Readonly<{
+  actorDid: string;
+  subjectDid: string;
+  relationship: string;
+  issuerDid?: string;
+  email?: string;
+  telephone?: string;
+  sameAs: string[];
+}>;
+
 export function getIndividualControllerIdentitySameAs(
   input: Readonly<Pick<IndividualControllerCredentialInput, 'sameAs' | 'email'>>,
 ): string[] {
@@ -218,6 +229,54 @@ export function getIndividualMemberIdentityVC(
   input: IndividualMemberCredentialInput,
 ): Record<string, unknown> {
   return buildIndividualIdentityVC(input, IndividualCredentialTypes.IndividualMemberCredential);
+}
+
+/**
+ * Reads the relationship identity asserted by one already-verified member VC.
+ * Signature/proof verification belongs to the enclosing VP verifier.
+ */
+export function summarizeIndividualMemberIdentityCredential(
+  credential: unknown,
+): IndividualMemberCredentialSummary | undefined {
+  const source = credential as any;
+  const types = Array.isArray(source?.type) ? source.type.map(String) : [String(source?.type || '')];
+  if (!types.includes(IndividualCredentialTypes.IndividualMemberCredential)) return undefined;
+  const subject = source?.credentialSubject || {};
+  const actorDid = String(subject.id || '').trim();
+  const subjectDid = String(subject.subject || '').trim();
+  const relationship = String(subject.relationship || '').trim();
+  if (!actorDid || !subjectDid || !relationship) return undefined;
+  return {
+    actorDid,
+    subjectDid,
+    relationship,
+    ...(String(source?.issuer?.id || source?.issuer || '').trim()
+      ? { issuerDid: String(source.issuer?.id || source.issuer).trim() }
+      : {}),
+    ...(String(subject[ClaimsPersonSchemaorg.email] || '').trim()
+      ? { email: String(subject[ClaimsPersonSchemaorg.email]).trim().toLowerCase() }
+      : {}),
+    ...(String(subject[ClaimsPersonSchemaorg.telephone] || '').trim()
+      ? { telephone: String(subject[ClaimsPersonSchemaorg.telephone]).trim() }
+      : {}),
+    sameAs: normalizeSameAsHashList(subject.sameAs),
+  };
+}
+
+/** Finds an exact actor/subject member relationship in an already-verified VP. */
+export function getMatchingIndividualMemberCredentialFromVpToken(
+  vpToken: string,
+  criteria: Readonly<{ actorDid: string; subjectDid: string; relationship?: string }>,
+): IndividualMemberCredentialSummary | undefined {
+  return getVpCredentials(vpToken)
+    .map(summarizeIndividualMemberIdentityCredential)
+    .find((summary): summary is IndividualMemberCredentialSummary => {
+      if (!summary) return false;
+      return summary.actorDid === String(criteria.actorDid || '').trim()
+        && summary.subjectDid === String(criteria.subjectDid || '').trim()
+        && (!criteria.relationship
+          || summary.relationship.toLowerCase() === String(criteria.relationship).trim().toLowerCase());
+    });
 }
 
 export function buildIndividualMemberIdentityVpPayload(

@@ -17,6 +17,7 @@ import {
   getIndividualMemberIdentitySameAs,
   getIndividualMemberIdentityTelephone,
   getIndividualMemberIdentityVC,
+  getMatchingIndividualMemberCredentialFromVpToken,
 } from '../src/utils/individual-smart';
 import { normalizeSameAsHash, normalizeTelephoneHash } from '../src/utils/same-as';
 import { decodeVpTokenPayload } from '../src/utils/vp-token';
@@ -149,6 +150,15 @@ describe('individual identity SMART helpers', () => {
           },
         }],
       },
+    });
+    expect(getMatchingIndividualMemberCredentialFromVpToken(memberToken, {
+      actorDid: EXAMPLE_INDIVIDUAL_MEMBER_IDENTITY.actorDid,
+      subjectDid: EXAMPLE_INDIVIDUAL_MEMBER_IDENTITY.subjectDid,
+      relationship: EXAMPLE_INDIVIDUAL_MEMBER_IDENTITY.relationship,
+    })).toMatchObject({
+      actorDid: EXAMPLE_INDIVIDUAL_MEMBER_IDENTITY.actorDid,
+      subjectDid: EXAMPLE_INDIVIDUAL_MEMBER_IDENTITY.subjectDid,
+      relationship: EXAMPLE_INDIVIDUAL_MEMBER_IDENTITY.relationship,
     });
   });
 });

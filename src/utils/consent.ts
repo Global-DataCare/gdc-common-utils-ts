@@ -378,9 +378,31 @@ function splitCsv(value: unknown): string[] {
     .filter(Boolean);
 }
 
+/**
+ * Reads one concrete Consent search-parameter claim from either the internal
+ * rule shape (`Consent.action`) or a contextualized FHIR claim
+ * (`org.hl7.fhir.api.Consent.action`). Persisted rule sets from both forms are
+ * therefore evaluated identically.
+ */
+function readConsentRuleClaim(
+  rule: ConsentRule | Record<string, unknown>,
+  claim: ClaimConsent,
+): unknown {
+  const source = rule as unknown as Record<string, unknown>;
+  if (source[claim] !== undefined) return source[claim];
+  const context = String(source['@context'] || '').trim().replace(/\.$/, '');
+  if (context && source[`${context}.${claim}`] !== undefined) {
+    return source[`${context}.${claim}`];
+  }
+  return source[`org.hl7.fhir.api.${claim}`];
+}
+
 function normalizeSectionToken(value: string): string {
   const trimmed = String(value || '').trim();
-  if (!trimmed || !trimmed.includes('|')) return trimmed;
+  if (!trimmed) return trimmed;
+  const loincPrefixed = trimmed.match(/^loinc:([^|:\s]+)$/i);
+  if (loincPrefixed) return `loinc|${loincPrefixed[1]}`;
+  if (!trimmed.includes('|')) return trimmed;
   const [system, code] = trimmed.split('|', 2);
   const normalizedSystem = system
     .trim()
@@ -617,7 +639,7 @@ export function isConsentRuleActive(
     now?: string | Date;
   } = {},
 ): boolean {
-  if (options.subject && String(rule[ClaimConsent.subject] || '').trim() !== String(options.subject || '').trim()) {
+  if (options.subject && String(readConsentRuleClaim(rule, ClaimConsent.subject) || '').trim() !== String(options.subject || '').trim()) {
     return false;
   }
   const now = options.now instanceof Date
@@ -625,8 +647,8 @@ export function isConsentRuleActive(
     : options.now
       ? new Date(options.now).getTime()
       : Date.now();
-  const periodStart = String(rule[ClaimConsent.periodStart] || '').trim();
-  const periodEnd = String(rule[ClaimConsent.periodEnd] || '').trim();
+  const periodStart = String(readConsentRuleClaim(rule, ClaimConsent.periodStart) || '').trim();
+  const periodEnd = String(readConsentRuleClaim(rule, ClaimConsent.periodEnd) || '').trim();
   if (periodStart && !Number.isNaN(Date.parse(periodStart)) && Date.parse(periodStart) > now) return false;
   if (periodEnd && !Number.isNaN(Date.parse(periodEnd)) && Date.parse(periodEnd) < now) return false;
   return true;
@@ -638,7 +660,7 @@ function groupRulesBy(
 ): Record<string, ConsentRule[]> {
   const groups: Record<string, ConsentRule[]> = {};
   for (const rule of rules) {
-    for (const token of splitCsv(rule[ClaimConsent.actorIdentifier])) {
+    for (const token of splitCsv(readConsentRuleClaim(rule, ClaimConsent.actorIdentifier))) {
       const normalized = normalizeConsentTarget(token, { preferOrganizationDid: true });
       if (!predicate(normalized)) continue;
       groups[normalized.canonicalValue] ||= [];
@@ -679,7 +701,7 @@ function normalizeRequestedList(values: string[] | undefined, wildcard = '*'): s
 
 function extractRuleResourceTypes(rule: ConsentRule & Record<string, unknown>): string[] {
   const candidates = [
-    rule[ClaimConsent.resourceType],
+    readConsentRuleClaim(rule, ClaimConsent.resourceType),
     rule['Consent.resource-type'],
     rule['Consent.resource'],
     rule['Consent.data-type'],
@@ -692,7 +714,7 @@ function extractRuleResourceTypes(rule: ConsentRule & Record<string, unknown>): 
 }
 
 function ruleMatchesRole(rule: ConsentRule, actorRole?: string): boolean {
-  const ruleRoles = splitCsv(rule[ClaimConsent.actorRole]).map(normalizeConsentRoleValue).filter(Boolean);
+  const ruleRoles = splitCsv(readConsentRuleClaim(rule, ClaimConsent.actorRole)).map(normalizeConsentRoleValue).filter(Boolean);
   if (ruleRoles.length === 0 || ruleRoles.includes('*')) return true;
   const requestedRole = normalizeConsentRoleValue(String(actorRole || ''));
   if (!requestedRole) return false;
@@ -715,7 +737,7 @@ function ruleMatchesRole(rule: ConsentRule, actorRole?: string): boolean {
 }
 
 function ruleMatchesPurpose(rule: ConsentRule, purpose?: string): boolean {
-  const rulePurpose = String(rule[ClaimConsent.purpose] || '').trim();
+  const rulePurpose = String(readConsentRuleClaim(rule, ClaimConsent.purpose) || '').trim();
   if (!purpose || !rulePurpose) return true;
   return rulePurpose === purpose;
 }
@@ -723,7 +745,7 @@ function ruleMatchesPurpose(rule: ConsentRule, purpose?: string): boolean {
 function ruleMatchesSection(rule: ConsentRule, section?: string): boolean {
   if (!section || section === '*') return true;
   const requestedSection = normalizeSectionToken(section);
-  const rawAction = String(rule[ClaimConsent.action] || '').trim();
+  const rawAction = String(readConsentRuleClaim(rule, ClaimConsent.action) || '').trim();
   const actions = extractRuleSectionTokens(rawAction).map(normalizeSectionToken);
   if (actions.length === 0) return false;
   return actions.includes(requestedSection) || actions.includes('*');
@@ -758,7 +780,7 @@ function resolveRuleMatch(
   rule: ConsentRule,
   actor: ResolvedConsentActor,
 ): { matchKind: ConsentMatchKind; target?: NormalizedConsentTarget; precedenceBase?: number } {
-  for (const token of splitCsv(rule[ClaimConsent.actorIdentifier])) {
+  for (const token of splitCsv(readConsentRuleClaim(rule, ClaimConsent.actorIdentifier))) {
     const normalized = normalizeConsentTarget(token, { preferOrganizationDid: true });
     if (actor.directTargets.some((target: NormalizedConsentTarget) => target.canonicalValue === normalized.canonicalValue)) {
       return { matchKind: 'direct', target: normalized, precedenceBase: 10 };
@@ -781,7 +803,7 @@ function toRuleMatch(
 ): ConsentRuleMatch | undefined {
   const resolved = resolveRuleMatch(rule, actor);
   if (!resolved.target || resolved.matchKind === 'none' || resolved.precedenceBase === undefined) return undefined;
-  const decision = rule[ClaimConsent.decision];
+  const decision = readConsentRuleClaim(rule, ClaimConsent.decision) as ConsentRule[ClaimConsent.decision];
   const precedence = resolved.precedenceBase + (decision === 'deny' ? 0 : 1);
   return {
     rule,
