@@ -149,6 +149,7 @@ describe('clinical-resource-converters', () => {
       [DeviceUseStatementClaim.Identifier]: 'DUS-1',
       [DeviceUseStatementClaim.Subject]: 'Patient/p1',
       [DeviceUseStatementClaim.Device]: 'Device/d1',
+      [DeviceUseStatementClaim.DeviceDisplay]: 'Hip prosthesis',
       [DeviceUseStatementClaim.Status]: 'active',
       [DeviceUseStatementClaim.RecordedOn]: '2026-05-17T08:00:00Z',
       [DeviceUseStatementClaim.TimingDateTime]: '2026-05-16T08:00:00Z',

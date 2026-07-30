@@ -18,8 +18,10 @@ export const DataCollectionIds = Object.freeze({
   conditions: 'conditions',
   consents: 'consents',
   diagnosticReports: 'diagnostic-reports',
+  deviceUseStatements: 'device-use-statements',
   documentReferences: 'document-references',
   encounters: 'encounters',
+  flags: 'flags',
   imagingStudies: 'imaging-studies',
   immunizations: 'immunizations',
   medications: 'medications',
@@ -53,8 +55,8 @@ export const HealthcareSummarySectionDataCollections: Readonly<Record<string, re
   [HealthcareSummarySections.HistoryOfPastIllness.attributeValue]: Object.freeze([DataCollectionIds.conditions]),
   [HealthcareSummarySections.PregnancyHistory.attributeValue]: Object.freeze([DataCollectionIds.observations]),
   [HealthcareSummarySections.GoalsAndPreferences.attributeValue]: Object.freeze([DataCollectionIds.consents]),
-  [HealthcareSummarySections.Alert.attributeValue]: Object.freeze([]),
-  [HealthcareSummarySections.MedicalDevices.attributeValue]: Object.freeze([]),
+  [HealthcareSummarySections.Alert.attributeValue]: Object.freeze([DataCollectionIds.flags]),
+  [HealthcareSummarySections.MedicalDevices.attributeValue]: Object.freeze([DataCollectionIds.deviceUseStatements]),
 });
 
 /**
@@ -68,7 +70,9 @@ export const FhirResourceTypeDataCollections = Object.freeze({
   [ResourceTypesFhirR4.Condition]: DataCollectionIds.conditions,
   [ResourceTypesFhirR4.Consent]: DataCollectionIds.consents,
   [ResourceTypesFhirR4.DiagnosticReport]: DataCollectionIds.diagnosticReports,
+  [ResourceTypesFhirR4.DeviceUseStatement]: DataCollectionIds.deviceUseStatements,
   [ResourceTypesFhirR4.Encounter]: DataCollectionIds.encounters,
+  [ResourceTypesFhirR4.Flag]: DataCollectionIds.flags,
   [ResourceTypesFhirR4.ImagingStudy]: DataCollectionIds.imagingStudies,
   [ResourceTypesFhirR4.Immunization]: DataCollectionIds.immunizations,
   [ResourceTypesFhirR4.MedicationStatement]: DataCollectionIds.medications,

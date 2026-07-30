@@ -4,6 +4,15 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.3.13] - 2026-07-30
+
+### Fixed
+
+- Add shared persistence collections for IPS `DeviceUseStatement` and `Flag`
+  resources so the medical-devices and alerts sections survive GW roundtrip.
+- Preserve `DeviceUseStatement.device.display` in the interoperable claims
+  projection, allowing the rehydrated clinical card to retain its human name.
+
 ## [2.3.12] - 2026-07-30
 
 ### Changed
