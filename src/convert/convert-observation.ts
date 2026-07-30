@@ -26,6 +26,16 @@ export function observationFromFlatToFhirR4(claims: FlatClaims): FhirResource {
       code: claims[ObservationClaim.ValueConceptValue],
     });
   const valueQuantityCoding = codingFromValue(claims[ObservationClaim.ValueQuantityUnit])?.[0];
+  const codeCoding = codingFromValue(codeToken)?.map((coding) => ({
+    ...coding,
+    ...(claims[ObservationClaim.CodeDisplay] ? { display: claims[ObservationClaim.CodeDisplay] } : {}),
+  }));
+  const valueConceptCoding = codingFromValue(valueConceptToken)?.map((coding) => ({
+    ...coding,
+    ...(claims[ObservationClaim.ValueConceptDisplay]
+      ? { display: claims[ObservationClaim.ValueConceptDisplay] }
+      : {}),
+  }));
   return {
     resourceType: 'Observation',
     identifier: claims[ObservationClaim.Identifier] ? [{ value: claims[ObservationClaim.Identifier] }] : undefined,
@@ -33,10 +43,8 @@ export function observationFromFlatToFhirR4(claims: FlatClaims): FhirResource {
     category: claims[ObservationClaim.Category] ? claims[ObservationClaim.Category]!.split(',').map((value) => ({ coding: codingFromValue(value.trim()) })) : undefined,
     code: codeToken
       ? {
-        coding: codingFromValue(codeToken),
-        ...(claims[ObservationClaim.CodeText] || claims[ObservationClaim.CodeDisplay]
-          ? { text: claims[ObservationClaim.CodeText] ?? claims[ObservationClaim.CodeDisplay] }
-          : {}),
+        coding: codeCoding,
+        ...(claims[ObservationClaim.CodeText] ? { text: claims[ObservationClaim.CodeText] } : {}),
       }
       : undefined,
     subject: subject ? { reference: subject } : undefined,
@@ -45,9 +53,9 @@ export function observationFromFlatToFhirR4(claims: FlatClaims): FhirResource {
     performer: claims[ObservationClaim.Performer] ? claims[ObservationClaim.Performer]!.split(',').map((reference) => ({ reference: reference.trim() })) : undefined,
     valueCodeableConcept: valueConceptToken
       ? {
-        coding: codingFromValue(valueConceptToken),
-        ...(claims[ObservationClaim.ValueConceptText] || claims[ObservationClaim.ValueConceptDisplay]
-          ? { text: claims[ObservationClaim.ValueConceptText] ?? claims[ObservationClaim.ValueConceptDisplay] }
+        coding: valueConceptCoding,
+        ...(claims[ObservationClaim.ValueConceptText]
+          ? { text: claims[ObservationClaim.ValueConceptText] }
           : {}),
       }
       : undefined,

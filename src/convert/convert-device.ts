@@ -6,6 +6,10 @@ import type { FhirResource, FlatClaims } from './convert-shared';
 import { codingFromValue, codingToValue, referenceToValue } from './convert-shared';
 
 export function deviceFlatToFhirR4(claims: FlatClaims): FhirResource {
+  const typeCoding = codingFromValue(claims[DeviceClaim.Type])?.map((coding) => ({
+    ...coding,
+    ...(claims[DeviceClaim.TypeDisplay] ? { display: claims[DeviceClaim.TypeDisplay] } : {}),
+  }));
   return {
     resourceType: 'Device',
     identifier: claims[DeviceClaim.Identifier] ? [{ value: claims[DeviceClaim.Identifier] }] : undefined,
@@ -17,7 +21,12 @@ export function deviceFlatToFhirR4(claims: FlatClaims): FhirResource {
     patient: claims[DeviceClaim.Patient] ? { reference: claims[DeviceClaim.Patient] } : undefined,
     serialNumber: claims[DeviceClaim.SerialNumber],
     status: claims[DeviceClaim.Status],
-    type: claims[DeviceClaim.Type] ? { coding: codingFromValue(claims[DeviceClaim.Type]) } : undefined,
+    type: claims[DeviceClaim.Type] || claims[DeviceClaim.TypeText] || claims[DeviceClaim.TypeDisplay]
+      ? {
+        ...(typeCoding ? { coding: typeCoding } : {}),
+        ...(claims[DeviceClaim.TypeText] ? { text: claims[DeviceClaim.TypeText] } : {}),
+      }
+      : undefined,
     udiCarrier: claims[DeviceClaim.UdiCarrier] ? [{ carrierHRF: claims[DeviceClaim.UdiCarrier] }] : undefined,
     url: claims[DeviceClaim.Url],
   };
@@ -35,6 +44,8 @@ export function deviceFhirR4ToFlat(resource: FhirResource): FlatClaims {
     [DeviceClaim.SerialNumber]: resource.serialNumber as string | undefined,
     [DeviceClaim.Status]: resource.status as string | undefined,
     [DeviceClaim.Type]: codingToValue((resource.type as { coding?: Array<{ system?: string; code?: string }> } | undefined)?.coding?.[0]),
+    [DeviceClaim.TypeText]: (resource.type as { text?: string } | undefined)?.text,
+    [DeviceClaim.TypeDisplay]: (resource.type as { coding?: Array<{ display?: string }> } | undefined)?.coding?.[0]?.display,
     [DeviceClaim.UdiCarrier]: (resource.udiCarrier as Array<{ carrierHRF?: string }> | undefined)?.[0]?.carrierHRF,
     [DeviceClaim.Url]: resource.url as string | undefined,
   };

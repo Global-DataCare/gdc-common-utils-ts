@@ -16,6 +16,7 @@ export * from './device-claims';
 export * from './observation-claims';
 export * from './immunization-claims';
 export * from './procedure-claims';
+export * from './practitioner-role-claims';
 export * from './care-plan-claims';
 export * from './flag-claims';
 export * from './appointment-claims';

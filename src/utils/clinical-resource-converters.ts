@@ -93,6 +93,14 @@ export {
   clinicalImpressionFlatToFhirR4,
   clinicalImpressionFhirR4ToFlat,
 } from '../convert/convert-clinical-impression';
+export {
+  consentFlatToFhirR4,
+  consentFhirR4ToFlat,
+} from '../convert/convert-consent';
+export {
+  practitionerRoleFlatToFhirR4,
+  practitionerRoleFhirR4ToFlat,
+} from '../convert/convert-practitioner-role';
 
 import type { FhirResource, FlatClaims } from '../convert/convert-shared';
 import { fhirResourceToFlatClaims } from '../convert/convert-shared';
@@ -120,6 +128,8 @@ import { encounterFhirR4ToFlat, encounterFlatToFhirR4 } from '../convert/convert
 import { relatedPersonFhirR4ToFlat, relatedPersonFlatToFhirR4 } from '../convert/convert-related-person';
 import { coverageFhirR4ToFlat, coverageFlatToFhirR4 } from '../convert/convert-coverage';
 import { clinicalImpressionFhirR4ToFlat, clinicalImpressionFlatToFhirR4 } from '../convert/convert-clinical-impression';
+import { consentFhirR4ToFlat, consentFlatToFhirR4 } from '../convert/convert-consent';
+import { practitionerRoleFhirR4ToFlat, practitionerRoleFlatToFhirR4 } from '../convert/convert-practitioner-role';
 
 export const medicationStatementFlatToFhir = medicationStatementFlatToFhirR4;
 export const medicationStatementFhirToFlat = medicationStatementFhirR4ToFlat;
@@ -163,6 +173,10 @@ export const coverageFlatToFhir = coverageFlatToFhirR4;
 export const coverageFhirToFlat = coverageFhirR4ToFlat;
 export const clinicalImpressionFlatToFhir = clinicalImpressionFlatToFhirR4;
 export const clinicalImpressionFhirToFlat = clinicalImpressionFhirR4ToFlat;
+export const consentFlatToFhir = consentFlatToFhirR4;
+export const consentFhirToFlat = consentFhirR4ToFlat;
+export const practitionerRoleFlatToFhir = practitionerRoleFlatToFhirR4;
+export const practitionerRoleFhirToFlat = practitionerRoleFhirR4ToFlat;
 
 /**
  * Converts a FHIR resource to the semantic flat-claims contract when a
@@ -227,6 +241,10 @@ function convertFhirResourceToClaimsByType(
       return coverageFhirR4ToFlat(resource);
     case 'ClinicalImpression':
       return clinicalImpressionFhirR4ToFlat(resource);
+    case 'Consent':
+      return consentFhirR4ToFlat(resource, context);
+    case 'PractitionerRole':
+      return practitionerRoleFhirR4ToFlat(resource, context);
     default:
       return fhirResourceToFlatClaims(resource, context);
   }

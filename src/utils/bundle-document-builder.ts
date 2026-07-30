@@ -12,6 +12,7 @@ import {
   clinicalImpressionFlatToFhirR4,
   compositionFlatToFhirR4,
   conditionFlatToFhirR4,
+  consentFlatToFhirR4,
   convertFhirResourceToClaims,
   coverageFlatToFhirR4,
   deviceFlatToFhirR4,
@@ -26,6 +27,7 @@ import {
   observationFromFlatToFhirR4,
   organizationFlatToFhirR4,
   procedureFlatToFhirR4,
+  practitionerRoleFlatToFhirR4,
   relatedPersonFlatToFhirR4,
   type FhirResource,
   type FlatClaims,
@@ -437,6 +439,10 @@ function convertClaimsToFhirResourceByType(
       return coverageFlatToFhirR4(flatClaims);
     case 'ClinicalImpression':
       return clinicalImpressionFlatToFhirR4(flatClaims);
+    case ResourceTypesFhirR4.Consent:
+      return consentFlatToFhirR4(flatClaims);
+    case ResourceTypesFhirR4.PractitionerRole:
+      return practitionerRoleFlatToFhirR4(flatClaims);
     default:
       return flatClaimsToFhirResource(flatClaims);
   }
