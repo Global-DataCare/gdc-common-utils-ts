@@ -79,6 +79,9 @@ export type ClinicalResourceDisplayOptions = Readonly<{
   /**
    * Product terminology lookup keyed by canonical `system|code`.
    *
+   * The token is resolved claims-first, so translations remain available when
+   * a `$summary` readback keeps `Coding.display` but omits native coding fields.
+   *
    * Return `undefined` when the product has no translation so the shared
    * reader can fall back to the international `Coding.display`.
    */
@@ -494,7 +497,8 @@ function resolveTitle(
     resource,
     options,
     concept: primaryConcept,
-    token: resolveCodeableConceptToken(primaryConcept),
+    token: resolvePrimaryClaimCodeToken(resourceType, claims)
+      || resolveCodeableConceptToken(primaryConcept),
   }) || resolveFhirResourceTitle(resourceType, resource) || resourceType;
 }
 
@@ -869,6 +873,36 @@ function findFirstClaimBySuffixes(
   suffixes: readonly string[],
 ): string | undefined {
   return firstDefinedText(suffixes.map((suffix) => findBySuffix(claims, suffix)));
+}
+
+function resolvePrimaryClaimCodeToken(
+  resourceType: string,
+  claims: ClinicalViewClaims,
+): string | undefined {
+  const suffixes = resourceType === ResourceTypesFhirR4.Immunization
+    || resourceType === ResourceTypesFhirR4.ImmunizationRecommendation
+    ? ['vaccine-code', 'code']
+    : resourceType === ResourceTypesFhirR4.Device
+      || resourceType === ResourceTypesFhirR4.DocumentReference
+      || resourceType === ResourceTypesFhirR4.Specimen
+      ? ['type', 'code']
+      : resourceType === ResourceTypesFhirR4.ImagingStudy
+        ? ['procedure-code', 'code']
+        : resourceType === ResourceTypesFhirR4.CarePlan
+          ? ['category', 'code']
+          : ['code'];
+  const normalizedResourceType = resourceType.toLowerCase();
+
+  for (const suffix of suffixes) {
+    const token = findBySuffix(claims, `${normalizedResourceType}.${suffix}`);
+    const firstToken = splitCsv(token)[0];
+    if (firstToken) return firstToken;
+  }
+
+  const system = findBySuffix(claims, `${normalizedResourceType}.code-system`);
+  const code = findBySuffix(claims, `${normalizedResourceType}.code-value`);
+  if (code) return system ? `${system}|${code}` : code;
+  return undefined;
 }
 
 function resolveResourceCodeText(resource: ClinicalResourceLike): string | undefined {
