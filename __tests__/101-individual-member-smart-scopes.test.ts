@@ -13,6 +13,7 @@ import {
   buildSmartCompositionReadScope,
   deriveGrantedSmartScopes,
 } from '../src/utils/smart-scope';
+import { ClaimConsent } from '../src/models/consent-rule';
 
 /**
  * Teaching goal:
@@ -103,5 +104,33 @@ describe('101 individual-member SMART scope derivation', () => {
         purpose: HealthcareConsentPurposes.Treatment,
       },
     )).toThrow('single subject');
+  });
+
+  it('matches canonical LOINC pipe claims against registry colon section values', () => {
+    const registrySection = 'loinc:48765-2';
+    const canonicalClaim = 'LOINC|48765-2';
+    const rule = Object.fromEntries(
+      Object.entries({
+        ...EXAMPLE_CONSENT_ACCESS_RULES.relatedPersonClinicalSections,
+        [ClaimConsent.action]: canonicalClaim,
+      }).map(([key, value]) => [
+        key.startsWith('Consent.') ? `org.hl7.fhir.api.${key}` : key,
+        value,
+      ]),
+    ) as unknown as typeof EXAMPLE_CONSENT_ACCESS_RULES.relatedPersonClinicalSections;
+    const result = deriveGrantedSmartScopes([rule], {
+      requestedScopes: buildSmartCompositionReadScope({
+        subjectDid: EXAMPLE_CONSENT_ACCESS_SUBJECT,
+        sections: registrySection,
+      }),
+      actor: {
+        actorKind: 'related-person',
+        email: EXAMPLE_CONSENT_ACCESS_RELATED_PERSON_EMAIL,
+      },
+      actorRole: EXAMPLE_RELATED_PERSON_ROLE,
+      purpose: HealthcareConsentPurposes.Treatment,
+    });
+
+    expect(result.grantedSections).toEqual([registrySection]);
   });
 });

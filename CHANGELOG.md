@@ -4,6 +4,20 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.3.15] - 2026-07-30
+
+### Added
+
+- Add reusable parsing and exact actor/subject/relationship matching for an
+  already-verified individual-member identity credential inside a VP.
+
+### Fixed
+
+- Evaluate persisted contextualized FHIR Consent claims such as
+  `org.hl7.fhir.api.Consent.action` exactly like their internal
+  `Consent.action` form, including canonical `LOINC|code` and legacy
+  `loinc:code` section values.
+
 ## [2.3.14] - 2026-07-30
 
 ### Added
