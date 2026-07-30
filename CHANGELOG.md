@@ -4,6 +4,15 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.3.16] - 2026-07-30
+
+### Fixed
+
+- Resolve clinical display translation tokens from canonical `meta.claims`
+  before native FHIR coding, keeping `Observation`, `Flag`, `Immunization` and
+  other coded resource titles translatable when `$summary` readback retains
+  only `Coding.display`.
+
 ## [2.3.15] - 2026-07-30
 
 ### Added

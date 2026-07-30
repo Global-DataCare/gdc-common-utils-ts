@@ -4,7 +4,10 @@ import { ClaimConsent } from '../src/models/consent-rule.js';
 import { AllergyIntoleranceClaim } from '../src/models/interoperable-claims/allergy-intolerance-claims.js';
 import { CommunicationClaim } from '../src/models/interoperable-claims/communication-claims.js';
 import { ConditionClaim } from '../src/models/interoperable-claims/condition-claims.js';
+import { FlagClaim } from '../src/models/interoperable-claims/flag-claims.js';
+import { ImmunizationClaim } from '../src/models/interoperable-claims/immunization-claims.js';
 import { MedicationStatementClaim } from '../src/models/interoperable-claims/medication-statement-claims.js';
+import { ObservationClaim } from '../src/models/interoperable-claims/observation-claims.js';
 import {
   getLocalTextAndIntDisplay,
   getNarrative,
@@ -452,6 +455,66 @@ describe('clinical resource common view', () => {
         ? 'Diabète de type 2'
         : undefined,
     })[0].resources[0].title).toBe('Diabète de type 2');
+  });
+
+  it.each([
+    {
+      resourceType: ResourceTypesFhirR4.Observation,
+      tokenClaim: ObservationClaim.Code,
+      conceptField: 'code',
+    },
+    {
+      resourceType: ResourceTypesFhirR4.Flag,
+      tokenClaim: FlagClaim.Code,
+      conceptField: 'code',
+    },
+    {
+      resourceType: ResourceTypesFhirR4.Immunization,
+      tokenClaim: ImmunizationClaim.VaccineCode,
+      conceptField: 'vaccineCode',
+    },
+  ])(
+    'translates $resourceType from its canonical claim token when summary readback coding only retains display',
+    ({ resourceType, tokenClaim, conceptField }) => {
+      const token = 'http://snomed.info/sct|123456';
+      const translated = toClinicalResourceCardView({
+        resource: {
+          resourceType,
+          language: 'en',
+          meta: {
+            claims: {
+              [tokenClaim]: token,
+            },
+          },
+          [conceptField]: {
+            coding: [{ display: `International ${resourceType}` }],
+          },
+        },
+      }, {
+        locale: 'fr',
+        translateCode: ({ token: inputToken }) => inputToken === token
+          ? `Traduit ${resourceType}`
+          : undefined,
+      });
+
+      expect(translated.title).toBe(`Traduit ${resourceType}`);
+    },
+  );
+
+  it('keeps the readback display fallback when neither native coding nor claims contain a code token', () => {
+    const card = toClinicalResourceCardView({
+      resource: {
+        resourceType: ResourceTypesFhirR4.Observation,
+        code: {
+          coding: [{ display: 'Blood pressure' }],
+        },
+      },
+    }, {
+      locale: 'fr',
+      translateCode: () => 'must not be called without a token',
+    });
+
+    expect(card.title).toBe('Blood pressure');
   });
 
   it('keeps unresolved Composition references visible to the caller', () => {
