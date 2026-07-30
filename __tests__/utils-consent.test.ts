@@ -153,7 +153,7 @@ describe('consent utilities', () => {
     expect(grouped.byDirectTarget[EXAMPLE_CONSENT_ACCESS_PROVIDER_EMAIL]).toHaveLength(3);
     expect(grouped.byOrganizationTarget[EXAMPLE_CONSENT_ACCESS_PROVIDER_DID]).toHaveLength(2);
     expect(grouped.byJurisdictionTarget.ES).toHaveLength(2);
-    expect(grouped.byDirectTarget[EXAMPLE_CONSENT_ACCESS_RELATED_PERSON_EMAIL]).toHaveLength(1);
+    expect(grouped.byDirectTarget[EXAMPLE_CONSENT_ACCESS_RELATED_PERSON_EMAIL]).toHaveLength(2);
   });
 
   it('allows physician by direct email and role for continuous care', () => {

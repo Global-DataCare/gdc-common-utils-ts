@@ -551,6 +551,13 @@ export function resolveConsentActor(actor: ConsentActorDescriptor): ResolvedCons
     }
   }
 
+  for (const alias of actor.aliases || []) {
+    const normalizedAlias = String(alias || '').trim();
+    if (normalizedAlias) {
+      directTargets.push(normalizeConsentTarget(normalizedAlias, { actorKind }));
+    }
+  }
+
   const phone = normalizePhone(String(actor.phone || ''));
   if (phone) {
     const phoneTarget = normalizeConsentTarget(`tel:${phone}`, { actorKind });
@@ -716,9 +723,28 @@ function ruleMatchesPurpose(rule: ConsentRule, purpose?: string): boolean {
 function ruleMatchesSection(rule: ConsentRule, section?: string): boolean {
   if (!section || section === '*') return true;
   const requestedSection = normalizeSectionToken(section);
-  const actions = splitCsv(rule[ClaimConsent.action]).map(normalizeSectionToken);
+  const rawAction = String(rule[ClaimConsent.action] || '').trim();
+  const actions = extractRuleSectionTokens(rawAction).map(normalizeSectionToken);
   if (actions.length === 0) return false;
   return actions.includes(requestedSection) || actions.includes('*');
+}
+
+function extractRuleSectionTokens(rawAction: string): string[] {
+  if (!rawAction) return [];
+  const canonicalExpressions = rawAction
+    .split(/\s+/)
+    .map((value) => value.trim())
+    .filter((value) =>
+      /^(?:organization\/|patient\/)?Composition\.[A-Za-z]+(?:\?|$)/i.test(value));
+  if (canonicalExpressions.length === 0) return splitCsv(rawAction);
+
+  return canonicalExpressions.flatMap((expression) => {
+    const [, queryString = ''] = expression.split('?', 2);
+    const section = new URLSearchParams(queryString).get('section');
+    return section
+      ? section.split(',').map((value) => value.trim()).filter(Boolean)
+      : ['*'];
+  });
 }
 
 function ruleMatchesResourceType(rule: ConsentRule & Record<string, unknown>, resourceType?: string): boolean {

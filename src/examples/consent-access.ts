@@ -134,6 +134,21 @@ export const EXAMPLE_CONSENT_ACCESS_RULES = Object.freeze({
     actions: [HealthcareBasicSections.PatientSummaryDocument.claim],
     resourceTypes: [ResourceTypesFhirR4.Composition, ResourceTypesFhirR4.DocumentReference],
   }),
+  relatedPersonClinicalSections: buildRule({
+    identifier: 'urn:uuid:consent-related-person-clinical-sections',
+    actorIdentifier: EXAMPLE_EMAIL_RELATED_PERSON,
+    actorRole: EXAMPLE_RELATED_PERSON_ROLE,
+    purpose: HealthcareConsentPurposes.Treatment,
+    actions: [
+      HealthcareBasicSections.AllergiesAndIntolerances.attributeValue,
+      HealthcareBasicSections.HistoryOfMedicationUse.attributeValue,
+    ],
+    resourceTypes: [
+      ResourceTypesFhirR4.Composition,
+      ResourceTypesFhirR4.AllergyIntolerance,
+      ResourceTypesFhirR4.MedicationStatement,
+    ],
+  }),
   revokedPhysicianEmailConsent: buildRule({
     identifier: 'urn:uuid:consent-physician-email-revoked',
     actorIdentifier: EXAMPLE_EMAIL_PROFESSIONAL,

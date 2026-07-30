@@ -1,5 +1,6 @@
 // Always create JSDoc, do not use strings inline in keys nor values, use types instead, and reuse the data test examples.
 import { CommunicationCategoryCodes } from '../src/constants/communication';
+import { HealthcareBasicSections } from '../src/constants/healthcare';
 import { CommunicationClaim } from '../src/models/interoperable-claims/communication-claims';
 import {
   extractCommunicationClaimsFromResourceFhirR4,
@@ -19,6 +20,7 @@ describe('utils/communication-fhir-r4', () => {
         [CommunicationClaim.Recipient]: 'did:web:recipient.example',
         [CommunicationClaim.Sender]: 'did:web:sender.example',
         [CommunicationClaim.PartOf]: 'urn:uuid:thread-001',
+        [CommunicationClaim.Topic]: HealthcareBasicSections.VitalSigns.attributeValue,
         [CommunicationClaim.NoteText]: 'hello',
         [CommunicationClaim.ContentReference]: 'DocumentReference/doc-1',
       },
@@ -30,6 +32,10 @@ describe('utils/communication-fhir-r4', () => {
     expect(result.resources[0].resourceType).toBe('Communication');
     expect((result.resources[0] as any).meta.claims[CommunicationClaim.Identifier]).toBe('comm-001');
     expect((result.resources[0] as any).partOf[0].reference).toBe('urn:uuid:thread-001');
+    expect((result.resources[0] as any).topic.coding[0]).toEqual({
+      system: HealthcareBasicSections.VitalSigns.system,
+      code: HealthcareBasicSections.VitalSigns.code,
+    });
   });
 
   it('strict mode rejects conflicting payload kinds', () => {
@@ -99,6 +105,12 @@ describe('utils/communication-fhir-r4', () => {
           }],
         },
       ],
+      topic: {
+        coding: [{
+          system: HealthcareBasicSections.VitalSigns.system,
+          code: HealthcareBasicSections.VitalSigns.code,
+        }],
+      },
       partOf: [{ reference: 'urn:uuid:thread-777' }],
       payload: [{ contentReference: { reference: 'Appointment/appt-777' } }],
       note: [{ text: 'Reminder text' }],
@@ -110,6 +122,7 @@ describe('utils/communication-fhir-r4', () => {
     expect(claims[CommunicationClaim.PartOf]).toBe('urn:uuid:thread-777');
     expect(claims[CommunicationClaim.ContentReference]).toBe('Appointment/appt-777');
     expect(claims[CommunicationClaim.Category]).toBe(CommunicationCategoryCodes.Reminder.claim);
+    expect(claims[CommunicationClaim.Topic]).toBe(HealthcareBasicSections.VitalSigns.attributeValue);
     expect(claims[CommunicationClaim.Text]).toBe('Reminder text');
     expect(claims[CommunicationClaim.NoteText]).toBe('Reminder text');
   });

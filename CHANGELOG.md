@@ -4,6 +4,26 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.3.14] - 2026-07-30
+
+### Added
+
+- Add `deriveGrantedSmartScopes(...)`, a pure fail-closed projection of
+  requested read-only Composition scopes onto active Consent rules. It expands
+  all-section requests and returns only explicit, subject-pinned sections that
+  are actually granted.
+- Add an executable 101 fixture for the controller-granted individual-member
+  flow, including partial access and cross-member/cross-subject denial.
+
+### Fixed
+
+- Project the canonical `Communication.topic` claim to native FHIR R4
+  `Communication.topic` and restore it on readback.
+- Recognize canonical Composition section read scopes in Consent action rules
+  while retaining compatibility with existing section-code rules.
+- Permit trusted actor aliases during Consent evaluation so a GW can match the
+  authenticated DID against persisted verified email/telephone identifiers.
+
 ## [2.3.13] - 2026-07-30
 
 ### Fixed

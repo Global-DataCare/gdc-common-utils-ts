@@ -1,5 +1,6 @@
 // Always create JSDoc, do not use strings inline in keys nor values, use types instead, and reuse the data test examples.
 import { CommunicationClaim } from '../models/interoperable-claims/communication-claims';
+import { LOINC_SYSTEM_URL } from '../models/clinical-sections';
 import { type FhirValidationResult } from './fhir-validator';
 import { validateFhirResource } from './fhir-validator';
 
@@ -114,6 +115,9 @@ export function transformCommunicationClaimsToResourceFhirR4(
     const category = toStringOrUndefined(claims[CommunicationClaim.Category]);
     if (category) resource['category'] = [{ coding: [parseSystemCode(category)] }];
 
+    const topic = toStringOrUndefined(claims[CommunicationClaim.Topic]);
+    if (topic) resource['topic'] = { coding: [parseTopicCoding(topic)] };
+
     const subject = toStringOrUndefined(claims[CommunicationClaim.Subject]);
     if (subject) resource['subject'] = { reference: subject };
 
@@ -162,6 +166,7 @@ export function extractCommunicationClaimsFromResourceFhirR4(
   const noteText = (resource?.note as Array<{ text?: unknown }> | undefined)?.[0]?.text;
 
   const categoryCoding = (resource?.category as Array<{ coding?: Array<{ system?: unknown; code?: unknown }> }> | undefined)?.[0]?.coding?.[0];
+  const topicCoding = (resource?.topic as { coding?: Array<{ system?: unknown; code?: unknown }> } | undefined)?.coding?.[0];
   const payloads = (resource?.payload as Array<Record<string, unknown>> | undefined) || [];
   const referencePayload = payloads.find((payload) => payload.contentReference !== undefined);
   const attachmentPayload = payloads.find((payload) => payload.contentAttachment !== undefined);
@@ -188,6 +193,12 @@ export function extractCommunicationClaimsFromResourceFhirR4(
     const code = toStringOrUndefined(categoryCoding.code);
     if (system && code) claims[CommunicationClaim.Category] = `${system}|${code}`;
     else if (code) claims[CommunicationClaim.Category] = code;
+  }
+  if (topicCoding) {
+    const system = toStringOrUndefined(topicCoding.system);
+    const code = toStringOrUndefined(topicCoding.code);
+    if (system && code) claims[CommunicationClaim.Topic] = formatTopicClaim(system, code);
+    else if (code) claims[CommunicationClaim.Topic] = code;
   }
 
   setIf(claims, CommunicationClaim.ContentReference, contentReference);
@@ -270,6 +281,26 @@ function parseSystemCode(value: string): { system?: string; code: string } {
     return { system, code };
   }
   return { code: trimmed };
+}
+
+function parseTopicCoding(value: string): { system?: string; code: string } {
+  const coding = parseSystemCode(value);
+  if (coding.system?.toUpperCase() === 'LOINC') {
+    return { ...coding, system: LOINC_SYSTEM_URL };
+  }
+  return coding;
+}
+
+function formatTopicClaim(system: string, code: string): string {
+  const normalizedSystem = system.trim().toLowerCase();
+  if (
+    normalizedSystem === LOINC_SYSTEM_URL
+    || normalizedSystem === 'https://loinc.org'
+    || normalizedSystem === 'urn:oid:2.16.840.1.113883.6.1'
+  ) {
+    return `LOINC|${code.trim()}`;
+  }
+  return `${system.trim()}|${code.trim()}`;
 }
 
 function toStringOrUndefined(value: unknown): string | undefined {
