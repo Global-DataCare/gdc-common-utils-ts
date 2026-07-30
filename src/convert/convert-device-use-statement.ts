@@ -13,7 +13,12 @@ export function deviceUseStatementFlatToFhirR4(claims: FlatClaims): FhirResource
     resourceType: 'DeviceUseStatement',
     identifier: claims[DeviceUseStatementClaim.Identifier] ? [{ value: claims[DeviceUseStatementClaim.Identifier] }] : undefined,
     subject: { reference: subject },
-    device: { reference: device },
+    device: {
+      reference: device,
+      ...(claims[DeviceUseStatementClaim.DeviceDisplay]
+        ? { display: claims[DeviceUseStatementClaim.DeviceDisplay] }
+        : {}),
+    },
     status,
     recordedOn: claims[DeviceUseStatementClaim.RecordedOn],
     timingDateTime: claims[DeviceUseStatementClaim.TimingDateTime],
@@ -25,6 +30,7 @@ export function deviceUseStatementFhirR4ToFlat(resource: FhirResource): FlatClai
     [DeviceUseStatementClaim.Identifier]: (resource.identifier as Array<{ value?: string }> | undefined)?.[0]?.value,
     [DeviceUseStatementClaim.Subject]: (resource.subject as { reference?: string } | undefined)?.reference,
     [DeviceUseStatementClaim.Device]: (resource.device as { reference?: string } | undefined)?.reference,
+    [DeviceUseStatementClaim.DeviceDisplay]: (resource.device as { display?: string } | undefined)?.display,
     [DeviceUseStatementClaim.Status]: resource.status as string | undefined,
     [DeviceUseStatementClaim.RecordedOn]: resource.recordedOn as string | undefined,
     [DeviceUseStatementClaim.TimingDateTime]: resource.timingDateTime as string | undefined,
