@@ -4,6 +4,15 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.3.20] - 2026-07-31
+
+### Deprecated
+
+- Mark the 2.3.19 animal-card onboarding model as a compatibility surface.
+  Canonical animal-card, NCBI Taxonomy and product species-code contracts
+  belong to a product SDK; Common Utils retains only reusable claims, HMAC,
+  UUID-normalization and Damm check-digit primitives.
+
 ## [2.3.19] - 2026-07-31
 
 ### Added

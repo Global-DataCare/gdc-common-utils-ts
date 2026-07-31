@@ -1,18 +1,28 @@
 import { ClaimsOrganizationSchemaorg, ClaimsServiceSchemaorg } from '../constants/schemaorg';
 import { DataspaceSectors } from '../constants/sectors';
 
+/**
+ * @deprecated Animal-card vocabulary is owned by the consuming product SDK.
+ * Retained only so consumers of 2.3.x can migrate without a breaking removal.
+ */
 export const AnimalSubjectKinds = Object.freeze({
   Animal: 'animal',
 } as const);
 
+/**
+ * @deprecated Use the species registry from the consuming product SDK.
+ * NCBI Taxonomy identifiers are external identifiers and are not a GDC model.
+ */
 export const NcbiTaxonomy = Object.freeze({
   Dog: '9615',
   Cat: '9685',
   Horse: '9796',
 } as const);
 
+/** @deprecated Import the taxonomy identifier type from the product SDK. */
 export type NcbiTaxonomyId = string;
 
+/** @deprecated Import the animal onboarding input from the product SDK. */
 export type AnimalOnboardingInput = Readonly<{
   subjectId: string;
   cardDidWeb: string;
@@ -27,9 +37,12 @@ export type AnimalOnboardingInput = Readonly<{
   sector?: string;
 }>;
 
+/** @deprecated Import the animal onboarding claims type from the product SDK. */
 export type AnimalOnboardingClaims = Readonly<Record<string, string>>;
 
 /**
+ * @deprecated Use the taxonomy URI builder from the product SDK.
+ *
  * Builds the canonical OBO URI for one NCBI Taxonomy numeric identifier.
  *
  * The URI is public taxonomy metadata, not an animal identifier. Callers must
@@ -48,6 +61,9 @@ export function buildNcbiTaxonomyUri(id: NcbiTaxonomyId): string {
 }
 
 /**
+ * @deprecated Use the animal onboarding builder from the product SDK. This
+ * compatibility implementation will be removed in the next major release.
+ *
  * Projects one controller-authorized animal card request to the existing
  * schema.org individual-organization claim envelope.
  *
