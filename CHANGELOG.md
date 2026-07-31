@@ -4,6 +4,14 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.3.19] - 2026-07-31
+
+### Added
+
+- Add a product-neutral animal onboarding claim builder with an exact
+  non-human NCBI Taxonomy OBO URI, controller separation and a fixed
+  responsible-party relationship for animal card requests.
+
 ## [2.3.18] - 2026-07-31
 
 ### Added
