@@ -183,9 +183,11 @@ primary coded claim for that resource:
 | `Observation.code` | `Observation.code` |
 | `Flag.code` | `Flag.code` |
 | `Procedure.code` | `Procedure.code` |
+| `DiagnosticReport.code` | `DiagnosticReport.code` |
 | `Immunization.vaccineCode` | `Immunization.vaccine-code` |
 | `Device.type` | `Device.type` |
 | `DocumentReference.type` | `DocumentReference.type` |
+| `CarePlan.category[0]` | `CarePlan.category` when coded |
 | `Consent.category[0]` | `Consent.category` |
 | `PractitionerRole.code[0]` | `PractitionerRole.code` |
 
@@ -197,6 +199,54 @@ For text filtering in a generic UI, render the returned card DTOs or use
 `getContainingTextOrDisplay(...)` for one resource type. Apply the shared
 `toClinicalSectionViews(bundle)` projection before any application-owned UI
 text filter.
+
+### Local terminology fallback for the MVP
+
+`LocalTerminologyProvider` accepts the established legacy JSON catalog shape:
+
+```ts
+const terminology = new LocalTerminologyProvider([{
+  language: 'es',
+  data: [{
+    id: 'http://snomed.info/sct',
+    attributes: {
+      '44054006': 'Diabetes mellitus tipo 2',
+    },
+  }],
+}]);
+
+const options: ClinicalResourceDisplayOptions = {
+  locale: 'es',
+  translateCode: createClinicalCodeTranslator(terminology),
+};
+```
+
+The legacy `data[].id === "ips"` alias is read as
+`http://snomed.info/sct`. New catalogs must write the canonical system URI.
+Language matching tries the requested locale, its base language and then
+English. Missing terms return `undefined`, preserving the normal FHIR
+`Coding.display`/`CodeableConcept.text` fallback.
+
+The same provider searches coded form options:
+
+```ts
+const options = terminology.search({
+  text: 'presion',
+  language: 'es-ES',
+  jurisdiction: 'ES',
+  systems: ['http://loinc.org'],
+  limit: 20,
+});
+```
+
+The form supplies its allowed systems explicitly. The provider does not guess
+terminologies by scanning a resource. Catalog loading remains application
+owned so a Node BFF can keep large files server-side and an offline frontend
+can load only the subsets it needs.
+
+`translateCode` is intentionally synchronous. A future external terminology
+service must fetch/cache labels before rendering and can then populate the same
+local provider contract.
 
 ## 7. Empty And Missing Data
 

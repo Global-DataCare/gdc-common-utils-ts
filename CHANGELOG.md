@@ -4,6 +4,17 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.3.18] - 2026-07-31
+
+### Added
+
+- Add a synchronous `LocalTerminologyProvider` compatible with the historic
+  `data[].attributes[code] = display` catalogs, including language/system
+  filtering, normalized text search and a clinical `translateCode` adapter.
+- Add an executable MVP terminology tutorial and the repo-local
+  `extend-clinical-terminology` skill for new coded resource types and
+  catalogs.
+
 ## [2.3.17] - 2026-07-30
 
 ### Fixed
