@@ -49,6 +49,7 @@ export * from './relationship-access';
 export * from './response';
 export * from './subject-identifier-ledger';
 export * from './subject-identity-binding';
+export * from './terminology';
 export * from './urlPath';
 export * from './verifiable-credential';
 export * from './wallet';

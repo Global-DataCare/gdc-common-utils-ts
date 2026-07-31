@@ -94,6 +94,9 @@ export type ClinicalResourceDisplayOptions = Readonly<{
    *
    * Return `undefined` when the product has no translation so the shared
    * reader can fall back to the international `Coding.display`.
+   * `createClinicalCodeTranslator(new LocalTerminologyProvider(catalogs))`
+   * provides the synchronous MVP/offline implementation. Remote terminology
+   * results must be fetched and cached before this render callback runs.
    */
   translateCode?: (input: ClinicalTerminologyTranslationInput) => string | undefined;
 }>;

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Extend Clinical Terminology"
+  short_description: "Add coded FHIR resources and terminology safely"
+  default_prompt: "Use $extend-clinical-terminology to add or update a coded FHIR resource, terminology catalog, language, or fallback lookup across Common Utils and the SDKs."
