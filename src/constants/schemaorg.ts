@@ -44,6 +44,8 @@ export enum ClaimsSoftwareApplicationSchemaorg {
  * based on Schema.org vocabulary.
  */
 export enum ClaimsOrganizationSchemaorg {
+    /** Schema.org type discriminator for the indexed organization/member profile. */
+    additionalType = "org.schema.Organization.additionalType",
   /** Public aliases used for exact organization or individual resolution. */
   sameAs = 'org.schema.Organization.sameAs',
     /** ISO 3166-1 alpha-2 (two-letter country code). The jurisdiction could be the country or the region (county, province or state) */
@@ -94,6 +96,16 @@ export enum ClaimsOrganizationSchemaorg {
     ownerIdentifierValue = "org.schema.Organization.owner.identifier.value",
     /** Individual/family indexed member friendly name used by onboarding draft helpers. */
     memberAlternateName = "org.schema.Organization.member.alternateName",
+    /** Public display name of the indexed member. */
+    memberName = "org.schema.Organization.member.name",
+    /**
+     * Semantic type of the indexed member.
+     *
+     * Animal onboarding uses the canonical NCBI Taxonomy OBO URI here. This
+     * distinguishes an animal without inferring species from a FHIR resource
+     * name or from an application-local flag.
+     */
+    memberAdditionalType = "org.schema.Organization.member.additionalType",
     memberGivenName = "org.schema.Organization.member.givenName",
     memberFamilyName = "org.schema.Organization.member.familyName",
     memberBirthDate = "org.schema.Organization.member.birthDate",
