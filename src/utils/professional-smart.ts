@@ -5,6 +5,7 @@ import {
 } from '../constants/verifiable-credentials';
 import { normalizeSameAsHashCsv, normalizeSameAsHashList, normalizeTelephoneHash } from './same-as';
 import { buildUnsignedVpJwt } from './jwt';
+import { getVpCredentials } from './vp-token';
 
 export type ProfessionalEmployeeCredentialInput = Readonly<{
   actorDid: string;
@@ -28,6 +29,14 @@ export type ProfessionalSmartVpPayloadInput = Readonly<{
   verifiableCredential?: string | Record<string, unknown> | ReadonlyArray<string | Record<string, unknown>>;
   additionalVp?: Record<string, unknown>;
   additionalPayload?: Record<string, unknown>;
+}>;
+
+/** Identity fields read from an already-verified professional credential. */
+export type ProfessionalCredentialSummary = Readonly<{
+  actorDid: string;
+  role: string;
+  issuerDid?: string;
+  sameAs: string[];
 }>;
 
 /**
@@ -120,6 +129,45 @@ export function getProfessionalIdentityVC(
     },
     ...(input.additionalCredential || {}),
   };
+}
+
+/**
+ * Reads the actor and role asserted by one professional credential. Signature
+ * and employer/issuer trust verification belongs to the enclosing VP verifier.
+ */
+export function summarizeProfessionalIdentityCredential(
+  credential: unknown,
+): ProfessionalCredentialSummary | undefined {
+  const source = credential as any;
+  const types = Array.isArray(source?.type) ? source.type.map(String) : [String(source?.type || '')];
+  if (!types.includes(ProfessionalCredentialTypes.EmployeeCredential)) return undefined;
+  const subject = source?.credentialSubject || {};
+  const actorDid = String(subject.id || '').trim();
+  const role = String(subject.hasOccupation || '').trim();
+  if (!actorDid || !role) return undefined;
+  const issuerDid = String(source?.issuer?.id || source?.issuer || '').trim();
+  return {
+    actorDid,
+    role,
+    ...(issuerDid ? { issuerDid } : {}),
+    sameAs: normalizeSameAsHashList(subject.sameAs),
+  };
+}
+
+/** Finds the exact actor and role in an already-verified professional VP. */
+export function getMatchingProfessionalCredentialFromVpToken(
+  vpToken: string,
+  criteria: Readonly<{ actorDid: string; role: string }>,
+): ProfessionalCredentialSummary | undefined {
+  const actorDid = String(criteria.actorDid || '').trim();
+  const role = String(criteria.role || '').trim().toLowerCase();
+  return getVpCredentials(vpToken)
+    .map(summarizeProfessionalIdentityCredential)
+    .find((summary): summary is ProfessionalCredentialSummary => Boolean(
+      summary
+      && summary.actorDid === actorDid
+      && summary.role.toLowerCase() === role,
+    ));
 }
 
 /**

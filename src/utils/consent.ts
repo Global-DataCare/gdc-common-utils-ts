@@ -75,6 +75,10 @@ export type BuildConsentClaimsSimpleInput = SubjectIdentifierInput & {
   consentIdentifier?: string;
   consentDate?: string;
   decision?: 'permit' | 'deny';
+  /** Stable identifier/thread of the permission request that caused this decision. */
+  eventBasedOn?: string;
+  /** Canonical Communication reference for the permission request being answered. */
+  sourceReference?: string;
   attachmentContentType?: string;
   attachmentBase64?: string;
 };
@@ -295,6 +299,12 @@ export function buildConsentClaimsSimple(
       [ClaimConsent.action]: (input.actions || []).join(','),
       [ClaimConsent.actorIdentifier]: actorIdentifier,
       [ClaimConsent.actorRole]: input.actorRole,
+      ...(String(input.eventBasedOn || '').trim()
+        ? { [ClaimConsent.eventBasedOn]: String(input.eventBasedOn).trim() }
+        : {}),
+      ...(String(input.sourceReference || '').trim()
+        ? { [ClaimConsent.sourceReference]: String(input.sourceReference).trim() }
+        : {}),
       [ClaimConsent.attachmentContentType]: input.attachmentContentType || 'application/odrl+json',
       [ClaimConsent.attachmentData]: input.attachmentBase64 || 'e30=',
     },

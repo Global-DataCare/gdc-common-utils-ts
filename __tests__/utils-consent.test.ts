@@ -93,6 +93,21 @@ describe('consent utilities', () => {
     expect(built.consentClaims[ClaimConsent.actorIdentifier]).toBe('hospital@example.com,ES');
   });
 
+  it('links an approval consent to its permission-request Communication', () => {
+    const built = buildConsentClaimsSimple({
+      subjectDid: 'did:web:subject.example.com',
+      actor: 'did:web:clinic.example.com:member:zHash:ISCO-08|2211',
+      actorRole: 'ISCO-08|2211',
+      purpose: 'TREAT',
+      actions: ['organization/Composition.rs?section=LOINC|48765-2'],
+      consentIdentifier: 'urn:uuid:consent-request-response',
+      eventBasedOn: 'urn:uuid:permission-request-1',
+      sourceReference: 'Communication/permission-request-1',
+    });
+    expect(built.consentClaims[ClaimConsent.eventBasedOn]).toBe('urn:uuid:permission-request-1');
+    expect(built.consentClaims[ClaimConsent.sourceReference]).toBe('Communication/permission-request-1');
+  });
+
   it('adds deterministic claims CID as @id', () => {
     const withCidA = buildConsentClaimsSimpleWithCid(
       {
