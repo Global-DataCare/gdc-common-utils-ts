@@ -12,6 +12,7 @@ import {
   getProfessionalIdentitySameAs,
   getProfessionalIdentityTelephone,
   getProfessionalIdentityVC,
+  getMatchingProfessionalCredentialFromVpToken,
 } from '../src/utils/professional-smart';
 import { normalizeSameAsHash, normalizeTelephoneHash } from '../src/utils/same-as';
 import { decodeVpTokenPayload } from '../src/utils/vp-token';
@@ -106,5 +107,23 @@ describe('professional SMART helpers', () => {
       clientId: EXAMPLE_PROFESSIONAL_IDENTITY.actorDid,
       ...EXAMPLE_PROFESSIONAL_IDENTITY,
     }));
+  });
+
+  it('finds the exact actor and role in an already-verified professional VP', () => {
+    const token = buildUnsignedProfessionalIdentityVpJwt({
+      clientId: EXAMPLE_PROFESSIONAL_IDENTITY.actorDid,
+      ...EXAMPLE_PROFESSIONAL_IDENTITY,
+    });
+    expect(getMatchingProfessionalCredentialFromVpToken(token, {
+      actorDid: EXAMPLE_PROFESSIONAL_IDENTITY.actorDid,
+      role: EXAMPLE_PROFESSIONAL_IDENTITY.role,
+    })).toMatchObject({
+      actorDid: EXAMPLE_PROFESSIONAL_IDENTITY.actorDid,
+      role: EXAMPLE_PROFESSIONAL_IDENTITY.role,
+    });
+    expect(getMatchingProfessionalCredentialFromVpToken(token, {
+      actorDid: 'did:web:another.example:member:zHash:ISCO-08|2211',
+      role: EXAMPLE_PROFESSIONAL_IDENTITY.role,
+    })).toBeUndefined();
   });
 });

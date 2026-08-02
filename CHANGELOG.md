@@ -4,6 +4,24 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.3.21] - 2026-08-02
+
+### Added
+
+- Correlate a Consent decision with its originating permission-request
+  Communication through canonical `Consent.event-basedon` and
+  `Consent.source-reference` claims.
+- Read the exact professional actor and role from an already-verified VP so GW
+  can bind portable hosted/external member DID aliases without trusting an
+  unverified DID suffix.
+
+### Fixed
+
+- Parse the terminal member identifier and coded role from hosted or external
+  `did:web` actors without requiring provider-specific `employee` or `family`
+  path labels. Organization and individual membership are inferred from the
+  role contract while legacy paths remain compatible.
+
 ## [2.3.20] - 2026-07-31
 
 ### Deprecated
