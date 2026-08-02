@@ -4,6 +4,8 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.3.21] - 2026-08-02
+
 ### Added
 
 - Correlate a Consent decision with its originating permission-request
