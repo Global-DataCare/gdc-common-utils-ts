@@ -22,9 +22,15 @@ The application flow is:
 2. receive one `ClinicalSummaryReadResult`
 3. paint the returned Bundle without another network request
 
-The runtime represents the operation as:
+The runtime represents the operation inside one Communication as:
 
 `Communication -> Subject/$summary -> FHIR Parameters -> Bundle document`
+
+`Subject/$summary` is the internal operation reference carried by the
+Communication. It is not a public HTTP route that application or BFF code
+constructs directly. The public application API is
+`requestClinicalSummary(...)`; the public GW transport used by its runtime is
+`Communication/_batch` plus polling.
 
 The Communication has two native FHIR payloads: the operation
 `contentReference` and the attached `Parameters`. They are parts of the same

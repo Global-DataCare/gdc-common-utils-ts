@@ -27,6 +27,10 @@ The SDK sends one read-only Communication:
 
 `Communication -> Subject/$summary -> attached FHIR Parameters`
 
+The arrow denotes internal GW dispatch. Product code does not POST directly to
+`Subject/$summary`: the actor facade submits `Communication/_batch`, and GW
+resolves the operation reference against the subject index.
+
 The operation returns one `ClinicalSummaryReadResult`. It does not ingest or
 project resources.
 

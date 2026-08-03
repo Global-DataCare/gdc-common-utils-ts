@@ -61,7 +61,11 @@ describe('101: IPS summary search Communication', () => {
     );
   });
 
-  it('documents the step-by-step IPS search flow used by frontend code today', () => {
+  it('keeps direct Bundle search URL construction as an explicit compatibility escape hatch', () => {
+    // Teaching goal:
+    // Show that the low-level URL helpers remain deterministic for migration
+    // and diagnostics without presenting them as the application read path.
+
     // Step 1.
     // Frontend/runtime already knows:
     // - which individual is being requested
@@ -88,9 +92,9 @@ describe('101: IPS summary search Communication', () => {
       createSummaryOperationRequestReferencePath(summaryOperationRequestParameters);
 
     // Step 4.
-    // Runtime/backend layer: when the portal backend wants to call the provider
-    // GW CORE endpoint directly, it resolves the full absolute URL from the
-    // provider sector DID plus the relative content-reference path.
+    // Compatibility/debug layer only: an integration test may resolve the
+    // historic absolute route. Portal/BFF application code instead calls
+    // requestClinicalSummary(...), which submits the containing Communication.
     const summaryOperationRequestReferenceUrl =
       createSummaryOperationRequestReferenceUrl({
         providerSectorDidWeb: EXAMPLE_INDEX_PROVIDER_SECTOR_DID_WEB,
@@ -98,7 +102,8 @@ describe('101: IPS summary search Communication', () => {
       });
 
     // Step 5.
-    // Assertions: every layer must agree on the same IPS search target.
+    // Assertions: compatibility serialization remains deterministic while the
+    // first test above remains the canonical Communication authoring lesson.
     expect(summaryOperationRequestParameters).toEqual([
       {
         name: 'subject',
