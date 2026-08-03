@@ -396,8 +396,13 @@ export function createSummaryOperationRequestParameters(
 }
 
 /**
- * Flattens semantic summary-operation parameters to the relative `Bundle/_search`
- * path currently stored in `Communication.content-reference`.
+ * Compatibility escape hatch that flattens semantic summary parameters into a
+ * relative `Bundle/_search` operation reference.
+ *
+ * New application/BFF code uses the actor facade `requestClinicalSummary(...)`.
+ * The facade submits a `Communication`; GW interprets its content reference
+ * internally. Callers must not turn this returned value into a second direct
+ * HTTP request to the subject index.
  */
 export function createSummaryOperationRequestReferencePath(
   parameters: ReadonlyArray<ParameterData>,

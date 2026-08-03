@@ -74,7 +74,9 @@ const communicationClaims = communication.setRequestSummaryOperation({
 That is the 101 path: `Communication.content-reference` selects
 `Subject/$summary` and `Communication.content-attachment-data` carries the FHIR
 `Parameters` resource. The runtime executes this through
-`requestClinicalSummary(...)`; it must not call an ingestion method.
+`requestClinicalSummary(...)`; it must not call an ingestion method or invoke
+the `$summary` HTTP route directly. `$summary` is GW's internal operation name;
+the runtime submits the containing Communication.
 
 When rendered as a native FHIR projection, those two flat claims become two
 elements of the same `Communication.payload[]` array:

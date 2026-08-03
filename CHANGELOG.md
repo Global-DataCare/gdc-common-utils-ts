@@ -4,6 +4,15 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.3.22] - 2026-08-03
+
+### Documentation
+
+- Clarify in public helper JSDoc, clinical 101 guides and executable tutorial
+  comments that `Subject/$summary` and flattened `Bundle/_search` values are
+  internal/compatibility operation references carried by Communication, not
+  direct application/BFF HTTP calls.
+
 ## [2.3.21] - 2026-08-02
 
 ### Added
