@@ -359,8 +359,16 @@ function normalizeConsentRoleValue(value: string): string {
   const trimmed = String(value || '').trim();
   if (!trimmed || trimmed === '*') return trimmed;
   const [system, code] = trimmed.includes('|') ? trimmed.split('|', 2) : ['', trimmed];
+  const normalizedSystem = system.trim().toLowerCase();
+  const canonicalSystem = [
+    'isco-08',
+    'org.ilo.isco',
+    'org.ilo.isco-08',
+  ].includes(normalizedSystem)
+    ? 'org.ilo.isco-08'
+    : normalizedSystem;
   return system
-    ? `${system.trim().toLowerCase()}|${code.trim()}`
+    ? `${canonicalSystem}|${code.trim().toLowerCase()}`
     : trimmed.toLowerCase();
 }
 
