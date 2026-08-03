@@ -4,6 +4,14 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.3.23] - 2026-08-03
+
+### Fixed
+
+- Match compact `ISCO-08|code` roles carried by professional DIDs and VPs to
+  persisted canonical `org.ilo.isco-08|code` Consent roles, while continuing
+  to deny genuinely different occupation codes.
+
 ## [2.3.22] - 2026-08-03
 
 ### Documentation

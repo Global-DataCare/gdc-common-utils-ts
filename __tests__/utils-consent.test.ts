@@ -340,6 +340,41 @@ describe('consent utilities', () => {
     expect(specialistEvaluation.allowed).toBe(true);
   });
 
+  it('matches a persisted canonical ISCO role to the compact role carried by a professional DID', () => {
+    const canonicalRoleRule = {
+      ...EXAMPLE_CONSENT_ACCESS_RULES.physicianByEmailEmergency,
+      [ClaimConsent.actorRole]: 'org.ilo.isco-08|2211',
+    } as any;
+
+    const allowed = evaluateConsentCoverage([canonicalRoleRule], {
+      subject: EXAMPLE_CONSENT_ACCESS_SUBJECT,
+      actor: {
+        actorKind: 'professional',
+        email: EXAMPLE_CONSENT_ACCESS_PROVIDER_EMAIL,
+      },
+      actorRole: HealthcareActorRoles.GeneralistMedicalPractitioner,
+      purpose: HealthcareConsentPurposes.EmergencyTreatment,
+      sections: [HealthcareBasicSections.PatientSummaryDocument.claim],
+      resourceTypes: [ResourceTypesFhirR4.Composition],
+      now: '2026-05-23T10:00:00Z',
+    });
+    const denied = evaluateConsentCoverage([canonicalRoleRule], {
+      subject: EXAMPLE_CONSENT_ACCESS_SUBJECT,
+      actor: {
+        actorKind: 'professional',
+        email: EXAMPLE_CONSENT_ACCESS_PROVIDER_EMAIL,
+      },
+      actorRole: HealthcareActorRoles.NursingProfessional,
+      purpose: HealthcareConsentPurposes.EmergencyTreatment,
+      sections: [HealthcareBasicSections.PatientSummaryDocument.claim],
+      resourceTypes: [ResourceTypesFhirR4.Composition],
+      now: '2026-05-23T10:00:00Z',
+    });
+
+    expect(allowed.allowed).toBe(true);
+    expect(denied.allowed).toBe(false);
+  });
+
   it('allows related person by direct email target', () => {
     const evaluation = evaluateConsentCoverage(Object.values(EXAMPLE_CONSENT_ACCESS_RULES) as any, {
       subject: EXAMPLE_CONSENT_ACCESS_SUBJECT,
