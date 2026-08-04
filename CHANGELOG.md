@@ -4,6 +4,8 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.3.24] - 2026-08-04
+
 ### Added
 
 - Allow simple professional Consent grants to carry a signed
