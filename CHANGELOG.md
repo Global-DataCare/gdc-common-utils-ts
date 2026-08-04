@@ -12,6 +12,16 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 - Let `ObservationEntryEditor` and `VitalSignEntryEditor` assign explicit
   Composition sections through the shared clinical-resource editor surface.
 
+### Fixed
+
+- Canonicalize `Observation.effective-datetime` to lowercase kebab-case while
+  continuing to read the legacy `Observation.effectiveDateTime` spelling.
+- Rehydrate native FHIR fields from both short claims and reverse-DNS
+  `org.hl7.fhir.api.*` / `org.hl7.fhir.r4.*` claims for every clinical-summary
+  resource converter.
+- Preserve Condition category, severity, onset and recorder fields across the
+  flat-claims/FHIR R4 roundtrip.
+
 ## [2.3.24] - 2026-08-04
 
 ### Added

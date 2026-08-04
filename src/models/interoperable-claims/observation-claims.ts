@@ -115,8 +115,8 @@ export const ObservationClaim = {
   ValueString: 'Observation.value-string',
   /** User-authored note. Example: `Measured after resting 5 minutes.` */
   Note: 'Observation.note',
-  /** FHIR-compatible explicit `effectiveDateTime` fallback. Example: `2026-06-01T10:00:00Z`. */
-  EffectiveDateTime: 'Observation.effectiveDateTime',
+  /** FHIR-compatible explicit `effectiveDateTime` fallback using the canonical kebab-case claim name. Example: `2026-06-01T10:00:00Z`. */
+  EffectiveDateTime: 'Observation.effective-datetime',
 } as const;
 
 export type ObservationClaimKey = typeof ObservationClaim[keyof typeof ObservationClaim];

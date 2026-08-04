@@ -5,6 +5,9 @@ import { ObservationClaim } from '../models/interoperable-claims/observation-cla
 import type { FhirResource, FlatClaims } from './convert-shared';
 import { codingFromValue, codingListToCsv, codingToValue, referenceListToCsv, referenceToValue } from './convert-shared';
 
+/** Legacy camelCase claim accepted only while reading previously persisted rows. */
+const LEGACY_OBSERVATION_EFFECTIVE_DATE_TIME = 'Observation.effectiveDateTime';
+
 /**
  * Converts flat editable Observation claims into a FHIR R4 Observation.
  *
@@ -48,8 +51,12 @@ export function observationFromFlatToFhirR4(claims: FlatClaims): FhirResource {
       }
       : undefined,
     subject: subject ? { reference: subject } : undefined,
-    effectiveDateTime: claims[ObservationClaim.EffectiveDateTime] ?? claims[ObservationClaim.Date],
-    issued: claims[ObservationClaim.EffectiveDateTime] ? undefined : claims[ObservationClaim.Date],
+    effectiveDateTime: claims[ObservationClaim.EffectiveDateTime]
+      ?? claims[LEGACY_OBSERVATION_EFFECTIVE_DATE_TIME]
+      ?? claims[ObservationClaim.Date],
+    issued: claims[ObservationClaim.EffectiveDateTime] || claims[LEGACY_OBSERVATION_EFFECTIVE_DATE_TIME]
+      ? undefined
+      : claims[ObservationClaim.Date],
     performer: claims[ObservationClaim.Performer] ? claims[ObservationClaim.Performer]!.split(',').map((reference) => ({ reference: reference.trim() })) : undefined,
     valueCodeableConcept: valueConceptToken
       ? {

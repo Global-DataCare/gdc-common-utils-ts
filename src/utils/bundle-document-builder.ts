@@ -104,7 +104,15 @@ export function extractFlatClaimValue(record: Record<string, any> | undefined, k
 function claimsToFlatStrings(claims: BundleDocumentClaims): FlatClaims {
   const out: FlatClaims = {};
   for (const [key, value] of Object.entries(claims || {})) {
-    if (value === undefined || value === null) continue;
+    if (value === undefined || value === null || key === '@context') continue;
+    const canonicalKey = getSimpleClaimAttributeName(key);
+    if (canonicalKey === key) continue;
+    out[canonicalKey] = typeof value === 'string' ? value : String(value);
+  }
+  for (const [key, value] of Object.entries(claims || {})) {
+    if (value === undefined || value === null || key === '@context') continue;
+    const canonicalKey = getSimpleClaimAttributeName(key);
+    if (canonicalKey !== key) continue;
     out[key] = typeof value === 'string' ? value : String(value);
   }
   return out;
@@ -392,7 +400,7 @@ export function convertClaimsToFhirResource(
   const flatClaims = claimsToFlatStrings(claims);
   const resourceType = detectClaimsResourceType(claims);
   const resource = convertClaimsToFhirResourceByType(flatClaims, resourceType);
-  const language = resourceType ? asTrimmedString(claims[`${resourceType}.language`]) : '';
+  const language = resourceType ? asTrimmedString(flatClaims[`${resourceType}.language`]) : '';
   return language ? { ...resource, language } : resource;
 }
 
