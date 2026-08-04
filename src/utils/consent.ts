@@ -74,6 +74,14 @@ export type BuildConsentClaimsSimpleInput = SubjectIdentifierInput & {
   actions: string[];
   consentIdentifier?: string;
   consentDate?: string;
+  /**
+   * Upper bound for the grant, serialized as `Consent.period-end`. Access is
+   * inactive at and after this instant.
+   *
+   * Use an ISO 8601 date or date-time. A date-time with an explicit timezone
+   * is recommended when the caller offers access until a specific hour.
+   */
+  periodEnd?: string;
   decision?: 'permit' | 'deny';
   /** Stable identifier/thread of the permission request that caused this decision. */
   eventBasedOn?: string;
@@ -133,6 +141,28 @@ export function normalizeIdentifierToken(value: string): string {
 
 function withPrefix(prefix: string | undefined, message: string): string {
   return prefix ? `${prefix} ${message}` : message;
+}
+
+/**
+ * Returns whether a Consent period boundary is an ISO 8601 calendar date or
+ * an absolute date-time carrying `Z` or an explicit numeric timezone.
+ *
+ * Date-only values remain supported for compatibility. Applications offering
+ * access until a specific hour should always send an absolute date-time.
+ */
+export function isValidConsentPeriodBoundary(value: string): boolean {
+  const normalized = String(value || '').trim();
+  if (!/^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,9})?)?(?:Z|[+-]\d{2}:\d{2}))?$/.test(normalized)) {
+    return false;
+  }
+  const [year, month, day] = normalized.slice(0, 10).split('-').map(Number);
+  const calendarDate = new Date(Date.UTC(year, month - 1, day));
+  if (calendarDate.getUTCFullYear() !== year
+    || calendarDate.getUTCMonth() !== month - 1
+    || calendarDate.getUTCDate() !== day) {
+    return false;
+  }
+  return !Number.isNaN(Date.parse(normalized));
 }
 
 /**
@@ -281,6 +311,10 @@ export function buildConsentClaimsSimple(
   const subjectIdentifier = resolveSubjectIdentifier(input, { errorPrefix: options.errorPrefix });
 
   const consentDate = String(input.consentDate || '').trim() || new Date().toISOString().slice(0, 10);
+  const periodEnd = String(input.periodEnd || '').trim();
+  if (periodEnd && !isValidConsentPeriodBoundary(periodEnd)) {
+    throw new Error(withPrefix(options.errorPrefix, 'periodEnd must be a valid ISO 8601 date or date-time.'));
+  }
   const consentIdentifier = String(input.consentIdentifier || '').trim() || String(options.consentIdentifierFactory?.() || '').trim();
   if (!consentIdentifier) {
     throw new Error(withPrefix(options.errorPrefix, 'consentIdentifier is required when no consentIdentifierFactory is provided.'));
@@ -295,6 +329,7 @@ export function buildConsentClaimsSimple(
       [ClaimConsent.subject]: subjectIdentifier,
       [ClaimConsent.identifier]: consentIdentifier,
       [ClaimConsent.date]: consentDate,
+      ...(periodEnd ? { [ClaimConsent.periodEnd]: periodEnd } : {}),
       [ClaimConsent.purpose]: input.purpose,
       [ClaimConsent.action]: (input.actions || []).join(','),
       [ClaimConsent.actorIdentifier]: actorIdentifier,
@@ -667,8 +702,8 @@ export function isConsentRuleActive(
       : Date.now();
   const periodStart = String(readConsentRuleClaim(rule, ClaimConsent.periodStart) || '').trim();
   const periodEnd = String(readConsentRuleClaim(rule, ClaimConsent.periodEnd) || '').trim();
-  if (periodStart && !Number.isNaN(Date.parse(periodStart)) && Date.parse(periodStart) > now) return false;
-  if (periodEnd && !Number.isNaN(Date.parse(periodEnd)) && Date.parse(periodEnd) < now) return false;
+  if (periodStart && (Number.isNaN(Date.parse(periodStart)) || Date.parse(periodStart) > now)) return false;
+  if (periodEnd && (Number.isNaN(Date.parse(periodEnd)) || Date.parse(periodEnd) <= now)) return false;
   return true;
 }
 

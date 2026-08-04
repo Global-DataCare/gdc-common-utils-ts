@@ -4,6 +4,12 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- Allow simple professional Consent grants to carry a signed
+  `Consent.period-end` expiry, validate malformed expiry input, and evaluate
+  malformed or boundary-ended rules as inactive.
+
 ## [2.3.23] - 2026-08-03
 
 ### Fixed

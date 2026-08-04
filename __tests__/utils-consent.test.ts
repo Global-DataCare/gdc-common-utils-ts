@@ -3,6 +3,7 @@ import {
   buildConsentClaimsSimpleWithCid,
   evaluateConsentCoverage,
   groupActiveConsentsByTarget,
+  isConsentRuleActive,
   normalizeConsentTarget,
   normalizeConsentActors,
   parseConsentActorToken,
@@ -106,6 +107,57 @@ describe('consent utilities', () => {
     });
     expect(built.consentClaims[ClaimConsent.eventBasedOn]).toBe('urn:uuid:permission-request-1');
     expect(built.consentClaims[ClaimConsent.sourceReference]).toBe('Communication/permission-request-1');
+  });
+
+  it('signs a temporary grant expiry into the canonical consent rule', () => {
+    const built = buildConsentClaimsSimple({
+      subjectDid: 'did:web:subject.example.com',
+      actor: 'did:web:clinic.example.com:member:zHash:ISCO-08|2211',
+      actorRole: 'ISCO-08|2211',
+      purpose: 'TREAT',
+      actions: ['organization/Composition.rs?section=LOINC|48765-2'],
+      consentIdentifier: 'urn:uuid:temporary-consent',
+      periodEnd: '2026-08-31T18:30:00Z',
+    });
+
+    expect(built.consentClaims[ClaimConsent.periodEnd]).toBe('2026-08-31T18:30:00Z');
+  });
+
+  it('rejects a malformed temporary grant expiry instead of creating a fail-open rule', () => {
+    for (const periodEnd of ['tomorrow evening', '08/31/2026 18:30']) {
+      expect(() => buildConsentClaimsSimple({
+        subjectDid: 'did:web:subject.example.com',
+        actor: 'did:web:clinic.example.com',
+        actorRole: 'ISCO-08|2211',
+        purpose: 'TREAT',
+        actions: ['organization/Composition.rs?section=LOINC|48765-2'],
+        consentIdentifier: 'urn:uuid:invalid-temporary-consent',
+        periodEnd,
+      })).toThrow('periodEnd must be a valid ISO 8601 date or date-time');
+    }
+  });
+
+  it('treats malformed and boundary-ended consent rules as inactive', () => {
+    const baseRule = {
+      '@context': 'org.hl7.fhir.api',
+      [ClaimConsent.identifier]: 'urn:uuid:temporary-rule',
+      [ClaimConsent.date]: '2026-08-04',
+      [ClaimConsent.subject]: 'did:web:subject.example.com',
+      [ClaimConsent.actorIdentifier]: 'did:web:clinic.example.com',
+      [ClaimConsent.actorRole]: 'ISCO-08|2211',
+      [ClaimConsent.purpose]: 'TREAT',
+      [ClaimConsent.action]: 'organization/Composition.rs?section=LOINC|48765-2',
+      [ClaimConsent.decision]: 'permit',
+    } as const;
+
+    expect(isConsentRuleActive({
+      ...baseRule,
+      [ClaimConsent.periodEnd]: 'not-a-date',
+    }, { now: '2026-08-31T18:30:00Z' })).toBe(false);
+    expect(isConsentRuleActive({
+      ...baseRule,
+      [ClaimConsent.periodEnd]: '2026-08-31T18:30:00Z',
+    }, { now: '2026-08-31T18:30:00Z' })).toBe(false);
   });
 
   it('adds deterministic claims CID as @id', () => {
