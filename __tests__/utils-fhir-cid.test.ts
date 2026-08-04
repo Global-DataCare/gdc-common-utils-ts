@@ -111,7 +111,7 @@ describe('fhir-cid utilities', () => {
 
   it('canonicalizes content-hash claims without envelope, id, identifier, or version keys', () => {
     const canonicalJson = canonicalizeClaimsForContentHash({
-      '@context': 'org.hl7.fhir.r4',
+      '@context': 'org.hl7.fhir.api',
       '@type': 'Composition',
       '@id': 'old-jsonld-id',
       'Composition.id': 'composition-resource-id',
@@ -135,7 +135,7 @@ describe('fhir-cid utilities', () => {
 
   it('generates the same content CID when only id and identifier differ', () => {
     const claimsA = {
-      '@context': 'org.hl7.fhir.r4',
+      '@context': 'org.hl7.fhir.api',
       'Composition.id': 'composition-a',
       'Composition.identifier': 'urn:uuid:composition-a',
       'Composition.subject': 'did:web:subject.example.com',
@@ -143,7 +143,7 @@ describe('fhir-cid utilities', () => {
       'Composition.type': 'http://loinc.org|60591-5',
     };
     const claimsB = {
-      '@context': 'org.hl7.fhir.r4',
+      '@context': 'org.hl7.fhir.api',
       'Composition.id': 'composition-b',
       'Composition.identifier': 'urn:uuid:composition-b',
       'Composition.subject': 'did:web:subject.example.com',

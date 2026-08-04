@@ -68,9 +68,8 @@ describe('clinical-resource-converters', () => {
     }
   });
 
-  it.each(['org.hl7.fhir.api', 'org.hl7.fhir.r4'] as const)(
-    'rehydrates canonical Observation fields from %s reverse-DNS claims',
-    (context) => {
+  it('rehydrates canonical Observation fields from expanded org.hl7.fhir.api claims', () => {
+      const context = 'org.hl7.fhir.api';
       const contextualizedClaims = {
         '@context': context,
         [`${context}.${ObservationClaim.Identifier}`]: 'obs-context-1',
@@ -95,12 +94,10 @@ describe('clinical-resource-converters', () => {
           code: 'g/dL',
         },
       });
-    },
-  );
+  });
 
-  it.each(['org.hl7.fhir.api', 'org.hl7.fhir.r4'] as const)(
-    'rehydrates every clinical-summary resource type from %s claims',
-    (context) => {
+  it('rehydrates every clinical-summary resource type from org.hl7.fhir.api claims', () => {
+      const context = 'org.hl7.fhir.api';
       const cases: ReadonlyArray<Readonly<{
         claims: Record<string, string>;
         expected: Record<string, unknown>;
@@ -205,8 +202,16 @@ describe('clinical-resource-converters', () => {
         expect(convertClaimsToFhirResource({ '@context': context, ...contextualized }))
           .toMatchObject(testCase.expected);
       }
-    },
-  );
+  });
+
+  it.each([
+    { '@context': 'org.hl7.fhir.r4', [ObservationClaim.Subject]: 'Patient/p1' },
+    { 'org.hl7.fhir.r4.Observation.subject': 'Patient/p1' },
+  ])('rejects version-specific FHIR R4 claim contexts', (claims) => {
+    expect(() => convertClaimsToFhirResource(claims)).toThrow(
+      'FHIR claims require @context org.hl7.fhir.api',
+    );
+  });
 
   it('accepts the legacy Observation.effectiveDateTime input without emitting it', () => {
     const resource = observationFromFlatToFhirR4({
@@ -227,7 +232,6 @@ describe('clinical-resource-converters', () => {
       '@context': 'org.hl7.fhir.api',
       [ObservationClaim.Subject]: 'Patient/canonical',
       [`org.hl7.fhir.api.${ObservationClaim.Subject}`]: 'Patient/api-copy',
-      [`org.hl7.fhir.r4.${ObservationClaim.Subject}`]: 'Patient/r4-copy',
       [ObservationClaim.Status]: 'final',
       [ObservationClaim.Code]: 'http://loinc.org|718-7',
     });

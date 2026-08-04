@@ -184,7 +184,10 @@ inside React components.
 
 `resource.meta.claims` remains the canonical persisted business model. Native
 FHIR fields are interoperable projections and may be rehydrated by the GW in
-`org.hl7.fhir.r4` readback. The exported claim constants are public SDK
+native FHIR R4 readback. Claims remain version-independent: the payload uses
+short `<ResourceType>.<concrete-param>` keys with
+`@context: org.hl7.fhir.api`; `org.hl7.fhir.r4.*` is never a claims namespace.
+The exported claim constants are public SDK
 contract: canonical keys are not renamed or removed in patch/minor releases;
 any replacement is introduced with a deprecated compatibility alias until a
 major-version migration.

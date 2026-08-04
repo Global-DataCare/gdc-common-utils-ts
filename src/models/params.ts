@@ -6,7 +6,7 @@
  */
 export interface ClaimInteroperable {
     /**
-     * Key name of the interoperable claim in reverse-DNS (e.g., 'org.hl7.fhir.immunization.vaccine-code').
+     * Key name of the interoperable FHIR API claim in reverse-DNS (e.g., 'org.hl7.fhir.api.Immunization.vaccine-code').
      */
     name: string;
     /**

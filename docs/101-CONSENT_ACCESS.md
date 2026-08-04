@@ -87,7 +87,7 @@ import {
   HealthcareBasicSections,
   HealthcareConsentPurposes,
 } from 'gdc-common-utils-ts/constants/healthcare';
-let communicationClaims = { '@context': 'org.hl7.fhir.r4' };
+let communicationClaims = { '@context': 'org.hl7.fhir.api' };
 communicationClaims = setCommunicationIdentifier(
   communicationClaims,
   EXAMPLE_COMMUNICATION_IDENTIFIER,

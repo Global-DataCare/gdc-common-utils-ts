@@ -49,6 +49,11 @@ It is intentionally not a full backend orchestration layer.
   `Communication.topic`; the native projection may contain
   `Communication.topic.coding`, but `Communication.topic.coding` is not a
   claims key.
+- FHIR claims are version-independent FHIR API SearchParameter claims. Their
+  only context is `@context: org.hl7.fhir.api`; an expanded key is therefore
+  `org.hl7.fhir.api.<ResourceType>.<concrete-parameter>`. Never use
+  `org.hl7.fhir.r4.*` as a claim namespace: R4 identifies a native FHIR
+  resource representation, not the claims vocabulary.
 - Schema.org claims are a different vocabulary and preserve the canonical
   Schema.org camelCase property name.
 - Only define custom names when no canonical FHIR SearchParameter exists.

@@ -9,18 +9,26 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 - Expose identifier, status and resource-specific result details on clinical
   section cards, including Observation value/unit, Immunization lot/dose,
   AllergyIntolerance criticality/onset and MedicationStatement dosage text.
+- Expose every canonical `meta.claims` value as a deterministic clinical card
+  field collection and let bundle entry editors hydrate that collection back
+  through validated short FHIR API keys.
 - Let `ObservationEntryEditor` and `VitalSignEntryEditor` assign explicit
   Composition sections through the shared clinical-resource editor surface.
+- Cover claims-to-FHIR-to-claims and viewer roundtrips for every resource
+  referenced by all 16 sections of the complete IPS Bundle fixture.
 
 ### Fixed
 
 - Canonicalize `Observation.effective-datetime` to lowercase kebab-case while
   continuing to read the legacy `Observation.effectiveDateTime` spelling.
-- Rehydrate native FHIR fields from both short claims and reverse-DNS
-  `org.hl7.fhir.api.*` / `org.hl7.fhir.r4.*` claims for every clinical-summary
-  resource converter.
+- Rehydrate native FHIR fields from short claims and their expanded
+  `org.hl7.fhir.api.*` form for every clinical-summary resource converter,
+  while rejecting version-specific `org.hl7.fhir.r4.*` claim namespaces.
 - Preserve Condition category, severity, onset and recorder fields across the
   flat-claims/FHIR R4 roundtrip.
+- Restore symmetric DeviceUseStatement, AppointmentResponse and semantic
+  Consent conversion, and remove version-specific R4 claim keys from the
+  deprecated Appointment compatibility catalogs.
 
 ## [2.3.24] - 2026-08-04
 

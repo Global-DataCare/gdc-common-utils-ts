@@ -12,7 +12,7 @@ import { CommunicationClaim } from '../src/models/interoperable-claims/communica
 
 describe('communication claim helpers', () => {
   it('stores Communication.category as canonical CSV and exposes list helpers', () => {
-    let claims: Record<string, unknown> = { '@context': 'org.hl7.fhir.r4' };
+    let claims: Record<string, unknown> = { '@context': 'org.hl7.fhir.api' };
 
     claims = setCommunicationCategory(claims, [
       CommunicationCategoryCodes.Notification.attributeValue,
@@ -36,7 +36,7 @@ describe('communication claim helpers', () => {
   });
 
   it('replaces and removes Communication.category tokens cleanly', () => {
-    let claims: Record<string, unknown> = { '@context': 'org.hl7.fhir.r4' };
+    let claims: Record<string, unknown> = { '@context': 'org.hl7.fhir.api' };
 
     claims = setCommunicationCategory(claims, [
       CommunicationCategoryCodes.Notification.attributeValue,

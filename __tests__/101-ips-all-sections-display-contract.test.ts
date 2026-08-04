@@ -25,6 +25,9 @@ import { ObservationClaim } from '../src/models/interoperable-claims/observation
 import { PractitionerRoleClaim } from '../src/models/interoperable-claims/practitioner-role-claims.js';
 import { ProcedureClaim } from '../src/models/interoperable-claims/procedure-claims.js';
 import {
+  convertFhirResourceToClaims,
+} from '../src/utils/clinical-resource-converters.js';
+import {
   convertClaimsToFhirResource,
   prepareBundleDocumentForSubject,
 } from '../src/utils/bundle-document-builder.js';
@@ -122,6 +125,73 @@ function firstConceptToken(concept: Record<string, any> | undefined): string | u
 }
 
 describe('101: all IPS sections and declared resource types are display-ready', () => {
+  it('roundtrips every resource referenced by all 16 IPS sections through canonical API claims', () => {
+    // Step 1. Normalize the real IPS fixture exactly as the ingestion boundary does.
+    const imported = JSON.parse(fs.readFileSync(IPS_BUNDLE_PATH, 'utf8')) as Record<string, any>;
+    const prepared = prepareBundleDocumentForSubject(imported, SUBJECT) as Record<string, any>;
+    const entries = Array.isArray(prepared.entry) ? prepared.entry : [];
+    const composition = entries.find((entry: Record<string, any>) =>
+      entry.resource?.resourceType === ResourceTypesFhirR4.Composition)?.resource;
+    const resourcesByReference = new Map<string, Record<string, any>>();
+    for (const entry of entries) {
+      const resource = entry.resource as Record<string, any> | undefined;
+      if (!resource?.resourceType || !resource?.id) continue;
+      resourcesByReference.set(`${resource.resourceType}/${resource.id}`, resource);
+    }
+
+    // Step 2. Resolve every Composition.section.entry instead of inferring
+    // section membership from resourceType.
+    const referencedResources: Record<string, any>[] = [];
+    const visitSections = (sections: unknown): void => {
+      for (const section of Array.isArray(sections) ? sections : []) {
+        for (const item of Array.isArray(section?.entry) ? section.entry : []) {
+          const resource = resourcesByReference.get(String(item?.reference || ''));
+          expect(resource).toBeDefined();
+          referencedResources.push(resource!);
+        }
+        visitSections(section?.section);
+      }
+    };
+    visitSections(composition?.section);
+    expect(referencedResources.length).toBeGreaterThan(0);
+
+    // Step 3. Every section resource must carry short FHIR API claims only,
+    // rebuild its native FHIR fields, and produce the same claims again.
+    for (const resource of referencedResources) {
+      const claims = resource.meta?.claims as Record<string, unknown>;
+      expect({
+        resourceType: resource.resourceType,
+        context: claims?.['@context'],
+      }).toEqual({
+        resourceType: resource.resourceType,
+        context: 'org.hl7.fhir.api',
+      });
+      for (const key of Object.keys(claims || {}).filter((key) => !key.startsWith('@'))) {
+        expect(key).toMatch(/^[A-Z][A-Za-z0-9]+\.[a-z0-9]+(?:-[a-z0-9]+)*$/);
+      }
+
+      const rebuilt = convertClaimsToFhirResource(claims) as Record<string, any>;
+      const roundtripClaims = convertFhirResourceToClaims(
+        rebuilt as Parameters<typeof convertFhirResourceToClaims>[0],
+      );
+      const comparable = (record: Record<string, unknown>) => Object.fromEntries(
+        Object.entries(record).filter(([key, value]) =>
+          key !== '@context'
+          && key !== 'Composition.section'
+          && value !== undefined),
+      );
+      expect(comparable(roundtripClaims)).toEqual(comparable(claims));
+
+      const card = toClinicalResourceCardView({ resource: { ...rebuilt, meta: { claims } } });
+      expect(card.resourceType).toBe(resource.resourceType);
+      expect(card.title).toBeTruthy();
+      const visibleClaims = Object.fromEntries(Object.entries(claims).filter(([key, value]) =>
+        key !== '@context' && value !== undefined));
+      expect(Object.fromEntries(card.fields.map((field) => [field.claim, field.value])))
+        .toEqual(visibleClaims);
+    }
+  });
+
   it('renders all 16 sections and every referenced resource in the real IPS fixture', () => {
     // Step 1. Reuse the complete real-world Bundle fixture.
     const bundle = JSON.parse(fs.readFileSync(IPS_BUNDLE_PATH, 'utf8'));

@@ -39,11 +39,18 @@ Rules:
 ## 3. Flat interoperable claims normalization
 
 Claims may arrive in different forms:
-- Contextualized: `@context` present (e.g., `org.hl7.fhir.api`, `org.hl7.fhir.r4`, `org.schema`)
+- Contextualized: `@context` present (`org.hl7.fhir.api` for FHIR
+  SearchParameter claims, or `org.schema` for Schema.org claims)
 - Non-contextualized short keys: `Consent.action`, `Organization.identifier`, etc.
 
+`org.hl7.fhir.r4` describes a versioned native FHIR resource representation;
+it is not a claims context and MUST be rejected when found in `meta.claims`.
+
 Normalization rules:
-1. If `@context` is present and key is not already fully-qualified under an allowed known domain, prepend `${@context}.`.
+1. In `resource.meta.claims`, keep FHIR payload keys short as
+   `<ResourceType>.<concrete-parameter>` and carry `@context:
+   org.hl7.fhir.api`. Expanded `org.hl7.fhir.api.*` input may be accepted at a
+   boundary, but MUST be collapsed to the short payload form.
 2. Preserve `@context` and `@type`.
 3. Preserve already interoperable fully-qualified keys (e.g., `org.hl7...`, `org.schema...`, `org.loinc...`).
 4. Canonicalize map ordering (alphabetical keys) before hashing/signing/persisting flows that require deterministic content.
@@ -66,12 +73,14 @@ Rules:
 Depending on server profile, accepted claim styles may differ at ingress, but persisted canonical form MUST be consistent.
 
 Supported ingress styles:
-- Fully-qualified claims (`org.hl7.fhir.<version>.*` / `org.schema.*`)
+- Fully-qualified claims (`org.hl7.fhir.api.*` / `org.schema.*`)
 - Contextual short claims with `@context`
 - Transitional short claims without prefix (`Consent.*`, `Organization.*`) if compatibility mode is enabled
 
 Mandatory persistence target:
-- Canonical normalized keys (as defined in Section 3), independent of ingress style.
+- Contextualized short payload keys (as defined in Section 3), independent of
+  ingress style. A storage index may expand them internally, but that physical
+  form must not leak back into `resource.meta.claims`.
 
 ## 6. Required alignment across repositories
 

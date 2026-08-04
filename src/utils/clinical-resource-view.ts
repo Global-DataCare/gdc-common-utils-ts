@@ -26,6 +26,7 @@ import {
 import { ObservationClaim } from '../models/interoperable-claims/observation-claims.js';
 import { PractitionerRoleClaim } from '../models/interoperable-claims/practitioner-role-claims.js';
 import { ProcedureClaim } from '../models/interoperable-claims/procedure-claims.js';
+import { normalizeFhirApiClaimKey } from './fhir-api-claim-helpers.js';
 
 const CONSENT_ACTOR_REFERENCE_CLAIM = 'Consent.actor-reference';
 const GENERIC_CREATOR_CLAIM_SUFFIX = '.creator';
@@ -88,6 +89,22 @@ export type ClinicalResourceCardView = Readonly<{
   onsetDateTime?: string;
   /** MedicationStatement human-readable dosage instruction. */
   dosageInstruction?: string;
+  /**
+   * Complete editable field surface resolved from `resource.meta.claims`.
+   *
+   * `claim` always uses the short, version-independent FHIR API form
+   * (`<ResourceType>.<search-param>`). Consumers can therefore render and
+   * hydrate fields that do not yet have a dedicated card convenience member.
+   */
+  fields: readonly ClinicalResourceClaimFieldView[];
+}>;
+
+export type ClinicalResourceClaimFieldView = Readonly<{
+  /** Canonical short FHIR API claim, for example `Immunization.lot-number`. */
+  claim: string;
+  /** Concrete FHIR API SearchParameter name, for example `lot-number`. */
+  parameter: string;
+  value: unknown;
 }>;
 
 export type ClinicalTerminologyTranslationInput = Readonly<{
@@ -230,6 +247,7 @@ export function toClinicalResourceCardView(
     || trimValue(resource?.onsetDateTime);
   const dosageInstruction = readCanonicalClaimValue(common.claims, MedicationStatementClaim.DosageInstruction)
     || trimValue(asRecord(asArray(resource?.dosage)[0]).text);
+  const fields = toClinicalResourceClaimFieldViews(common.claims);
   return {
     title: common.title,
     resourceType: common.resourceType,
@@ -237,6 +255,7 @@ export function toClinicalResourceCardView(
     date: common.date,
     fullUrl: common.fullUrl,
     actorsCount: common.actors.length,
+    fields,
     ...(status ? { status } : {}),
     ...(value !== undefined ? { value } : {}),
     ...(unit ? { unit } : {}),
@@ -246,6 +265,56 @@ export function toClinicalResourceCardView(
     ...(onsetDateTime ? { onsetDateTime } : {}),
     ...(dosageInstruction ? { dosageInstruction } : {}),
   };
+}
+
+/**
+ * Normalizes all clinical `meta.claims` into the short FHIR API vocabulary
+ * consumed by generic clinical viewers and editors.
+ *
+ * Short claims take precedence over their expanded
+ * `org.hl7.fhir.api.<ResourceType>.<search-param>` equivalent. Versioned
+ * `org.hl7.fhir.<version>.*` namespaces are rejected because they are native
+ * FHIR representation namespaces, never claims vocabularies.
+ */
+export function toClinicalResourceClaimFieldViews(
+  claims: ClinicalViewClaims,
+): ClinicalResourceClaimFieldView[] {
+  const fields = new Map<string, ClinicalResourceClaimFieldView>();
+  const entries = Object.entries(claims || {});
+
+  for (const [rawClaim, value] of entries) {
+    if (rawClaim.startsWith('@') || value === undefined) continue;
+    if (rawClaim.startsWith('org.hl7.fhir.') && !rawClaim.startsWith('org.hl7.fhir.api.')) {
+      throw new Error(`FHIR meta.claims must use org.hl7.fhir.api, not version-specific key: ${rawClaim}`);
+    }
+    if (!rawClaim.startsWith('org.hl7.fhir.api.') && !/^[A-Z][A-Za-z0-9]+\./.test(rawClaim)) continue;
+    const claim = normalizeFhirApiClaimKey(rawClaim);
+    const separator = claim.indexOf('.');
+    if (separator <= 0 || separator === claim.length - 1) continue;
+    if (!fields.has(claim)) {
+      fields.set(claim, {
+        claim,
+        parameter: claim.slice(separator + 1),
+        value,
+      });
+    }
+  }
+
+  // Apply canonical short keys last so they win over expanded aliases even
+  // when the expanded property appeared later in insertion order.
+  for (const [claim, value] of entries) {
+    if (claim.startsWith('@') || claim.startsWith('org.hl7.fhir.') || value === undefined) continue;
+    if (!/^[A-Z][A-Za-z0-9]+\./.test(claim)) continue;
+    const separator = claim.indexOf('.');
+    if (separator <= 0 || separator === claim.length - 1) continue;
+    fields.set(claim, {
+      claim,
+      parameter: claim.slice(separator + 1),
+      value,
+    });
+  }
+
+  return [...fields.values()].sort((left, right) => left.claim.localeCompare(right.claim));
 }
 
 /**

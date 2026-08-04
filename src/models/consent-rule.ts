@@ -2,12 +2,14 @@
 
 export enum ClaimConsent {
     'decision' = 'Consent.decision',
+    'status' = 'Consent.status',
     'action' = 'Consent.action',
     'category' = 'Consent.category',
     'categoryText' = 'Consent.category-text',
     'categoryDisplay' = 'Consent.category-display',
     'resourceType' = 'Consent.resourceType',
     'subject' = 'Consent.subject',
+    'patient' = 'Consent.patient',
     'actorIdentifier' = 'Consent.actor-identifier',
     'actorRole' = 'Consent.actor-role',
     'date' = 'Consent.date',

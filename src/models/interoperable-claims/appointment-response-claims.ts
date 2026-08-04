@@ -7,21 +7,21 @@
  */
 
 /**
- * Contains claims representing fields specific to the FHIR R4 data model for an AppointmentResponse.
- * Use this when constructing the `credentialSubject` of a Verifiable Credential or the `resource` object.
+ * @deprecated Claims are never version-specific. Kept as a source-compatible
+ * alias whose keys now use the expanded `org.hl7.fhir.api` vocabulary.
  * 
  * @basedon https://www.hl7.org/fhir/R4/appointmentresponse.html
  */
 export const AppointmentResponseClaimsFhirR4 = {
-  'org.hl7.fhir.r4.core.AppointmentResponse.actor': String,
-  'org.hl7.fhir.r4.core.AppointmentResponse.appointment': String, // Reference to Appointment
-  'org.hl7.fhir.r4.core.AppointmentResponse.comment': String,
-  'org.hl7.fhir.r4.core.AppointmentResponse.identifier': String,
-  'org.hl7.fhir.r4.core.AppointmentResponse.start': String,
-  'org.hl7.fhir.r4.core.AppointmentResponse.end': String,
-  'org.hl7.fhir.r4.core.AppointmentResponse.participant-type': String,
-  'org.hl7.fhir.r4.core.AppointmentResponse.participant-status': String,
-  'org.hl7.fhir.r4.core.AppointmentResponse.resource.id': String,
+  'org.hl7.fhir.api.AppointmentResponse.actor': String,
+  'org.hl7.fhir.api.AppointmentResponse.appointment': String,
+  'org.hl7.fhir.api.AppointmentResponse.comment': String,
+  'org.hl7.fhir.api.AppointmentResponse.identifier': String,
+  'org.hl7.fhir.api.AppointmentResponse.start': String,
+  'org.hl7.fhir.api.AppointmentResponse.end': String,
+  'org.hl7.fhir.api.AppointmentResponse.participant-type': String,
+  'org.hl7.fhir.api.AppointmentResponse.participant-status': String,
+  'org.hl7.fhir.api.AppointmentResponse.resource-id': String,
 };
 
 /**

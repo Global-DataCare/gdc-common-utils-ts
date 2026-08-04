@@ -189,7 +189,7 @@ describe('bundle document builder', () => {
     } as const;
 
     const claims = fhirResourceToFlatClaims(immunization as any);
-    expect(getSimpleClaimAttributeName('org.hl7.fhir.r4.Immunization.vaccineCode.coding[0].code'))
+    expect(getSimpleClaimAttributeName('org.hl7.fhir.api.Immunization.vaccineCode.coding[0].code'))
       .toBe('Immunization.vaccineCode.coding[0].code');
     expect(claims['Immunization.vaccineCode.coding[0].code']).toBe('207');
     expect(claims['Immunization.note[0].text']).toBe('No adverse reaction');
