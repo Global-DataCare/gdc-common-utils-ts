@@ -21,7 +21,10 @@ export function consentFhirR4ToFlat(
     period?: { start?: string; end?: string };
     action?: Array<{ coding?: Array<{ system?: string; code?: string }> }>;
     purpose?: Array<{ system?: string; code?: string }>;
+    code?: Array<{ coding?: Array<{ system?: string; code?: string; display?: string }> }>;
   } | undefined;
+  const scope = resource.scope as { coding?: Array<{ system?: string; code?: string; display?: string }> } | undefined;
+  const policyRule = resource.policyRule as { coding?: Array<{ system?: string; code?: string }> } | undefined;
   return {
     '@context': context,
     [ClaimConsent.identifier]: (resource.identifier as Array<{ value?: string }> | undefined)?.[0]?.value
@@ -39,6 +42,11 @@ export function consentFhirR4ToFlat(
     [ClaimConsent.category]: codingToValue(concept?.coding?.[0]),
     [ClaimConsent.categoryText]: concept?.text,
     [ClaimConsent.categoryDisplay]: concept?.coding?.[0]?.display,
+    [ClaimConsent.scope]: codingToValue(scope?.coding?.[0]),
+    [ClaimConsent.scopeDisplay]: scope?.coding?.[0]?.display,
+    [ClaimConsent.policyRule]: codingToValue(policyRule?.coding?.[0]),
+    [ClaimConsent.provisionCode]: codingToValue(provision?.code?.[0]?.coding?.[0]),
+    [ClaimConsent.provisionCodeDisplay]: provision?.code?.[0]?.coding?.[0]?.display,
   };
 }
 
@@ -51,10 +59,14 @@ export function consentFlatToFhirR4(claims: FlatClaims): FhirResource {
   }));
   const actionCoding = codingFromValue(claims[ClaimConsent.action]);
   const purposeCoding = codingFromValue(claims[ClaimConsent.purpose]);
+  const scopeCoding = codingFromValue(claims[ClaimConsent.scope])?.map((item) => ({ ...item, ...(claims[ClaimConsent.scopeDisplay] ? { display: claims[ClaimConsent.scopeDisplay] } : {}) }));
+  const provisionCodeCoding = codingFromValue(claims[ClaimConsent.provisionCode])?.map((item) => ({ ...item, ...(claims[ClaimConsent.provisionCodeDisplay] ? { display: claims[ClaimConsent.provisionCodeDisplay] } : {}) }));
   return {
     resourceType: 'Consent',
     identifier: claims[ClaimConsent.identifier] ? [{ value: claims[ClaimConsent.identifier] }] : undefined,
     status: claims[ClaimConsent.status],
+    scope: scopeCoding ? { coding: scopeCoding } : undefined,
+    policyRule: claims[ClaimConsent.policyRule] ? { coding: codingFromValue(claims[ClaimConsent.policyRule]) } : undefined,
     patient: claims[ClaimConsent.subject] || claims[ClaimConsent.patient]
       ? { reference: claims[ClaimConsent.subject] || claims[ClaimConsent.patient] }
       : undefined,
@@ -71,6 +83,7 @@ export function consentFlatToFhirR4(claims: FlatClaims): FhirResource {
       || claims[ClaimConsent.periodEnd]
       || actionCoding
       || purposeCoding
+      || provisionCodeCoding
       ? {
         type: claims[ClaimConsent.decision],
         period: claims[ClaimConsent.periodStart] || claims[ClaimConsent.periodEnd]
@@ -78,6 +91,7 @@ export function consentFlatToFhirR4(claims: FlatClaims): FhirResource {
           : undefined,
         action: actionCoding ? [{ coding: actionCoding }] : undefined,
         purpose: purposeCoding,
+        code: provisionCodeCoding ? [{ coding: provisionCodeCoding }] : undefined,
       }
       : undefined,
   };

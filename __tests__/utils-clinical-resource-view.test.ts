@@ -468,6 +468,7 @@ describe('clinical resource common view', () => {
         resourceType: ResourceTypesFhirR4.MedicationStatement,
         identifier: 'medication-business-id-1',
         date: '2026-07-01',
+        periodStart: '2026-07-01',
         fullUrl: 'urn:uuid:medication-statement-ips-1',
         actorsCount: 2,
         fields: [],

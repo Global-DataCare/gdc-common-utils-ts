@@ -36,6 +36,8 @@ export const ConditionClaim = {
   AttachmentContentIds: 'Condition.attachment-content-ids',
   Severity: 'Condition.severity',
   OnsetDateTime: 'Condition.onset-datetime',
+  RecordedDate: 'Condition.recorded-date',
+  Asserter: 'Condition.asserter',
   Recorder: 'Condition.recorder',
 } as const;
 

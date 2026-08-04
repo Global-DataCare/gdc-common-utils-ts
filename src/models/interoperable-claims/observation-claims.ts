@@ -105,6 +105,14 @@ export const ObservationClaim = {
   ValueQuantityNumber: 'Observation.value-quantity-number',
   /** Human-readable quantity unit. Example: `/min`, `mmHg`, `Cel`. */
   ValueQuantityUnit: 'Observation.value-quantity-unit',
+  ReferenceRangeLowNumber: 'Observation.reference-range-low-number',
+  ReferenceRangeHighNumber: 'Observation.reference-range-high-number',
+  ReferenceRangeUnit: 'Observation.reference-range-unit',
+  ReferenceRangeText: 'Observation.reference-range-text',
+  ComponentCode: 'Observation.component-code',
+  ComponentCodeDisplay: 'Observation.component-code-display',
+  ComponentValueQuantityNumber: 'Observation.component-value-quantity-number',
+  ComponentValueQuantityUnit: 'Observation.component-value-quantity-unit',
   /** Aggregated score total for composite assessment observations when present. Example: `8`. */
   ScoreTotalNumber: 'Observation.score-total-number',
   /** Indexed systolic scalar copied onto the parent blood pressure observation. Example: `120`. */

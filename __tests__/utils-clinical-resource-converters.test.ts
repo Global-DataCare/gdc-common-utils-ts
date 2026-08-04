@@ -402,7 +402,7 @@ describe('clinical-resource-converters', () => {
       [CarePlanClaim.Performer]: 'Practitioner/p1',
     };
 
-    expect(carePlanFhirR4ToFlat(carePlanFlatToFhirR4(flat))).toEqual({
+    expect(Object.fromEntries(Object.entries(carePlanFhirR4ToFlat(carePlanFlatToFhirR4(flat))).filter(([, value]) => value !== undefined))).toEqual({
       ...flat,
       [CarePlanClaim.Patient]: 'Patient/p1',
     });

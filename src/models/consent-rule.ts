@@ -22,6 +22,11 @@ export enum ClaimConsent {
     'identifier' = 'Consent.identifier',
     'eventBasedOn' = 'Consent.event-basedon',
     'sourceReference' = 'Consent.source-reference',
+    'scope' = 'Consent.scope',
+    'scopeDisplay' = 'Consent.scope-display',
+    'policyRule' = 'Consent.policy-rule',
+    'provisionCode' = 'Consent.provision-code',
+    'provisionCodeDisplay' = 'Consent.provision-code-display',
     'containedReferenceList' = 'Consent.contained-reference-list',
     /**
      * @deprecated Use `containedReferenceList`.

@@ -16,6 +16,11 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
   Composition sections through the shared clinical-resource editor surface.
 - Cover claims-to-FHIR-to-claims and viewer roundtrips for every resource
   referenced by all 16 sections of the complete IPS Bundle fixture.
+- Preserve the structured fields exercised by the complete IPS fixture,
+  including condition recorded/asserter data, medication source and structured
+  dosage, immunization route/site/dose, observation reference ranges and
+  components, device-use absent timing, consent scope/policy/provision and
+  detailed care-plan activity/period data.
 
 ### Fixed
 
@@ -29,6 +34,8 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 - Restore symmetric DeviceUseStatement, AppointmentResponse and semantic
   Consent conversion, and remove version-specific R4 claim keys from the
   deprecated Appointment compatibility catalogs.
+- Correct legacy DeviceUseStatement parameter spellings to canonical
+  `recorded-on` and `reason-code` kebab-case keys.
 
 ## [2.3.24] - 2026-08-04
 

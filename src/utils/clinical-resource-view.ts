@@ -71,6 +71,8 @@ export type ClinicalResourceCardView = Readonly<{
   /** Stable business identifier used to reconcile repeated readbacks. */
   identifier?: string;
   date?: string;
+  periodStart?: string;
+  periodEnd?: string;
   fullUrl?: string;
   actorsCount: number;
   /** Resource status resolved from canonical claims first, then native FHIR. */
@@ -89,6 +91,16 @@ export type ClinicalResourceCardView = Readonly<{
   onsetDateTime?: string;
   /** MedicationStatement human-readable dosage instruction. */
   dosageInstruction?: string;
+  category?: string;
+  severity?: string;
+  recordedDate?: string;
+  source?: string;
+  route?: string;
+  site?: string;
+  doseQuantityValue?: number;
+  doseQuantityUnit?: string;
+  referenceRangeText?: string;
+  description?: string;
   /**
    * Complete editable field surface resolved from `resource.meta.claims`.
    *
@@ -248,11 +260,24 @@ export function toClinicalResourceCardView(
   const dosageInstruction = readCanonicalClaimValue(common.claims, MedicationStatementClaim.DosageInstruction)
     || trimValue(asRecord(asArray(resource?.dosage)[0]).text);
   const fields = toClinicalResourceClaimFieldViews(common.claims);
+  const category = readCanonicalClaimValue(common.claims, `${common.resourceType}.category`);
+  const severity = readCanonicalClaimValue(common.claims, `${common.resourceType}.severity`);
+  const recordedDate = readCanonicalClaimValue(common.claims, ConditionClaim.RecordedDate);
+  const source = readCanonicalClaimValue(common.claims, MedicationStatementClaim.Source);
+  const route = readCanonicalClaimValue(common.claims, ImmunizationClaim.Route);
+  const site = readCanonicalClaimValue(common.claims, ImmunizationClaim.Site);
+  const doseQuantityValueRaw = readCanonicalClaimValue(common.claims, MedicationStatementClaim.DoseQuantityValue);
+  const doseQuantityValue = doseQuantityValueRaw === undefined ? undefined : Number(doseQuantityValueRaw);
+  const doseQuantityUnit = readCanonicalClaimValue(common.claims, MedicationStatementClaim.DoseQuantityUnit);
+  const referenceRangeText = readCanonicalClaimValue(common.claims, ObservationClaim.ReferenceRangeText);
+  const description = readCanonicalClaimValue(common.claims, CarePlanClaim.Description);
   return {
     title: common.title,
     resourceType: common.resourceType,
     ...(common.identifier ? { identifier: common.identifier } : {}),
     date: common.date,
+    ...(common.periodStart ? { periodStart: common.periodStart } : {}),
+    ...(common.periodEnd ? { periodEnd: common.periodEnd } : {}),
     fullUrl: common.fullUrl,
     actorsCount: common.actors.length,
     fields,
@@ -264,6 +289,16 @@ export function toClinicalResourceCardView(
     ...(criticality ? { criticality } : {}),
     ...(onsetDateTime ? { onsetDateTime } : {}),
     ...(dosageInstruction ? { dosageInstruction } : {}),
+    ...(category ? { category } : {}),
+    ...(severity ? { severity } : {}),
+    ...(recordedDate ? { recordedDate } : {}),
+    ...(source ? { source } : {}),
+    ...(route ? { route } : {}),
+    ...(site ? { site } : {}),
+    ...(doseQuantityValue !== undefined && Number.isFinite(doseQuantityValue) ? { doseQuantityValue } : {}),
+    ...(doseQuantityUnit ? { doseQuantityUnit } : {}),
+    ...(referenceRangeText ? { referenceRangeText } : {}),
+    ...(description ? { description } : {}),
   };
 }
 

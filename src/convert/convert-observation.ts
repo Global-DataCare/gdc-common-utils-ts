@@ -39,6 +39,11 @@ export function observationFromFlatToFhirR4(claims: FlatClaims): FhirResource {
       ? { display: claims[ObservationClaim.ValueConceptDisplay] }
       : {}),
   }));
+  const componentCodes = splitClaimList(claims[ObservationClaim.ComponentCode]);
+  const componentDisplays = splitClaimList(claims[ObservationClaim.ComponentCodeDisplay]);
+  const componentNumbers = splitClaimList(claims[ObservationClaim.ComponentValueQuantityNumber]);
+  const componentUnits = splitClaimList(claims[ObservationClaim.ComponentValueQuantityUnit]);
+  const referenceUnit = claims[ObservationClaim.ReferenceRangeUnit];
   return {
     resourceType: 'Observation',
     identifier: claims[ObservationClaim.Identifier] ? [{ value: claims[ObservationClaim.Identifier] }] : undefined,
@@ -91,6 +96,17 @@ export function observationFromFlatToFhirR4(claims: FlatClaims): FhirResource {
     hasMember: claims[ObservationClaim.HasMember] ? claims[ObservationClaim.HasMember]!.split(',').map((reference) => ({ reference: reference.trim() })) : undefined,
     method: claims[ObservationClaim.Method] ? { coding: codingFromValue(claims[ObservationClaim.Method]) } : undefined,
     specimen: claims[ObservationClaim.Specimen] ? { reference: claims[ObservationClaim.Specimen] } : undefined,
+    referenceRange: claims[ObservationClaim.ReferenceRangeLowNumber] || claims[ObservationClaim.ReferenceRangeHighNumber] || claims[ObservationClaim.ReferenceRangeText]
+      ? [{
+        low: claims[ObservationClaim.ReferenceRangeLowNumber] ? quantityFromClaims(claims[ObservationClaim.ReferenceRangeLowNumber]!, referenceUnit) : undefined,
+        high: claims[ObservationClaim.ReferenceRangeHighNumber] ? quantityFromClaims(claims[ObservationClaim.ReferenceRangeHighNumber]!, referenceUnit) : undefined,
+        text: claims[ObservationClaim.ReferenceRangeText],
+      }]
+      : undefined,
+    component: componentCodes.map((code, index) => ({
+      code: { coding: codingFromValue(code)?.map((coding) => ({ ...coding, ...(componentDisplays[index] ? { display: componentDisplays[index] } : {}) })) },
+      valueQuantity: componentNumbers[index] ? quantityFromClaims(componentNumbers[index], componentUnits[index]) : undefined,
+    })),
   };
 }
 
@@ -114,6 +130,10 @@ export function observationToFlatFhirR4(resource: FhirResource): FlatClaims {
     code?: string;
     comparator?: '<' | '<=' | '>=' | '>';
   } | undefined;
+  const referenceRange = (resource.referenceRange as Array<Record<string, unknown>> | undefined)?.[0];
+  const referenceLow = referenceRange?.low as Record<string, unknown> | undefined;
+  const referenceHigh = referenceRange?.high as Record<string, unknown> | undefined;
+  const components = (resource.component as Array<Record<string, unknown>> | undefined) || [];
   return {
     [ObservationClaim.BasedOn]: referenceListToCsv(resource.basedOn as Array<{ reference?: string }> | undefined),
     [ObservationClaim.Category]: codingListToCsv((resource.category as Array<{ coding?: Array<{ system?: string; code?: string }> }> | undefined)?.flatMap((item) => item.coding || [])),
@@ -148,7 +168,23 @@ export function observationToFlatFhirR4(resource: FhirResource): FlatClaims {
     [ObservationClaim.ValueString]: resource.valueString as string | undefined,
     [ObservationClaim.Note]: (resource.note as Array<{ text?: string }> | undefined)?.[0]?.text,
     [ObservationClaim.EffectiveDateTime]: resource.effectiveDateTime as string | undefined,
+    [ObservationClaim.ReferenceRangeLowNumber]: scalarString(referenceLow?.value),
+    [ObservationClaim.ReferenceRangeHighNumber]: scalarString(referenceHigh?.value),
+    [ObservationClaim.ReferenceRangeUnit]: codingToValue(referenceLow?.system || referenceLow?.code ? { system: referenceLow?.system as string, code: referenceLow?.code as string } : referenceHigh?.system || referenceHigh?.code ? { system: referenceHigh?.system as string, code: referenceHigh?.code as string } : undefined) || referenceLow?.unit as string | undefined || referenceHigh?.unit as string | undefined,
+    [ObservationClaim.ReferenceRangeText]: referenceRange?.text as string | undefined,
+    [ObservationClaim.ComponentCode]: joinClaimList(components.map((component) => codingToValue((component.code as { coding?: Array<{ system?: string; code?: string }> } | undefined)?.coding?.[0]))),
+    [ObservationClaim.ComponentCodeDisplay]: joinClaimList(components.map((component) => (component.code as { coding?: Array<{ display?: string }> } | undefined)?.coding?.[0]?.display)),
+    [ObservationClaim.ComponentValueQuantityNumber]: joinClaimList(components.map((component) => scalarString((component.valueQuantity as Record<string, unknown> | undefined)?.value))),
+    [ObservationClaim.ComponentValueQuantityUnit]: joinClaimList(components.map((component) => { const quantity = component.valueQuantity as Record<string, unknown> | undefined; return codingToValue(quantity?.system || quantity?.code ? { system: quantity?.system as string, code: quantity?.code as string } : undefined) || quantity?.unit as string | undefined; })),
   };
+}
+
+function splitClaimList(value?: string): string[] { return value ? JSON.parse(value) as string[] : []; }
+function joinClaimList(values: Array<string | undefined>): string | undefined { return values.some((value) => value !== undefined) ? JSON.stringify(values.map((value) => value || '')) : undefined; }
+function scalarString(value: unknown): string | undefined { return value === undefined || value === null ? undefined : String(value); }
+function quantityFromClaims(number: string, unit?: string): Record<string, unknown> {
+  const coding = codingFromValue(unit)?.[0];
+  return { value: Number(number), ...(unit ? { unit, ...(coding?.system ? { system: coding.system } : {}), ...(coding?.code ? { code: coding.code } : {}) } : {}) };
 }
 
 /** @deprecated Prefer `observationFromFlatToFhirR4`. */
