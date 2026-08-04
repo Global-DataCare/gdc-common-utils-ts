@@ -27,6 +27,8 @@ export const HL7_V2_0203_IDENTIFIER_CODES = Object.freeze({
   WorkPermit: 'WP',
   StudyPermit: 'SP',
   HealthCard: 'HC',
+  MemberNumber: 'MB',
+  SubscriberNumber: 'SN',
   DonorRecord: 'DR',
   PatientIdentifier: 'PI',
 } as const);
@@ -39,6 +41,9 @@ export const INDIVIDUAL_IDENTIFIER_KINDS = Object.freeze({
   NationalPerson: 'national-person',
   Passport: 'passport',
   HealthNumber: 'health-number',
+  HealthCard: 'health-card',
+  InsuranceMember: 'insurance-member',
+  InsuranceSubscriber: 'insurance-subscriber',
   DriverLicense: 'driver-license',
   WorkPermit: 'work-permit',
   StudyPermit: 'study-permit',
@@ -51,6 +56,9 @@ export const INDIVIDUAL_IDENTIFIER_KIND_CODES = Object.freeze({
   [INDIVIDUAL_IDENTIFIER_KINDS.NationalPerson]: HL7_V2_0203_IDENTIFIER_CODES.NationalNumber,
   [INDIVIDUAL_IDENTIFIER_KINDS.Passport]: HL7_V2_0203_IDENTIFIER_CODES.PassportNumber,
   [INDIVIDUAL_IDENTIFIER_KINDS.HealthNumber]: HL7_V2_0203_IDENTIFIER_CODES.JurisdictionalHealthNumber,
+  [INDIVIDUAL_IDENTIFIER_KINDS.HealthCard]: HL7_V2_0203_IDENTIFIER_CODES.HealthCard,
+  [INDIVIDUAL_IDENTIFIER_KINDS.InsuranceMember]: HL7_V2_0203_IDENTIFIER_CODES.MemberNumber,
+  [INDIVIDUAL_IDENTIFIER_KINDS.InsuranceSubscriber]: HL7_V2_0203_IDENTIFIER_CODES.SubscriberNumber,
   [INDIVIDUAL_IDENTIFIER_KINDS.DriverLicense]: HL7_V2_0203_IDENTIFIER_CODES.DriverLicense,
   [INDIVIDUAL_IDENTIFIER_KINDS.WorkPermit]: HL7_V2_0203_IDENTIFIER_CODES.WorkPermit,
   [INDIVIDUAL_IDENTIFIER_KINDS.StudyPermit]: HL7_V2_0203_IDENTIFIER_CODES.StudyPermit,
@@ -78,6 +86,10 @@ export enum IdKind {
   PersonalStudyPermit = 'org.hl7.terminology.CodeSystem.v2-0203.SP',
   /** HL7 local/private health card identifier. */
   LocalHealthCard = 'org.hl7.terminology.CodeSystem.v2-0203.HC',
+  /** HL7 insured/member number, including private and travel health insurance. */
+  InsuranceMemberNumber = 'org.hl7.terminology.CodeSystem.v2-0203.MB',
+  /** HL7 policy subscriber number when it differs from the beneficiary/member. */
+  InsuranceSubscriberNumber = 'org.hl7.terminology.CodeSystem.v2-0203.SN',
   /** HL7 donor record identifier. */
   LocalDonorRecord = 'org.hl7.terminology.CodeSystem.v2-0203.DR',
   /** HL7 local patient identifier. */
@@ -93,6 +105,8 @@ export const HL7_V2_0203_REVERSE_DNS_TYPES = Object.freeze({
   [HL7_V2_0203_IDENTIFIER_CODES.WorkPermit]: IdKind.PersonalWorkPermit,
   [HL7_V2_0203_IDENTIFIER_CODES.StudyPermit]: IdKind.PersonalStudyPermit,
   [HL7_V2_0203_IDENTIFIER_CODES.HealthCard]: IdKind.LocalHealthCard,
+  [HL7_V2_0203_IDENTIFIER_CODES.MemberNumber]: IdKind.InsuranceMemberNumber,
+  [HL7_V2_0203_IDENTIFIER_CODES.SubscriberNumber]: IdKind.InsuranceSubscriberNumber,
   [HL7_V2_0203_IDENTIFIER_CODES.DonorRecord]: IdKind.LocalDonorRecord,
   [HL7_V2_0203_IDENTIFIER_CODES.PatientIdentifier]: IdKind.LocalPatientIdentifier,
 } as const satisfies Record<Hl7V20203IdentifierCode, IdKind>);

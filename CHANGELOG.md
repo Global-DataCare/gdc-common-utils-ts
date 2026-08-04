@@ -4,6 +4,14 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.3.25] - 2026-08-04
+
+### Added
+
+- Add canonical HL7 v2-0203 `HC`, `MB`, and `SN` individual identifier kinds,
+  a confidential linked-subject record with FHIR Identifier validity/assigner
+  fields, and validation that rejects reversed validity periods.
+
 ## [2.3.24] - 2026-08-04
 
 ### Added
