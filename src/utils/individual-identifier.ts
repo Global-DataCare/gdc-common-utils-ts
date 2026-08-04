@@ -29,7 +29,10 @@ export function assertIndividualIdentifierPeriod(periodStart?: string, periodEnd
 function normalizeOptionalIsoDate(value: string | undefined, field: string): string | undefined {
   const normalized = value?.trim();
   if (!normalized) return undefined;
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(normalized) || Number.isNaN(Date.parse(`${normalized}T00:00:00.000Z`))) {
+  const parsed = new Date(`${normalized}T00:00:00.000Z`);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(normalized)
+    || Number.isNaN(parsed.getTime())
+    || parsed.toISOString().slice(0, 10) !== normalized) {
     throw new Error(`Invalid ISO date for ${field}: ${value}`);
   }
   return normalized;

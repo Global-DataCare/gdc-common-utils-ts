@@ -32,5 +32,6 @@ describe('linked subject identifiers', () => {
   it('accepts a bounded validity period and rejects reversed dates', () => {
     expect(() => assertIndividualIdentifierPeriod('2026-01-01', '2026-12-31')).not.toThrow();
     expect(() => assertIndividualIdentifierPeriod('2027-01-01', '2026-12-31')).toThrow(/periodStart/);
+    expect(() => assertIndividualIdentifierPeriod(undefined, '2026-02-31')).toThrow(/Invalid ISO date/);
   });
 });
