@@ -224,6 +224,13 @@ The preferred target surface is resource-specific, for example:
 - `asMedicationStatement().setIdentifier(...).setSubject(...).setEffective(...)`
 - `asCondition().setIdentifier(...).setSubject(...).setOnsetDateTime(...)`
 - `asVitalSign().setVitalSignType(...).setValueQuantity(...)`
+- `asObservation().setCodeTextLocal(...).setValueQuantityNumber(...).setValueQuantityUnit(...).setSectionList([HealthcareBasicSections.Results.attributeValue])`
+
+Use `Observation` for a scalar laboratory result (name/code, value, unit,
+status and effective date). Use `DiagnosticReport` as an optional report/panel
+that references one or more Observations; it is not a replacement for the
+Observation value. Both editors can assign Composition sections through
+`setSectionList(...)`.
 
 For the concrete medication-document story, use:
 

@@ -175,6 +175,20 @@ This is the model applications use to render a clinical viewer:
 - each section card displays its current visible resource count
 - section/type/text/date filters narrow the in-memory resources
 
+Each `ClinicalResourceCardView` also exposes the claims-first structured fields
+needed by common forms: `identifier`, `status`, Observation `value`/`unit`,
+Immunization `lotNumber`/`doseSequence`, AllergyIntolerance
+`criticality`/`onsetDateTime`, and MedicationStatement `dosageInstruction`.
+Applications should consume these fields instead of parsing `resource.meta.claims`
+inside React components.
+
+`resource.meta.claims` remains the canonical persisted business model. Native
+FHIR fields are interoperable projections and may be rehydrated by the GW in
+`org.hl7.fhir.r4` readback. The exported claim constants are public SDK
+contract: canonical keys are not renamed or removed in patch/minor releases;
+any replacement is introduced with a deprecated compatibility alias until a
+major-version migration.
+
 `translateCode` translates terminology labels only. It never translates
 `CodeableConcept.text` or `Coding.display`. The lookup key is the exact
 primary coded claim for that resource:

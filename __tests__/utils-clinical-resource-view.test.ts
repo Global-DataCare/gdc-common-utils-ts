@@ -191,6 +191,86 @@ describe('clinical resource common view', () => {
     });
   });
 
+  it('exposes claims-first structured clinical fields on section-ready cards', () => {
+    const observation = toClinicalResourceCardView({
+      fullUrl: 'Observation/lab-1',
+      resource: {
+        resourceType: ResourceTypesFhirR4.Observation,
+        meta: {
+          claims: {
+            [ObservationClaim.Identifier]: 'lab-1',
+            [ObservationClaim.CodeText]: 'Hemoglobina',
+            [ObservationClaim.Status]: 'final',
+            [ObservationClaim.Date]: '2026-08-04T08:00:00Z',
+            [ObservationClaim.ValueQuantityNumber]: '13.7',
+            [ObservationClaim.ValueQuantityUnit]: 'g/dL',
+          },
+        },
+      },
+    });
+    const immunization = toClinicalResourceCardView({
+      resource: {
+        resourceType: ResourceTypesFhirR4.Immunization,
+        meta: {
+          claims: {
+            [ImmunizationClaim.Identifier]: 'imm-1',
+            [ImmunizationClaim.VaccineCodeText]: 'Vacuna COVID-19',
+            [ImmunizationClaim.Status]: 'completed',
+            [ImmunizationClaim.LotNumber]: 'LOT-42',
+            [ImmunizationClaim.DoseSequence]: '2',
+          },
+        },
+      },
+    });
+    const allergy = toClinicalResourceCardView({
+      resource: {
+        resourceType: ResourceTypesFhirR4.AllergyIntolerance,
+        meta: {
+          claims: {
+            [AllergyIntoleranceClaim.Identifier]: 'allergy-1',
+            [AllergyIntoleranceClaim.CodeText]: 'Penicilina',
+            [AllergyIntoleranceClaim.Criticality]: 'high',
+            [AllergyIntoleranceClaim.OnsetDateTime]: '2020-01-02',
+          },
+        },
+      },
+    });
+    const medication = toClinicalResourceCardView({
+      resource: {
+        resourceType: ResourceTypesFhirR4.MedicationStatement,
+        meta: {
+          claims: {
+            [MedicationStatementClaim.Identifier]: 'med-1',
+            [MedicationStatementClaim.MedicationText]: 'Ibuprofeno',
+            [MedicationStatementClaim.DosageInstruction]: '1 comprimido cada 8 horas',
+          },
+        },
+      },
+    });
+
+    expect(observation).toMatchObject({
+      identifier: 'lab-1',
+      status: 'final',
+      value: 13.7,
+      unit: 'g/dL',
+    });
+    expect(immunization).toMatchObject({
+      identifier: 'imm-1',
+      status: 'completed',
+      lotNumber: 'LOT-42',
+      doseSequence: '2',
+    });
+    expect(allergy).toMatchObject({
+      identifier: 'allergy-1',
+      criticality: 'high',
+      onsetDateTime: '2020-01-02',
+    });
+    expect(medication).toMatchObject({
+      identifier: 'med-1',
+      dosageInstruction: '1 comprimido cada 8 horas',
+    });
+  });
+
   it('builds expanded view with FHIR xhtml narrative and notes array', () => {
     const entry = {
       fullUrl: 'urn:uuid:med-2',
@@ -348,6 +428,7 @@ describe('clinical resource common view', () => {
       {
         title: 'Metformina 850 mg',
         resourceType: ResourceTypesFhirR4.MedicationStatement,
+        identifier: 'medication-business-id-1',
         date: '2026-07-01',
         fullUrl: 'urn:uuid:medication-statement-ips-1',
         actorsCount: 2,

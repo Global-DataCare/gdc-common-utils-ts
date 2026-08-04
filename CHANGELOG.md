@@ -4,6 +4,14 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- Expose identifier, status and resource-specific result details on clinical
+  section cards, including Observation value/unit, Immunization lot/dose,
+  AllergyIntolerance criticality/onset and MedicationStatement dosage text.
+- Let `ObservationEntryEditor` and `VitalSignEntryEditor` assign explicit
+  Composition sections through the shared clinical-resource editor surface.
+
 ## [2.3.24] - 2026-08-04
 
 ### Added

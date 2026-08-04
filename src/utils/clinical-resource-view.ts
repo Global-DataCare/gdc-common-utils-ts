@@ -67,9 +67,27 @@ export type ClinicalResourceCommonView = Readonly<{
 export type ClinicalResourceCardView = Readonly<{
   title: string;
   resourceType: string;
+  /** Stable business identifier used to reconcile repeated readbacks. */
+  identifier?: string;
   date?: string;
   fullUrl?: string;
   actorsCount: number;
+  /** Resource status resolved from canonical claims first, then native FHIR. */
+  status?: string;
+  /** Observation scalar value for result cards. */
+  value?: string | number;
+  /** Observation quantity unit for result cards. */
+  unit?: string;
+  /** Immunization lot number. */
+  lotNumber?: string;
+  /** Immunization dose sequence. */
+  doseSequence?: string;
+  /** AllergyIntolerance criticality. */
+  criticality?: string;
+  /** AllergyIntolerance onset date/time. */
+  onsetDateTime?: string;
+  /** MedicationStatement human-readable dosage instruction. */
+  dosageInstruction?: string;
 }>;
 
 export type ClinicalTerminologyTranslationInput = Readonly<{
@@ -198,12 +216,35 @@ export function toClinicalResourceCardView(
   options: ClinicalResourceDisplayOptions = {},
 ): ClinicalResourceCardView {
   const common = toClinicalResourceCommonView(entry, options);
+  const resource = entry.resource as ClinicalResourceLike | undefined;
+  const status = resolveCardStatus(common.resourceType, common.claims, resource);
+  const value = resolveCardValue(common.resourceType, common.claims, resource);
+  const unit = resolveCardUnit(common.resourceType, common.claims, resource);
+  const lotNumber = readCanonicalClaimValue(common.claims, ImmunizationClaim.LotNumber)
+    || trimValue(resource?.lotNumber);
+  const doseSequence = readCanonicalClaimValue(common.claims, ImmunizationClaim.DoseSequence)
+    || trimValue(asRecord(asArray(resource?.protocolApplied)[0]).doseNumberString);
+  const criticality = readCanonicalClaimValue(common.claims, AllergyIntoleranceClaim.Criticality)
+    || trimValue(resource?.criticality);
+  const onsetDateTime = readCanonicalClaimValue(common.claims, AllergyIntoleranceClaim.OnsetDateTime)
+    || trimValue(resource?.onsetDateTime);
+  const dosageInstruction = readCanonicalClaimValue(common.claims, MedicationStatementClaim.DosageInstruction)
+    || trimValue(asRecord(asArray(resource?.dosage)[0]).text);
   return {
     title: common.title,
     resourceType: common.resourceType,
+    ...(common.identifier ? { identifier: common.identifier } : {}),
     date: common.date,
     fullUrl: common.fullUrl,
     actorsCount: common.actors.length,
+    ...(status ? { status } : {}),
+    ...(value !== undefined ? { value } : {}),
+    ...(unit ? { unit } : {}),
+    ...(lotNumber ? { lotNumber } : {}),
+    ...(doseSequence ? { doseSequence } : {}),
+    ...(criticality ? { criticality } : {}),
+    ...(onsetDateTime ? { onsetDateTime } : {}),
+    ...(dosageInstruction ? { dosageInstruction } : {}),
   };
 }
 
@@ -366,6 +407,50 @@ export function getNarrative(resource: ClinicalResourceLike): NarrativeResult {
     xhtml: `<div xmlns="http://www.w3.org/1999/xhtml">${lines.map((line) => `<p>${escapeHtml(line)}</p>`).join('')}</div>`,
     source: 'derived-from-claims',
   };
+}
+
+function resolveCardStatus(
+  resourceType: string,
+  claims: ClinicalViewClaims,
+  resource?: ClinicalResourceLike,
+): string | undefined {
+  const claimsStatus = resourceType === ResourceTypesFhirR4.AllergyIntolerance
+    ? readCanonicalClaimValue(claims, AllergyIntoleranceClaim.ClinicalStatus)
+    : readCanonicalClaimValue(claims, `${resourceType}.status`);
+  if (claimsStatus) return claimsStatus;
+  const nativeStatus = trimValue(resource?.status);
+  if (nativeStatus) return nativeStatus;
+  return trimValue(asRecord(asArray(asRecord(resource?.clinicalStatus).coding)[0]).code) || undefined;
+}
+
+function resolveCardValue(
+  resourceType: string,
+  claims: ClinicalViewClaims,
+  resource?: ClinicalResourceLike,
+): string | number | undefined {
+  if (resourceType !== ResourceTypesFhirR4.Observation) return undefined;
+  const claimNumber = readCanonicalClaimValue(claims, ObservationClaim.ValueQuantityNumber);
+  if (claimNumber !== undefined) {
+    const numeric = Number(claimNumber);
+    if (Number.isFinite(numeric)) return numeric;
+  }
+  const claimString = readCanonicalClaimValue(claims, ObservationClaim.ValueString);
+  if (claimString) return claimString;
+  const nativeNumber = asRecord(resource?.valueQuantity).value;
+  if (typeof nativeNumber === 'number' && Number.isFinite(nativeNumber)) return nativeNumber;
+  return trimValue(resource?.valueString) || undefined;
+}
+
+function resolveCardUnit(
+  resourceType: string,
+  claims: ClinicalViewClaims,
+  resource?: ClinicalResourceLike,
+): string | undefined {
+  if (resourceType !== ResourceTypesFhirR4.Observation) return undefined;
+  return readCanonicalClaimValue(claims, ObservationClaim.ValueQuantityUnit)
+    || trimValue(asRecord(resource?.valueQuantity).unit)
+    || trimValue(asRecord(resource?.valueQuantity).code)
+    || undefined;
 }
 
 function readClaims(entry: ClinicalResourceEntryLike): ClinicalViewClaims {
@@ -604,7 +689,8 @@ function resolveIdentifier(
       AllergyIntoleranceClaimsFhirApi.Identifier,
     ]) || resolveFhirIdentifier(resource);
   }
-  return resolveFhirIdentifier(resource);
+  return readCanonicalClaimValue(claims, `${resourceType}.identifier`)
+    || resolveFhirIdentifier(resource);
 }
 
 function resolveDate(
