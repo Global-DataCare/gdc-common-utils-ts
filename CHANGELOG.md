@@ -4,6 +4,18 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.3.28] - 2026-08-05
+
+### Fixed
+
+- Enforce one canonical naming invariant across every exported FHIR-like claim
+  registry: `<ResourceType>.<concrete-param>` in short form and
+  `org.hl7.fhir.api.<ResourceType>.<concrete-param>` when contextualized.
+- Replace remaining camelCase/nested claim aliases for Consent resource type,
+  ClinicalImpression effective date, DocumentReference based-on, Appointment
+  participants and RelatedPerson identifier with kebab-case FHIR API
+  parameters; native FHIR JSON paths remain confined to converters.
+
 ## [2.3.27] - 2026-08-05
 
 ### Added

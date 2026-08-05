@@ -50,7 +50,6 @@ export function setRelatedPersonIdentifier(claims: RelatedPersonInteroperableCla
   return {
     ...claims,
     [RelatedPersonClaim.IdentifierValue]: normalizedValue,
-    [RelatedPersonClaim.Identifier]: normalizedValue,
   };
 }
 

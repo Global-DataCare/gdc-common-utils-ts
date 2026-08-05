@@ -169,7 +169,7 @@ Important:
 - `getTargetsClassified()` is derived from:
   - `Consent.action`
   - `Consent.category`
-  - `Consent.resourceType`
+  - `Consent.resource-type`
 - LOINC-based targets are normalized as `section` and additionally classified by
   `sectionFamily`, for example:
   - `core-section`

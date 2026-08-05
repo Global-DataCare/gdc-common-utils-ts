@@ -301,7 +301,7 @@ Example:
 ## Frontend Picker Helpers
 
 The frontend should not manipulate raw `Consent.action`,
-`Consent.category`, or `Consent.resourceType` directly.
+`Consent.category`, or `Consent.resource-type` directly.
 
 Catalog helpers:
 

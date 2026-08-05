@@ -8,7 +8,7 @@ import type { ClaimSpec } from './types';
 export const DocumentReferenceClaim = {
   Attester: 'DocumentReference.attester',
   Author: 'DocumentReference.author',
-  BasedOn: 'DocumentReference.basedOn',
+  BasedOn: 'DocumentReference.based-on',
   Category: 'DocumentReference.category',
   ContentData: 'DocumentReference.contentdata',
   ContentHash: 'DocumentReference.contenthash',

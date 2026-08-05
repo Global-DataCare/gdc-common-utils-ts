@@ -7,7 +7,7 @@ export enum ClaimConsent {
     'category' = 'Consent.category',
     'categoryText' = 'Consent.category-text',
     'categoryDisplay' = 'Consent.category-display',
-    'resourceType' = 'Consent.resourceType',
+    'resourceType' = 'Consent.resource-type',
     'subject' = 'Consent.subject',
     'patient' = 'Consent.patient',
     'actorIdentifier' = 'Consent.actor-identifier',
