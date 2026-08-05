@@ -26,6 +26,12 @@ export function conditionFlatToFhirR4(claims: FlatClaims): FhirResource {
       : undefined,
     clinicalStatus: claims[ConditionClaim.ClinicalStatus] ? { coding: [{ code: claims[ConditionClaim.ClinicalStatus] }] } : undefined,
     verificationStatus: claims[ConditionClaim.VerificationStatus] ? { coding: [{ code: claims[ConditionClaim.VerificationStatus] }] } : undefined,
+    category: claims[ConditionClaim.Category] ? [{ coding: codingFromValue(claims[ConditionClaim.Category]) }] : undefined,
+    severity: claims[ConditionClaim.Severity] ? { coding: codingFromValue(claims[ConditionClaim.Severity]) } : undefined,
+    onsetDateTime: claims[ConditionClaim.OnsetDateTime],
+    recordedDate: claims[ConditionClaim.RecordedDate],
+    asserter: claims[ConditionClaim.Asserter] ? { reference: claims[ConditionClaim.Asserter] } : undefined,
+    recorder: claims[ConditionClaim.Recorder] ? { reference: claims[ConditionClaim.Recorder] } : undefined,
   };
 }
 
@@ -39,5 +45,11 @@ export function conditionFhirR4ToFlat(resource: FhirResource): FlatClaims {
     [ConditionClaim.CodeDisplay]: code?.coding?.[0]?.display,
     [ConditionClaim.ClinicalStatus]: (resource.clinicalStatus as { coding?: Array<{ code?: string }> } | undefined)?.coding?.[0]?.code,
     [ConditionClaim.VerificationStatus]: (resource.verificationStatus as { coding?: Array<{ code?: string }> } | undefined)?.coding?.[0]?.code,
+    [ConditionClaim.Category]: codingToValue((resource.category as Array<{ coding?: Array<{ system?: string; code?: string }> }> | undefined)?.[0]?.coding?.[0]),
+    [ConditionClaim.Severity]: codingToValue((resource.severity as { coding?: Array<{ system?: string; code?: string }> } | undefined)?.coding?.[0]),
+    [ConditionClaim.OnsetDateTime]: resource.onsetDateTime as string | undefined,
+    [ConditionClaim.RecordedDate]: resource.recordedDate as string | undefined,
+    [ConditionClaim.Asserter]: (resource.asserter as { reference?: string } | undefined)?.reference,
+    [ConditionClaim.Recorder]: (resource.recorder as { reference?: string } | undefined)?.reference,
   };
 }

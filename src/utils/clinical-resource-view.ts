@@ -26,6 +26,7 @@ import {
 import { ObservationClaim } from '../models/interoperable-claims/observation-claims.js';
 import { PractitionerRoleClaim } from '../models/interoperable-claims/practitioner-role-claims.js';
 import { ProcedureClaim } from '../models/interoperable-claims/procedure-claims.js';
+import { normalizeFhirApiClaimKey } from './fhir-api-claim-helpers.js';
 
 const CONSENT_ACTOR_REFERENCE_CLAIM = 'Consent.actor-reference';
 const GENERIC_CREATOR_CLAIM_SUFFIX = '.creator';
@@ -67,9 +68,55 @@ export type ClinicalResourceCommonView = Readonly<{
 export type ClinicalResourceCardView = Readonly<{
   title: string;
   resourceType: string;
+  /** Stable business identifier used to reconcile repeated readbacks. */
+  identifier?: string;
   date?: string;
+  periodStart?: string;
+  periodEnd?: string;
   fullUrl?: string;
   actorsCount: number;
+  /** Resource status resolved from canonical claims first, then native FHIR. */
+  status?: string;
+  /** Observation scalar value for result cards. */
+  value?: string | number;
+  /** Observation quantity unit for result cards. */
+  unit?: string;
+  /** Immunization lot number. */
+  lotNumber?: string;
+  /** Immunization dose sequence. */
+  doseSequence?: string;
+  /** AllergyIntolerance criticality. */
+  criticality?: string;
+  /** AllergyIntolerance onset date/time. */
+  onsetDateTime?: string;
+  /** MedicationStatement human-readable dosage instruction. */
+  dosageInstruction?: string;
+  category?: string;
+  severity?: string;
+  recordedDate?: string;
+  source?: string;
+  route?: string;
+  site?: string;
+  doseQuantityValue?: number;
+  doseQuantityUnit?: string;
+  referenceRangeText?: string;
+  description?: string;
+  /**
+   * Complete editable field surface resolved from `resource.meta.claims`.
+   *
+   * `claim` always uses the short, version-independent FHIR API form
+   * (`<ResourceType>.<search-param>`). Consumers can therefore render and
+   * hydrate fields that do not yet have a dedicated card convenience member.
+   */
+  fields: readonly ClinicalResourceClaimFieldView[];
+}>;
+
+export type ClinicalResourceClaimFieldView = Readonly<{
+  /** Canonical short FHIR API claim, for example `Immunization.lot-number`. */
+  claim: string;
+  /** Concrete FHIR API SearchParameter name, for example `lot-number`. */
+  parameter: string;
+  value: unknown;
 }>;
 
 export type ClinicalTerminologyTranslationInput = Readonly<{
@@ -198,13 +245,111 @@ export function toClinicalResourceCardView(
   options: ClinicalResourceDisplayOptions = {},
 ): ClinicalResourceCardView {
   const common = toClinicalResourceCommonView(entry, options);
+  const resource = entry.resource as ClinicalResourceLike | undefined;
+  const status = resolveCardStatus(common.resourceType, common.claims, resource);
+  const value = resolveCardValue(common.resourceType, common.claims, resource);
+  const unit = resolveCardUnit(common.resourceType, common.claims, resource);
+  const lotNumber = readCanonicalClaimValue(common.claims, ImmunizationClaim.LotNumber)
+    || trimValue(resource?.lotNumber);
+  const doseSequence = readCanonicalClaimValue(common.claims, ImmunizationClaim.DoseSequence)
+    || trimValue(asRecord(asArray(resource?.protocolApplied)[0]).doseNumberString);
+  const criticality = readCanonicalClaimValue(common.claims, AllergyIntoleranceClaim.Criticality)
+    || trimValue(resource?.criticality);
+  const onsetDateTime = readCanonicalClaimValue(common.claims, AllergyIntoleranceClaim.OnsetDateTime)
+    || trimValue(resource?.onsetDateTime);
+  const dosageInstruction = readCanonicalClaimValue(common.claims, MedicationStatementClaim.DosageInstruction)
+    || trimValue(asRecord(asArray(resource?.dosage)[0]).text);
+  const fields = toClinicalResourceClaimFieldViews(common.claims);
+  const category = readCanonicalClaimValue(common.claims, `${common.resourceType}.category`);
+  const severity = readCanonicalClaimValue(common.claims, `${common.resourceType}.severity`);
+  const recordedDate = readCanonicalClaimValue(common.claims, ConditionClaim.RecordedDate);
+  const source = readCanonicalClaimValue(common.claims, MedicationStatementClaim.Source);
+  const route = readCanonicalClaimValue(common.claims, ImmunizationClaim.Route);
+  const site = readCanonicalClaimValue(common.claims, ImmunizationClaim.Site);
+  const doseQuantityValueRaw = readCanonicalClaimValue(common.claims, MedicationStatementClaim.DoseQuantityValue);
+  const doseQuantityValue = doseQuantityValueRaw === undefined ? undefined : Number(doseQuantityValueRaw);
+  const doseQuantityUnit = readCanonicalClaimValue(common.claims, MedicationStatementClaim.DoseQuantityUnit);
+  const referenceRangeText = readCanonicalClaimValue(common.claims, ObservationClaim.ReferenceRangeText);
+  const description = readCanonicalClaimValue(common.claims, CarePlanClaim.Description);
   return {
     title: common.title,
     resourceType: common.resourceType,
+    ...(common.identifier ? { identifier: common.identifier } : {}),
     date: common.date,
+    ...(common.periodStart ? { periodStart: common.periodStart } : {}),
+    ...(common.periodEnd ? { periodEnd: common.periodEnd } : {}),
     fullUrl: common.fullUrl,
     actorsCount: common.actors.length,
+    fields,
+    ...(status ? { status } : {}),
+    ...(value !== undefined ? { value } : {}),
+    ...(unit ? { unit } : {}),
+    ...(lotNumber ? { lotNumber } : {}),
+    ...(doseSequence ? { doseSequence } : {}),
+    ...(criticality ? { criticality } : {}),
+    ...(onsetDateTime ? { onsetDateTime } : {}),
+    ...(dosageInstruction ? { dosageInstruction } : {}),
+    ...(category ? { category } : {}),
+    ...(severity ? { severity } : {}),
+    ...(recordedDate ? { recordedDate } : {}),
+    ...(source ? { source } : {}),
+    ...(route ? { route } : {}),
+    ...(site ? { site } : {}),
+    ...(doseQuantityValue !== undefined && Number.isFinite(doseQuantityValue) ? { doseQuantityValue } : {}),
+    ...(doseQuantityUnit ? { doseQuantityUnit } : {}),
+    ...(referenceRangeText ? { referenceRangeText } : {}),
+    ...(description ? { description } : {}),
   };
+}
+
+/**
+ * Normalizes all clinical `meta.claims` into the short FHIR API vocabulary
+ * consumed by generic clinical viewers and editors.
+ *
+ * Short claims take precedence over their expanded
+ * `org.hl7.fhir.api.<ResourceType>.<search-param>` equivalent. Versioned
+ * `org.hl7.fhir.<version>.*` namespaces are rejected because they are native
+ * FHIR representation namespaces, never claims vocabularies.
+ */
+export function toClinicalResourceClaimFieldViews(
+  claims: ClinicalViewClaims,
+): ClinicalResourceClaimFieldView[] {
+  const fields = new Map<string, ClinicalResourceClaimFieldView>();
+  const entries = Object.entries(claims || {});
+
+  for (const [rawClaim, value] of entries) {
+    if (rawClaim.startsWith('@') || value === undefined) continue;
+    if (rawClaim.startsWith('org.hl7.fhir.') && !rawClaim.startsWith('org.hl7.fhir.api.')) {
+      throw new Error(`FHIR meta.claims must use org.hl7.fhir.api, not version-specific key: ${rawClaim}`);
+    }
+    if (!rawClaim.startsWith('org.hl7.fhir.api.') && !/^[A-Z][A-Za-z0-9]+\./.test(rawClaim)) continue;
+    const claim = normalizeFhirApiClaimKey(rawClaim);
+    const separator = claim.indexOf('.');
+    if (separator <= 0 || separator === claim.length - 1) continue;
+    if (!fields.has(claim)) {
+      fields.set(claim, {
+        claim,
+        parameter: claim.slice(separator + 1),
+        value,
+      });
+    }
+  }
+
+  // Apply canonical short keys last so they win over expanded aliases even
+  // when the expanded property appeared later in insertion order.
+  for (const [claim, value] of entries) {
+    if (claim.startsWith('@') || claim.startsWith('org.hl7.fhir.') || value === undefined) continue;
+    if (!/^[A-Z][A-Za-z0-9]+\./.test(claim)) continue;
+    const separator = claim.indexOf('.');
+    if (separator <= 0 || separator === claim.length - 1) continue;
+    fields.set(claim, {
+      claim,
+      parameter: claim.slice(separator + 1),
+      value,
+    });
+  }
+
+  return [...fields.values()].sort((left, right) => left.claim.localeCompare(right.claim));
 }
 
 /**
@@ -366,6 +511,50 @@ export function getNarrative(resource: ClinicalResourceLike): NarrativeResult {
     xhtml: `<div xmlns="http://www.w3.org/1999/xhtml">${lines.map((line) => `<p>${escapeHtml(line)}</p>`).join('')}</div>`,
     source: 'derived-from-claims',
   };
+}
+
+function resolveCardStatus(
+  resourceType: string,
+  claims: ClinicalViewClaims,
+  resource?: ClinicalResourceLike,
+): string | undefined {
+  const claimsStatus = resourceType === ResourceTypesFhirR4.AllergyIntolerance
+    ? readCanonicalClaimValue(claims, AllergyIntoleranceClaim.ClinicalStatus)
+    : readCanonicalClaimValue(claims, `${resourceType}.status`);
+  if (claimsStatus) return claimsStatus;
+  const nativeStatus = trimValue(resource?.status);
+  if (nativeStatus) return nativeStatus;
+  return trimValue(asRecord(asArray(asRecord(resource?.clinicalStatus).coding)[0]).code) || undefined;
+}
+
+function resolveCardValue(
+  resourceType: string,
+  claims: ClinicalViewClaims,
+  resource?: ClinicalResourceLike,
+): string | number | undefined {
+  if (resourceType !== ResourceTypesFhirR4.Observation) return undefined;
+  const claimNumber = readCanonicalClaimValue(claims, ObservationClaim.ValueQuantityNumber);
+  if (claimNumber !== undefined) {
+    const numeric = Number(claimNumber);
+    if (Number.isFinite(numeric)) return numeric;
+  }
+  const claimString = readCanonicalClaimValue(claims, ObservationClaim.ValueString);
+  if (claimString) return claimString;
+  const nativeNumber = asRecord(resource?.valueQuantity).value;
+  if (typeof nativeNumber === 'number' && Number.isFinite(nativeNumber)) return nativeNumber;
+  return trimValue(resource?.valueString) || undefined;
+}
+
+function resolveCardUnit(
+  resourceType: string,
+  claims: ClinicalViewClaims,
+  resource?: ClinicalResourceLike,
+): string | undefined {
+  if (resourceType !== ResourceTypesFhirR4.Observation) return undefined;
+  return readCanonicalClaimValue(claims, ObservationClaim.ValueQuantityUnit)
+    || trimValue(asRecord(resource?.valueQuantity).unit)
+    || trimValue(asRecord(resource?.valueQuantity).code)
+    || undefined;
 }
 
 function readClaims(entry: ClinicalResourceEntryLike): ClinicalViewClaims {
@@ -604,7 +793,8 @@ function resolveIdentifier(
       AllergyIntoleranceClaimsFhirApi.Identifier,
     ]) || resolveFhirIdentifier(resource);
   }
-  return resolveFhirIdentifier(resource);
+  return readCanonicalClaimValue(claims, `${resourceType}.identifier`)
+    || resolveFhirIdentifier(resource);
 }
 
 function resolveDate(

@@ -140,7 +140,7 @@ function assignInflatedPath(target: Record<string, unknown>, path: string, value
 /**
  * Generic structural fallback for unsupported resources.
  */
-export function fhirResourceToFlatClaims(resource: FhirResource, context: string = 'org.hl7.fhir.r4'): FlatClaims {
+export function fhirResourceToFlatClaims(resource: FhirResource, context: string = 'org.hl7.fhir.api'): FlatClaims {
   if (!resource?.resourceType) {
     throw new Error('FHIR resource must define resourceType.');
   }

@@ -175,7 +175,7 @@ export function buildBundleDocumentRequestCommunicationClaims(
   const noteText = String(input.noteText || text).trim();
 
   const claims: Record<string, unknown> = {
-    '@context': 'org.hl7.fhir.r4',
+    '@context': 'org.hl7.fhir.api',
     [CommunicationClaim.Identifier]: communicationIdentifier,
     [CommunicationClaim.Status]: String(input.status || 'completed').trim(),
     [CommunicationClaim.Category]: CommunicationCategoryCodes.Notification.claim,

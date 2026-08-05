@@ -20,8 +20,9 @@ export function deviceUseStatementFlatToFhirR4(claims: FlatClaims): FhirResource
         : {}),
     },
     status,
-    recordedOn: claims[DeviceUseStatementClaim.RecordedOn],
+    recordedOn: claims[DeviceUseStatementClaim.RecordedOn] || claims['DeviceUseStatement.recordedon'],
     timingDateTime: claims[DeviceUseStatementClaim.TimingDateTime],
+    _timingDateTime: claims[DeviceUseStatementClaim.TimingAbsentReason] ? { extension: [{ url: 'http://hl7.org/fhir/StructureDefinition/data-absent-reason', valueCode: claims[DeviceUseStatementClaim.TimingAbsentReason] }] } : undefined,
   };
 }
 
@@ -34,5 +35,6 @@ export function deviceUseStatementFhirR4ToFlat(resource: FhirResource): FlatClai
     [DeviceUseStatementClaim.Status]: resource.status as string | undefined,
     [DeviceUseStatementClaim.RecordedOn]: resource.recordedOn as string | undefined,
     [DeviceUseStatementClaim.TimingDateTime]: resource.timingDateTime as string | undefined,
+    [DeviceUseStatementClaim.TimingAbsentReason]: ((resource._timingDateTime as { extension?: Array<{ valueCode?: string }> } | undefined)?.extension)?.[0]?.valueCode,
   };
 }

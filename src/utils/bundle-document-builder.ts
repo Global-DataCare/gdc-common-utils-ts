@@ -7,6 +7,7 @@ import { MedicationStatementClaim } from '../models/interoperable-claims/medicat
 import { ClaimConsent } from '../models/consent-rule';
 import {
   allergyIntoleranceFlatToFhirR4,
+  appointmentResponseFlatToFhirR4,
   appointmentFlatToFhirR4,
   carePlanFlatToFhirR4,
   clinicalImpressionFlatToFhirR4,
@@ -16,6 +17,7 @@ import {
   convertFhirResourceToClaims,
   coverageFlatToFhirR4,
   deviceFlatToFhirR4,
+  deviceUseStatementFlatToFhirR4,
   documentReferenceFlatToFhirR4,
   diagnosticReportFlatToFhirR4,
   encounterFlatToFhirR4,
@@ -56,6 +58,9 @@ export type PrepareBundleDocumentForSubjectOptions = Readonly<{
   context?: string;
 }>;
 
+/** Version-independent FHIR SearchParameter claim context. */
+const FHIR_API_CLAIMS_CONTEXT = 'org.hl7.fhir.api';
+
 function asTrimmedString(value: unknown): string {
   if (value === undefined || value === null) return '';
   return String(value).trim();
@@ -72,8 +77,7 @@ export function getSimpleClaimAttributeName(key: string): string {
   const value = asTrimmedString(key);
   if (!value) return '';
   const knownPrefixes = [
-    'org.hl7.fhir.r4.',
-    'org.hl7.fhir.api.',
+    `${FHIR_API_CLAIMS_CONTEXT}.`,
   ];
   for (const prefix of knownPrefixes) {
     if (value.startsWith(prefix)) {
@@ -88,15 +92,11 @@ export function extractFlatClaimValue(record: Record<string, any> | undefined, k
   if (!record || typeof record !== 'object') return '';
   const direct = record[normalizedKey];
   if (typeof direct === 'string' && direct.trim()) return direct.trim();
-  const contextualizedR4 = record[`org.hl7.fhir.r4.${normalizedKey}`];
-  if (typeof contextualizedR4 === 'string' && contextualizedR4.trim()) return contextualizedR4.trim();
-  const contextualizedApi = record[`org.hl7.fhir.api.${normalizedKey}`];
+  const contextualizedApi = record[`${FHIR_API_CLAIMS_CONTEXT}.${normalizedKey}`];
   if (typeof contextualizedApi === 'string' && contextualizedApi.trim()) return contextualizedApi.trim();
   const nested = record?.meta?.claims?.[normalizedKey];
   if (typeof nested === 'string' && nested.trim()) return nested.trim();
-  const nestedR4 = record?.meta?.claims?.[`org.hl7.fhir.r4.${normalizedKey}`];
-  if (typeof nestedR4 === 'string' && nestedR4.trim()) return nestedR4.trim();
-  const nestedApi = record?.meta?.claims?.[`org.hl7.fhir.api.${normalizedKey}`];
+  const nestedApi = record?.meta?.claims?.[`${FHIR_API_CLAIMS_CONTEXT}.${normalizedKey}`];
   if (typeof nestedApi === 'string' && nestedApi.trim()) return nestedApi.trim();
   return '';
 }
@@ -104,10 +104,31 @@ export function extractFlatClaimValue(record: Record<string, any> | undefined, k
 function claimsToFlatStrings(claims: BundleDocumentClaims): FlatClaims {
   const out: FlatClaims = {};
   for (const [key, value] of Object.entries(claims || {})) {
-    if (value === undefined || value === null) continue;
+    if (value === undefined || value === null || key === '@context') continue;
+    const canonicalKey = getSimpleClaimAttributeName(key);
+    if (canonicalKey === key) continue;
+    out[canonicalKey] = typeof value === 'string' ? value : String(value);
+  }
+  for (const [key, value] of Object.entries(claims || {})) {
+    if (value === undefined || value === null || key === '@context') continue;
+    const canonicalKey = getSimpleClaimAttributeName(key);
+    if (canonicalKey !== key) continue;
     out[key] = typeof value === 'string' ? value : String(value);
   }
   return out;
+}
+
+/** Rejects version-specific FHIR resource contexts from the claims contract. */
+function assertFhirApiClaimsContext(claims: BundleDocumentClaims): void {
+  const context = asTrimmedString(claims?.['@context']);
+  const hasVersionSpecificContext = context.startsWith('org.hl7.fhir.')
+    && context !== FHIR_API_CLAIMS_CONTEXT;
+  const hasVersionSpecificExpandedKey = Object.keys(claims || {}).some((key) =>
+    key.startsWith('org.hl7.fhir.') && !key.startsWith(`${FHIR_API_CLAIMS_CONTEXT}.`),
+  );
+  if (hasVersionSpecificContext || hasVersionSpecificExpandedKey) {
+    throw new Error(`FHIR claims require @context ${FHIR_API_CLAIMS_CONTEXT}. Version-specific FHIR resource contexts are not claim namespaces.`);
+  }
 }
 
 function ensureClaimsIdentifier(
@@ -253,7 +274,7 @@ export function prepareBundleDocumentForSubject(
     const resource = entry?.resource;
     if (!resource || typeof resource !== 'object') continue;
     replacePatientSubjectReference(resource, normalizedSubjectDid);
-    const generated = convertFhirResourceToClaims(resource as FhirResource, options.context || 'org.hl7.fhir.r4');
+    const generated = convertFhirResourceToClaims(resource as FhirResource, options.context || FHIR_API_CLAIMS_CONTEXT);
     const existing = resource?.meta?.claims;
     const claims: Record<string, unknown> = {
       ...generated,
@@ -377,7 +398,7 @@ export function detectClaimsResourceType(claims: BundleDocumentClaims): string |
   if (keys.some((key) => key.startsWith('DocumentReference.'))) return ResourceTypesFhirR4.DocumentReference;
   const firstContextualized = keys
     .map((key) => getSimpleClaimAttributeName(key))
-    .find((key) => key.includes('.'));
+    .find((key) => key.includes('.') && !key.startsWith(`${ResourceTypesFhirR4.Composition}.`));
   if (firstContextualized) {
     return firstContextualized.split('.')[0];
   }
@@ -389,10 +410,11 @@ export function convertClaimsToFhirResource(
   version: 'r4' = 'r4',
 ): FhirResource {
   void version;
+  assertFhirApiClaimsContext(claims);
   const flatClaims = claimsToFlatStrings(claims);
   const resourceType = detectClaimsResourceType(claims);
   const resource = convertClaimsToFhirResourceByType(flatClaims, resourceType);
-  const language = resourceType ? asTrimmedString(claims[`${resourceType}.language`]) : '';
+  const language = resourceType ? asTrimmedString(flatClaims[`${resourceType}.language`]) : '';
   return language ? { ...resource, language } : resource;
 }
 
@@ -409,6 +431,8 @@ function convertClaimsToFhirResourceByType(
       return conditionFlatToFhirR4(flatClaims);
     case ResourceTypesFhirR4.DocumentReference:
       return documentReferenceFlatToFhirR4(flatClaims);
+    case ResourceTypesFhirR4.DeviceUseStatement:
+      return deviceUseStatementFlatToFhirR4(flatClaims);
     case 'Immunization':
       return immunizationFlatToFhirR4(flatClaims);
     case 'Location':
@@ -431,6 +455,8 @@ function convertClaimsToFhirResourceByType(
       return compositionFlatToFhirR4(flatClaims);
     case 'Appointment':
       return appointmentFlatToFhirR4(flatClaims);
+    case 'AppointmentResponse':
+      return appointmentResponseFlatToFhirR4(flatClaims);
     case 'Encounter':
       return encounterFlatToFhirR4(flatClaims);
     case 'RelatedPerson':
@@ -461,7 +487,7 @@ function convertClaimsToFhirResourceByType(
  */
 export function extractBundleDocumentClaimsList(
   bundle: Record<string, any>,
-  context: string = 'org.hl7.fhir.r4',
+  context: string = 'org.hl7.fhir.api',
 ): BundleDocumentClaims[] {
   const entries = Array.isArray(bundle?.entry) ? bundle.entry : [];
   const ignoredResourceTypes = new Set<string>([

@@ -4,6 +4,15 @@ import type { ClaimSpec } from './types';
 
 /** Canonical claims used to preserve the primary coded PractitionerRole label. */
 export const PractitionerRoleClaim = {
+  Identifier: 'PractitionerRole.identifier',
+  Active: 'PractitionerRole.active',
+  Practitioner: 'PractitionerRole.practitioner',
+  Organization: 'PractitionerRole.organization',
+  Location: 'PractitionerRole.location',
+  Service: 'PractitionerRole.service',
+  Specialty: 'PractitionerRole.specialty',
+  PeriodStart: 'PractitionerRole.period-start',
+  PeriodEnd: 'PractitionerRole.period-end',
   Code: 'PractitionerRole.code',
   CodeText: 'PractitionerRole.code-text',
   CodeDisplay: 'PractitionerRole.code-display',

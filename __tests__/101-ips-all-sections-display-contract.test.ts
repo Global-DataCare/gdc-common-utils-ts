@@ -17,6 +17,7 @@ import { AllergyIntoleranceClaim } from '../src/models/interoperable-claims/alle
 import { CarePlanClaim } from '../src/models/interoperable-claims/care-plan-claims.js';
 import { ConditionClaim } from '../src/models/interoperable-claims/condition-claims.js';
 import { DeviceClaim } from '../src/models/interoperable-claims/device-claims.js';
+import { DeviceUseStatementClaim } from '../src/models/interoperable-claims/device-use-statement-claims.js';
 import { DocumentReferenceClaim } from '../src/models/interoperable-claims/document-reference-claims.js';
 import { FlagClaim } from '../src/models/interoperable-claims/flag-claims.js';
 import { ImmunizationClaim } from '../src/models/interoperable-claims/immunization-claims.js';
@@ -24,6 +25,9 @@ import { MedicationStatementClaim } from '../src/models/interoperable-claims/med
 import { ObservationClaim } from '../src/models/interoperable-claims/observation-claims.js';
 import { PractitionerRoleClaim } from '../src/models/interoperable-claims/practitioner-role-claims.js';
 import { ProcedureClaim } from '../src/models/interoperable-claims/procedure-claims.js';
+import {
+  convertFhirResourceToClaims,
+} from '../src/utils/clinical-resource-converters.js';
 import {
   convertClaimsToFhirResource,
   prepareBundleDocumentForSubject,
@@ -122,6 +126,134 @@ function firstConceptToken(concept: Record<string, any> | undefined): string | u
 }
 
 describe('101: all IPS sections and declared resource types are display-ready', () => {
+  it('preserves the structured clinical fields that the viewer and editor need from the source IPS', () => {
+    const imported = JSON.parse(fs.readFileSync(IPS_BUNDLE_PATH, 'utf8'));
+    const prepared = prepareBundleDocumentForSubject(imported, SUBJECT) as Record<string, any>;
+    const claimsById = (id: string): Record<string, unknown> => prepared.entry
+      .find((entry: Record<string, any>) => entry.resource?.id === id)?.resource?.meta?.claims;
+
+    expect(claimsById('8039e4a7-d459-454c-92a5-6c17ca2a824b')).toMatchObject({
+      [ConditionClaim.OnsetDateTime]: '2016-05-25',
+      [ConditionClaim.RecordedDate]: '2016-05-25',
+      [ConditionClaim.Asserter]: 'Practitioner/816cf057-b736-4e08-baed-cc21e081b784',
+    });
+    expect(claimsById('b8dac343-16d7-49bf-ac36-b15e6726c343')).toMatchObject({
+      [MedicationStatementClaim.Effective]: '2024-08-13',
+      [MedicationStatementClaim.Source]: 'Organization/7a17027f-acc0-4d77-bf84-c0dad8f7c881',
+      [MedicationStatementClaim.DosageInstruction]: 'Take One tablet once daily',
+      [MedicationStatementClaim.DoseQuantityValue]: '1',
+      [MedicationStatementClaim.DoseQuantityUnit]: 'http://snomed.info/sct|428673006',
+      [MedicationStatementClaim.DosageRoute]: 'http://terminology.hl7.org/CodeSystem/v3-RouteOfAdministration|PO',
+      [MedicationStatementClaim.TimingFrequency]: '1',
+      [MedicationStatementClaim.TimingPeriod]: '1',
+      [MedicationStatementClaim.TimingPeriodUnit]: 'd',
+    });
+    expect(claimsById('17b5a6d7-307b-4726-8c8c-0031e61582ce')).toMatchObject({
+      [ImmunizationClaim.Date]: '2024-04-10',
+      [ImmunizationClaim.LotNumber]: 'H06',
+      [ImmunizationClaim.DoseSequence]: '1',
+      [ImmunizationClaim.Route]: 'http://terminology.hl7.org/CodeSystem/v3-RouteOfAdministration|IM',
+      [ImmunizationClaim.Site]: 'http://snomed.info/sct|16217701000119102',
+    });
+    expect(claimsById('b0187efd-5f9b-474d-87bc-efebf877449a')).toMatchObject({
+      [ObservationClaim.Category]: 'http://terminology.hl7.org/CodeSystem/observation-category|laboratory',
+      [ObservationClaim.EffectiveDateTime]: '2023-10-31T15:06:00+00:00',
+      [ObservationClaim.ValueQuantityNumber]: '4.1',
+      [ObservationClaim.ValueQuantityUnit]: 'http://unitsofmeasure.org|mmol/L',
+      [ObservationClaim.ReferenceRangeText]: 'NA',
+    });
+    expect(claimsById('4ea539e1-fff9-4f56-964f-650d9e69ce58')).toMatchObject({
+      [ObservationClaim.ComponentCode]: expect.stringContaining('http://loinc.org|8480-6'),
+      [ObservationClaim.ComponentValueQuantityNumber]: expect.stringContaining('140'),
+      [ObservationClaim.ComponentValueQuantityUnit]: expect.stringContaining('http://unitsofmeasure.org|mm[Hg]'),
+    });
+    expect(claimsById('eumfh-70-275-1')).toMatchObject({
+      [DeviceUseStatementClaim.TimingAbsentReason]: 'unknown',
+      [DeviceUseStatementClaim.DeviceDisplay]: 'Hip prosthesis',
+    });
+    expect(claimsById('080d85fa-c807-42d1-a3af-b3ee70858a54')).toMatchObject({
+      [ClaimConsent.scope]: 'http://terminology.hl7.org/CodeSystem/consentscope|treatment',
+      [ClaimConsent.policyRule]: 'http://terminology.hl7.org/CodeSystem/consentpolicycodes|cric',
+      [ClaimConsent.provisionCode]: 'http://snomed.info/sct|304253006',
+    });
+    expect(claimsById('85d57ac7-ea2d-47cf-b019-b867f876ee7c')).toMatchObject({
+      [CarePlanClaim.Description]: 'Manage obesity and weight loss',
+      [CarePlanClaim.Date]: '2016-01-01',
+      [CarePlanClaim.PeriodEnd]: '2017-06-01',
+      [CarePlanClaim.ActivityStatus]: 'completed',
+      [CarePlanClaim.ActivityOutcome]: 'http://snomed.info/sct|262285001',
+      [CarePlanClaim.ActivityTimingFrequency]: '1',
+      [CarePlanClaim.ActivityTimingPeriod]: '1',
+      [CarePlanClaim.ActivityTimingPeriodUnit]: 'd',
+    });
+  });
+  it('roundtrips every resource referenced by all 16 IPS sections through canonical API claims', () => {
+    // Step 1. Normalize the real IPS fixture exactly as the ingestion boundary does.
+    const imported = JSON.parse(fs.readFileSync(IPS_BUNDLE_PATH, 'utf8')) as Record<string, any>;
+    const prepared = prepareBundleDocumentForSubject(imported, SUBJECT) as Record<string, any>;
+    const entries = Array.isArray(prepared.entry) ? prepared.entry : [];
+    const composition = entries.find((entry: Record<string, any>) =>
+      entry.resource?.resourceType === ResourceTypesFhirR4.Composition)?.resource;
+    const resourcesByReference = new Map<string, Record<string, any>>();
+    for (const entry of entries) {
+      const resource = entry.resource as Record<string, any> | undefined;
+      if (!resource?.resourceType || !resource?.id) continue;
+      resourcesByReference.set(`${resource.resourceType}/${resource.id}`, resource);
+    }
+
+    // Step 2. Resolve every Composition.section.entry instead of inferring
+    // section membership from resourceType.
+    const referencedResources: Record<string, any>[] = [];
+    const visitSections = (sections: unknown): void => {
+      for (const section of Array.isArray(sections) ? sections : []) {
+        for (const item of Array.isArray(section?.entry) ? section.entry : []) {
+          const resource = resourcesByReference.get(String(item?.reference || ''));
+          expect(resource).toBeDefined();
+          referencedResources.push(resource!);
+        }
+        visitSections(section?.section);
+      }
+    };
+    visitSections(composition?.section);
+    expect(referencedResources.length).toBeGreaterThan(0);
+
+    // Step 3. Every section resource must carry short FHIR API claims only,
+    // rebuild its native FHIR fields, and produce the same claims again.
+    for (const resource of referencedResources) {
+      const claims = resource.meta?.claims as Record<string, unknown>;
+      expect({
+        resourceType: resource.resourceType,
+        context: claims?.['@context'],
+      }).toEqual({
+        resourceType: resource.resourceType,
+        context: 'org.hl7.fhir.api',
+      });
+      for (const key of Object.keys(claims || {}).filter((key) => !key.startsWith('@'))) {
+        expect(key).toMatch(/^[A-Z][A-Za-z0-9]+\.[a-z0-9]+(?:-[a-z0-9]+)*$/);
+      }
+
+      const rebuilt = convertClaimsToFhirResource(claims) as Record<string, any>;
+      const roundtripClaims = convertFhirResourceToClaims(
+        rebuilt as Parameters<typeof convertFhirResourceToClaims>[0],
+      );
+      const comparable = (record: Record<string, unknown>) => Object.fromEntries(
+        Object.entries(record).filter(([key, value]) =>
+          key !== '@context'
+          && key !== 'Composition.section'
+          && value !== undefined),
+      );
+      expect(comparable(roundtripClaims)).toEqual(comparable(claims));
+
+      const card = toClinicalResourceCardView({ resource: { ...rebuilt, meta: { claims } } });
+      expect(card.resourceType).toBe(resource.resourceType);
+      expect(card.title).toBeTruthy();
+      const visibleClaims = Object.fromEntries(Object.entries(claims).filter(([key, value]) =>
+        key !== '@context' && value !== undefined));
+      expect(Object.fromEntries(card.fields.map((field) => [field.claim, field.value])))
+        .toEqual(visibleClaims);
+    }
+  });
+
   it('renders all 16 sections and every referenced resource in the real IPS fixture', () => {
     // Step 1. Reuse the complete real-world Bundle fixture.
     const bundle = JSON.parse(fs.readFileSync(IPS_BUNDLE_PATH, 'utf8'));

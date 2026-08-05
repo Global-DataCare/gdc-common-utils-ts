@@ -64,6 +64,12 @@ export const MedicationStatementClaim = {
   MedicationIdentifier: 'MedicationStatement.medication-identifier',
   MedicationSerialNumber: 'MedicationStatement.medication-serial-number',
   MedicationExpirationDate: 'MedicationStatement.medication-expiration-date',
+  DoseQuantityValue: 'MedicationStatement.dose-quantity-value',
+  DoseQuantityUnit: 'MedicationStatement.dose-quantity-unit',
+  DosageRoute: 'MedicationStatement.dosage-route',
+  TimingFrequency: 'MedicationStatement.timing-frequency',
+  TimingPeriod: 'MedicationStatement.timing-period',
+  TimingPeriodUnit: 'MedicationStatement.timing-period-unit',
 } as const;
 
 /**

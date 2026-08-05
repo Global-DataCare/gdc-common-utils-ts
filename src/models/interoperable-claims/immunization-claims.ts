@@ -24,6 +24,10 @@ export const ImmunizationClaim = {
   DoseSequence: 'Immunization.dose-sequence',
   Subject: 'Immunization.subject',
   Note: 'Immunization.note',
+  Route: 'Immunization.route',
+  RouteDisplay: 'Immunization.route-display',
+  Site: 'Immunization.site',
+  SiteDisplay: 'Immunization.site-display',
 } as const;
 
 export type ImmunizationClaimKey = typeof ImmunizationClaim[keyof typeof ImmunizationClaim];

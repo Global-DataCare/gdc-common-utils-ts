@@ -30,6 +30,7 @@ import type { ObservationEntryEditor } from './observation-entry-editor';
 import type { ProcedureEntryEditor } from './procedure-entry-editor';
 import type { VitalSignEntryEditor } from './vital-sign-entry-editor';
 import type { ConsentEntryEditor } from './consent-entry-editor';
+import { normalizeFhirApiClaimKey } from './fhir-api-claim-helpers';
 import type { RelatedPersonEntryEditor } from './related-person-entry-editor';
 import { ObservationClaim } from '../models/interoperable-claims/observation-claims';
 import { ClaimsPersonSchemaorg } from '../constants/schemaorg';
@@ -291,6 +292,26 @@ export class BundleEntryEditor {
       ...(entry.resource.meta.claims || {}),
       [String(key).trim()]: cloneClaimValue(value),
     };
+    return this;
+  }
+
+  /**
+   * Writes one viewer/editor field using the canonical short FHIR API claim.
+   * Expanded `org.hl7.fhir.api.*` input is normalized; versioned FHIR claim
+   * namespaces and structural/camelCase paths are rejected.
+   */
+  public setFhirApiClaim(key: string, value: unknown): this {
+    return this.setClaim(normalizeFhirApiClaimKey(key), value);
+  }
+
+  /** Reads one short or expanded FHIR API claim through the canonical short key. */
+  public getFhirApiClaim(key: string): unknown {
+    return this.getClaim(normalizeFhirApiClaimKey(key));
+  }
+
+  /** Applies a complete field collection returned by a clinical card view. */
+  public setFhirApiClaimFields(fields: readonly Readonly<{ claim: string; value: unknown }>[]): this {
+    fields.forEach((field) => this.setFhirApiClaim(field.claim, field.value));
     return this;
   }
 

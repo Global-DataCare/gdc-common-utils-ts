@@ -209,6 +209,34 @@ function getBuiltEntryClaimsAtIndex(
 }
 
 describe('101: IPS family entry editors', () => {
+  it('hydrates canonical viewer fields back into any typed clinical editor', () => {
+    const editor = new BundleEditor()
+      .setBundleOperation(EmployeeBundleOperations.create)
+      .setAllowedResourceType(BundleEditableResourceTypes.observation);
+    const observation = editor
+      .newEntryAs(ResourceTypesFhirR4.Observation, 'Observation/result-field-roundtrip')
+      .asObservation();
+
+    observation.setFhirApiClaimFields([
+      { claim: 'org.hl7.fhir.api.Observation.status', value: 'final' },
+      { claim: 'Observation.value-quantity-number', value: '7.2' },
+      { claim: 'Observation.value-quantity-unit', value: 'mmol/L' },
+      { claim: 'Composition.section', value: 'LOINC|30954-2' },
+    ]);
+
+    expect(observation.getFhirApiClaim('Observation.status')).toBe('final');
+    expect(observation.getFhirApiClaim('org.hl7.fhir.api.Observation.value-quantity-unit')).toBe('mmol/L');
+    expect(getBuiltEntryClaims(editor.build())).toMatchObject({
+      'Observation.status': 'final',
+      'Observation.value-quantity-number': '7.2',
+      'Observation.value-quantity-unit': 'mmol/L',
+      'Composition.section': 'LOINC|30954-2',
+    });
+    expect(() => observation.setFhirApiClaim('org.hl7.fhir.r4.Observation.status', 'final'))
+      .toThrow(/must use org\.hl7\.fhir\.api/);
+    expect(() => observation.setFhirApiClaim('Observation.effectiveDateTime', '2026-08-04'))
+      .toThrow(/Invalid FHIR API claim key/);
+  });
   it('teaches one chainable Immunization entry flow without low-level claim plumbing', () => {
     /*
      * Teaching goal:

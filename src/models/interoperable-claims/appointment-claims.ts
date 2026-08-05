@@ -10,39 +10,38 @@
  */
 
 /**
- * Contains claims representing fields specific to the FHIR R4/R5 data model for an Appointment.
- * Use this when constructing the `credentialSubject` of a Verifiable Credential or the `resource` object.
+ * @deprecated Claims are never version-specific. Kept as a source-compatible
+ * alias whose values now use the expanded `org.hl7.fhir.api` vocabulary.
  * 
  * @basedon https://www.hl7.org/fhir/R4/appointment.html
  */
 export enum AppointmentClaimsFhirR4Core {
-  Identifier = 'org.hl7.fhir.r4.core.Appointment.identifier',
-  Status = 'org.hl7.fhir.r4.core.Appointment.status',
-  CancelationReason = 'org.hl7.fhir.r4.core.Appointment.cancelation-reason',
-  ServiceCategory = 'org.hl7.fhir.r4.core.Appointment.service-category',
-  ServiceType = 'org.hl7.fhir.r4.core.Appointment.service-type',
-  Specialty = 'org.hl7.fhir.r4.core.Appointment.specialty',
-  AppointmentType = 'org.hl7.fhir.r4.core.Appointment.appointment-type',
-  ReasonCode = 'org.hl7.fhir.r4.core.Appointment.reason-code',
-  ReasonReference = 'org.hl7.fhir.r4.core.Appointment.reason-reference',
-  Priority = 'org.hl7.fhir.r4.core.Appointment.priority',
-  Description = 'org.hl7.fhir.r4.core.Appointment.description',
-  SupportingInformation = 'org.hl7.fhir.r4.core.Appointment.supporting-information',
-  Start = 'org.hl7.fhir.r4.core.Appointment.start',
-  End = 'org.hl7.fhir.r4.core.Appointment.end',
-  MinutesDuration = 'org.hl7.fhir.r4.core.Appointment.minutes-duration',
-  Slot = 'org.hl7.fhir.r4.core.Appointment.slot',
-  Created = 'org.hl7.fhir.r4.core.Appointment.created',
-  // Comment = 'org.hl7.fhir.r4.core.Appointment.comment', // Deprecated in R5, using note.text for forward compatibility
-  NoteText = 'org.hl7.fhir.r4.core.Appointment.note.text',
-  PatientInstruction = 'org.hl7.fhir.r4.core.Appointment.patient-instruction',
-  BasedOn = 'org.hl7.fhir.r4.core.Appointment.based-on',
-  ParticipantActor = 'org.hl7.fhir.r4.core.Appointment.participant.actor',
-  ParticipantRequired = 'org.hl7.fhir.r4.core.Appointment.participant.required',
-  ParticipantStatus = 'org.hl7.fhir.r4.core.Appointment.participant.status',
-  ParticipantType = 'org.hl7.fhir.r4.core.Appointment.participant.type',
-  RequestedPeriod = 'org.hl7.fhir.r4.core.Appointment.requested-period',
-  ResourceId = 'org.hl7.fhir.r4.core.Appointment.resource.id',
+  Identifier = 'org.hl7.fhir.api.Appointment.identifier',
+  Status = 'org.hl7.fhir.api.Appointment.status',
+  CancelationReason = 'org.hl7.fhir.api.Appointment.cancelation-reason',
+  ServiceCategory = 'org.hl7.fhir.api.Appointment.service-category',
+  ServiceType = 'org.hl7.fhir.api.Appointment.service-type',
+  Specialty = 'org.hl7.fhir.api.Appointment.specialty',
+  AppointmentType = 'org.hl7.fhir.api.Appointment.appointment-type',
+  ReasonCode = 'org.hl7.fhir.api.Appointment.reason-code',
+  ReasonReference = 'org.hl7.fhir.api.Appointment.reason-reference',
+  Priority = 'org.hl7.fhir.api.Appointment.priority',
+  Description = 'org.hl7.fhir.api.Appointment.description',
+  SupportingInformation = 'org.hl7.fhir.api.Appointment.supporting-information',
+  Start = 'org.hl7.fhir.api.Appointment.start',
+  End = 'org.hl7.fhir.api.Appointment.end',
+  MinutesDuration = 'org.hl7.fhir.api.Appointment.minutes-duration',
+  Slot = 'org.hl7.fhir.api.Appointment.slot',
+  Created = 'org.hl7.fhir.api.Appointment.created',
+  NoteText = 'org.hl7.fhir.api.Appointment.note-text',
+  PatientInstruction = 'org.hl7.fhir.api.Appointment.patient-instruction',
+  BasedOn = 'org.hl7.fhir.api.Appointment.based-on',
+  ParticipantActor = 'org.hl7.fhir.api.Appointment.participant-actor',
+  ParticipantRequired = 'org.hl7.fhir.api.Appointment.participant-required',
+  ParticipantStatus = 'org.hl7.fhir.api.Appointment.participant-status',
+  ParticipantType = 'org.hl7.fhir.api.Appointment.participant-type',
+  RequestedPeriod = 'org.hl7.fhir.api.Appointment.requested-period',
+  ResourceId = 'org.hl7.fhir.api.Appointment.resource-id',
 }
 
 /**

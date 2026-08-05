@@ -53,11 +53,12 @@ describe('101 IPS bundle meta.claims extraction', () => {
     );
 
     // Step 4.
-    // The tag code is version-agnostic, so org.hl7.fhir.api/r4 prefixes are removed.
+    // The tag code removes the sole valid FHIR claims context.
     expect(toVersionAgnosticMetaClaimKey('org.hl7.fhir.api.Immunization.vaccine-code')).toBe(
       'Immunization.vaccine-code',
     );
-    expect(toVersionAgnosticMetaClaimKey('org.hl7.fhir.r4.Condition.code')).toBe('Condition.code');
+    expect(() => toVersionAgnosticMetaClaimKey('org.hl7.fhir.r4.Condition.code'))
+      .toThrow('FHIR claims require @context org.hl7.fhir.api.');
 
     // Step 5.
     // The same tag derivation can be written back into resource.meta.tag for UI use.

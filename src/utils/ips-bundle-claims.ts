@@ -24,20 +24,20 @@ export type FhirMetaTagCoding = Readonly<{
 }>;
 
 /**
- * Removes the versioned/contextualized FHIR prefix from a flattened claim key.
+ * Removes the version-independent FHIR API context from a flattened claim key.
  *
  * Examples:
- * - `org.hl7.fhir.r4.Immunization.vaccine-code` -> `Immunization.vaccine-code`
  * - `org.hl7.fhir.api.MedicationStatement.subject` -> `MedicationStatement.subject`
  * - `Consent.identifier` -> `Consent.identifier`
  */
 export function toVersionAgnosticMetaClaimKey(claimKey: string): string {
   const raw = String(claimKey || '').trim();
   if (!raw) return '';
+  if (raw.startsWith('org.hl7.fhir.') && !raw.startsWith('org.hl7.fhir.api.')) {
+    throw new Error('FHIR claims require @context org.hl7.fhir.api.');
+  }
 
-  return raw
-    .replace(/^org\.hl7\.fhir\.[a-z0-9]+\./i, '')
-    .replace(/^org\.hl7\.fhir\.api\./i, '');
+  return raw.replace(/^org\.hl7\.fhir\.api\./i, '');
 }
 
 /**
@@ -61,8 +61,8 @@ export function extractResourceMetaClaimsFromBundle(bundle: BundleLike): Resourc
 /**
  * Builds FHIR `meta.tag[]` codings from a flat claims record.
  *
- * The generated `code` is version-agnostic so UI/frontends can use the same
- * tag keys across `org.hl7.fhir.r4.*` and `org.hl7.fhir.api.*` payloads.
+ * The generated `code` removes the sole valid FHIR claims context,
+ * `org.hl7.fhir.api`, so UI/frontends receive the canonical short key.
  */
 export function createFhirMetaTagsFromClaims(
   claims: Record<string, unknown>,

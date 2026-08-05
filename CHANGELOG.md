@@ -4,6 +4,41 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.3.27] - 2026-08-05
+
+### Added
+
+- Expose identifier, status and resource-specific result details on clinical
+  section cards, including Observation value/unit, Immunization lot/dose,
+  AllergyIntolerance criticality/onset and MedicationStatement dosage text.
+- Expose every canonical `meta.claims` value as a deterministic clinical card
+  field collection and let bundle entry editors hydrate that collection back
+  through validated short FHIR API keys.
+- Let `ObservationEntryEditor` and `VitalSignEntryEditor` assign explicit
+  Composition sections through the shared clinical-resource editor surface.
+- Cover claims-to-FHIR-to-claims and viewer roundtrips for every resource
+  referenced by all 16 sections of the complete IPS Bundle fixture.
+- Preserve the structured fields exercised by the complete IPS fixture,
+  including condition recorded/asserter data, medication source and structured
+  dosage, immunization route/site/dose, observation reference ranges and
+  components, device-use absent timing, consent scope/policy/provision and
+  detailed care-plan activity/period data.
+
+### Fixed
+
+- Canonicalize `Observation.effective-datetime` to lowercase kebab-case while
+  continuing to read the legacy `Observation.effectiveDateTime` spelling.
+- Rehydrate native FHIR fields from short claims and their expanded
+  `org.hl7.fhir.api.*` form for every clinical-summary resource converter,
+  while rejecting version-specific `org.hl7.fhir.r4.*` claim namespaces.
+- Preserve Condition category, severity, onset and recorder fields across the
+  flat-claims/FHIR R4 roundtrip.
+- Restore symmetric DeviceUseStatement, AppointmentResponse and semantic
+  Consent conversion, and remove version-specific R4 claim keys from the
+  deprecated Appointment compatibility catalogs.
+- Correct legacy DeviceUseStatement parameter spellings to canonical
+  `recorded-on` and `reason-code` kebab-case keys.
+
 ## [2.3.26] - 2026-08-04
 
 ### Fixed

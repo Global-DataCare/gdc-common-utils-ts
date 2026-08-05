@@ -14,6 +14,7 @@ import {
   getXhtmlOrDerived,
   toClinicalResourceCardView,
   toClinicalResourceCardViews,
+  toClinicalResourceClaimFieldViews,
   toClinicalResourceCommonView,
   toClinicalResourceCommonViews,
   toClinicalResourceExpandedView,
@@ -188,6 +189,118 @@ describe('clinical resource common view', () => {
       date: '2026-06-01T11:00:00Z',
       fullUrl: 'urn:uuid:comm-2',
       actorsCount: 2,
+      fields: [
+        { claim: 'Communication.recipient', parameter: 'recipient', value: 'did:web:hospital.example.org' },
+        { claim: 'Communication.sender', parameter: 'sender', value: 'did:web:gp.example.org' },
+        { claim: 'Communication.sent', parameter: 'sent', value: '2026-06-01T11:00:00Z' },
+        { claim: 'Communication.text', parameter: 'text', value: 'Resumen IPS' },
+      ],
+    });
+  });
+
+  it('normalizes the complete FHIR API claims surface for generic viewer/editor fields', () => {
+    expect(toClinicalResourceClaimFieldViews({
+      '@context': 'org.hl7.fhir.api',
+      'org.hl7.fhir.api.Immunization.lot-number': 'EXPANDED-LOT',
+      'Immunization.lot-number': 'SHORT-LOT',
+      'Immunization.dose-sequence': '3',
+      'https://schema.org/name': 'not a FHIR field',
+    })).toEqual([
+      { claim: 'Immunization.dose-sequence', parameter: 'dose-sequence', value: '3' },
+      { claim: 'Immunization.lot-number', parameter: 'lot-number', value: 'SHORT-LOT' },
+    ]);
+
+    expect(() => toClinicalResourceClaimFieldViews({
+      'org.hl7.fhir.r4.Immunization.lot-number': 'INVALID',
+    })).toThrow(/must use org\.hl7\.fhir\.api/);
+  });
+
+  it('exposes claims-first structured clinical fields on section-ready cards', () => {
+    const observation = toClinicalResourceCardView({
+      fullUrl: 'Observation/lab-1',
+      resource: {
+        resourceType: ResourceTypesFhirR4.Observation,
+        meta: {
+          claims: {
+            [ObservationClaim.Identifier]: 'lab-1',
+            [ObservationClaim.CodeText]: 'Hemoglobina',
+            [ObservationClaim.Status]: 'final',
+            [ObservationClaim.Date]: '2026-08-04T08:00:00Z',
+            [ObservationClaim.ValueQuantityNumber]: '13.7',
+            [ObservationClaim.ValueQuantityUnit]: 'g/dL',
+          },
+        },
+      },
+    });
+    const immunization = toClinicalResourceCardView({
+      resource: {
+        resourceType: ResourceTypesFhirR4.Immunization,
+        meta: {
+          claims: {
+            [ImmunizationClaim.Identifier]: 'imm-1',
+            [ImmunizationClaim.VaccineCodeText]: 'Vacuna COVID-19',
+            [ImmunizationClaim.Status]: 'completed',
+            [ImmunizationClaim.LotNumber]: 'LOT-42',
+            [ImmunizationClaim.DoseSequence]: '2',
+          },
+        },
+      },
+    });
+    const allergy = toClinicalResourceCardView({
+      resource: {
+        resourceType: ResourceTypesFhirR4.AllergyIntolerance,
+        meta: {
+          claims: {
+            [AllergyIntoleranceClaim.Identifier]: 'allergy-1',
+            [AllergyIntoleranceClaim.CodeText]: 'Penicilina',
+            [AllergyIntoleranceClaim.Criticality]: 'high',
+            [AllergyIntoleranceClaim.OnsetDateTime]: '2020-01-02',
+          },
+        },
+      },
+    });
+    const medication = toClinicalResourceCardView({
+      resource: {
+        resourceType: ResourceTypesFhirR4.MedicationStatement,
+        meta: {
+          claims: {
+            [MedicationStatementClaim.Identifier]: 'med-1',
+            [MedicationStatementClaim.MedicationText]: 'Ibuprofeno',
+            [MedicationStatementClaim.DosageInstruction]: '1 comprimido cada 8 horas',
+          },
+        },
+      },
+    });
+
+    expect(observation).toMatchObject({
+      identifier: 'lab-1',
+      status: 'final',
+      value: 13.7,
+      unit: 'g/dL',
+      fields: expect.arrayContaining([
+        { claim: ObservationClaim.ValueQuantityNumber, parameter: 'value-quantity-number', value: '13.7' },
+        { claim: ObservationClaim.ValueQuantityUnit, parameter: 'value-quantity-unit', value: 'g/dL' },
+        { claim: ObservationClaim.Status, parameter: 'status', value: 'final' },
+      ]),
+    });
+    expect(immunization).toMatchObject({
+      identifier: 'imm-1',
+      status: 'completed',
+      lotNumber: 'LOT-42',
+      doseSequence: '2',
+      fields: expect.arrayContaining([
+        { claim: ImmunizationClaim.LotNumber, parameter: 'lot-number', value: 'LOT-42' },
+        { claim: ImmunizationClaim.DoseSequence, parameter: 'dose-sequence', value: '2' },
+      ]),
+    });
+    expect(allergy).toMatchObject({
+      identifier: 'allergy-1',
+      criticality: 'high',
+      onsetDateTime: '2020-01-02',
+    });
+    expect(medication).toMatchObject({
+      identifier: 'med-1',
+      dosageInstruction: '1 comprimido cada 8 horas',
     });
   });
 
@@ -317,6 +430,11 @@ describe('clinical resource common view', () => {
         date: '2026-06-01',
         fullUrl: 'urn:uuid:med-3',
         actorsCount: 1,
+        fields: [
+          { claim: 'MedicationStatement.effective', parameter: 'effective', value: '2026-06-01' },
+          { claim: 'MedicationStatement.medication-text', parameter: 'medication-text', value: 'Ibuprofen 400mg' },
+          { claim: 'MedicationStatement.subject', parameter: 'subject', value: 'did:web:patient.example.org' },
+        ],
       },
     ]);
   });
@@ -348,9 +466,12 @@ describe('clinical resource common view', () => {
       {
         title: 'Metformina 850 mg',
         resourceType: ResourceTypesFhirR4.MedicationStatement,
+        identifier: 'medication-business-id-1',
         date: '2026-07-01',
+        periodStart: '2026-07-01',
         fullUrl: 'urn:uuid:medication-statement-ips-1',
         actorsCount: 2,
+        fields: [],
       },
     ]);
   });

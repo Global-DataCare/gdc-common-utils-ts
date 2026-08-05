@@ -185,13 +185,15 @@ export const practitionerRoleFhirToFlat = practitionerRoleFhirR4ToFlat;
  */
 export function convertFhirResourceToClaims(
   resource: FhirResource,
-  context: string = 'org.hl7.fhir.r4',
+  context: string = 'org.hl7.fhir.api',
 ): FlatClaims {
   const claims = convertFhirResourceToClaimsByType(resource, context);
   const language = typeof resource.language === 'string' ? resource.language.trim() : '';
-  return language
-    ? { ...claims, [`${resource.resourceType}.language`]: language }
-    : claims;
+  return {
+    '@context': context,
+    ...claims,
+    ...(language ? { [`${resource.resourceType}.language`]: language } : {}),
+  };
 }
 
 function convertFhirResourceToClaimsByType(

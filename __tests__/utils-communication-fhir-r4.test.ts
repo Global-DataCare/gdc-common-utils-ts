@@ -14,7 +14,7 @@ describe('utils/communication-fhir-r4', () => {
   it('transforms claims 1:1 and preserves resource.meta.claims', () => {
     const claims = [
       {
-        '@context': 'org.hl7.fhir.r4',
+        '@context': 'org.hl7.fhir.api',
         [CommunicationClaim.Identifier]: 'comm-001',
         [CommunicationClaim.Subject]: 'did:web:subject.example',
         [CommunicationClaim.Recipient]: 'did:web:recipient.example',
@@ -133,7 +133,7 @@ describe('utils/communication-fhir-r4', () => {
       status: 'completed',
       meta: {
         claims: {
-          '@context': 'org.hl7.fhir.r4',
+          '@context': 'org.hl7.fhir.api',
           [CommunicationClaim.Identifier]: 'from-meta',
         },
       },

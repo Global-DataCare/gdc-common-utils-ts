@@ -11,9 +11,10 @@ export const DeviceUseStatementClaim = {
   Status: 'DeviceUseStatement.status',
   Device: 'DeviceUseStatement.device',
   DeviceDisplay: 'DeviceUseStatement.device-display',
-  RecordedOn: 'DeviceUseStatement.recordedon',
+  RecordedOn: 'DeviceUseStatement.recorded-on',
   TimingDateTime: 'DeviceUseStatement.timing-datetime',
-  ReasonCode: 'DeviceUseStatement.reasoncode',
+  TimingAbsentReason: 'DeviceUseStatement.timing-absent-reason',
+  ReasonCode: 'DeviceUseStatement.reason-code',
   Source: 'DeviceUseStatement.source',
 } as const;
 

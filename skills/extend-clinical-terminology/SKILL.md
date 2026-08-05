@@ -13,6 +13,18 @@ Keep coded identity, authored text and terminology display separate:
 
 Never translate free text or guess a code from another field.
 
+## Claims context contract
+
+- FHIR-like claims are version-independent FHIR API SearchParameter claims.
+- Author payloads with `@context: org.hl7.fhir.api` and short keys in the form
+  `<ResourceType>.<concrete-param>`.
+- The only valid expanded form is
+  `org.hl7.fhir.api.<ResourceType>.<concrete-param>`.
+- Never create, accept or document `org.hl7.fhir.r4.*` claims. `r4` belongs to
+  native FHIR resource representation and transport paths, not `meta.claims`.
+- Schema.org is a separate vocabulary: use `@context: org.schema` and preserve
+  its canonical property spelling, including Schema.org camelCase.
+
 ## Add a coded resource or field
 
 1. Identify the exact FHIR element, such as `Device.type`; do not use a generic
@@ -34,6 +46,9 @@ Never translate free text or guess a code from another field.
    - display-only summary readback translated from the exact claim
    - text-only input remains untranslated
    - an unrelated coded claim is rejected
+9. Add a contract assertion proving the emitted payload uses
+   `@context: org.hl7.fhir.api`, short keys, and no version-specific FHIR claim
+   prefix.
 
 ## Add a catalog, system or language
 

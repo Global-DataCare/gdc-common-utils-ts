@@ -20,6 +20,7 @@ import {
   EXAMPLE_VITAL_SIGN_VALUE_HEART_RATE,
   EXAMPLE_VITAL_SIGN_VALUE_SYSTOLIC,
   ObservationCategoryCodes,
+  HealthcareSummarySections,
   ResourceTypesFhirR4,
   VitalSignsCodes,
   VitalSignsUnits,
@@ -137,11 +138,13 @@ describe('101: vital sign entry editor', () => {
       .setEncounter('Encounter/enc-1')
       .setPerformer('Practitioner/prac-1')
       .setBasedOn('ServiceRequest/sr-1')
+      .setSectionList([HealthcareSummarySections.Results.attributeValue])
       .setHasMember('Observation/member-1');
 
     expect(observationEntry.getEncounter()).toBe('Encounter/enc-1');
     expect(observationEntry.getPerformer()).toBe('Practitioner/prac-1');
     expect(observationEntry.getBasedOn()).toBe('ServiceRequest/sr-1');
+    expect(observationEntry.getSectionList()).toEqual([HealthcareSummarySections.Results.attributeValue]);
     expect(observationEntry.getHasMember()).toBe('Observation/member-1');
     expect(observationEntry.getHeartRate()).toBe(EXAMPLE_VITAL_SIGN_VALUE_HEART_RATE);
   });

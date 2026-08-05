@@ -91,7 +91,7 @@ describe('utils/communication-attached-bundle-session', () => {
   it('updates medication claim entry and keeps IPS bundle synced in communication attachment', () => {
     const session = new CommunicationAttachedBundleSession({
       communicationClaims: {
-        '@context': 'org.hl7.fhir.r4',
+        '@context': 'org.hl7.fhir.api',
         [CommunicationClaim.Identifier]: EXAMPLE_COMMUNICATION_IDENTIFIER,
         [CommunicationClaim.Subject]: EXAMPLE_SUBJECT_DID,
         [CommunicationClaim.Category]: CommunicationCategoryCodes.Reminder.claim,
@@ -129,7 +129,7 @@ describe('utils/communication-attached-bundle-session', () => {
   it('supports appointment helpers for schedule flows carried inside communication attachments', () => {
     const session = new CommunicationAttachedBundleSession({
       communicationClaims: {
-        '@context': 'org.hl7.fhir.r4',
+        '@context': 'org.hl7.fhir.api',
         [CommunicationClaim.Identifier]: EXAMPLE_COMMUNICATION_IDENTIFIER,
         [CommunicationClaim.Subject]: EXAMPLE_SUBJECT_DID,
         [CommunicationClaim.Category]: CommunicationCategoryCodes.Notification.claim,
@@ -161,7 +161,7 @@ describe('utils/communication-attached-bundle-session', () => {
   it('fails to link one contained document when the active resource type does not support contained-documents', () => {
     const session = new CommunicationAttachedBundleSession({
       communicationClaims: {
-        '@context': 'org.hl7.fhir.r4',
+        '@context': 'org.hl7.fhir.api',
         [CommunicationClaim.Identifier]: EXAMPLE_COMMUNICATION_IDENTIFIER,
         [CommunicationClaim.Subject]: EXAMPLE_SUBJECT_DID,
         [CommunicationClaim.Category]: CommunicationCategoryCodes.Notification.claim,
@@ -185,7 +185,7 @@ describe('utils/communication-attached-bundle-session', () => {
   it('returns resource IDs filtered by section, resourceType and date range, and resolves entries by IDs', () => {
     const session = new CommunicationAttachedBundleSession({
       communicationClaims: {
-        '@context': 'org.hl7.fhir.r4',
+        '@context': 'org.hl7.fhir.api',
         [CommunicationClaim.Identifier]: EXAMPLE_COMMUNICATION_IDENTIFIER,
       },
     });
@@ -258,7 +258,7 @@ describe('utils/communication-attached-bundle-session', () => {
   it('supports condition and allergy helpers for IPS bundle authoring', () => {
     const session = new CommunicationAttachedBundleSession({
       communicationClaims: {
-        '@context': 'org.hl7.fhir.r4',
+        '@context': 'org.hl7.fhir.api',
         [CommunicationClaim.Identifier]: EXAMPLE_COMMUNICATION_IDENTIFIER,
       },
     });
@@ -307,7 +307,7 @@ describe('utils/communication-attached-bundle-session', () => {
   it('adds a linked DocumentReference to the active resource and updates contained-documents', () => {
     const session = new CommunicationAttachedBundleSession({
       communicationClaims: {
-        '@context': 'org.hl7.fhir.r4',
+        '@context': 'org.hl7.fhir.api',
         [CommunicationClaim.Identifier]: EXAMPLE_COMMUNICATION_IDENTIFIER,
         [CommunicationClaim.Subject]: EXAMPLE_SUBJECT_DID,
         [CommunicationClaim.Category]: CommunicationCategoryCodes.Reminder.claim,

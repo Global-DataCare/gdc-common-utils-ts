@@ -25,6 +25,17 @@ export const CarePlanClaim = {
   Status: 'CarePlan.status',
   Subject: 'CarePlan.subject',
   Note: 'CarePlan.note',
+  Description: 'CarePlan.description',
+  PeriodStart: 'CarePlan.period-start',
+  PeriodEnd: 'CarePlan.period-end',
+  ActivityStatus: 'CarePlan.activity-status',
+  ActivityStatusReason: 'CarePlan.activity-status-reason',
+  ActivityDoNotPerform: 'CarePlan.activity-do-not-perform',
+  ActivityOutcome: 'CarePlan.activity-outcome',
+  ActivityLocationDisplay: 'CarePlan.activity-location-display',
+  ActivityTimingFrequency: 'CarePlan.activity-timing-frequency',
+  ActivityTimingPeriod: 'CarePlan.activity-timing-period',
+  ActivityTimingPeriodUnit: 'CarePlan.activity-timing-period-unit',
 } as const;
 
 export type CarePlanClaimKey = typeof CarePlanClaim[keyof typeof CarePlanClaim];

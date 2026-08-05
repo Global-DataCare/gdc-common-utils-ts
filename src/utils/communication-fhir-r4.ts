@@ -154,7 +154,7 @@ export function extractCommunicationClaimsFromResourceFhirR4(
   }
 
   const claims: CommunicationClaims = {};
-  claims['@context'] = 'org.hl7.fhir.r4';
+  claims['@context'] = 'org.hl7.fhir.api';
 
   const identifierValue = (resource?.identifier as Array<{ value?: unknown }> | undefined)?.[0]?.value;
   const status = resource?.status;

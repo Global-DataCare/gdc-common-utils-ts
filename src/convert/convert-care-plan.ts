@@ -24,6 +24,8 @@ export function carePlanFlatToFhirR4(claims: FlatClaims): FhirResource {
       }]
       : undefined,
     created: claims[CarePlanClaim.Date],
+    description: claims[CarePlanClaim.Description],
+    period: claims[CarePlanClaim.PeriodStart] || claims[CarePlanClaim.PeriodEnd] ? { start: claims[CarePlanClaim.PeriodStart], end: claims[CarePlanClaim.PeriodEnd] } : undefined,
     note: claims[CarePlanClaim.Note] ? [{ text: claims[CarePlanClaim.Note] }] : undefined,
     basedOn: claims[CarePlanClaim.BasedOn] ? claims[CarePlanClaim.BasedOn]!.split(',').map((reference) => ({ reference: reference.trim() })) : undefined,
     careTeam: claims[CarePlanClaim.CareTeam] ? claims[CarePlanClaim.CareTeam]!.split(',').map((reference) => ({ reference: reference.trim() })) : undefined,
@@ -32,12 +34,22 @@ export function carePlanFlatToFhirR4(claims: FlatClaims): FhirResource {
     goal: claims[CarePlanClaim.Goal] ? claims[CarePlanClaim.Goal]!.split(',').map((reference) => ({ reference: reference.trim() })) : undefined,
     partOf: claims[CarePlanClaim.PartOf] ? claims[CarePlanClaim.PartOf]!.split(',').map((reference) => ({ reference: reference.trim() })) : undefined,
     replaces: claims[CarePlanClaim.Replaces] ? claims[CarePlanClaim.Replaces]!.split(',').map((reference) => ({ reference: reference.trim() })) : undefined,
-    activity: (claims[CarePlanClaim.ActivityCode] || claims[CarePlanClaim.ActivityDate] || claims[CarePlanClaim.ActivityReference] || claims[CarePlanClaim.Performer]) ? [{
+    activity: (claims[CarePlanClaim.ActivityCode] || claims[CarePlanClaim.ActivityDate] || claims[CarePlanClaim.ActivityReference] || claims[CarePlanClaim.Performer] || claims[CarePlanClaim.ActivityStatus]) ? [{
+      outcomeCodeableConcept: claims[CarePlanClaim.ActivityOutcome] ? [{ coding: codingFromValue(claims[CarePlanClaim.ActivityOutcome]) }] : undefined,
       reference: claims[CarePlanClaim.ActivityReference] ? { reference: claims[CarePlanClaim.ActivityReference] } : undefined,
       detail: {
         code: claims[CarePlanClaim.ActivityCode] ? { coding: codingFromValue(claims[CarePlanClaim.ActivityCode]) } : undefined,
         scheduledString: claims[CarePlanClaim.ActivityDate],
         performer: claims[CarePlanClaim.Performer] ? claims[CarePlanClaim.Performer]!.split(',').map((reference) => ({ reference: reference.trim() })) : undefined,
+        status: claims[CarePlanClaim.ActivityStatus],
+        statusReason: claims[CarePlanClaim.ActivityStatusReason] ? { text: claims[CarePlanClaim.ActivityStatusReason] } : undefined,
+        doNotPerform: claims[CarePlanClaim.ActivityDoNotPerform] === undefined ? undefined : claims[CarePlanClaim.ActivityDoNotPerform] === 'true',
+        scheduledTiming: claims[CarePlanClaim.ActivityTimingFrequency] || claims[CarePlanClaim.ActivityTimingPeriod] ? { repeat: {
+          frequency: claims[CarePlanClaim.ActivityTimingFrequency] ? Number(claims[CarePlanClaim.ActivityTimingFrequency]) : undefined,
+          period: claims[CarePlanClaim.ActivityTimingPeriod] ? Number(claims[CarePlanClaim.ActivityTimingPeriod]) : undefined,
+          periodUnit: claims[CarePlanClaim.ActivityTimingPeriodUnit],
+        } } : undefined,
+        location: claims[CarePlanClaim.ActivityLocationDisplay] ? { display: claims[CarePlanClaim.ActivityLocationDisplay] } : undefined,
       },
     }] : undefined,
   };
@@ -46,7 +58,8 @@ export function carePlanFlatToFhirR4(claims: FlatClaims): FhirResource {
 export function carePlanFhirR4ToFlat(resource: FhirResource): FlatClaims {
   const activity = Array.isArray(resource.activity) ? resource.activity[0] as Record<string, unknown> | undefined : undefined;
   const detail = activity?.detail as Record<string, unknown> | undefined;
-  const period = resource.period as { start?: string } | undefined;
+  const period = resource.period as { start?: string; end?: string } | undefined;
+  const repeat = (detail?.scheduledTiming as { repeat?: Record<string, unknown> } | undefined)?.repeat;
   return {
     [CarePlanClaim.ActivityCode]: codingToValue((detail?.code as { coding?: Array<{ system?: string; code?: string }> } | undefined)?.coding?.[0]),
     [CarePlanClaim.ActivityDate]: detail?.scheduledString as string | undefined,
@@ -69,5 +82,16 @@ export function carePlanFhirR4ToFlat(resource: FhirResource): FlatClaims {
     [CarePlanClaim.Status]: resource.status as string | undefined,
     [CarePlanClaim.Subject]: referenceToValue(resource.subject as { reference?: string } | undefined),
     [CarePlanClaim.Note]: (resource.note as Array<{ text?: string }> | undefined)?.[0]?.text,
+    [CarePlanClaim.Description]: resource.description as string | undefined,
+    [CarePlanClaim.PeriodStart]: period?.start,
+    [CarePlanClaim.PeriodEnd]: period?.end,
+    [CarePlanClaim.ActivityStatus]: detail?.status as string | undefined,
+    [CarePlanClaim.ActivityStatusReason]: (detail?.statusReason as { text?: string } | undefined)?.text,
+    [CarePlanClaim.ActivityDoNotPerform]: detail?.doNotPerform === undefined ? undefined : String(detail.doNotPerform),
+    [CarePlanClaim.ActivityOutcome]: codingToValue((activity?.outcomeCodeableConcept as Array<{ coding?: Array<{ system?: string; code?: string }> }> | undefined)?.[0]?.coding?.[0]),
+    [CarePlanClaim.ActivityLocationDisplay]: (detail?.location as { display?: string } | undefined)?.display,
+    [CarePlanClaim.ActivityTimingFrequency]: repeat?.frequency === undefined ? undefined : String(repeat.frequency),
+    [CarePlanClaim.ActivityTimingPeriod]: repeat?.period === undefined ? undefined : String(repeat.period),
+    [CarePlanClaim.ActivityTimingPeriodUnit]: repeat?.periodUnit as string | undefined,
   };
 }

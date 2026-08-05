@@ -8,7 +8,7 @@
 import { ObservationCategoryCodes, type CodingDescriptor } from '../constants/vital-signs';
 import { ObservationClaim } from '../models/interoperable-claims/observation-claims';
 import { normalizeOptionalIdentifier } from './bundle-editor-helpers';
-import { BundleEntryEditor } from './bundle-entry-editor';
+import { ClinicalResourceEntryEditor } from './clinical-resource-entry-editor';
 
 /**
  * Typed editor for one staged ObservationComponent resource entry.
@@ -16,7 +16,7 @@ import { BundleEntryEditor } from './bundle-entry-editor';
  * Keep this surface thin and claim-focused so 101 tests can teach one
  * resource at a time without exposing bundle-internal plumbing.
  */
-export class ObservationComponentEntryEditor extends BundleEntryEditor {
+export class ObservationComponentEntryEditor extends ClinicalResourceEntryEditor {
   public setCode(code: CodingDescriptor | string): this {
     const token = typeof code === 'string' ? code.trim() : code.claim;
     this.setClaim(ObservationClaim.Code, token);

@@ -2,12 +2,14 @@
 
 export enum ClaimConsent {
     'decision' = 'Consent.decision',
+    'status' = 'Consent.status',
     'action' = 'Consent.action',
     'category' = 'Consent.category',
     'categoryText' = 'Consent.category-text',
     'categoryDisplay' = 'Consent.category-display',
     'resourceType' = 'Consent.resourceType',
     'subject' = 'Consent.subject',
+    'patient' = 'Consent.patient',
     'actorIdentifier' = 'Consent.actor-identifier',
     'actorRole' = 'Consent.actor-role',
     'date' = 'Consent.date',
@@ -20,6 +22,11 @@ export enum ClaimConsent {
     'identifier' = 'Consent.identifier',
     'eventBasedOn' = 'Consent.event-basedon',
     'sourceReference' = 'Consent.source-reference',
+    'scope' = 'Consent.scope',
+    'scopeDisplay' = 'Consent.scope-display',
+    'policyRule' = 'Consent.policy-rule',
+    'provisionCode' = 'Consent.provision-code',
+    'provisionCodeDisplay' = 'Consent.provision-code-display',
     'containedReferenceList' = 'Consent.contained-reference-list',
     /**
      * @deprecated Use `containedReferenceList`.
