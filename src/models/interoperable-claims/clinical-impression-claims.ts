@@ -9,7 +9,7 @@ export const ClinicalImpressionClaim = {
   Description: 'ClinicalImpression.description',
   Subject: 'ClinicalImpression.subject',
   Encounter: 'ClinicalImpression.encounter',
-  EffectiveDateTime: 'ClinicalImpression.effectiveDateTime',
+  EffectiveDateTime: 'ClinicalImpression.effective-datetime',
   Date: 'ClinicalImpression.date',
   Assessor: 'ClinicalImpression.assessor',
   Problem: 'ClinicalImpression.problem',

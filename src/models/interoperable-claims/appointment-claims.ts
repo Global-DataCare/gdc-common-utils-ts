@@ -175,9 +175,9 @@ export const AppointmentClaim = {
   NoteText: 'Appointment.note-text',
   PatientInstruction: 'Appointment.patient-instruction',
   BasedOn: 'Appointment.based-on',
-  ParticipantActor: 'Appointment.participant.actor',
-  ParticipantStatus: 'Appointment.participant.status',
-  ParticipantType: 'Appointment.participant.type',
+  ParticipantActor: 'Appointment.actor',
+  ParticipantStatus: 'Appointment.part-status',
+  ParticipantType: 'Appointment.participant-type',
 } as const;
 
 export type AppointmentClaimKey = typeof AppointmentClaim[keyof typeof AppointmentClaim];

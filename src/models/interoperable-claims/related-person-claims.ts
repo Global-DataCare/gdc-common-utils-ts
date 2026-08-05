@@ -4,9 +4,10 @@
 import type { ClaimSpec } from './types';
 
 export const RelatedPersonClaim = {
-  /** @deprecated Prefer `RelatedPerson.identifier.value` for canonical exactness. */
+  /** Canonical FHIR API identifier search parameter. */
   Identifier: 'RelatedPerson.identifier',
-  IdentifierValue: 'RelatedPerson.identifier.value',
+  /** @deprecated Use `Identifier`; retained as a source-compatible property alias. */
+  IdentifierValue: 'RelatedPerson.identifier',
   Active: 'RelatedPerson.active',
   Patient: 'RelatedPerson.patient',
   Relationship: 'RelatedPerson.relationship',
