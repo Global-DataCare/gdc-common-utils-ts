@@ -17,6 +17,27 @@ export type IndividualIdentifierInput = Readonly<{
   value: string;
 }>;
 
+/** Validates an optional FHIR Identifier.period expressed as ISO date strings. */
+export function assertIndividualIdentifierPeriod(periodStart?: string, periodEnd?: string): void {
+  const start = normalizeOptionalIsoDate(periodStart, 'periodStart');
+  const end = normalizeOptionalIsoDate(periodEnd, 'periodEnd');
+  if (start && end && start > end) {
+    throw new Error('Individual identifier periodStart must not be after periodEnd');
+  }
+}
+
+function normalizeOptionalIsoDate(value: string | undefined, field: string): string | undefined {
+  const normalized = value?.trim();
+  if (!normalized) return undefined;
+  const parsed = new Date(`${normalized}T00:00:00.000Z`);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(normalized)
+    || Number.isNaN(parsed.getTime())
+    || parsed.toISOString().slice(0, 10) !== normalized) {
+    throw new Error(`Invalid ISO date for ${field}: ${value}`);
+  }
+  return normalized;
+}
+
 /** Resolves a supported short or reverse-DNS HL7 identifier type to one canonical type. */
 export function normalizeIndividualIdentifierType(type: IndividualIdentifierInput['type']): IdKindValue {
   const candidate = String(type).trim();
