@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Aligned the DCR model with RFC 7591 software metadata by adding
+  `software_id`, `software_version`, and web applications. Device push fields
+  are now optional bootstrap metadata rather than the client identity.
+
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]

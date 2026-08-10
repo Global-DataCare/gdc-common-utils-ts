@@ -18,13 +18,13 @@ export interface OpenIdDeviceInfo {
    * The push notification token for the device.
    * @example "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]"
    */
-  push_token: string;
+  push_token?: string;
 
   /**
    * The push notification provider.
    * @example "expo"
    */
-  push_provider: string;
+  push_provider?: string;
 
   /**
    * A unique identifier for the device, such as the OS internal build ID.
@@ -56,9 +56,21 @@ export interface DcrRegistrationRequest {
   redirect_uris: string[];
 
   /**
-   * Kind of the application. The only supported value is 'native'.
+   * Kind of the application. Browser/BFF clients use `web`; installed apps use
+   * `native`. This does not identify a concrete browser session or push token.
    */
-  application_type?: 'native';
+  application_type?: 'native' | 'web';
+
+  /**
+   * Stable identifier assigned by the software publisher. The GDC profile uses
+   * a reverse-DNS value such as `es.globaldatacare.portal`; the authorization
+   * server still assigns a distinct `client_id` to the registration instance.
+   * @see https://www.rfc-editor.org/rfc/rfc7591.html#section-2
+   */
+  software_id?: string;
+
+  /** Version of the client software identified by `software_id`. */
+  software_version?: string;
   
   /**
    * Human-readable name of the client to be presented to the end-user.
@@ -99,6 +111,11 @@ export interface DcrRegistrationRequest {
 
   /**
    * Custom data about the specific device instance being registered.
+   *
+   * `push_token` and `push_provider` may bootstrap one delivery endpoint, but
+   * push subscriptions have their own lifecycle and are not the device/client
+   * identity. A client can later maintain several Web Push, APNs or FCM
+   * subscriptions without issuing another professional seat.
    * This is prefixed to avoid collision with standard fields.
    */
   ext_device_info?: OpenIdDeviceInfo;
