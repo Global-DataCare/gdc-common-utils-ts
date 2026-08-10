@@ -1,8 +1,7 @@
 /**
- * Flow contract: external individual identifiers are normalized once, encoded
- * as `<reverse-dns-type>|<ISO jurisdiction>|<value>`, and represented in
- * `Organization.sameAs` by a deterministic CIDv1 using SHA3-384. Country data
- * is not repeated in the identifier type (`.NN|ES`, never `.NNESP|ES`).
+ * Compatibility contract for the older individual helper. New Subject
+ * collection writes use `subject-identity.ts`: `sameAs` points to the unified
+ * card and the lookup hash is derived from the identity claims themselves.
  */
 import {
   HL7_V2_0203_IDENTIFIER_CODES,

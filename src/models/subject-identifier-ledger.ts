@@ -5,12 +5,22 @@ export type SubjectIdentifierProviderPointer = Readonly<{
   url: string;
 }>;
 
-/** Ledger payload. It deliberately contains no subject DID or raw identifier. */
+/** Public unified-card pointer resolved from an exact known identifier. */
+export type SubjectIdentifierCardPointer = Readonly<{
+  identifier: Readonly<{ value: string }>;
+  subjectKind: 'person' | 'animal' | 'property';
+}>;
+
+/** Ledger payload. It deliberately contains no raw private identifier. */
 export type SubjectIdentifierLedgerPayload = Readonly<{
+  card: SubjectIdentifierCardPointer;
   provider: SubjectIdentifierProviderPointer;
 }>;
 
-/** One individual/animal bundle entry expanded into one write per `sameAs` alias. */
+/**
+ * @deprecated Parse canonical Person/Animal/Place Bundle entries with
+ * `readSubjectIdentityBundleEntry` instead. Kept for 2.x compatibility only.
+ */
 export type SubjectIdentifierLedgerBundleEntry = Readonly<{
   sameAs: string | readonly string[];
 }>;
