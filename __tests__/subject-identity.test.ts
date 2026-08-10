@@ -18,7 +18,7 @@ describe('Subject identity collection', () => {
     // Step 1. The controller supplies one exact identifier already known to them.
     const entry = buildSubjectIdentityBundleEntry({
       subjectKind: 'person',
-      cardId: 'urn:uhc:card:personal:alice',
+      cardId: 'urn:example:card:person:alice',
       codingSystem: 'NN',
       jurisdiction: 'ES',
       codeValue: '12345678Z',
@@ -29,7 +29,7 @@ describe('Subject identity collection', () => {
     expect(entry.request).toEqual({ method: 'POST', url: 'Subject' });
     expect(entry.resource?.resourceType).toBe('Person');
     expect(entry.resource?.meta?.claims).toMatchObject({
-      'org.schema.Person.sameAs': 'urn:uhc:card:personal:alice',
+      'org.schema.Person.sameAs': 'urn:example:card:person:alice',
       'org.schema.Person.identifier.additionalType': 'org.hl7.terminology.CodeSystem.v2-0203.NN',
       'org.schema.Person.identifier.jurisdiction': 'ES',
       'org.schema.Person.identifier.value': '12345678Z',
@@ -40,7 +40,7 @@ describe('Subject identity collection', () => {
     expect(readSubjectIdentityBundleEntry(entry)).toMatchObject({
       subjectKind: 'person',
       resourceType: 'Person',
-      cardId: 'urn:uhc:card:personal:alice',
+      cardId: 'urn:example:card:person:alice',
       codingSystem: 'org.hl7.terminology.CodeSystem.v2-0203.NN',
       jurisdiction: 'ES',
       codeValue: '12345678Z',
