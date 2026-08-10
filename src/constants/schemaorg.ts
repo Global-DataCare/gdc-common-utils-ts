@@ -185,6 +185,8 @@ export enum ClaimsPersonSchemaorg {
     identifier = "org.schema.Person.identifier", // the URN (composed by the provider)
     identifierType = "org.schema.Person.identifier.additionalType", // retrieved from a form
     identifierValue = "org.schema.Person.identifier.value", // retrieved from a form
+    /** Stable public unified-card URI shared by private identity representations. */
+    sameAs = "org.schema.Person.sameAs",
     /** ICAO transliteration of official given name (including middlenames), family name and addtional surname */
     name = "org.schema.Person.name",
     memberOf = "org.schema.Person.memberOf", // for employees

@@ -4,6 +4,15 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Add the neutral Subject identity-collection contract: semantic `Person`,
+  `Animal` or future `Place` resources keep private identifier claims while
+  `sameAs` points to one stable public unified card.
+- Reuse the existing deterministic SHA3-384 `urn:multibase` derivation over
+  `type|jurisdiction|value`, preserving `||` when a globally readable
+  identifier such as an ISO 11784/11785 microchip has no jurisdiction, and extend the public Fabric pointer with the
+  unified card identifier and subject kind. The lookup key is not an
+  authorization proof and the raw identifier is never a ledger payload.
+
 ## [2.4.1] - 2026-08-09
 
 - Define the only stable cross-portal actor identifier as

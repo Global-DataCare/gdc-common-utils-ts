@@ -243,11 +243,18 @@ const lookupMultihash = encodeMultibaseSha3('DL|US-CA|D1234567');
 const blockchainAssetId = buildRawCidV1FromUtf8String('DL|US-CA|D1234567');
 ```
 
-Individual lookup tokens keep the identifier type and jurisdiction separate:
-`org.hl7.terminology.CodeSystem.v2-0203.NN|ES|12345678Z`. Import
-`buildIndividualIdentifierLedgerAssetId(...)` when a GW must derive the opaque
-SHA3-384 `urn:multibase` key used by the subject-identifier ledger. The raw
-identifier must never be written to that ledger.
+Canonical Subject-collection lookup tokens use `codingSystem|codeValue`, for
+example `org.hl7.terminology.CodeSystem.v2-0203.NN.ES|12345678Z` or
+`urn:iso:std:iso:11784-11785|981020000123456`. Import
+`buildSubjectIdentifierAssetId(...)` when a GW must derive the opaque SHA3-384
+`urn:multibase` key used by the distributed subject index. The semantic
+`Person`/`Animal` entry keeps the private claims and its `sameAs` points to the
+stable public unified card; the raw identifier must never be written to the
+ledger.
+
+`buildIndividualIdentifierLedgerAssetId(...)` remains the older
+type/jurisdiction/value compatibility helper. Do not use its former
+`Organization.sameAs` convention for new Subject collection writes.
 
 Both helpers hash the exact UTF-8 bytes supplied by the caller. Identifier,
 FHIR-token or JSON canonicalization belongs to the contract that owns the
