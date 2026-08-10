@@ -104,6 +104,7 @@ export * from './service-act-reasons';
 export * from './same-as';
 export * from './subject-identity-binding';
 export * from './activation-request';
+export * from './actor-identifier';
 export * from './vp-token';
 export * from './vital-sign-day-batch';
 export * from './wallet-mem';

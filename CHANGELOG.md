@@ -4,6 +4,11 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Define the only stable cross-portal actor identifier as
+  `urn:multibase:<hash(normalized email or phone)>:professional|personal`;
+  portal DIDs, IdP
+  subjects, wallets and DCR clients remain replaceable bindings.
+
 ## [2.4.0] - 2026-08-09
 
 - Own the neutral FHIR R5 `Subscription`, `SubscriptionTopic`, matching and

@@ -203,7 +203,11 @@ export interface DeviceLicense {
   /** All DCR installations bound to this user/member seat. */
   deviceBindings?: DeviceBinding[];
 
-  /** Identity-provider subject that first activated this seat. */
+  /**
+   * Stable private actor identifier:
+   * `urn:multibase:<hash(normalized email or phone)>:<professional|personal>`.
+   * Portal DIDs, IdP subjects, wallets and DCR clients bind to this value but do not define it.
+   */
   activatedBy?: string;
 
   /**
