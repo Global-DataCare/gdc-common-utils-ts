@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Own the neutral FHIR R5 `Subscription`, `SubscriptionTopic`, matching and
+  `subscription-notification` contracts consumed by GW CORE and all SDKs.
+
+- Model one professional/member license as a seat with a default allowance of
+  two simultaneous DCR installations, preserving singular `deviceId` records
+  during migration.
+
 - Aligned the DCR model with RFC 7591 software metadata by adding
   `software_id`, `software_version`, and web applications. Device push fields
   are now optional bootstrap metadata rather than the client identity.

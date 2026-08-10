@@ -41,6 +41,7 @@ export * from './oidc4ida.document.model';
 export * from './oidc4ida.electronicRecord.model';
 export * from './oidc4ida.evidence.model';
 export * from './openid-device';
+export * from './fhir-r5-subscription';
 export * from './permission-templates';
 export * from './profile-manager';
 export * from './operation-outcome';

@@ -4,6 +4,49 @@ import {
   ClaimsOfferSchemaorg,
   ClaimsPersonSchemaorg,
 } from '../constants/schemaorg';
+import type { DeviceBinding, DeviceInfo, DeviceLicense } from '../models/device-license';
+
+/** Default simultaneous installation allowance for one professional/member seat. */
+export const DEFAULT_LICENSE_DEVICE_ALLOWANCE = 2;
+
+/** Resolves an explicit positive allowance or the backwards-compatible default. */
+export function resolveLicenseDeviceAllowance(license: unknown): number {
+  const value = Number((license as { maxDevices?: number } | undefined)?.maxDevices);
+  return Number.isInteger(value) && value > 0 ? value : DEFAULT_LICENSE_DEVICE_ALLOWANCE;
+}
+
+/**
+ * Reads active bindings while projecting the old singular `deviceId` shape as
+ * one binding. This permits a rolling migration without invalidating seats.
+ */
+export function listActiveLicenseDeviceBindings(
+  license: Pick<DeviceLicense, 'deviceBindings' | 'deviceId' | 'deviceInfo' | 'activatedAt'>,
+): DeviceBinding[] {
+  if (Array.isArray(license.deviceBindings)) {
+    return license.deviceBindings.filter((binding) => binding.status === 'active');
+  }
+  const clientId = String(license.deviceId || '').trim();
+  if (!clientId) return [];
+  const deviceInfo: DeviceInfo = license.deviceInfo || { clientInstanceId: clientId };
+  return [{
+    clientId,
+    clientInstanceId: deviceInfo.clientInstanceId || clientId,
+    status: 'active',
+    deviceInfo,
+    activatedAt: Number(license.activatedAt || 0),
+  }];
+}
+
+/** True for an idempotent installation or while the seat still has capacity. */
+export function canRegisterLicenseDevice(
+  license: Pick<DeviceLicense, 'maxDevices' | 'deviceBindings' | 'deviceId' | 'deviceInfo' | 'activatedAt'>,
+  clientInstanceId: string,
+): boolean {
+  const installationId = String(clientInstanceId || '').trim();
+  const active = listActiveLicenseDeviceBindings(license);
+  if (installationId && active.some((binding) => binding.clientInstanceId === installationId)) return true;
+  return active.length < resolveLicenseDeviceAllowance(license);
+}
 
 export type LicenseClaims = Record<string, unknown>;
 
