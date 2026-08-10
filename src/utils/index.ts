@@ -21,6 +21,8 @@ export * from './dataspace-discovery';
 export * from './dataspace-discovery-defaults';
 export * from './dataspace-protocol';
 export * from './deterministic-jwk';
+export * from './deterministic-seed-key';
+export * from './dataspace-membership-scope';
 export * from './employee';
 export * from './evidence-blockchain-references';
 export * from './didcomm';

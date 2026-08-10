@@ -4,6 +4,14 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- Add the shared, backward-compatible scrypt/domain-separated EC PEM derivation
+  used by ICA/controller bootstrap so existing seed profiles regenerate the
+  same ES384 and ES256K key pairs without CLI-local cryptographic copies.
+- Add an extensible dataspace membership-scope normalizer with optional
+  deployment allowlists, replacing product-specific hard-coded scope catalogs.
+
 ## [2.3.28] - 2026-08-05
 
 ### Fixed
