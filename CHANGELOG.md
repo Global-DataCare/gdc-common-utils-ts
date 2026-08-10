@@ -4,6 +4,8 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.4.1] - 2026-08-09
+
 - Define the only stable cross-portal actor identifier as
   `urn:multibase:<hash(normalized email or phone)>:professional|personal`;
   portal DIDs, IdP
