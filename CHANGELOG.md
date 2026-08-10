@@ -4,6 +4,8 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.3.29] - 2026-08-09
+
 ### Added
 
 - Add the shared, backward-compatible scrypt/domain-separated EC PEM derivation
