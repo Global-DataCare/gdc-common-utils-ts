@@ -39,9 +39,33 @@ import {
   LicenseStatuses,
   buildLicensePurchaseEntry,
   classifyLicenseRole,
+  canRegisterLicenseDevice,
+  listActiveLicenseDeviceBindings,
+  resolveLicenseDeviceAllowance,
 } from '../src';
 
 describe('101: license examples', () => {
+  it('allows two installations on one seat without consuming another professional license', () => {
+    const seat = {
+      deviceId: 'client-laptop',
+      deviceInfo: { clientInstanceId: 'install-laptop' },
+      activatedAt: 100,
+    };
+
+    expect(resolveLicenseDeviceAllowance(seat)).toBe(2);
+    expect(listActiveLicenseDeviceBindings(seat)).toHaveLength(1);
+    expect(canRegisterLicenseDevice(seat, 'install-desktop')).toBe(true);
+
+    const fullSeat = {
+      maxDevices: 2,
+      deviceBindings: [
+        { clientId: 'client-laptop', clientInstanceId: 'install-laptop', status: 'active' as const, deviceInfo: { clientInstanceId: 'install-laptop' }, activatedAt: 100 },
+        { clientId: 'client-desktop', clientInstanceId: 'install-desktop', status: 'active' as const, deviceInfo: { clientInstanceId: 'install-desktop' }, activatedAt: 200 },
+      ],
+    };
+    expect(canRegisterLicenseDevice(fullSeat, 'install-mobile')).toBe(false);
+    expect(canRegisterLicenseDevice(fullSeat, 'install-desktop')).toBe(true);
+  });
   it('builds canonical issue claims from one controller/employee invitation without exposing raw claim keys to callers', () => {
     // Step 1. The organization controller identifies one professional by
     // verified email and role.

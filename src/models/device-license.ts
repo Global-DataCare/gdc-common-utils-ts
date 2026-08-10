@@ -26,6 +26,24 @@ export interface DeviceInfo {
   model?: string;
 }
 
+/** One concrete DCR client/application installation bound to a licensed seat. */
+export interface DeviceBinding {
+  /** Authorization-server assigned DCR client identifier. */
+  clientId: string;
+
+  /** Stable application installation fingerprint supplied by the client. */
+  clientInstanceId: string;
+
+  /** Current relationship between this installation and the seat. */
+  status: 'active' | 'revoked';
+
+  /** Device/application metadata captured during DCR. */
+  deviceInfo: DeviceInfo;
+
+  activatedAt: number;
+  revokedAt?: number;
+}
+
 /**
  * A set of rules that a device must match to be eligible to activate a license.
  */
@@ -175,6 +193,18 @@ export interface DeviceLicense {
    * Populated when the status becomes 'active'.
    */
   deviceId?: string;
+
+  /**
+   * Maximum number of simultaneously active DCR installations for this seat.
+   * Defaults to two when omitted for legacy records.
+   */
+  maxDevices?: number;
+
+  /** All DCR installations bound to this user/member seat. */
+  deviceBindings?: DeviceBinding[];
+
+  /** Identity-provider subject that first activated this seat. */
+  activatedBy?: string;
 
   /**
    * Optional, pre-defined restrictions on which devices are allowed to activate this license.
