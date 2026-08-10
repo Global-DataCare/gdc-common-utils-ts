@@ -4,6 +4,8 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.5.0] - 2026-08-10
+
 - Add the neutral Subject identity-collection contract: semantic `Person`,
   `Animal` or future `Place` resources keep private identifier claims while
   `sameAs` points to one stable public unified card.
