@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased
+All notable changes to `gdc-common-utils-ts` will be documented in this file.
+
+## [Unreleased]
+
+## [2.4.0] - 2026-08-09
 
 - Own the neutral FHIR R5 `Subscription`, `SubscriptionTopic`, matching and
   `subscription-notification` contracts consumed by GW CORE and all SDKs.
@@ -12,10 +16,6 @@
 - Aligned the DCR model with RFC 7591 software metadata by adding
   `software_id`, `software_version`, and web applications. Device push fields
   are now optional bootstrap metadata rather than the client identity.
-
-All notable changes to `gdc-common-utils-ts` will be documented in this file.
-
-## [Unreleased]
 
 ## [2.3.29] - 2026-08-09
 

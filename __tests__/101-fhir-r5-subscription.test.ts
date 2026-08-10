@@ -15,7 +15,7 @@ describe('101: FHIR R5 Subscription', () => {
     canFilterBy: [{ resourceType: 'Observation', filterParameter: 'patient', comparator: ['eq'] }],
   };
 
-  it('builds tenant and individual gateway routes without a UHC dependency', () => {
+  it('builds tenant and individual gateway routes without a product dependency', () => {
     const subscription = buildFhirR5RestHookSubscription({
       id: 'tenant-new-data', scope: FhirR5SubscriptionScopes.Tenant,
       topic: topic.url, endpoint: 'https://bff.example/fhir/subscriptions',
