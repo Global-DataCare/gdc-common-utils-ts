@@ -33,6 +33,7 @@ export const ActivationCredentialTypes = Object.freeze({
   OrganizationCredential: 'OrganizationCredential',
   LegalOrganizationCredential: 'LegalOrganizationCredential',
   LegalRepresentativeCredential: 'LegalRepresentativeCredential',
+  OrganizationControllerCredential: 'OrganizationControllerCredential',
   PersonCredential: 'PersonCredential',
 });
 
@@ -67,6 +68,8 @@ export const IndividualCredentialTypes = Object.freeze({
  */
 export const ContractCredentialTypes = Object.freeze({
   InterTenantAccessContractCredential: 'InterTenantAccessContractCredential',
+  /** Host/ICA-issued evidence that permits one controller to submit tenant registration. */
+  OrganizationRegistrationAuthorizationCredential: 'OrganizationRegistrationAuthorizationCredential',
 });
 
 export const ORGANIZATION_ACTIVATION_VC_TYPES = Object.freeze([
@@ -77,4 +80,12 @@ export const ORGANIZATION_ACTIVATION_VC_TYPES = Object.freeze([
 export const REPRESENTATIVE_ACTIVATION_VC_TYPES = Object.freeze([
   ActivationCredentialTypes.LegalRepresentativeCredential,
   ActivationCredentialTypes.PersonCredential,
+]);
+
+/**
+ * Canonical credential subtype used to bind an organization tenant service to
+ * one independently authenticated controller actor and its signing key.
+ */
+export const ORGANIZATION_CONTROLLER_ACTIVATION_VC_TYPES = Object.freeze([
+  ActivationCredentialTypes.OrganizationControllerCredential,
 ]);

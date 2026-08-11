@@ -37,8 +37,6 @@ export const EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID =
 export const EXAMPLE_PRESENTATION_AUDIENCE_HOST_ID = 'host:node-operator-es' as const;
 export const EXAMPLE_ORGANIZATION_TAX_ID = 'ESB00112233' as const;
 export const EXAMPLE_REPRESENTATIVE_ROLE_CODE = 'RESPRSN' as const;
-export const EXAMPLE_REPRESENTATIVE_ISCO08_ROLE_CODE = '1120' as const;
-export const EXAMPLE_REPRESENTATIVE_ISCO08_ROLE_IDENTIFIER = 'urn:ilo:ilostat:isco-08:1120' as const;
 export const EXAMPLE_REPRESENTATIVE_IDENTIFIER = 'IDCES-99999999R' as const;
 export const EXAMPLE_REPRESENTATIVE_EMAIL = 'legal.rep@example.org' as const;
 export const EXAMPLE_REPRESENTATIVE_SUBJECT_URN =
@@ -80,7 +78,7 @@ export const EXAMPLE_ORG_ACTIVATION_LEGAL_REPRESENTATIVE_CREDENTIAL = Object.fre
       taxID: EXAMPLE_ORGANIZATION_TAX_ID,
     },
     hasOccupation: {
-      identifier: EXAMPLE_REPRESENTATIVE_ISCO08_ROLE_IDENTIFIER,
+      identifier: EXAMPLE_REPRESENTATIVE_ROLE_CODE,
     },
     hasCredential: {
       material: EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID,

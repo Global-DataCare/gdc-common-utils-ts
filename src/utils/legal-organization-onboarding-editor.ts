@@ -141,6 +141,7 @@ export interface LegalOrganizationOnboardingFacade {
     input: Readonly<{
       controller: LegalOrganizationVerificationTransactionController;
       organization?: LegalOrganizationVerificationTransactionOrganization;
+      /** @deprecated Legacy demo/OTP compatibility input. */
       legalRepresentativePayload?: LegalOrganizationVerificationRepresentativePayload;
       verification?: LegalOrganizationVerificationRouting;
       attachments?: unknown[];
@@ -189,6 +190,7 @@ export interface LegalOrganizationOnboardingEditor {
   buildVerificationTransactionInput(input: Readonly<{
     controller: LegalOrganizationVerificationTransactionController;
     organization?: LegalOrganizationVerificationTransactionOrganization;
+    /** @deprecated Legacy demo/OTP compatibility input. */
     legalRepresentativePayload?: LegalOrganizationVerificationRepresentativePayload;
     verification?: LegalOrganizationVerificationRouting;
     attachments?: unknown[];
@@ -554,9 +556,7 @@ export function createLegalOrganizationOnboardingFacade(): LegalOrganizationOnbo
               ...(controllerEmail ? { email: controllerEmail } : {}),
               ...(representativeSameAs ? { sameAs: representativeSameAs } : {}),
             }
-          : controllerEmail
-            ? { email: controllerEmail }
-            : undefined,
+          : undefined,
         verification: {
           resourceType: normalizeOptionalText(input.verificationResourceType) || 'contract',
         },

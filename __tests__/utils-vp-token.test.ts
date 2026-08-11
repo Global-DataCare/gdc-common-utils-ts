@@ -18,12 +18,14 @@ import {
   addVC,
   addVCs,
   addLegalRepresentativeCredential,
+  addOrganizationControllerCredential,
   addOrganizationCredential,
   buildEpochWindow,
   buildVpTokenCompact,
   createVP,
   generateUuidLike,
   getLegalRepresentativeCredentialFromVpToken,
+  getOrganizationControllerCredentialFromVpToken,
   getOrganizationCredentialFromVpToken,
   getVpCredentials,
   prepareBytesForSignature,
@@ -140,6 +142,35 @@ describe('vp token utilities', () => {
     expect(() => addLegalRepresentativeCredential(vp, vcJwt(ActivationCredentialTypes.OrganizationCredential))).toThrow(
       /LegalRepresentative VC must include one of types/,
     );
+  });
+
+  it('adds and extracts an organization-controller credential independently', () => {
+    const vp = createVP({ iss: EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID });
+    const controllerCredential = {
+      type: [
+        W3cCredentialTypes.VerifiableCredential,
+        'ServiceCredential',
+        ActivationCredentialTypes.OrganizationControllerCredential,
+      ],
+      credentialSubject: {
+        id: EXAMPLE_ORGANIZATION_ID,
+        owner: { sameAs: EXAMPLE_REPRESENTATIVE_SUBJECT_URN },
+      },
+    };
+
+    addOrganizationControllerCredential(vp, controllerCredential);
+    const compact = buildVpTokenCompact(
+      Buffer.from(JSON.stringify({ alg: 'none', typ: 'JWT' })).toString('base64url'),
+      Buffer.from(JSON.stringify(vp)).toString('base64url'),
+      'sig',
+    );
+
+    expect(getOrganizationControllerCredentialFromVpToken(compact)).toEqual(controllerCredential);
+    expect(getLegalRepresentativeCredentialFromVpToken(compact)).toBeUndefined();
+    expect(() => addOrganizationControllerCredential(
+      vp,
+      vcJwt(ActivationCredentialTypes.LegalRepresentativeCredential),
+    )).toThrow(/OrganizationController VC must include one of types/);
   });
 
   it('extracts organization and legal representative credentials from a VP token', () => {

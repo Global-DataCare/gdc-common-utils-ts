@@ -3,6 +3,7 @@ import { Content } from './content';
 import { buildJwtCompact, prepareJwtBytesForSignature, prepareJwtForSignature } from './jwt';
 import {
   ORGANIZATION_ACTIVATION_VC_TYPES,
+  ORGANIZATION_CONTROLLER_ACTIVATION_VC_TYPES,
   REPRESENTATIVE_ACTIVATION_VC_TYPES,
   W3cCredentialContexts,
   W3cCredentialTypes,
@@ -233,6 +234,16 @@ export function getLegalRepresentativeCredentialFromVpToken(vpToken: string): Vp
   return getVpCredentialByAnyType(vpToken, [...REPRESENTATIVE_ACTIVATION_VC_TYPES]);
 }
 
+/**
+ * Extracts the organization-controller service credential from a VP token
+ * when present. It never substitutes a legal-representative credential.
+ *
+ * @param vpToken Compact VP token or raw JSON string.
+ */
+export function getOrganizationControllerCredentialFromVpToken(vpToken: string): VpCredential | undefined {
+  return getVpCredentialByAnyType(vpToken, [...ORGANIZATION_CONTROLLER_ACTIVATION_VC_TYPES]);
+}
+
 function vcHasAnyType(vcPayload: Record<string, unknown> | undefined, acceptedTypes: string[]): boolean {
   if (!vcPayload) return false;
   const typeRaw =
@@ -273,6 +284,24 @@ export function addOrganizationCredential(vpPayload: VpTokenPayload, vc: VpCrede
  */
 export function addLegalRepresentativeCredential(vpPayload: VpTokenPayload, vc: VpCredentialInput): VpTokenPayload {
   return addTypedVC(vpPayload, vc, [...REPRESENTATIVE_ACTIVATION_VC_TYPES], 'LegalRepresentative');
+}
+
+/**
+ * Appends an organization-controller service credential after validating its
+ * VC type independently from the legal-representative credential type.
+ *
+ * Accepts compact VC strings, raw JSON VC strings, or VC JSON objects.
+ */
+export function addOrganizationControllerCredential(
+  vpPayload: VpTokenPayload,
+  vc: VpCredentialInput,
+): VpTokenPayload {
+  return addTypedVC(
+    vpPayload,
+    vc,
+    [...ORGANIZATION_CONTROLLER_ACTIVATION_VC_TYPES],
+    'OrganizationController',
+  );
 }
 
 export function prepareForSignature(header: VpTokenHeader, payload: VpTokenPayload): {

@@ -49,6 +49,14 @@ describe('buildLegalOrganizationVerificationTransactionBundle', () => {
       legalRepresentativePayload: {
         email: EXAMPLE_EMAIL_CONTROLLER_ORG,
       },
+      authorizationCredential: {
+        '@context': ['https://www.w3.org/ns/credentials/v2'],
+        id: 'urn:uuid:authorization-1',
+        type: ['VerifiableCredential', 'OrganizationRegistrationAuthorizationCredential'],
+        issuer: 'did:web:issuer.example',
+        credentialSubject: { id: 'did:web:host.example:organization' },
+        validFrom: '2026-08-10T00:00:00.000Z',
+      },
       attachments: [{
         id: 'signed-terms-pdf-001',
         media_type: 'application/pdf',
@@ -68,6 +76,7 @@ describe('buildLegalOrganizationVerificationTransactionBundle', () => {
     expect(representative?.email)
       .toBe(EXAMPLE_EMAIL_CONTROLLER_ORG);
     expect(firstEntry?.resource?.verification?.resourceType).toBe('contract');
+    expect(firstEntry?.resource?.authorizationCredential?.id).toBe('urn:uuid:authorization-1');
     expect((bundle as any).attachments?.[0]?.data?.links?.[0]).toBe(EXAMPLE_SIGNED_TERMS_PDF_URL);
   });
 });

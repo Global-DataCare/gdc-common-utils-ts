@@ -1,6 +1,7 @@
 import type { BundleJsonApi } from '../models/bundle';
 import type { ClaimsRecord } from '../models/resource-document';
 import { ClaimsServiceSchemaorg } from '../constants/schemaorg';
+import type { VerifiableCredentialV2 } from '../models/verifiable-credential';
 
 /**
  * Canonical business entry type for the first host-side onboarding step that
@@ -76,8 +77,14 @@ export type LegalOrganizationVerificationTransactionInput = Readonly<{
   claims: ClaimsRecord;
   controller: LegalOrganizationVerificationTransactionController;
   organization?: LegalOrganizationVerificationTransactionOrganization;
+  /**
+   * @deprecated Legacy demo/OTP compatibility only. Canonical signed-PDF and
+   * strict flows derive the representative from verified evidence.
+   */
   legalRepresentativePayload?: LegalOrganizationVerificationRepresentativePayload;
   verification?: LegalOrganizationVerificationRouting;
+  /** Out-of-band host authorization used only by the Test Network path. */
+  authorizationCredential?: VerifiableCredentialV2;
   attachments?: unknown[];
 }>;
 
@@ -90,9 +97,12 @@ export type LegalOrganizationVerificationTransactionEntry = Readonly<{
   resource?: {
     controller?: LegalOrganizationVerificationTransactionController;
     organization?: LegalOrganizationVerificationTransactionOrganization;
+    /** @deprecated Legacy demo/OTP compatibility input. */
     legalRepresentativePayload?: LegalOrganizationVerificationRepresentativePayload;
+    /** @deprecated Legacy ICA wire alias accepted only while migrating old callers. */
     legalRepresentative?: LegalOrganizationVerificationRepresentativePayload;
     verification?: LegalOrganizationVerificationRouting;
+    authorizationCredential?: VerifiableCredentialV2;
     [key: string]: unknown;
   };
   [key: string]: unknown;
@@ -148,6 +158,9 @@ export function buildLegalOrganizationVerificationTransactionBundle(
         verification: {
           resourceType: normalizeText(input.verification?.resourceType) || 'contract',
         },
+        ...(input.authorizationCredential
+          ? { authorizationCredential: input.authorizationCredential }
+          : {}),
       },
     }],
     ...(Array.isArray(input.attachments) && input.attachments.length > 0
@@ -191,6 +204,9 @@ export function getLegalOrganizationVerificationController(
 /**
  * Returns the normalized legal representative contact payload from the first
  * legal-organization verification transaction entry when present.
+ *
+ * @deprecated Read-only support for legacy demo/OTP payloads. Canonical
+ * signed-PDF and strict flows derive the representative from verified evidence.
  *
  * Compatibility note:
  * - GW/SDK request builders use `resource.legalRepresentativePayload`

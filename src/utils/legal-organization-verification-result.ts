@@ -43,6 +43,51 @@ function findCredentialResource(
   return resource;
 }
 
+function hasCredentialType(value: unknown, expectedType: string): boolean {
+  const candidate = asObject(value);
+  const resource = asObject(candidate?.resource);
+  const typeValues = [candidate?.type, resource?.type];
+  return typeValues.some((typeValue) => {
+    const tokens = Array.isArray(typeValue)
+      ? typeValue.map((token) => String(token || ''))
+      : [String(typeValue || '')];
+    return tokens.some((token) => token.includes(expectedType));
+  });
+}
+
+/**
+ * Extracts the controller actor stored at
+ * `credentialSubject.owner` in an organization-controller service VC.
+ *
+ * @param credential Candidate organization-controller credential.
+ */
+export function extractOrganizationControllerOwner(
+  credential: unknown,
+): Record<string, unknown> | undefined {
+  return asObject(extractCredentialSubject(credential)?.owner);
+}
+
+/**
+ * Extracts the stable public actor identifier from an
+ * organization-controller service VC.
+ *
+ * @param credential Candidate organization-controller credential.
+ */
+export function extractOrganizationControllerSameAs(credential: unknown): string | undefined {
+  return String(extractOrganizationControllerOwner(credential)?.sameAs || '').trim() || undefined;
+}
+
+/**
+ * Extracts the RFC 9278 JWK-thumbprint binding from an
+ * organization-controller service VC.
+ *
+ * @param credential Candidate organization-controller credential.
+ */
+export function extractOrganizationControllerBinding(credential: unknown): string | undefined {
+  const owner = extractOrganizationControllerOwner(credential);
+  return owner ? extractRepresentativeCredentialBinding({ credentialSubject: owner }) : undefined;
+}
+
 /**
  * Returns the ICA verification entries currently projected by GW host
  * legal-organization `_transaction`.
@@ -132,4 +177,56 @@ export function readLegalRepresentativeSameAsFromResponseBody(responseBody: unkn
 export function readLegalRepresentativeBindingFromResponseBody(responseBody: unknown): string | undefined {
   const pair = readLegalOrganizationVerificationCredentialPairFromResponseBody(responseBody);
   return extractRepresentativeCredentialBinding(pair.legalRepresentativeCredential);
+}
+
+/**
+ * Returns all independently issued organization-controller service
+ * credentials in an ICA or projected GW verification response.
+ *
+ * The result is empty when the response contains only the legacy organization
+ * and legal-representative credential pair.
+ */
+export function readOrganizationControllerCredentialsFromResponseBody(
+  responseBody: unknown,
+): LegalOrganizationVerificationCredential[] {
+  return getLegalOrganizationVerificationEntriesFromResponseBody(responseBody)
+    .filter((entry) => hasCredentialType(entry, 'OrganizationControllerCredential'))
+    .map((entry) => asObject(asObject(entry)?.resource) || asObject(entry))
+    .filter((entry): entry is LegalOrganizationVerificationCredential => Boolean(entry));
+}
+
+/**
+ * Returns one organization-controller service credential in an ICA or
+ * projected GW verification response. Pass a stable actor `sameAs` to select
+ * one controller independently; otherwise the first controller is returned.
+ */
+export function readOrganizationControllerCredentialFromResponseBody(
+  responseBody: unknown,
+  controllerSameAs?: string,
+): LegalOrganizationVerificationCredential | undefined {
+  const credentials = readOrganizationControllerCredentialsFromResponseBody(responseBody);
+  const expectedSameAs = String(controllerSameAs || '').trim();
+  return expectedSameAs
+    ? credentials.find((credential) => extractOrganizationControllerSameAs(credential) === expectedSameAs)
+    : credentials[0];
+}
+
+/**
+ * Reads `credentialSubject.owner.sameAs` from the first
+ * organization-controller service credential when present.
+ */
+export function readOrganizationControllerSameAsFromResponseBody(responseBody: unknown): string | undefined {
+  return extractOrganizationControllerSameAs(
+    readOrganizationControllerCredentialFromResponseBody(responseBody),
+  );
+}
+
+/**
+ * Reads `credentialSubject.owner.hasCredential.material` from the first
+ * organization-controller service credential when present.
+ */
+export function readOrganizationControllerBindingFromResponseBody(responseBody: unknown): string | undefined {
+  return extractOrganizationControllerBinding(
+    readOrganizationControllerCredentialFromResponseBody(responseBody),
+  );
 }

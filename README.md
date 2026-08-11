@@ -450,8 +450,10 @@ The canonical API contract should live in JSDoc on exported code. The README act
 - [`buildSmartCompositionReadScope(...)`](src/utils/smart-scope.ts)
   - Builds the current CORE GW pinned SMART root scope for `organization/Composition...` token requests.
   - This is the preferred first scope to teach when the backend only needs subject-scoped read access.
-- [`getOrganizationCredentialFromVpToken(...)`, `getLegalRepresentativeCredentialFromVpToken(...)`](src/utils/vp-token.ts)
+- [`getOrganizationCredentialFromVpToken(...)`, `getLegalRepresentativeCredentialFromVpToken(...)`, `getOrganizationControllerCredentialFromVpToken(...)`](src/utils/vp-token.ts)
   - Extract typed VC objects from a VP token when GW/SDK flows carry canonical proof only in `vp_token`.
+- [`readOrganizationControllerCredentialsFromResponseBody(...)`](src/utils/legal-organization-verification-result.ts)
+  - Reads every independently issued controller service VC from direct ICA or projected GW responses; companion helpers expose `owner.sameAs` and its JWK-thumbprint binding without falling back to the legal representative.
 - [`docs/101-VP_TOKEN.md`](docs/101-VP_TOKEN.md)
   - Step-by-step guide for building the canonical compact `vp_token` string from organization and representative VCs.
 - [`validateCommunicationResourceFhirR4(...)`](src/utils/communication-fhir-r4.ts)
