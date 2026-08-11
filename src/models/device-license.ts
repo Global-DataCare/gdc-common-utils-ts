@@ -204,8 +204,8 @@ export interface DeviceLicense {
   deviceBindings?: DeviceBinding[];
 
   /**
-   * Stable private actor identifier:
-   * `urn:multibase:<hash(normalized email or phone)>:<professional|personal>`.
+   * Stable private contact identifier: `urn:multibase:<hash(normalized email or phone)>`.
+   * The canonical ISCO-08/FHIR-v3 role is stored separately in `issuedToRole`.
    * Portal DIDs, IdP subjects, wallets and DCR clients bind to this value but do not define it.
    */
   activatedBy?: string;

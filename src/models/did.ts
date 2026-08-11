@@ -52,6 +52,8 @@ export interface DidDocument {
     '@context': string | string[];
     /** The DID URI itself. */
     id: string;
+    /** Independent DID subjects authorized to control this DID. */
+    controller?: string | string[];
     /** Public keys used for verifying digital signatures */
     verificationMethod?: VerificationMethod[];
     /** 

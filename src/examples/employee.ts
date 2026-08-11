@@ -33,13 +33,13 @@ export const ExampleEmployeeCredentialMaterials = Object.freeze({
 } as const);
 
 export const ExampleEmployeeRoles = Object.freeze({
-  Controller: 'ISCO-08|1120',
+  Controller: 'RESPRSN',
   Doctor: 'ISCO-08|2211',
 } as const);
 
 export const EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE: ExampleEmployeeRecord = Object.freeze({
   resourceId: 'urn:uuid:11111111-1111-4111-8111-111111111111',
-  identifier: 'did:web:api.example.org:employee:shared.professional@example.org:ISCO-08|1120',
+  identifier: 'did:web:api.example.org:employee:shared.professional@example.org:RESPRSN',
   email: ExampleEmployeeEmails.SharedProfessional,
   role: ExampleEmployeeRoles.Controller,
   status: 'active',

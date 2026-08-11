@@ -83,6 +83,7 @@ export * from './jwt-signer';
 export * from './jwk-thumbprint';
 export * from './legal-organization-onboarding';
 export * from './legal-organization-verification-transaction';
+export * from './organization-registration-authorization';
 export * from './local-terminology-provider';
 export * from './license';
 export * from './license-commercial-search';

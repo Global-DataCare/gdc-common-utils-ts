@@ -85,3 +85,15 @@ export function computeRfc7638JwkThumbprint(jwk: ThumbprintableJwk): string {
 export function toJwkThumbprintSha256Urn(jwk: ThumbprintableJwk): string {
   return `${UrnPrefixes.JwkThumbprintSha256KeyId}${computeRfc7638JwkThumbprint(jwk)}`;
 }
+
+/**
+ * Returns a public JWK whose `kid` is derived exclusively from its public key
+ * material. Caller-provided aliases are deliberately replaced so DID methods,
+ * credentials and confidential-storage indexes share one RFC 9278 identifier.
+ */
+export function withJwkThumbprintSha256Kid<T extends ThumbprintableJwk>(jwk: T): T & { kid: string } {
+  return {
+    ...jwk,
+    kid: toJwkThumbprintSha256Urn(jwk),
+  };
+}

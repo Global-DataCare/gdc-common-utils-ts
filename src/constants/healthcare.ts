@@ -561,7 +561,8 @@ export const HealthcareConsentPurposes = Object.freeze({
 } as const);
 
 export const HealthcareActorRoles = Object.freeze({
-  Controller: 'ISCO-08|1120',
+  /** Bare HL7 v3 RoleCode used for an organization controller. */
+  Controller: 'RESPRSN',
   MedicalDoctors: 'ISCO-08|221',
   GeneralistMedicalPractitioner: 'ISCO-08|2211',
   SpecialistMedicalPractitioner: 'ISCO-08|2212',
@@ -579,7 +580,7 @@ export const HealthcareActorRoles = Object.freeze({
 } as const);
 
 export const HealthcareActorRoleCodes = Object.freeze({
-  Controller: '1120',
+  Controller: 'RESPRSN',
   MedicalDoctors: '221',
   GeneralistMedicalPractitioner: '2211',
   SpecialistMedicalPractitioner: '2212',
@@ -602,17 +603,6 @@ export const HealthcareActorRoleCodes = Object.freeze({
 
 function buildProfessionalIscoRoles(): Readonly<Record<string, HealthcareActorRoleDescriptor>> {
   const entries: Array<[string, HealthcareActorRoleDescriptor]> = [
-    [
-      HealthcareActorRoleCodes.Controller,
-      Object.freeze({
-        family: HealthcareRoleFamilies.ProfessionalOccupationIsco08,
-        codingSystem: ISCO08_CODING_SYSTEM,
-        code: HealthcareActorRoleCodes.Controller,
-        claim: HealthcareActorRoles.Controller,
-        i18nKey: `${ISCO08_I18N_NAMESPACE}.${HealthcareActorRoleCodes.Controller}`,
-        titleEn: 'Controller',
-      }),
-    ],
     [
       HealthcareActorRoleCodes.MedicalDoctors,
       Object.freeze({
@@ -754,7 +744,10 @@ export const HealthcareAllRolesByClaim: Readonly<Record<string, HealthcareActorR
   Object.fromEntries(
     Object.values(HealthcareRolesByFamily)
       .flatMap((catalog) => Object.values(catalog))
-      .map((descriptor) => [descriptor.claim, descriptor]),
+      .flatMap((descriptor) => [
+        [descriptor.claim, descriptor],
+        [descriptor.code, descriptor],
+      ]),
   ),
 );
 
@@ -776,10 +769,19 @@ function reindexRoleCatalogByClaim(
 ): Readonly<Record<string, HealthcareActorRoleDescriptor>> {
   return Object.freeze(
     Object.fromEntries(
-      Object.values(catalog).map((descriptor) => [descriptor.claim, descriptor] as const),
+      Object.values(catalog).flatMap((descriptor) => [
+        [descriptor.claim, descriptor] as const,
+        [descriptor.code, descriptor] as const,
+      ]),
     ),
   );
 }
+
+const HealthcareProfessionalAndControllerRoles = Object.freeze({
+  ...HealthcareRolesByFamily[HealthcareRoleFamilies.ProfessionalOccupationIsco08],
+  [HealthcareActorRoleCodes.Controller]:
+    HealthcareRolesByFamily[HealthcareRoleFamilies.LegalRepresentativeHl7][HealthcareActorRoleCodes.Controller],
+});
 
 export const HealthcareProfessionalRoleCodesBySector = Object.freeze({
   [DataspaceSectors.HealthCare]: Object.freeze([
@@ -824,43 +826,43 @@ export const HealthcareProfessionalRoleCodesBySector = Object.freeze({
 
 export const HealthcareProfessionalRolesBySector = Object.freeze({
   [DataspaceSectors.HealthCare]: pickRoleCatalogByCodes(
-    HealthcareRolesByFamily[HealthcareRoleFamilies.ProfessionalOccupationIsco08],
+    HealthcareProfessionalAndControllerRoles,
     HealthcareProfessionalRoleCodesBySector[DataspaceSectors.HealthCare],
   ),
   [DataspaceSectors.HealthResearch]: pickRoleCatalogByCodes(
-    HealthcareRolesByFamily[HealthcareRoleFamilies.ProfessionalOccupationIsco08],
+    HealthcareProfessionalAndControllerRoles,
     HealthcareProfessionalRoleCodesBySector[DataspaceSectors.HealthResearch],
   ),
   [DataspaceSectors.HealthTech]: pickRoleCatalogByCodes(
-    HealthcareRolesByFamily[HealthcareRoleFamilies.ProfessionalOccupationIsco08],
+    HealthcareProfessionalAndControllerRoles,
     HealthcareProfessionalRoleCodesBySector[DataspaceSectors.HealthTech],
   ),
   [DataspaceSectors.HealthInsurance]: pickRoleCatalogByCodes(
-    HealthcareRolesByFamily[HealthcareRoleFamilies.ProfessionalOccupationIsco08],
+    HealthcareProfessionalAndControllerRoles,
     HealthcareProfessionalRoleCodesBySector[DataspaceSectors.HealthInsurance],
   ),
   [DataspaceSectors.AnimalCare]: pickRoleCatalogByCodes(
-    HealthcareRolesByFamily[HealthcareRoleFamilies.ProfessionalOccupationIsco08],
+    HealthcareProfessionalAndControllerRoles,
     HealthcareProfessionalRoleCodesBySector[DataspaceSectors.AnimalCare],
   ),
   [DataspaceSectors.AnimalResearch]: pickRoleCatalogByCodes(
-    HealthcareRolesByFamily[HealthcareRoleFamilies.ProfessionalOccupationIsco08],
+    HealthcareProfessionalAndControllerRoles,
     HealthcareProfessionalRoleCodesBySector[DataspaceSectors.AnimalResearch],
   ),
   [DataspaceSectors.AnimalInsurance]: pickRoleCatalogByCodes(
-    HealthcareRolesByFamily[HealthcareRoleFamilies.ProfessionalOccupationIsco08],
+    HealthcareProfessionalAndControllerRoles,
     HealthcareProfessionalRoleCodesBySector[DataspaceSectors.AnimalInsurance],
   ),
   [DataspaceSectors.AnimalTech]: pickRoleCatalogByCodes(
-    HealthcareRolesByFamily[HealthcareRoleFamilies.ProfessionalOccupationIsco08],
+    HealthcareProfessionalAndControllerRoles,
     HealthcareProfessionalRoleCodesBySector[DataspaceSectors.AnimalTech],
   ),
   [DataspaceSectors.OneHealthResearch]: pickRoleCatalogByCodes(
-    HealthcareRolesByFamily[HealthcareRoleFamilies.ProfessionalOccupationIsco08],
+    HealthcareProfessionalAndControllerRoles,
     HealthcareProfessionalRoleCodesBySector[DataspaceSectors.OneHealthResearch],
   ),
   [DataspaceSectors.OneHealthTech]: pickRoleCatalogByCodes(
-    HealthcareRolesByFamily[HealthcareRoleFamilies.ProfessionalOccupationIsco08],
+    HealthcareProfessionalAndControllerRoles,
     HealthcareProfessionalRoleCodesBySector[DataspaceSectors.OneHealthTech],
   ),
 } as const);

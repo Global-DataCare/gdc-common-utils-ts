@@ -77,9 +77,7 @@ describe('101: legal-organization onboarding editor', () => {
       did: `did:web:${EXAMPLE_PUBLIC_PORTAL_DOMAIN}:${EXAMPLE_SECTOR}:organization:taxid:${EXAMPLE_LEGAL_ORGANIZATION_TAX_ID}`,
       url: 'https://provider.example.org',
     });
-    expect(verificationRequest.legalRepresentativePayload).toEqual({
-      email: EXAMPLE_EMAIL_CONTROLLER_ORG,
-    });
+    expect(verificationRequest.legalRepresentativePayload).toBeUndefined();
     expect((verificationRequest.attachments || [])[0]).toEqual({
       id: 'signed-terms-pdf-001',
       media_type: 'application/pdf',

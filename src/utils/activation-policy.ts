@@ -218,20 +218,14 @@ export function extractDidWebFromCredential(credential: unknown): string | undef
  * Checks whether the representative role expresses the activation-controller
  * semantics accepted by GW.
  *
- * Compatibility rules:
- * - historical GW payloads may still use HL7/FHIR `RESPRSN`
- * - current ICA person credentials may encode the legal representative role as
- *   ISCO-08 `1120`, either tokenized (`ISCO-08|1120`) or as the canonical
- *   ILO URN (`urn:ilo:ilostat:isco-08:1120`)
+ * The controller/legal-representative authorization is the bare HL7 v3 code
+ * `RESPRSN`. ISCO occupation `1120` is not a controller authorization role.
  *
  * @param roleCode Candidate role token extracted from the credential.
  * @param requiredCode Required GW compatibility code, defaults to `RESPRSN`.
  */
 export function hasActivationRepresentativeRole(roleCode: string | undefined, requiredCode = 'RESPRSN'): boolean {
-  if (hasRoleCode(roleCode, requiredCode)) return true;
-  const normalized = String(roleCode || '').trim().toUpperCase();
-  if (!normalized) return false;
-  return /(?:^|[|:])1120$/.test(normalized);
+  return hasRoleCode(roleCode, requiredCode);
 }
 
 /**
@@ -409,7 +403,7 @@ export function validateActivationRepresentativePolicy(input: {
   if (!hasActivationRepresentativeRole(roleCode, input.requiredRoleCode || 'RESPRSN')) {
     errors.push({
       code: 'MISSING_REPRESENTATIVE_ROLE_RESPRSN',
-      message: 'ICA-issued representative credential must include legal representative role semantics (RESPRSN or ISCO-08 1120) in credentialSubject.hasOccupation.',
+      message: 'ICA-issued representative credential must include controller role RESPRSN in credentialSubject.hasOccupation.',
     });
   }
 

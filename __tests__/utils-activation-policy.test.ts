@@ -89,7 +89,7 @@ describe('Activation Policy Utils', () => {
     expect(errors).toHaveLength(0);
   });
 
-  it('accepts ICA-style representative urn subject ids and ISCO role identifiers', () => {
+  it('accepts ICA-style representative urn subject ids with bare RESPRSN role', () => {
     const errors = validateActivationRepresentativePolicy({
       organizationCredential,
       representativeCredential,

@@ -21,6 +21,10 @@ import {
   readLegalOrganizationVerificationTaxIdFromResponseBody,
   readLegalRepresentativeBindingFromResponseBody,
   readLegalRepresentativeSameAsFromResponseBody,
+  readOrganizationControllerBindingFromResponseBody,
+  readOrganizationControllerCredentialFromResponseBody,
+  readOrganizationControllerCredentialsFromResponseBody,
+  readOrganizationControllerSameAsFromResponseBody,
 } from '../src/utils/legal-organization-verification-result';
 
 describe('legal organization verification result reader', () => {
@@ -74,5 +78,70 @@ describe('legal organization verification result reader', () => {
     expect(pair.organizationCredential).toEqual(organizationCredential);
     expect(pair.legalRepresentativeCredential).toEqual(legalRepresentativeCredential);
     expect(readLegalRepresentativeBindingFromResponseBody(projectedResponse)).toBe(EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID);
+  });
+
+  it('reads an independently bound organization-controller service credential', () => {
+    const response = cloneIcaVerifyTermsResponseSuccessExample();
+    const controllerCredential = {
+      type: ['VerifiableCredential', 'ServiceCredential', 'OrganizationControllerCredential'],
+      credentialSubject: {
+        id: 'did:web:tenant.example.org',
+        '@type': 'Service',
+        provider: {
+          '@type': 'Organization',
+          identifier: { value: EXAMPLE_PROVIDER_TAX_ID, additionalType: 'TAX' },
+        },
+        owner: {
+          '@type': 'Person',
+          sameAs: 'urn:multibase:zTechnicalControllerHash',
+          hasOccupation: { identifier: 'RESPRSN' },
+          hasCredential: {
+            material: 'urn:ietf:params:oauth:jwk-thumbprint:sha-256:technical-controller',
+          },
+        },
+      },
+    };
+    response.body.data.push({
+      type: 'OrganizationController-verification-v1.0',
+      response: { status: '200' },
+      resource: controllerCredential,
+    } as never);
+
+    expect(readOrganizationControllerCredentialsFromResponseBody(response.body)).toEqual([controllerCredential]);
+    expect(readOrganizationControllerCredentialFromResponseBody(response.body)).toEqual(controllerCredential);
+    expect(readOrganizationControllerSameAsFromResponseBody(response.body)).toBe('urn:multibase:zTechnicalControllerHash');
+    expect(readOrganizationControllerBindingFromResponseBody(response.body)).toBe(
+      'urn:ietf:params:oauth:jwk-thumbprint:sha-256:technical-controller',
+    );
+
+    const secondControllerCredential = {
+      ...controllerCredential,
+      credentialSubject: {
+        ...controllerCredential.credentialSubject,
+        owner: {
+          ...controllerCredential.credentialSubject.owner,
+          sameAs: 'urn:multibase:zSecondTechnicalController',
+        },
+      },
+    };
+    response.body.data.push({
+      type: 'OrganizationController-verification-v1.0',
+      response: { status: '200' },
+      resource: secondControllerCredential,
+    } as never);
+    expect(readOrganizationControllerCredentialsFromResponseBody(response.body)).toHaveLength(2);
+    expect(readOrganizationControllerCredentialFromResponseBody(
+      response.body,
+      'urn:multibase:zSecondTechnicalController',
+    )).toEqual(secondControllerCredential);
+  });
+
+  it('does not substitute the legal-representative credential when no controller credential exists', () => {
+    const response = cloneIcaVerifyTermsResponseSuccessExample();
+
+    expect(readOrganizationControllerCredentialsFromResponseBody(response.body)).toEqual([]);
+    expect(readOrganizationControllerCredentialFromResponseBody(response.body)).toBeUndefined();
+    expect(readOrganizationControllerSameAsFromResponseBody(response.body)).toBeUndefined();
+    expect(readOrganizationControllerBindingFromResponseBody(response.body)).toBeUndefined();
   });
 });

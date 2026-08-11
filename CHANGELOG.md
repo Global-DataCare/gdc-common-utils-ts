@@ -4,6 +4,24 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Add `OrganizationControllerCredential` as a distinct activation VC type,
+  typed VP add/read helpers, and reusable ICA/GW response readers for each
+  controller service VC's `owner.sameAs` and JWK-thumbprint binding.
+
+- Restore ICA-compatible actor aliases as the simple
+  `urn:multibase:<contact-hash>` value and keep ISCO-08/FHIR-v3 roles separate;
+  remove the invalid `professional`/`personal` suffix from newly built actor
+  identifiers.
+
+- Mark `legalRepresentativePayload` as deprecated legacy demo/OTP input and
+  stop emitting it from canonical signed-PDF verification requests.
+
+- Add the shared one-code postal activation lifecycle, the proof-stable
+  `OrganizationRegistrationAuthorizationCredential`, and its optional binding
+  in the legal-organization verification transaction.
+- Canonicalize public JWK `kid` values as RFC 9278 SHA-256 thumbprint URNs and
+  type DID documents with either one controller or an array of controllers.
+
 ## [2.5.0] - 2026-08-10
 
 - Add the neutral Subject identity-collection contract: semantic `Person`,
