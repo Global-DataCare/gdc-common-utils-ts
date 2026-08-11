@@ -4,6 +4,8 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.5.1] - 2026-08-11
+
 - Add `OrganizationControllerCredential` as a distinct activation VC type,
   typed VP add/read helpers, and reusable ICA/GW response readers for each
   controller service VC's `owner.sameAs` and JWK-thumbprint binding.
