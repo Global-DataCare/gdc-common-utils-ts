@@ -19,8 +19,9 @@ export type PostalActivationLicenseStatus =
 
 /**
  * Public binding recorded for the activation licence. The activation code is
- * deliberately absent: storage implementations retain only its protected
- * value/index and never place the secret inside a VC.
+ * deliberately absent. The VC carries only a salted, pepper-dependent scrypt
+ * binding so the host can verify the same code later without disclosing it or
+ * enabling offline guessing from the credential alone.
  */
 export type PostalActivationLicenseBinding = Readonly<{
   licenseId: string;
@@ -29,6 +30,11 @@ export type PostalActivationLicenseBinding = Readonly<{
   controllerEmail: string;
   controllerKeyMaterial: string;
   postalAddressHash: string;
+  protectedCode: Readonly<{
+    algorithm: 'scrypt-v1';
+    salt: string;
+    digest: string;
+  }>;
   hostDid: string;
   network: 'test-network' | 'network';
   status: PostalActivationLicenseStatus;
@@ -113,6 +119,11 @@ export function buildOrganizationRegistrationAuthorizationCredential(
           input.postalLicense.deliveredAt,
           'postalLicense.deliveredAt',
         ),
+        protectedCode: {
+          algorithm: input.postalLicense.protectedCode.algorithm,
+          salt: required(input.postalLicense.protectedCode.salt, 'postalLicense.protectedCode.salt'),
+          digest: required(input.postalLicense.protectedCode.digest, 'postalLicense.protectedCode.digest'),
+        },
       },
     },
     validFrom: required(input.validFrom, 'validFrom'),

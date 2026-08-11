@@ -20,6 +20,11 @@ describe('organization registration authorization', () => {
     controllerEmail: 'developer@dsrc.example',
     controllerKeyMaterial: 'urn:ietf:params:oauth:jwk-thumbprint:sha-256:key',
     postalAddressHash: 'sha256:postal-address',
+    protectedCode: {
+      algorithm: 'scrypt-v1',
+      salt: 'base64url-salt',
+      digest: 'base64url-scrypt-digest',
+    },
     hostDid: 'did:web:host.example',
     network: 'test-network',
     status: PostalActivationLicenseStatuses.Delivered,
@@ -55,6 +60,7 @@ describe('organization registration authorization', () => {
       postalActivationLicense: {
         id: 'lic-postal-001',
         status: 'delivered',
+        protectedCode: { algorithm: 'scrypt-v1' },
       },
     });
   });

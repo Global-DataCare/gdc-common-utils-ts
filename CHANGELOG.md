@@ -4,6 +4,10 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Bind the one postal activation/licence code into the organization
+  authorization VC with a salted, pepper-dependent scrypt digest so the host
+  can consume that same code at exchange instead of issuing a second secret.
+
 ## [2.5.1] - 2026-08-11
 
 - Add `OrganizationControllerCredential` as a distinct activation VC type,
