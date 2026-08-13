@@ -22,8 +22,8 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
   against that dedicated VC while retaining the older representative-bound
   compatibility path.
 
-- Add the product-neutral `antifraud` business sector used by Company Book,
-  Family Book and future non-health applications over the shared UNID plane.
+- Add the product-neutral `antifraud` business sector for non-health
+  applications over a shared data-space plane.
 - Add the canonical `Contract.type` flat claim and project `system|code` values
   into the FHIR Contract CodeableConcept without binding the shared package to
   a product-specific terminology authority.
