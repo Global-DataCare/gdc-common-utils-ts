@@ -4,7 +4,7 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
-## [2.6.0] - 2026-08-13
+## [2.5.3] - 2026-08-13
 
 - Make `ServiceControllerCredential` the canonical controller VC. It carries
   bare `RESPRSN` in `credentialSubject.owner.additionalType`, ISCO in
