@@ -17,9 +17,9 @@ import { DataspaceSectors } from '../constants/sectors';
  * - controller-signing/audience ids and VC subtype names must be imported from
  *   this module instead of re-hardcoded
  *   inline
- * - the representative `hasCredential.material` shape below reflects the
- *   current `activation-policy` helper contract; if ICA finalizes a different
- *   VC shape, update this module first and then the dependent helpers/tests
+ * - the representative VC carries the legal occupation, while the separate
+ *   service-controller VC carries `RESPRSN`, the technical ISCO occupation and the
+ *   controller key binding
  *
  * Modeling note:
  * - this onboarding example intentionally anchors the business subject on the
@@ -37,6 +37,8 @@ export const EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID =
 export const EXAMPLE_PRESENTATION_AUDIENCE_HOST_ID = 'host:node-operator-es' as const;
 export const EXAMPLE_ORGANIZATION_TAX_ID = 'ESB00112233' as const;
 export const EXAMPLE_REPRESENTATIVE_ROLE_CODE = 'RESPRSN' as const;
+export const EXAMPLE_LEGAL_REPRESENTATIVE_ISCO_CODE = '1120' as const;
+export const EXAMPLE_TECHNICAL_CONTROLLER_ISCO_CODE = '1330' as const;
 export const EXAMPLE_REPRESENTATIVE_IDENTIFIER = 'IDCES-99999999R' as const;
 export const EXAMPLE_REPRESENTATIVE_EMAIL = 'legal.rep@example.org' as const;
 export const EXAMPLE_REPRESENTATIVE_SUBJECT_URN =
@@ -78,13 +80,35 @@ export const EXAMPLE_ORG_ACTIVATION_LEGAL_REPRESENTATIVE_CREDENTIAL = Object.fre
       taxID: EXAMPLE_ORGANIZATION_TAX_ID,
     },
     hasOccupation: {
-      identifier: EXAMPLE_REPRESENTATIVE_ROLE_CODE,
-    },
-    hasCredential: {
-      material: EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID,
+      '@type': 'Occupation',
+      occupationalCategory: `ISCO-08|${EXAMPLE_LEGAL_REPRESENTATIVE_ISCO_CODE}`,
     },
     identifier: EXAMPLE_REPRESENTATIVE_IDENTIFIER,
     sameAs: EXAMPLE_REPRESENTATIVE_SAME_AS,
+  },
+});
+
+export const EXAMPLE_ORG_ACTIVATION_CONTROLLER_CREDENTIAL = Object.freeze({
+  '@context': [W3cCredentialContexts.V2, 'https://schema.org'],
+  type: [
+    W3cCredentialTypes.VerifiableCredential,
+    ActivationCredentialTypes.ServiceControllerCredential,
+  ],
+  credentialSubject: {
+    id: EXAMPLE_ORGANIZATION_ID,
+    '@type': 'Service',
+    serviceType: 'OrganizationControllerService',
+    provider: { taxID: EXAMPLE_ORGANIZATION_TAX_ID },
+    owner: {
+      '@type': 'Person',
+      additionalType: EXAMPLE_REPRESENTATIVE_ROLE_CODE,
+      sameAs: EXAMPLE_REPRESENTATIVE_SAME_AS,
+      hasOccupation: {
+        '@type': 'Occupation',
+        occupationalCategory: `ISCO-08|${EXAMPLE_TECHNICAL_CONTROLLER_ISCO_CODE}`,
+      },
+      hasCredential: { material: EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID },
+    },
   },
 });
 
@@ -99,6 +123,7 @@ export const EXAMPLE_ORG_ACTIVATION_PROOF_VP_PAYLOAD = Object.freeze({
     verifiableCredential: [
       JSON.stringify(EXAMPLE_ORG_ACTIVATION_ORGANIZATION_CREDENTIAL),
       JSON.stringify(EXAMPLE_ORG_ACTIVATION_LEGAL_REPRESENTATIVE_CREDENTIAL),
+      JSON.stringify(EXAMPLE_ORG_ACTIVATION_CONTROLLER_CREDENTIAL),
     ],
   },
 });

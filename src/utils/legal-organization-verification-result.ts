@@ -190,10 +190,15 @@ export function readOrganizationControllerCredentialsFromResponseBody(
   responseBody: unknown,
 ): LegalOrganizationVerificationCredential[] {
   return getLegalOrganizationVerificationEntriesFromResponseBody(responseBody)
-    .filter((entry) => hasCredentialType(entry, 'OrganizationControllerCredential'))
+    .filter((entry) => hasCredentialType(entry, 'ServiceControllerCredential')
+      || hasCredentialType(entry, 'OrganizationControllerCredential'))
     .map((entry) => asObject(asObject(entry)?.resource) || asObject(entry))
     .filter((entry): entry is LegalOrganizationVerificationCredential => Boolean(entry));
 }
+
+/** Canonical name for reading ICA-issued service-controller credentials. */
+export const readServiceControllerCredentialsFromResponseBody =
+  readOrganizationControllerCredentialsFromResponseBody;
 
 /**
  * Returns one organization-controller service credential in an ICA or
@@ -211,6 +216,10 @@ export function readOrganizationControllerCredentialFromResponseBody(
     : credentials[0];
 }
 
+/** Canonical name for selecting one ICA-issued service-controller credential. */
+export const readServiceControllerCredentialFromResponseBody =
+  readOrganizationControllerCredentialFromResponseBody;
+
 /**
  * Reads `credentialSubject.owner.sameAs` from the first
  * organization-controller service credential when present.
@@ -221,6 +230,10 @@ export function readOrganizationControllerSameAsFromResponseBody(responseBody: u
   );
 }
 
+/** Canonical name for reading a service controller's stable actor identifier. */
+export const readServiceControllerSameAsFromResponseBody =
+  readOrganizationControllerSameAsFromResponseBody;
+
 /**
  * Reads `credentialSubject.owner.hasCredential.material` from the first
  * organization-controller service credential when present.
@@ -230,3 +243,7 @@ export function readOrganizationControllerBindingFromResponseBody(responseBody: 
     readOrganizationControllerCredentialFromResponseBody(responseBody),
   );
 }
+
+/** Canonical name for reading a service controller's actor-key binding. */
+export const readServiceControllerBindingFromResponseBody =
+  readOrganizationControllerBindingFromResponseBody;

@@ -18,6 +18,12 @@ export enum ClaimInterTenantAccessContract {
   identifier = 'Contract.identifier',
   /** FHIR Contract lifecycle status, for example `executed` or `amended`. */
   status = 'Contract.status',
+  /**
+   * FHIR `Contract.type` CodeableConcept encoded as `system|code` in the flat
+   * claims transport. The terminology authority is supplied by the adopting
+   * governance domain rather than hardcoded in this product-neutral package.
+   */
+  type = 'Contract.type',
   /** When the agreement was formally issued. */
   issued = 'Contract.issued',
   /** Agreement validity start date/time. */

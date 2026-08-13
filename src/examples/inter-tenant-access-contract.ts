@@ -48,6 +48,8 @@ import {
 
 export const EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_ID =
   'urn:uuid:inter-tenant-access-contract-001' as const;
+export const EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_TYPE =
+  'https://example.org/fhir/CodeSystem/contract-type|data-sharing' as const;
 export const EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_VALID_FROM =
   '2026-06-29T00:00:00.000Z' as const;
 export const EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_VALID_UNTIL =
@@ -70,6 +72,7 @@ export const EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_SMART_SCOPE =
 export const EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CLAIMS = Object.freeze({
   [ClaimInterTenantAccessContract.identifier]: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_ID,
   [ClaimInterTenantAccessContract.status]: 'executed',
+  [ClaimInterTenantAccessContract.type]: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_TYPE,
   [ClaimInterTenantAccessContract.issued]: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_VALID_FROM,
   [ClaimInterTenantAccessContract.appliesStart]: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_VALID_FROM,
   [ClaimInterTenantAccessContract.appliesEnd]: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_VALID_UNTIL,

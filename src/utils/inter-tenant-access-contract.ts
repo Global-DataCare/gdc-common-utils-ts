@@ -30,6 +30,19 @@ function splitCsv(value: unknown): string[] {
   ));
 }
 
+function buildContractTypeCodeableConcept(value: unknown): Record<string, unknown> | undefined {
+  const normalized = String(value || '').trim();
+  if (!normalized) return undefined;
+  const separator = normalized.indexOf('|');
+  if (separator < 1 || separator === normalized.length - 1) {
+    return { text: normalized };
+  }
+  const system = normalized.slice(0, separator).trim();
+  const code = normalized.slice(separator + 1).trim();
+  if (!system || !code) return { text: normalized };
+  return { coding: [{ system, code }] };
+}
+
 function readClaimWithAliases(
   claims: InterTenantAccessContractClaims,
   canonicalKey: ClaimInterTenantAccessContract,
@@ -147,6 +160,9 @@ export function buildInterTenantAccessContractResource(
 ): ContractLike {
   const identifier = readClaimWithAliases(claims, ClaimInterTenantAccessContract.identifier) || '';
   const status = readClaimWithAliases(claims, ClaimInterTenantAccessContract.status) || 'executed';
+  const type = buildContractTypeCodeableConcept(
+    readClaimWithAliases(claims, ClaimInterTenantAccessContract.type),
+  );
   const issued = readClaimWithAliases(claims, ClaimInterTenantAccessContract.issued) || '';
   const appliesStart = readClaimWithAliases(claims, ClaimInterTenantAccessContract.appliesStart, ['Contract.applies.start']) || '';
   const appliesEnd = readClaimWithAliases(claims, ClaimInterTenantAccessContract.appliesEnd, ['Contract.applies.end']) || '';
@@ -163,6 +179,7 @@ export function buildInterTenantAccessContractResource(
     id: identifier || undefined,
     identifier: identifier ? [{ value: identifier }] : undefined,
     status,
+    type,
     issued: issued || undefined,
     instantiatesUri: instantiatesUri || undefined,
     applies: {

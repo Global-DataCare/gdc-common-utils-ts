@@ -90,11 +90,16 @@ export type LegalOrganizationVerificationTransactionInput = Readonly<{
 
 export type LegalOrganizationVerificationTransactionEntry = Readonly<{
   type?: string;
+  /** @deprecated Read-only compatibility with payloads emitted before 2.5.x. */
   meta?: {
     claims?: ClaimsRecord;
     [key: string]: unknown;
   };
   resource?: {
+    meta?: {
+      claims?: ClaimsRecord;
+      [key: string]: unknown;
+    };
     controller?: LegalOrganizationVerificationTransactionController;
     organization?: LegalOrganizationVerificationTransactionOrganization;
     /** @deprecated Legacy demo/OTP compatibility input. */
@@ -123,7 +128,7 @@ function asRecord(value: unknown): Record<string, unknown> | undefined {
  * verification transactions.
  *
  * Contract notes:
- * - business claims remain in `meta.claims`
+ * - business claims live in `resource.meta.claims`
  * - controller binding material remains in `resource.controller.*`
  * - organization signing material remains in `resource.organization.*`
  * - PDF evidence or URL attachments stay at the DIDComm-message level
@@ -146,10 +151,10 @@ export function buildLegalOrganizationVerificationTransactionBundle(
     total: 1,
     data: [{
       type: LegalOrganizationVerificationTransactionEntryTypes.Request,
-      meta: {
-        claims: input.claims,
-      },
       resource: {
+        meta: {
+          claims: input.claims,
+        },
         controller: input.controller,
         ...(input.organization ? { organization: input.organization } : {}),
         ...(input.legalRepresentativePayload

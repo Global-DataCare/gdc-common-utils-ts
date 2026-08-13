@@ -68,11 +68,10 @@ export interface IcaVerifyResponseExampleOutcome {
  * Contract notes:
  * - `body.data[0]` carries the organization credential plus optional generated
  *   organization signing keypair
- * - `body.data[1]` carries the legal representative credential plus the
- *   controller binding public key
- * - `credentialSubject.sameAs` expresses public identity continuity
- * - `credentialSubject.hasCredential.material` expresses controller
- *   signing/binding key continuity as an RFC 9278 JWK-thumbprint URN
+ * - `body.data[1]` carries the legal representative credential and its ISCO
+ *   occupation; legal representation alone does not grant tenant control
+ * - `body.data[2]` carries the independently issued organization-controller
+ *   credential, including `RESPRSN`, controller ISCO occupation and JWK binding
  */
 export interface IcaVerifyTermsResponseExample {
   jti: string;
@@ -103,14 +102,19 @@ export const EXAMPLE_VERIFY_RESPONSE_PROOF_DATE = '2026-03-12T21:12:57.534Z' as 
 export const EXAMPLE_VERIFY_RESPONSE_VERSION_ID = 'zPdfVersionHash001' as const;
 export const EXAMPLE_VERIFY_RESPONSE_ORG_VC_ID = 'urn:uuid:org-vc-001' as const;
 export const EXAMPLE_VERIFY_RESPONSE_PERSON_VC_ID = 'urn:uuid:person-vc-001' as const;
+export const EXAMPLE_VERIFY_RESPONSE_CONTROLLER_VC_ID = 'urn:uuid:controller-vc-001' as const;
 export const EXAMPLE_VERIFY_RESPONSE_ORG_ENTRY_TYPE = 'Organization-verification-v1.0' as const;
 export const EXAMPLE_VERIFY_RESPONSE_PERSON_ENTRY_TYPE = 'LegalRepresentative-verification-v1.0' as const;
+export const EXAMPLE_VERIFY_RESPONSE_CONTROLLER_ENTRY_TYPE = 'ServiceController-verification-v1.0' as const;
 export const EXAMPLE_VERIFY_RESPONSE_ORG_ATTACHMENT_ID = 'vc-jwt-1' as const;
 export const EXAMPLE_VERIFY_RESPONSE_PERSON_ATTACHMENT_ID = 'vc-jwt-2' as const;
+export const EXAMPLE_VERIFY_RESPONSE_CONTROLLER_ATTACHMENT_ID = 'vc-jwt-3' as const;
 export const EXAMPLE_VERIFY_RESPONSE_ORG_ATTACHMENT_FILENAME = 'Organization-verification-v1.0-1.jwt' as const;
 export const EXAMPLE_VERIFY_RESPONSE_PERSON_ATTACHMENT_FILENAME = 'LegalRepresentative-verification-v1.0-2.jwt' as const;
+export const EXAMPLE_VERIFY_RESPONSE_CONTROLLER_ATTACHMENT_FILENAME = 'ServiceController-verification-v1.0-3.jwt' as const;
 export const EXAMPLE_VERIFY_RESPONSE_ORG_JWT = '<vc-jwt-organization>' as const;
 export const EXAMPLE_VERIFY_RESPONSE_PERSON_JWT = '<vc-jwt-legal-representative>' as const;
+export const EXAMPLE_VERIFY_RESPONSE_CONTROLLER_JWT = '<vc-jwt-organization-controller>' as const;
 export const EXAMPLE_VERIFY_RESPONSE_MEDIA_TYPE = 'application/vc+jwt' as const;
 export const EXAMPLE_VERIFY_RESPONSE_ATTACHMENT_FORMAT = 'vc+jwt' as const;
 export const EXAMPLE_VERIFY_RESPONSE_STATUS_OK = '200' as const;
@@ -129,14 +133,18 @@ export const EXAMPLE_VERIFY_RESPONSE_ORG_ADDITIONAL_TYPE =
 export const EXAMPLE_VERIFY_RESPONSE_ADDRESS_TYPE = 'PostalAddress' as const;
 export const EXAMPLE_VERIFY_RESPONSE_ADDRESS_COUNTRY = 'ES' as const;
 export const EXAMPLE_VERIFY_RESPONSE_OCCUPATION_TYPE = 'Occupation' as const;
+/** @deprecated Display-only legacy constant; no longer emitted in signed VCs. */
 export const EXAMPLE_VERIFY_RESPONSE_OCCUPATION_NAME = 'LegalRepresentative' as const;
-export const EXAMPLE_VERIFY_RESPONSE_OCCUPATION_IDENTIFIER = 'RESPRSN' as const;
+export const EXAMPLE_VERIFY_RESPONSE_REPRESENTATIVE_ISCO = '1120' as const;
+export const EXAMPLE_VERIFY_RESPONSE_CONTROLLER_ISCO = '1330' as const;
+export const EXAMPLE_VERIFY_RESPONSE_CONTROLLER_ROLE = 'RESPRSN' as const;
 export const EXAMPLE_VERIFY_RESPONSE_PROOF_TYPE = 'JsonWebSignature2020' as const;
 export const EXAMPLE_VERIFY_RESPONSE_PROOF_PURPOSE = 'assertionMethod' as const;
 export const EXAMPLE_VERIFY_RESPONSE_PROOF_VERIFICATION_METHOD =
   'did:web:localhost%3A3310#verification-key-001' as const;
 export const EXAMPLE_VERIFY_RESPONSE_ORG_PROOF_JWS = '<detached-jws-organization-truncated>' as const;
 export const EXAMPLE_VERIFY_RESPONSE_PERSON_PROOF_JWS = '<detached-jws-person-truncated>' as const;
+export const EXAMPLE_VERIFY_RESPONSE_CONTROLLER_PROOF_JWS = '<detached-jws-controller-truncated>' as const;
 
 /**
  * Shared success outcome reused at bundle level and item level.
@@ -172,6 +180,15 @@ export const EXAMPLE_VERIFY_RESPONSE_PERSON_ITEM_OUTCOME: IcaVerifyResponseExamp
       diagnostics: 'Legal representative credential extracted from verified document.',
     },
   ],
+};
+
+export const EXAMPLE_VERIFY_RESPONSE_CONTROLLER_ITEM_OUTCOME: IcaVerifyResponseExampleOutcome = {
+  resourceType: EXAMPLE_VERIFY_RESPONSE_OPERATION_OUTCOME_RESOURCE_TYPE,
+  issue: [{
+    severity: IssueSeverity.Information,
+    code: IssueType.Informational,
+    diagnostics: 'Organization controller credential extracted from verified document and JWK binding.',
+  }],
 };
 
 export const EXAMPLE_VERIFY_RESPONSE_ORG_PUBLIC_KEY_JWK = Object.freeze({
@@ -263,8 +280,7 @@ export const EXAMPLE_VERIFY_RESPONSE_PERSON_CREDENTIAL = Object.freeze({
     },
     hasOccupation: {
       '@type': EXAMPLE_VERIFY_RESPONSE_OCCUPATION_TYPE,
-      name: EXAMPLE_VERIFY_RESPONSE_OCCUPATION_NAME,
-      identifier: EXAMPLE_VERIFY_RESPONSE_OCCUPATION_IDENTIFIER,
+      occupationalCategory: `ISCO-08|${EXAMPLE_VERIFY_RESPONSE_REPRESENTATIVE_ISCO}`,
     },
     memberOf: {
       '@type': EXAMPLE_VERIFY_RESPONSE_ORGANIZATION_TYPE,
@@ -281,6 +297,47 @@ export const EXAMPLE_VERIFY_RESPONSE_PERSON_CREDENTIAL = Object.freeze({
     proofPurpose: EXAMPLE_VERIFY_RESPONSE_PROOF_PURPOSE,
     verificationMethod: EXAMPLE_VERIFY_RESPONSE_PROOF_VERIFICATION_METHOD,
     jws: EXAMPLE_VERIFY_RESPONSE_PERSON_PROOF_JWS,
+  },
+});
+
+export const EXAMPLE_VERIFY_RESPONSE_CONTROLLER_CREDENTIAL = Object.freeze({
+  id: EXAMPLE_VERIFY_RESPONSE_CONTROLLER_VC_ID,
+  '@context': [W3cCredentialContexts.V2, EXAMPLE_VERIFY_RESPONSE_SCHEMA_ORG_CONTEXT],
+  type: [
+    W3cCredentialTypes.VerifiableCredential,
+    'ServiceCredential',
+    ActivationCredentialTypes.ServiceControllerCredential,
+  ],
+  issuer: EXAMPLE_DEFAULT_ICA_DID,
+  validFrom: EXAMPLE_VERIFY_RESPONSE_DATE,
+  meta: { versionId: EXAMPLE_VERIFY_RESPONSE_VERSION_ID },
+  credentialSubject: {
+    id: EXAMPLE_VERIFY_RESPONSE_ORG_DID,
+    '@type': 'Service',
+    serviceType: 'OrganizationControllerService',
+    provider: {
+      '@type': EXAMPLE_VERIFY_RESPONSE_ORGANIZATION_TYPE,
+      legalName: EXAMPLE_PROVIDER_LEGAL_NAME,
+      taxID: EXAMPLE_PROVIDER_TAX_ID,
+    },
+    owner: {
+      '@type': EXAMPLE_VERIFY_RESPONSE_PERSON_TYPE,
+      additionalType: EXAMPLE_VERIFY_RESPONSE_CONTROLLER_ROLE,
+      sameAs: EXAMPLE_REPRESENTATIVE_SAME_AS,
+      hasOccupation: {
+        '@type': EXAMPLE_VERIFY_RESPONSE_OCCUPATION_TYPE,
+        occupationalCategory: `ISCO-08|${EXAMPLE_VERIFY_RESPONSE_CONTROLLER_ISCO}`,
+      },
+      hasCredential: { material: EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID },
+    },
+  },
+  evidence: [],
+  proof: {
+    type: EXAMPLE_VERIFY_RESPONSE_PROOF_TYPE,
+    created: EXAMPLE_VERIFY_RESPONSE_PROOF_DATE,
+    proofPurpose: EXAMPLE_VERIFY_RESPONSE_PROOF_PURPOSE,
+    verificationMethod: EXAMPLE_VERIFY_RESPONSE_PROOF_VERIFICATION_METHOD,
+    jws: EXAMPLE_VERIFY_RESPONSE_CONTROLLER_PROOF_JWS,
   },
 });
 
@@ -310,6 +367,19 @@ export const EXAMPLE_VERIFY_RESPONSE_PERSON_ATTACHMENT: IcaVerifyResponseExample
   },
 });
 
+export const EXAMPLE_VERIFY_RESPONSE_CONTROLLER_ATTACHMENT: IcaVerifyResponseExampleAttachment = Object.freeze({
+  id: EXAMPLE_VERIFY_RESPONSE_CONTROLLER_ATTACHMENT_ID,
+  format: EXAMPLE_VERIFY_RESPONSE_ATTACHMENT_FORMAT,
+  media_type: EXAMPLE_VERIFY_RESPONSE_MEDIA_TYPE,
+  filename: EXAMPLE_VERIFY_RESPONSE_CONTROLLER_ATTACHMENT_FILENAME,
+  data: {
+    json: {
+      format: EXAMPLE_VERIFY_RESPONSE_ATTACHMENT_FORMAT,
+      jwt: EXAMPLE_VERIFY_RESPONSE_CONTROLLER_JWT,
+    },
+  },
+});
+
 /**
  * Canonical `_verify-response` success example shared across ICA repos.
  */
@@ -322,11 +392,12 @@ export const EXAMPLE_ICA_VERIFY_TERMS_RESPONSE_SUCCESS: IcaVerifyTermsResponseEx
   attachments: [
     EXAMPLE_VERIFY_RESPONSE_ORG_ATTACHMENT,
     EXAMPLE_VERIFY_RESPONSE_PERSON_ATTACHMENT,
+    EXAMPLE_VERIFY_RESPONSE_CONTROLLER_ATTACHMENT,
   ],
   body: {
     resourceType: EXAMPLE_BUNDLE_RESOURCE_TYPE,
     type: EXAMPLE_VERIFY_RESPONSE_BATCH_RESPONSE_TYPE,
-    total: 2,
+    total: 3,
     issues: EXAMPLE_VERIFY_RESPONSE_SUCCESS_OUTCOME,
     data: [
       {
@@ -348,6 +419,15 @@ export const EXAMPLE_ICA_VERIFY_TERMS_RESPONSE_SUCCESS: IcaVerifyTermsResponseEx
           outcome: EXAMPLE_VERIFY_RESPONSE_PERSON_ITEM_OUTCOME,
         },
         resource: EXAMPLE_VERIFY_RESPONSE_PERSON_CREDENTIAL,
+      },
+      {
+        type: EXAMPLE_VERIFY_RESPONSE_CONTROLLER_ENTRY_TYPE,
+        publicKeyJwk: EXAMPLE_VERIFY_RESPONSE_PERSON_PUBLIC_KEY_JWK,
+        response: {
+          status: EXAMPLE_VERIFY_RESPONSE_STATUS_OK,
+          outcome: EXAMPLE_VERIFY_RESPONSE_CONTROLLER_ITEM_OUTCOME,
+        },
+        resource: EXAMPLE_VERIFY_RESPONSE_CONTROLLER_CREDENTIAL,
       },
     ],
   },

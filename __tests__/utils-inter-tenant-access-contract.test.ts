@@ -32,6 +32,12 @@ describe('inter-tenant access contract utils', () => {
     expect(resource.resourceType).toBe('Contract');
     expect(resource.id).toBe(EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CLAIMS['Contract.identifier']);
     expect(resource.status).toBe('executed');
+    expect(resource.type).toEqual({
+      coding: [{
+        system: 'https://example.org/fhir/CodeSystem/contract-type',
+        code: 'data-sharing',
+      }],
+    });
     expect(resource.instantiatesUri).toBe(EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_AGREEMENT_PDF_URL);
     expect(resource.term?.[0]?.offer?.party).toEqual(
       expect.arrayContaining([
@@ -66,6 +72,13 @@ describe('inter-tenant access contract utils', () => {
     expect(summary?.capabilities).toContain(EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONTEXT.requestedScope);
     expect(summary?.purposes).toContain(EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONTEXT.purpose);
     expect(isInterTenantAccessContractActive(summary, { now: '2026-07-01T00:00:00.000Z' })).toBe(true);
+  });
+
+  it('omits Contract.type when the claims transport does not provide one', () => {
+    const claims = { ...EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CLAIMS };
+    delete (claims as Partial<Record<ClaimInterTenantAccessContract, string>>)[ClaimInterTenantAccessContract.type];
+
+    expect(buildInterTenantAccessContractResource(claims).type).toBeUndefined();
   });
 
   it('matches only active contracts with the expected tenant pair, purpose, and capability', () => {

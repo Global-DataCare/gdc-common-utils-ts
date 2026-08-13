@@ -69,8 +69,9 @@ describe('buildLegalOrganizationVerificationTransactionBundle', () => {
     const controller = getLegalOrganizationVerificationController(bundle);
     expect(bundle.type).toBe('collection');
     expect(firstEntry?.type).toBe(LegalOrganizationVerificationTransactionEntryTypes.Request);
-    expect(firstEntry?.meta?.claims?.[ClaimsOrganizationSchemaorg.identifierValue])
+    expect(firstEntry?.resource?.meta?.claims?.[ClaimsOrganizationSchemaorg.identifierValue])
       .toBe(EXAMPLE_LEGAL_ORGANIZATION_TAX_ID);
+    expect(firstEntry?.meta).toBeUndefined();
     expect(controller?.publicKeyJwk)
       .toEqual(controllerBinding.publicKeyJwk);
     expect(representative?.email)

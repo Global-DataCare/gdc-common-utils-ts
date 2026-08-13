@@ -4,6 +4,30 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.6.0] - 2026-08-13
+
+- Make `ServiceControllerCredential` the canonical controller VC. It carries
+  bare `RESPRSN` in `credentialSubject.owner.additionalType`, ISCO in
+  `owner.hasOccupation.occupationalCategory`, and no invented role property or
+  display label. The old `OrganizationControllerCredential` and coded
+  `hasOccupation.identifier` shape remain read-only compatibility aliases.
+- Keep legal-organization transaction claims at the canonical
+  `data[].resource.meta.claims` path; entry-level `meta.claims` is now documented
+  only as a deprecated read compatibility shape.
+- Replace the stale two-VC ICA Swagger fixture with the canonical three-VC
+  result and document/test the narrow legacy fallback requiring both
+  `RESPRSN` and representative key-binding material.
+- Extract controller authority and professional ISCO occupations independently
+  from `ServiceControllerCredential`, and validate controller activation
+  against that dedicated VC while retaining the older representative-bound
+  compatibility path.
+
+- Add the product-neutral `antifraud` business sector used by Company Book,
+  Family Book and future non-health applications over the shared UNID plane.
+- Add the canonical `Contract.type` flat claim and project `system|code` values
+  into the FHIR Contract CodeableConcept without binding the shared package to
+  a product-specific terminology authority.
+
 ## [2.5.2] - 2026-08-11
 
 - Bind the one postal activation/licence code into the organization

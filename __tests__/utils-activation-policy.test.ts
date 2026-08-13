@@ -1,6 +1,8 @@
 // Always create JSDoc, do not use strings inline in keys nor values, use types instead, and reuse the data test examples.
 import {
   buildMemberDidWeb,
+  extractOrganizationControllerOccupationCodes,
+  extractOrganizationControllerRoleCodes,
   extractRepresentativeSubjectId,
   extractDidWebFromCredential,
   isMemberDidWebUnderOwner,
@@ -31,9 +33,77 @@ describe('Activation Policy Utils', () => {
     credentialSubject: {
       ...cloneExample(EXAMPLE_ORG_ACTIVATION_LEGAL_REPRESENTATIVE_CREDENTIAL.credentialSubject),
       memberOf: { taxID: EXAMPLE_ORGANIZATION_TAX_ID.toLowerCase() },
+      hasOccupation: { identifier: EXAMPLE_REPRESENTATIVE_ROLE_CODE },
       hasCredential: { material: EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID },
     },
   };
+
+  const controllerCredential = {
+    type: ['VerifiableCredential', 'ServiceCredential', 'ServiceControllerCredential'],
+    credentialSubject: {
+      provider: { taxID: EXAMPLE_ORGANIZATION_TAX_ID },
+      owner: {
+        additionalType: EXAMPLE_REPRESENTATIVE_ROLE_CODE,
+        sameAs: EXAMPLE_REPRESENTATIVE_SAME_AS,
+        hasOccupation: { '@type': 'Occupation', occupationalCategory: 'ISCO-08|1330' },
+        hasCredential: { material: EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID },
+      },
+    },
+  };
+
+  it('extracts controller authority and ISCO occupation independently from one controller VC', () => {
+    expect(extractOrganizationControllerRoleCodes(controllerCredential)).toEqual([EXAMPLE_REPRESENTATIVE_ROLE_CODE]);
+    expect(extractOrganizationControllerOccupationCodes(controllerCredential)).toEqual(['ISCO-08|1330']);
+  });
+
+  it('validates controller authority from ServiceControllerCredential while representative keeps ISCO', () => {
+    const legalRepresentative: any = cloneExample(representativeCredential);
+    legalRepresentative.credentialSubject.hasOccupation = {
+      '@type': 'Occupation',
+      occupationalCategory: 'ISCO-08|1120',
+    };
+    delete legalRepresentative.credentialSubject.hasCredential;
+
+    const errors = validateActivationRepresentativePolicy({
+      organizationCredential,
+      representativeCredential: legalRepresentative,
+      controllerCredential,
+    });
+    expect(errors).toHaveLength(0);
+  });
+
+  it('rejects a controller VC with an ISCO occupation but without RESPRSN authority', () => {
+    const invalidController: any = cloneExample(controllerCredential);
+    delete invalidController.credentialSubject.owner.additionalType;
+
+    const errors = validateActivationRepresentativePolicy({
+      organizationCredential,
+      representativeCredential,
+      controllerCredential: invalidController,
+    });
+    expect(errors.map((error) => error.code)).toContain('MISSING_CONTROLLER_ROLE_RESPRSN');
+  });
+
+  it('validates the signed controller VC even when no representative VC is supplied', () => {
+    expect(validateActivationRepresentativePolicy({
+      organizationCredential,
+      controllerCredential,
+    })).toHaveLength(0);
+
+    const invalidController: any = cloneExample(controllerCredential);
+    invalidController.credentialSubject.provider.taxID = 'ES999';
+    delete invalidController.credentialSubject.owner.additionalType;
+    delete invalidController.credentialSubject.owner.hasCredential;
+
+    expect(validateActivationRepresentativePolicy({
+      organizationCredential,
+      controllerCredential: invalidController,
+    }).map((error) => error.code)).toEqual([
+      'CONTROLLER_TAXID_MISMATCH',
+      'MISSING_CONTROLLER_ROLE_RESPRSN',
+      'MISSING_CONTROLLER_CREDENTIAL_BINDING',
+    ]);
+  });
 
   it('validates a representative credential linked to organization taxID and role', () => {
     const errors = validateActivationRepresentativePolicy({
@@ -41,6 +111,25 @@ describe('Activation Policy Utils', () => {
       representativeCredential,
     });
     expect(errors).toHaveLength(0);
+  });
+
+  it('keeps legacy two-VC compatibility only when the representative VC contains authority and key binding', () => {
+    // Legacy ICA combined legal representation and tenant-controller authority
+    // in one VC. This is compatibility behavior, not the canonical model.
+    expect(validateActivationRepresentativePolicy({
+      organizationCredential,
+      representativeCredential,
+    })).toHaveLength(0);
+
+    const modernRepresentative: any = cloneExample(representativeCredential);
+    modernRepresentative.credentialSubject.hasOccupation = {
+      '@type': 'Occupation',
+      identifier: { additionalType: 'ISCO-08', value: '1120' },
+    };
+    expect(validateActivationRepresentativePolicy({
+      organizationCredential,
+      representativeCredential: modernRepresentative,
+    }).map((error) => error.code)).toContain('MISSING_REPRESENTATIVE_ROLE_RESPRSN');
   });
 
   it('reports mismatch and missing mandatory fields', () => {

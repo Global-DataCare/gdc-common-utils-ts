@@ -165,6 +165,8 @@ export enum ClaimsOrderSchemaorg {
  *   conventions and international contexts.
  */
 export enum ClaimsPersonSchemaorg {
+    /** Schema.org additional type; service-controller VCs use bare `RESPRSN`. */
+    additionalType = "org.schema.Person.additionalType",
     /** Second surname or mother's maiden name */
     additionalName = "org.schema.Person.additionalName",
     /** Short friendly name */
@@ -175,6 +177,8 @@ export enum ClaimsPersonSchemaorg {
     gender = "org.schema.Person.gender",
     givenName = "org.schema.Person.givenName",
     hasOccupation = "org.schema.Person.hasOccupation",
+    /** ISCO taxonomy token carried by `Occupation.occupationalCategory`. */
+    hasOccupationalCategory = "org.schema.Person.hasOccupation.occupationalCategory",
     /**
      * Canonical nested role value used in ICA/VC credential subjects and
      * supported by activation/normalization helpers.

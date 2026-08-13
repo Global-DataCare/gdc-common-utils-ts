@@ -25,20 +25,34 @@ import {
   readOrganizationControllerCredentialFromResponseBody,
   readOrganizationControllerCredentialsFromResponseBody,
   readOrganizationControllerSameAsFromResponseBody,
+  readServiceControllerCredentialFromResponseBody,
+  readServiceControllerCredentialsFromResponseBody,
 } from '../src/utils/legal-organization-verification-result';
 
 describe('legal organization verification result reader', () => {
-  it('reads the credential pair from a direct ICA verify-response body', () => {
+  it('reads the representative pair plus the independent controller VC from a direct ICA response', () => {
     const response = cloneIcaVerifyTermsResponseSuccessExample();
 
     const pair = readLegalOrganizationVerificationCredentialPairFromResponseBody(response.body);
 
-    expect(pair.verificationEntries).toHaveLength(2);
+    expect(pair.verificationEntries).toHaveLength(3);
     expect(pair.organizationCredential.credentialSubject).toBeDefined();
     expect(pair.legalRepresentativeCredential.credentialSubject).toBeDefined();
     expect(readLegalOrganizationVerificationTaxIdFromResponseBody(response.body)).toBe(EXAMPLE_PROVIDER_TAX_ID);
     expect(readLegalRepresentativeSameAsFromResponseBody(response.body)).toBe(EXAMPLE_REPRESENTATIVE_SAME_AS);
     expect(readLegalRepresentativeBindingFromResponseBody(response.body)).toBe(EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID);
+    expect(readOrganizationControllerCredentialsFromResponseBody(response.body)).toHaveLength(1);
+    expect(readServiceControllerCredentialsFromResponseBody(response.body)).toHaveLength(1);
+    expect((pair.legalRepresentativeCredential.credentialSubject as any).hasOccupation.occupationalCategory)
+      .toBe('ISCO-08|1120');
+    expect((pair.legalRepresentativeCredential.credentialSubject as any).hasOccupation.name).toBeUndefined();
+    const controllerOwner = (readOrganizationControllerCredentialFromResponseBody(response.body)?.credentialSubject as any)
+      .owner;
+    expect(controllerOwner.additionalType).toBe('RESPRSN');
+    expect(controllerOwner.hasOccupation).toEqual({
+      '@type': 'Occupation',
+      occupationalCategory: 'ISCO-08|1330',
+    });
   });
 
   it('reads the credential pair from a GW transaction response with nested icaResponse', () => {
@@ -56,7 +70,7 @@ describe('legal organization verification result reader', () => {
 
     const entries = getLegalOrganizationVerificationEntriesFromResponseBody(gwTransactionResponse);
 
-    expect(entries).toHaveLength(2);
+    expect(entries).toHaveLength(3);
     expect(readLegalOrganizationVerificationTaxIdFromResponseBody(gwTransactionResponse)).toBe(EXAMPLE_PROVIDER_TAX_ID);
   });
 
@@ -64,11 +78,12 @@ describe('legal organization verification result reader', () => {
     const response = cloneIcaVerifyTermsResponseSuccessExample();
     const organizationCredential = response.body.data[0].resource;
     const legalRepresentativeCredential = response.body.data[1].resource;
+    const organizationControllerCredential = response.body.data[2].resource;
     const projectedResponse = {
       body: {
         data: [{
           type: 'Organization-transaction-response-v1.0',
-          vc: [organizationCredential, legalRepresentativeCredential],
+          vc: [organizationCredential, legalRepresentativeCredential, organizationControllerCredential],
         }],
       },
     };
@@ -82,36 +97,13 @@ describe('legal organization verification result reader', () => {
 
   it('reads an independently bound organization-controller service credential', () => {
     const response = cloneIcaVerifyTermsResponseSuccessExample();
-    const controllerCredential = {
-      type: ['VerifiableCredential', 'ServiceCredential', 'OrganizationControllerCredential'],
-      credentialSubject: {
-        id: 'did:web:tenant.example.org',
-        '@type': 'Service',
-        provider: {
-          '@type': 'Organization',
-          identifier: { value: EXAMPLE_PROVIDER_TAX_ID, additionalType: 'TAX' },
-        },
-        owner: {
-          '@type': 'Person',
-          sameAs: 'urn:multibase:zTechnicalControllerHash',
-          hasOccupation: { identifier: 'RESPRSN' },
-          hasCredential: {
-            material: 'urn:ietf:params:oauth:jwk-thumbprint:sha-256:technical-controller',
-          },
-        },
-      },
-    };
-    response.body.data.push({
-      type: 'OrganizationController-verification-v1.0',
-      response: { status: '200' },
-      resource: controllerCredential,
-    } as never);
+    const controllerCredential = response.body.data[2].resource as any;
 
     expect(readOrganizationControllerCredentialsFromResponseBody(response.body)).toEqual([controllerCredential]);
     expect(readOrganizationControllerCredentialFromResponseBody(response.body)).toEqual(controllerCredential);
-    expect(readOrganizationControllerSameAsFromResponseBody(response.body)).toBe('urn:multibase:zTechnicalControllerHash');
+    expect(readOrganizationControllerSameAsFromResponseBody(response.body)).toBe(EXAMPLE_REPRESENTATIVE_SAME_AS);
     expect(readOrganizationControllerBindingFromResponseBody(response.body)).toBe(
-      'urn:ietf:params:oauth:jwk-thumbprint:sha-256:technical-controller',
+      EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID,
     );
 
     const secondControllerCredential = {
@@ -125,11 +117,15 @@ describe('legal organization verification result reader', () => {
       },
     };
     response.body.data.push({
-      type: 'OrganizationController-verification-v1.0',
+      type: 'ServiceController-verification-v1.0',
       response: { status: '200' },
       resource: secondControllerCredential,
     } as never);
     expect(readOrganizationControllerCredentialsFromResponseBody(response.body)).toHaveLength(2);
+    expect(readServiceControllerCredentialFromResponseBody(
+      response.body,
+      'urn:multibase:zSecondTechnicalController',
+    )).toEqual(secondControllerCredential);
     expect(readOrganizationControllerCredentialFromResponseBody(
       response.body,
       'urn:multibase:zSecondTechnicalController',
@@ -138,6 +134,10 @@ describe('legal organization verification result reader', () => {
 
   it('does not substitute the legal-representative credential when no controller credential exists', () => {
     const response = cloneIcaVerifyTermsResponseSuccessExample();
+    response.body.data = response.body.data.filter((entry: any) => (
+      !entry.resource?.type?.includes('ServiceControllerCredential')
+    ));
+    response.body.total = 2;
 
     expect(readOrganizationControllerCredentialsFromResponseBody(response.body)).toEqual([]);
     expect(readOrganizationControllerCredentialFromResponseBody(response.body)).toBeUndefined();

@@ -33,6 +33,8 @@ export const ActivationCredentialTypes = Object.freeze({
   OrganizationCredential: 'OrganizationCredential',
   LegalOrganizationCredential: 'LegalOrganizationCredential',
   LegalRepresentativeCredential: 'LegalRepresentativeCredential',
+  ServiceControllerCredential: 'ServiceControllerCredential',
+  /** @deprecated Read-only compatibility with pre-2.6 controller VCs. */
   OrganizationControllerCredential: 'OrganizationControllerCredential',
   PersonCredential: 'PersonCredential',
 });
@@ -86,6 +88,10 @@ export const REPRESENTATIVE_ACTIVATION_VC_TYPES = Object.freeze([
  * Canonical credential subtype used to bind an organization tenant service to
  * one independently authenticated controller actor and its signing key.
  */
-export const ORGANIZATION_CONTROLLER_ACTIVATION_VC_TYPES = Object.freeze([
+export const SERVICE_CONTROLLER_ACTIVATION_VC_TYPES = Object.freeze([
+  ActivationCredentialTypes.ServiceControllerCredential,
   ActivationCredentialTypes.OrganizationControllerCredential,
 ]);
+
+/** @deprecated Use `SERVICE_CONTROLLER_ACTIVATION_VC_TYPES`. */
+export const ORGANIZATION_CONTROLLER_ACTIVATION_VC_TYPES = SERVICE_CONTROLLER_ACTIVATION_VC_TYPES;

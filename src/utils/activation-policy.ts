@@ -7,6 +7,9 @@ export type ActivationRepresentativePolicyErrorCode =
   | 'MISSING_REPRESENTATIVE_SUBJECT_ID'
   | 'MISSING_REPRESENTATIVE_ROLE_RESPRSN'
   | 'MISSING_REPRESENTATIVE_CREDENTIAL_BINDING'
+  | 'MISSING_CONTROLLER_ROLE_RESPRSN'
+  | 'MISSING_CONTROLLER_CREDENTIAL_BINDING'
+  | 'CONTROLLER_TAXID_MISMATCH'
   | 'REPRESENTATIVE_TAXID_MISMATCH';
 
 export type ActivationServiceAuthorizationPolicyErrorCode =
@@ -115,6 +118,98 @@ export function extractRepresentativeRoleCode(representativeCredential: unknown)
     if (name) return name;
   }
   return undefined;
+}
+
+function readOccupationEntries(value: unknown): Record<string, unknown>[] {
+  const values = Array.isArray(value) ? value : value ? [value] : [];
+  return values.map((entry) => {
+    if (typeof entry === 'string') return { identifier: entry };
+    return asObject(entry);
+  }).filter((entry): entry is Record<string, unknown> => Boolean(entry));
+}
+
+function readCodedIdentifier(entry: Record<string, unknown>): { system?: string; value?: string } {
+  const identifier = entry.identifier;
+  if (typeof identifier === 'string') {
+    const token = identifier.trim();
+    const separator = token.lastIndexOf('|');
+    return separator >= 0
+      ? { system: token.slice(0, separator), value: token.slice(separator + 1) }
+      : { value: token };
+  }
+  const coded = asObject(identifier) || {};
+  return {
+    system: String(coded.additionalType || coded.system || '').trim() || undefined,
+    value: String(coded.value || '').trim() || undefined,
+  };
+}
+
+/**
+ * Reads controller-authorization codes from an ICA-issued controller VC.
+ * Professional ISCO occupations are deliberately excluded.
+ */
+export function extractOrganizationControllerRoleCodes(controllerCredential: unknown): string[] {
+  const subject = extractCredentialSubject(controllerCredential) || {};
+  const owner = asObject(subject.owner) || {};
+  const canonical = (Array.isArray(owner.additionalType) ? owner.additionalType : [owner.additionalType])
+    .map((value) => String(value || '').trim())
+    .filter(Boolean);
+  if (canonical.length) return canonical;
+
+  return readOccupationEntries(owner.hasOccupation)
+    .filter((entry) => String(entry['@type'] || '').toLowerCase() === 'role'
+      || readCodedIdentifier(entry).system?.toUpperCase() !== 'ISCO-08')
+    .map((entry) => readCodedIdentifier(entry).value)
+    .filter((value): value is string => Boolean(value));
+}
+
+/** Canonical name for reading controller authority from a service-controller VC. */
+export const extractServiceControllerRoleCodes = extractOrganizationControllerRoleCodes;
+
+/**
+ * Reads professional ISCO occupations from an ICA-issued controller VC as
+ * canonical `ISCO-08|code` tokens.
+ */
+export function extractOrganizationControllerOccupationCodes(controllerCredential: unknown): string[] {
+  const subject = extractCredentialSubject(controllerCredential) || {};
+  const owner = asObject(subject.owner) || {};
+  const occupation = asObject(owner.hasOccupation);
+  const occupationalCategory = occupation?.occupationalCategory;
+  const canonical = (Array.isArray(occupationalCategory) ? occupationalCategory : [occupationalCategory])
+    .map((value) => {
+      if (typeof value === 'string') return value.trim();
+      const category = asObject(value) || {};
+      const codeValue = String(category.codeValue || '').trim();
+      const codeSet = asObject(category.inCodeSet) || {};
+      const system = String(codeSet.name || '').trim();
+      return codeValue ? `${system || 'ISCO-08'}|${codeValue}` : '';
+    })
+    .filter(Boolean);
+  if (canonical.length) return canonical;
+
+  return readOccupationEntries(owner.hasOccupation)
+    .map(readCodedIdentifier)
+    .filter((identifier) => identifier.system?.toUpperCase() === 'ISCO-08' && identifier.value)
+    .map((identifier) => `ISCO-08|${identifier.value}`);
+}
+
+/** Canonical name for reading ISCO occupations from a service-controller VC. */
+export const extractServiceControllerOccupationCodes =
+  extractOrganizationControllerOccupationCodes;
+
+function extractOrganizationControllerBinding(controllerCredential: unknown): string | undefined {
+  const subject = extractCredentialSubject(controllerCredential) || {};
+  const owner = asObject(subject.owner) || {};
+  return extractCredentialBindingValue(owner.hasCredential);
+}
+
+function extractOrganizationControllerProviderTaxId(controllerCredential: unknown): string | undefined {
+  const subject = extractCredentialSubject(controllerCredential) || {};
+  const provider = asObject(subject.provider) || {};
+  const identifier = asObject(provider.identifier);
+  return normalizeTaxIdentifier(provider.taxID)
+    || normalizeTaxIdentifier(provider.taxId)
+    || normalizeTaxIdentifier(identifier?.value);
 }
 
 /**
@@ -357,23 +452,31 @@ export function isMemberDidWebUnderOwner(memberDidWeb: string, ownerDidWeb: stri
 }
 
 /**
- * Validates the activation representative policy against organization and representative credentials.
+ * Validates controller authorization for organization activation.
  *
- * The representative proof model is intentionally two-dimensional:
- * - `credentialSubject.sameAs` expresses public identity continuity
- * - `credentialSubject.hasCredential.material` expresses signing-key continuity
+ * Canonical three-credential flow:
+ * - `LegalRepresentativeCredential` proves legal representation and carries
+ *   the representative's professional ISCO occupation
+ * - `ServiceControllerCredential` independently carries `RESPRSN` in
+ *   `owner.additionalType` and `owner.hasCredential.material` for the
+ *   controller actor key
  *
- * For GW activation, the key-binding dimension is the hard requirement
- * enforced here. The public-identity dimension may still be used by higher
- * layers for stronger demo/production matching and auditability.
+ * Legacy two-credential compatibility is deliberately narrow. When no
+ * no service-controller credential exists, the representative credential is
+ * accepted as the controller proof only if that old credential itself carries
+ * both `RESPRSN` and `hasCredential` binding material. A modern representative
+ * credential containing only an ISCO occupation such as `ISCO-08|1120` is not
+ * promoted to controller and fails this policy.
  *
  * @param input.organizationCredential Candidate organization credential.
- * @param input.representativeCredential Candidate representative credential.
- * @param input.requiredRoleCode Required representative role, defaults to `RESPRSN`.
+ * @param input.representativeCredential Legal-representative credential.
+ * @param input.controllerCredential Canonical controller-authority credential.
+ * @param input.requiredRoleCode Required controller role, defaults to `RESPRSN`.
  */
 export function validateActivationRepresentativePolicy(input: {
   organizationCredential?: unknown;
   representativeCredential?: unknown;
+  controllerCredential?: unknown;
   requiredRoleCode?: string;
 }): ActivationRepresentativePolicyError[] {
   const errors: ActivationRepresentativePolicyError[] = [];
@@ -388,16 +491,42 @@ export function validateActivationRepresentativePolicy(input: {
     });
   }
 
-  if (!input.representativeCredential) return errors;
-
   const orgTax = extractOrganizationTaxId(input.organizationCredential);
-  const repTax = extractRepresentativeMemberOfTaxId(input.representativeCredential);
-  if (orgTax && repTax && orgTax !== repTax) {
-    errors.push({
-      code: 'REPRESENTATIVE_TAXID_MISMATCH',
-      message: 'ICA-issued representative credential memberOf.taxID must match organization credential taxID.',
-    });
+  if (input.representativeCredential) {
+    const repTax = extractRepresentativeMemberOfTaxId(input.representativeCredential);
+    if (orgTax && repTax && orgTax !== repTax) {
+      errors.push({
+        code: 'REPRESENTATIVE_TAXID_MISMATCH',
+        message: 'ICA-issued representative credential memberOf.taxID must match organization credential taxID.',
+      });
+    }
   }
+
+  if (input.controllerCredential) {
+    const controllerTax = extractOrganizationControllerProviderTaxId(input.controllerCredential);
+    if (orgTax && controllerTax && orgTax !== controllerTax) {
+      errors.push({
+        code: 'CONTROLLER_TAXID_MISMATCH',
+        message: 'ICA-issued controller credential provider.taxID must match organization credential taxID.',
+      });
+    }
+    const controllerRoles = extractOrganizationControllerRoleCodes(input.controllerCredential);
+    if (!controllerRoles.some((role) => hasActivationRepresentativeRole(role, input.requiredRoleCode || 'RESPRSN'))) {
+      errors.push({
+        code: 'MISSING_CONTROLLER_ROLE_RESPRSN',
+        message: 'ICA-issued service controller credential must include RESPRSN in credentialSubject.owner.additionalType.',
+      });
+    }
+    if (!extractOrganizationControllerBinding(input.controllerCredential)) {
+      errors.push({
+        code: 'MISSING_CONTROLLER_CREDENTIAL_BINDING',
+        message: 'ICA-issued service controller credential is missing credentialSubject.owner.hasCredential binding data.',
+      });
+    }
+    return errors;
+  }
+
+  if (!input.representativeCredential) return errors;
 
   const roleCode = extractRepresentativeRoleCode(input.representativeCredential);
   if (!hasActivationRepresentativeRole(roleCode, input.requiredRoleCode || 'RESPRSN')) {

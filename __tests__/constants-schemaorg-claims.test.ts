@@ -15,6 +15,9 @@ describe('schemaorg claims', () => {
     expect(ClaimsPersonSchemaorg.memberOfTaxId).toBe('org.schema.Person.memberOf.taxID');
     expect(ClaimsPersonSchemaorg.memberOfOrgTaxId).toBe('org.schema.Person.memberOf.taxID');
     expect(ClaimsPersonSchemaorg.hasOccupationalRoleValue).toBe('org.schema.Person.hasOccupation.identifier.value');
+    expect(ClaimsPersonSchemaorg.additionalType).toBe('org.schema.Person.additionalType');
+    expect(ClaimsPersonSchemaorg.hasOccupationalCategory)
+      .toBe('org.schema.Person.hasOccupation.occupationalCategory');
     expect(ClaimsPersonSchemaorg.hasCredentialMaterial).toBe('org.schema.Person.hasCredential.material');
   });
 

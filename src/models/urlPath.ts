@@ -8,6 +8,7 @@
 export enum Sector {
   TEST = 'test', // For mock/demo endpoints and host registry in tests
   SYSTEM = 'system', // Reserved for the host's bootstrap operation (TODO: deprecate)
+  ANTIFRAUD = 'antifraud',
   HEALTH_CARE = 'health-care',
   HEALTH_INSURANCE = 'health-insurance',
   EMERGENCY = 'emergency',

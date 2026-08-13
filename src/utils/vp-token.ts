@@ -235,7 +235,7 @@ export function getLegalRepresentativeCredentialFromVpToken(vpToken: string): Vp
 }
 
 /**
- * Extracts the organization-controller service credential from a VP token
+ * Extracts the service-controller credential from a VP token
  * when present. It never substitutes a legal-representative credential.
  *
  * @param vpToken Compact VP token or raw JSON string.
@@ -243,6 +243,9 @@ export function getLegalRepresentativeCredentialFromVpToken(vpToken: string): Vp
 export function getOrganizationControllerCredentialFromVpToken(vpToken: string): VpCredential | undefined {
   return getVpCredentialByAnyType(vpToken, [...ORGANIZATION_CONTROLLER_ACTIVATION_VC_TYPES]);
 }
+
+/** Canonical name for `getOrganizationControllerCredentialFromVpToken`. */
+export const getServiceControllerCredentialFromVpToken = getOrganizationControllerCredentialFromVpToken;
 
 function vcHasAnyType(vcPayload: Record<string, unknown> | undefined, acceptedTypes: string[]): boolean {
   if (!vcPayload) return false;
@@ -300,9 +303,12 @@ export function addOrganizationControllerCredential(
     vpPayload,
     vc,
     [...ORGANIZATION_CONTROLLER_ACTIVATION_VC_TYPES],
-    'OrganizationController',
+    'ServiceController',
   );
 }
+
+/** Canonical name for `addOrganizationControllerCredential`. */
+export const addServiceControllerCredential = addOrganizationControllerCredential;
 
 export function prepareForSignature(header: VpTokenHeader, payload: VpTokenPayload): {
   encodedHeader: string;

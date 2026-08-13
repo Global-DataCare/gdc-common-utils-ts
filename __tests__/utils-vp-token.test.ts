@@ -150,7 +150,7 @@ describe('vp token utilities', () => {
       type: [
         W3cCredentialTypes.VerifiableCredential,
         'ServiceCredential',
-        ActivationCredentialTypes.OrganizationControllerCredential,
+        ActivationCredentialTypes.ServiceControllerCredential,
       ],
       credentialSubject: {
         id: EXAMPLE_ORGANIZATION_ID,
@@ -170,7 +170,7 @@ describe('vp token utilities', () => {
     expect(() => addOrganizationControllerCredential(
       vp,
       vcJwt(ActivationCredentialTypes.LegalRepresentativeCredential),
-    )).toThrow(/OrganizationController VC must include one of types/);
+    )).toThrow(/ServiceController VC must include one of types/);
   });
 
   it('extracts organization and legal representative credentials from a VP token', () => {
@@ -203,6 +203,9 @@ describe('vp token utilities', () => {
     const vp = createVP(EXAMPLE_ORG_ACTIVATION_PROOF_VP_PAYLOAD);
     expect(vp.iss).toBe(EXAMPLE_ORG_CONTROLLER_SIGNING_KEY_ID);
     expect(vp.sub).toBe(EXAMPLE_ORGANIZATION_TAX_ID);
-    expect(vp.vp.verifiableCredential).toHaveLength(2);
+    expect(vp.vp.verifiableCredential).toHaveLength(3);
+    expect(vp.vp.verifiableCredential.some((credential) => (
+      String(credential).includes(ActivationCredentialTypes.ServiceControllerCredential)
+    ))).toBe(true);
   });
 });
