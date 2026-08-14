@@ -1,7 +1,7 @@
 // src/models/device-license.ts
 // Copyright 2025 Antifraud Services Inc. under the Apache License, Version 2.0.
 
-import type { DeviceAppType, DeviceUserClass } from '../constants/device';
+import type { DeviceAppType, DeviceBindingStatus, DeviceUserClass } from '../constants/device';
 
 /**
  * A fingerprint of a specific device, used for binding a license to it.
@@ -35,7 +35,7 @@ export interface DeviceBinding {
   clientInstanceId: string;
 
   /** Current relationship between this installation and the seat. */
-  status: 'active' | 'revoked';
+  status: DeviceBindingStatus;
 
   /** Device/application metadata captured during DCR. */
   deviceInfo: DeviceInfo;

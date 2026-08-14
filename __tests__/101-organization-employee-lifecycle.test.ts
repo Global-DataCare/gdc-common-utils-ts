@@ -1,0 +1,50 @@
+import {
+  DeviceBindingStatuses,
+  EmployeeDirectoryStatuses,
+  EmployeeLifecycleActions,
+  IdentityAuthActions,
+  IdentityAuthRequestFields,
+} from '../src/constants';
+import {
+  EXAMPLE_EMPLOYEE_DEVICE_BINDINGS,
+  EXAMPLE_EMPLOYEE_ACTIVATION_CODE,
+  EXAMPLE_EMPLOYEE_LIFECYCLE_RECORD,
+  EXAMPLE_EMPLOYEE_SEARCH_RESPONSE_BODY,
+  EXAMPLE_LICENSE_LIST_RESPONSE_BODY_WITH_DEVICES,
+  EXAMPLE_LICENSE_ISSUE_RESPONSE_BODY,
+} from '../src/examples';
+import {
+  buildEmployeeDeviceRevocationBody,
+  projectOrganizationEmployeeLifecycle,
+  readEmployeeActivationCode,
+} from '../src/utils';
+
+describe('organization employee lifecycle shared contract', () => {
+  it('publishes protocol tokens instead of requiring product-local strings', () => {
+    expect(IdentityAuthActions.Issue).toBe('_issue');
+    expect(IdentityAuthActions.RevokeResponse).toBe('_revoke-response');
+    expect(EmployeeLifecycleActions.RevokeDevice).toBe('revoke_device');
+    expect(DeviceBindingStatuses.Active).toBe('active');
+    expect(EmployeeDirectoryStatuses.Purged).toBe('purged');
+  });
+
+  it('builds the typed revoke body with canonical wire keys', () => {
+    const activeBinding = EXAMPLE_EMPLOYEE_DEVICE_BINDINGS[0];
+    expect(buildEmployeeDeviceRevocationBody({
+      licenseId: EXAMPLE_EMPLOYEE_LIFECYCLE_RECORD.license!.id,
+      clientId: activeBinding.clientId,
+    })).toEqual({
+      [IdentityAuthRequestFields.LicenseId]: EXAMPLE_EMPLOYEE_LIFECYCLE_RECORD.license!.id,
+      [IdentityAuthRequestFields.ClientId]: activeBinding.clientId,
+    });
+  });
+
+  it('reads the activation credential and projects employee plus device state', () => {
+    expect(readEmployeeActivationCode(EXAMPLE_LICENSE_ISSUE_RESPONSE_BODY))
+      .toBe(EXAMPLE_EMPLOYEE_ACTIVATION_CODE);
+    expect(projectOrganizationEmployeeLifecycle({
+      employeeResponse: EXAMPLE_EMPLOYEE_SEARCH_RESPONSE_BODY,
+      licenseResponse: EXAMPLE_LICENSE_LIST_RESPONSE_BODY_WITH_DEVICES,
+    })[0]).toEqual(EXAMPLE_EMPLOYEE_LIFECYCLE_RECORD);
+  });
+});

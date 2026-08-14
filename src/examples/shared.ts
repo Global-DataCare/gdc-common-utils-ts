@@ -122,6 +122,33 @@ export const EXAMPLE_OTP_CHALLENGE_ID = 'otp-challenge-demo-001' as const;
 export const EXAMPLE_OTP_CODE = '123456' as const;
 export const EXAMPLE_DEMO_PORTAL_ID_TOKEN =
   'eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiJkZW1vLXVzZXIiLCJlbWFpbCI6ImRlbW9AZXhhbXBsZS5vcmcifQ.demo' as const;
+export const EXAMPLE_ACCOUNT_OWNER_ID = 'account-owner-example' as const;
+export const EXAMPLE_PROFILE_PIN = '482951' as const;
+export const EXAMPLE_JWK_THUMBPRINT_SHA256_URN =
+  'urn:ietf:params:oauth:jwk-thumbprint:sha-256:BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB' as const;
+export const EXAMPLE_DCR_REDIRECT_URI = 'https://portal.example.org/auth/callback' as const;
+export const EXAMPLE_EMPLOYEE_DCR_CLIENT_NAME = 'Example Professional Employee' as const;
+export const EXAMPLE_ASYNC_SUBMIT_STATUS = 202 as const;
+export const EXAMPLE_ASYNC_POLL_STATUS = 200 as const;
+export const EXAMPLE_ASYNC_POLL_ATTEMPTS = 1 as const;
+export const ExampleHttpStatusText = Object.freeze({
+  Ok: '200',
+  Conflict: '409',
+} as const);
+export const EXAMPLE_ACTIVATION_GRANT_CREATED_AT = '2026-08-13T19:20:00.000Z' as const;
+export const EXAMPLE_ACTIVATION_GRANT_EXPIRES_AT = '2027-08-13T19:20:00.000Z' as const;
+
+/** Wraps any shared response body in the canonical successful async result. */
+export function buildExampleSubmitAndPollResult(body: unknown) {
+  return Object.freeze({
+    submit: Object.freeze({ status: EXAMPLE_ASYNC_SUBMIT_STATUS, body: Object.freeze({}) }),
+    poll: Object.freeze({
+      status: EXAMPLE_ASYNC_POLL_STATUS,
+      body,
+      attempts: EXAMPLE_ASYNC_POLL_ATTEMPTS,
+    }),
+  });
+}
 
 export const EXAMPLE_TENANT_ROUTE_CONTEXT = {
   tenantId: EXAMPLE_TENANT_IDENTIFIER,
@@ -340,6 +367,13 @@ export const EXAMPLE_CONTENT_ADDRESSED_SOURCE_REFERENCE =
 export const EXAMPLE_CONTENT_ADDRESSED_EVIDENCE_RECORD_IDENTIFIER =
   'zQmXh8Y3mJQ4d7MmX7o9nP5sQ2uT1vW6xY8zA3bC4dE5fG' as const;
 export const EXAMPLE_EMPLOYEE_ACTIVATION_CODE = 'ACT-001' as const;
+export const EXAMPLE_EMPLOYEE_DEVICE_CLIENT_ID_PRIMARY = 'client-employee-primary' as const;
+export const EXAMPLE_EMPLOYEE_DEVICE_CLIENT_ID_SECONDARY = 'client-employee-secondary' as const;
+export const EXAMPLE_EMPLOYEE_DEVICE_INSTANCE_ID_PRIMARY = 'installation-employee-primary' as const;
+export const EXAMPLE_EMPLOYEE_DEVICE_INSTANCE_ID_SECONDARY = 'installation-employee-secondary' as const;
+export const EXAMPLE_EMPLOYEE_DEVICE_INSTANCE_ID_TERTIARY = 'installation-employee-tertiary' as const;
+export const EXAMPLE_CLIENT_INSTANCE_UUID = '7f5e8d6c-91f4-4f6d-a29f-8bd42e44f101' as const;
+export const EXAMPLE_EMPLOYEE_DEVICE_MODEL_PRIMARY = 'Shared browser profile' as const;
 export const EXAMPLE_LICENSE_OFFER_ID = 'urn:offer:family-003' as const;
 export const EXAMPLE_LICENSE_INVALID_OFFER_ID = 'urn:offer:invalid-001' as const;
 export const EXAMPLE_LICENSE_ACCEPTED_OFFER_ID = EXAMPLE_LICENSE_OFFER_ID;

@@ -1,4 +1,4 @@
-import { DeviceAppTypes, DeviceUserClasses } from '../constants/device';
+import { DeviceAppTypes, DeviceBindingStatuses, DeviceUserClasses } from '../constants/device';
 import {
   ClaimsOrderSchemaorg,
   ClaimsIndividualProductSchemaorg,
@@ -20,6 +20,11 @@ import {
   EXAMPLE_LICENSE_CURRENCY,
   EXAMPLE_EMAIL_CONTROLLER_ORG,
   EXAMPLE_EMPLOYEE_ACTIVATION_CODE,
+  EXAMPLE_EMPLOYEE_DEVICE_CLIENT_ID_PRIMARY,
+  EXAMPLE_EMPLOYEE_DEVICE_CLIENT_ID_SECONDARY,
+  EXAMPLE_EMPLOYEE_DEVICE_INSTANCE_ID_PRIMARY,
+  EXAMPLE_EMPLOYEE_DEVICE_INSTANCE_ID_SECONDARY,
+  EXAMPLE_EMPLOYEE_DEVICE_MODEL_PRIMARY,
   EXAMPLE_HEALTHCARE_ACTOR_ROLE_GENERALIST_MEDICAL_PRACTITIONER,
   EXAMPLE_LICENSE_INVOICE_ID,
   EXAMPLE_LICENSE_OFFER_ID,
@@ -35,6 +40,38 @@ import {
   EXAMPLE_LICENSE_SUBJECT_ID_ACTIVE,
   EXAMPLE_LICENSE_SUBJECT_ID_AVAILABLE,
 } from './shared';
+import { DEFAULT_LICENSE_DEVICE_ALLOWANCE } from '../utils/license';
+import { EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE } from './employee';
+
+export const EXAMPLE_EMPLOYEE_DEVICE_BINDINGS = Object.freeze([
+  Object.freeze({
+    clientId: EXAMPLE_EMPLOYEE_DEVICE_CLIENT_ID_PRIMARY,
+    clientInstanceId: EXAMPLE_EMPLOYEE_DEVICE_INSTANCE_ID_PRIMARY,
+    status: DeviceBindingStatuses.Active,
+    deviceInfo: Object.freeze({
+      clientInstanceId: EXAMPLE_EMPLOYEE_DEVICE_INSTANCE_ID_PRIMARY,
+      model: EXAMPLE_EMPLOYEE_DEVICE_MODEL_PRIMARY,
+    }),
+    activatedAt: 1_786_570_800,
+  }),
+  Object.freeze({
+    clientId: EXAMPLE_EMPLOYEE_DEVICE_CLIENT_ID_SECONDARY,
+    clientInstanceId: EXAMPLE_EMPLOYEE_DEVICE_INSTANCE_ID_SECONDARY,
+    status: DeviceBindingStatuses.Revoked,
+    deviceInfo: Object.freeze({ clientInstanceId: EXAMPLE_EMPLOYEE_DEVICE_INSTANCE_ID_SECONDARY }),
+    activatedAt: 1_786_570_900,
+    revokedAt: 1_786_571_000,
+  }),
+] as const);
+
+/** Two simultaneously active installations used to test the default allowance. */
+export const EXAMPLE_EMPLOYEE_ACTIVE_DEVICE_BINDINGS = Object.freeze(
+  EXAMPLE_EMPLOYEE_DEVICE_BINDINGS.map((binding) => Object.freeze({
+    ...binding,
+    status: DeviceBindingStatuses.Active,
+    revokedAt: undefined,
+  })),
+);
 
 export const EXAMPLE_LICENSE_SEAT_UUIDS = Object.freeze([
   EXAMPLE_LICENSE_SEAT_UUID_ACTIVE,
@@ -97,6 +134,66 @@ export const EXAMPLE_LICENSE_LIST_RESPONSE_BODY = Object.freeze({
       },
     },
   ],
+} as const);
+
+/** Shared async GW response for a controller-issued employee activation credential. */
+export const EXAMPLE_LICENSE_ISSUE_RESPONSE_BODY = Object.freeze({
+  body: {
+    data: [{
+      resource: {
+        data: [{
+          type: 'License:Issued',
+          id: EXAMPLE_EMPLOYEE_ACTIVATION_CODE,
+          meta: {
+            claims: {
+              [ClaimsIndividualProductSchemaorg.serialNumber]: EXAMPLE_EMPLOYEE_ACTIVATION_CODE,
+            },
+          },
+        }],
+      },
+    }],
+  },
+} as const);
+
+/** Shared license search response containing the default two-installation state. */
+export const EXAMPLE_LICENSE_LIST_RESPONSE_BODY_WITH_DEVICES = Object.freeze({
+  body: {
+    resource: {
+      data: [{
+        id: EXAMPLE_LICENSE_ACTIVE_RECORD.id,
+        meta: {
+          status: EXAMPLE_LICENSE_ACTIVE_RECORD.status,
+          subjectId: EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE.resourceId,
+          maxDevices: DEFAULT_LICENSE_DEVICE_ALLOWANCE,
+          deviceBindings: EXAMPLE_EMPLOYEE_DEVICE_BINDINGS,
+        },
+      }],
+    },
+  },
+} as const);
+
+/** Canonical controller-facing employee projection reused across SDK and portal tests. */
+export const EXAMPLE_EMPLOYEE_LIFECYCLE_RECORD = Object.freeze({
+  resourceId: EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE.resourceId,
+  email: EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE.email,
+  roleCode: EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE.role,
+  employeeDid: EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE.identifier,
+  status: EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE.status,
+  license: Object.freeze({
+    id: EXAMPLE_LICENSE_ACTIVE_RECORD.id,
+    status: EXAMPLE_LICENSE_ACTIVE_RECORD.status,
+    maxDevices: DEFAULT_LICENSE_DEVICE_ALLOWANCE,
+    activeDevices: EXAMPLE_EMPLOYEE_DEVICE_BINDINGS.filter(
+      (binding) => binding.status === DeviceBindingStatuses.Active,
+    ).length,
+    devices: Object.freeze(EXAMPLE_EMPLOYEE_DEVICE_BINDINGS.map((binding) => Object.freeze({
+      clientId: binding.clientId,
+      name: ('model' in binding.deviceInfo ? binding.deviceInfo.model : undefined)
+        || binding.deviceInfo.clientInstanceId
+        || binding.clientId,
+      status: binding.status,
+    }))),
+  }),
 } as const);
 
 export function buildExampleLicenseIssueClaims(): Readonly<Record<string, unknown>> {
