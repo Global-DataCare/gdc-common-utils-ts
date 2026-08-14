@@ -4,6 +4,8 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.5.4] - 2026-08-13
+
 - Add typed identity-auth, employee lifecycle, HTTP and organization-review
   contracts plus shared lifecycle projections and synthetic multi-device test
   fixtures. Validate real RFC 9278 JWK thumbprint URNs without fabricated
