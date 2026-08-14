@@ -67,6 +67,7 @@ export * from './individual-organization-claims';
 export * from './inter-tenant-access-contract';
 export * from './legal-organization-onboarding-editor';
 export * from './organization-lifecycle';
+export * from './organization-employee-lifecycle';
 export * from './organization-did-binding';
 export * from './organization-authorization-urn';
 export * from './individual-organization-lifecycle';

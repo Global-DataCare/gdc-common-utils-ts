@@ -19,3 +19,12 @@ export const DeviceAppTypes = Object.freeze({
 } as const);
 
 export type DeviceAppType = typeof DeviceAppTypes[keyof typeof DeviceAppTypes];
+
+/** Lifecycle states for one concrete DCR installation bound to a seat. */
+export const DeviceBindingStatuses = Object.freeze({
+  Active: 'active',
+  Revoked: 'revoked',
+} as const);
+
+export type DeviceBindingStatus =
+  typeof DeviceBindingStatuses[keyof typeof DeviceBindingStatuses];

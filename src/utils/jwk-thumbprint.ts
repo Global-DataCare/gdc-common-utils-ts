@@ -86,6 +86,14 @@ export function toJwkThumbprintSha256Urn(jwk: ThumbprintableJwk): string {
   return `${UrnPrefixes.JwkThumbprintSha256KeyId}${computeRfc7638JwkThumbprint(jwk)}`;
 }
 
+/** True only for an RFC 9278 SHA-256 JWK thumbprint URI. */
+export function isJwkThumbprintSha256Urn(value: unknown): value is string {
+  const normalized = typeof value === 'string' ? value.trim() : '';
+  if (!normalized.startsWith(UrnPrefixes.JwkThumbprintSha256KeyId)) return false;
+  const thumbprint = normalized.slice(UrnPrefixes.JwkThumbprintSha256KeyId.length);
+  return /^[A-Za-z0-9_-]{43}$/.test(thumbprint);
+}
+
 /**
  * Returns a public JWK whose `kid` is derived exclusively from its public key
  * material. Caller-provided aliases are deliberately replaced so DID methods,

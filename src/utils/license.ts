@@ -1,4 +1,4 @@
-import { DeviceAppType, DeviceAppTypes, DeviceUserClass, DeviceUserClasses } from '../constants/device';
+import { DeviceAppType, DeviceAppTypes, DeviceBindingStatuses, DeviceUserClass, DeviceUserClasses } from '../constants/device';
 import {
   ClaimsIndividualProductSchemaorg,
   ClaimsOfferSchemaorg,
@@ -23,7 +23,7 @@ export function listActiveLicenseDeviceBindings(
   license: Pick<DeviceLicense, 'deviceBindings' | 'deviceId' | 'deviceInfo' | 'activatedAt'>,
 ): DeviceBinding[] {
   if (Array.isArray(license.deviceBindings)) {
-    return license.deviceBindings.filter((binding) => binding.status === 'active');
+    return license.deviceBindings.filter((binding) => binding.status === DeviceBindingStatuses.Active);
   }
   const clientId = String(license.deviceId || '').trim();
   if (!clientId) return [];
@@ -31,7 +31,7 @@ export function listActiveLicenseDeviceBindings(
   return [{
     clientId,
     clientInstanceId: deviceInfo.clientInstanceId || clientId,
-    status: 'active',
+    status: DeviceBindingStatuses.Active,
     deviceInfo,
     activatedAt: Number(license.activatedAt || 0),
   }];

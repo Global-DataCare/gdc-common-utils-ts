@@ -19,6 +19,7 @@ export * from './dataspace-discovery';
 export * from './dataspace-discovery-defaults';
 export * from './dataspace-protocol';
 export * from './device-license';
+export * from './organization-employee-lifecycle';
 export * from './did';
 export * from './fhir-documents';
 export * from './gaia-x';
