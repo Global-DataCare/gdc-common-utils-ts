@@ -1,6 +1,7 @@
 // Copyright 2026 Antifraud Services Inc. under the Apache License, Version 2.0.
 
 import { ServiceCapability } from '../constants/service-capabilities';
+import { HealthcareConsentPurposes } from '../constants/healthcare';
 import { DataspaceSectors } from '../constants/sectors';
 import { ClaimConsent } from '../models/consent-rule';
 import { ClaimInterTenantAccessContract } from '../models/inter-tenant-access-contract';
@@ -39,7 +40,7 @@ import {
  * - consumer = the foreign tenant asking for access
  * - capability = the allowed technical scope, for example
  *   `organization/Composition.rs`
- * - purpose = the allowed business/legal reason, for example `RESEARCH`
+ * - purpose = the allowed HL7 v3 ActReason, for example `HRESCH`
  * - instantiates-uri = primary agreement artifact URL/CID, typically the
  *   signed PDF of the contract itself
  * - invoice/payment evidence is intentionally not modeled as a mandatory core
@@ -55,7 +56,7 @@ export const EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_VALID_FROM =
 export const EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_VALID_UNTIL =
   '2027-06-29T00:00:00.000Z' as const;
 export const EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_PURPOSE =
-  'RESEARCH' as const;
+  HealthcareConsentPurposes.Research;
 export const EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_SCOPE =
   ServiceCapability.IndexReader;
 export const EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_SUBJECT_DID =

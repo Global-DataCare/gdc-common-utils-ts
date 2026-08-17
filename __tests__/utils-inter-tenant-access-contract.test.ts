@@ -24,8 +24,16 @@ import { addVC, createVP } from '../src/utils/vp-token.js';
 import { ClaimInterTenantAccessContract } from '../src/models/inter-tenant-access-contract.js';
 import { buildConsentRulePrimaryDocument } from '../src/utils/permission-templates.js';
 import { ClaimConsent } from '../src/models/consent-rule.js';
+import { HealthcareConsentPurposes } from '../src/constants/healthcare.js';
 
 describe('inter-tenant access contract utils', () => {
+  it('uses the canonical HL7 healthcare-research purpose', () => {
+    expect(EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONTEXT.purpose).toBe(
+      HealthcareConsentPurposes.Research,
+    );
+    expect(HealthcareConsentPurposes.Research).toBe('HRESCH');
+  });
+
   it('builds a canonical FHIR Contract resource from claims-first form data', () => {
     const resource = buildInterTenantAccessContractResource(EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CLAIMS);
 
