@@ -66,7 +66,7 @@ export enum ClaimInterTenantAccessContract {
    * Allowed business/legal purpose for the access.
    *
    * Example:
-   * - `RESEARCH`
+   * - `HRESCH` (HL7 v3 ActReason: healthcare research)
    */
   purpose = 'Contract.term-type',
   /**

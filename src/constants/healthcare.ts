@@ -554,6 +554,8 @@ export function getHealthcareSectionsByFamily(
 export const HealthcareConsentPurposes = Object.freeze({
   Treatment: 'TREAT',
   EmergencyTreatment: 'ETREAT',
+  /** HL7 v3 ActReason: healthcare research. */
+  Research: 'HRESCH',
   CareManagement: 'CAREMGT',
   Operations: 'HOPERAT',
   PatientAdministration: 'PATADMIN',

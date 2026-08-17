@@ -4,6 +4,10 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Add the canonical HL7 v3 ActReason `HRESCH` as
+  `HealthcareConsentPurposes.Research` and use it in the reusable
+  inter-tenant research contract fixtures.
+
 ## [2.5.4] - 2026-08-13
 
 - Add typed identity-auth, employee lifecycle, HTTP and organization-review
