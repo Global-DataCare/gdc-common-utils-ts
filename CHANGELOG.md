@@ -4,6 +4,19 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Export the canonical Test Network organization-registration AcroForm
+  contract as four composable provider, legal-organization,
+  legal-representative and controller interfaces plus BFF-owned document
+  metadata. Field names match the supplied PDF; the controller JWK thumbprint
+  remains a server-generated evidence binding.
+- Build the normal `OrganizationCredential`, `LegalRepresentativeCredential`
+  and `ServiceControllerCredential` as a Test Network credential set, with
+  default ISCO-08 occupations 1120/1330, `RESPRSN`, controller-key binding,
+  PDF evidence and a deterministic detached-proof payload.
+- Replace the ambiguous registration-authorization VC with the Test Network-
+  only `OrganizationTestNetworkCredential` and mark each domain VC with
+  `TestNetworkCredential`. The former type is not retained as a legacy alias.
+
 ## [2.5.5] - 2026-08-16
 
 - Add the canonical HL7 v3 ActReason `HRESCH` as

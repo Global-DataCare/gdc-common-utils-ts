@@ -85,6 +85,8 @@ export type LegalOrganizationVerificationTransactionInput = Readonly<{
   verification?: LegalOrganizationVerificationRouting;
   /** Out-of-band host authorization used only by the Test Network path. */
   authorizationCredential?: VerifiableCredentialV2;
+  /** Three reviewer-issued domain VCs accepted only with Test Network authorization. */
+  testNetworkCredentials?: readonly VerifiableCredentialV2[];
   attachments?: unknown[];
 }>;
 
@@ -108,6 +110,7 @@ export type LegalOrganizationVerificationTransactionEntry = Readonly<{
     legalRepresentative?: LegalOrganizationVerificationRepresentativePayload;
     verification?: LegalOrganizationVerificationRouting;
     authorizationCredential?: VerifiableCredentialV2;
+    testNetworkCredentials?: readonly VerifiableCredentialV2[];
     [key: string]: unknown;
   };
   [key: string]: unknown;
@@ -165,6 +168,9 @@ export function buildLegalOrganizationVerificationTransactionBundle(
         },
         ...(input.authorizationCredential
           ? { authorizationCredential: input.authorizationCredential }
+          : {}),
+        ...(input.testNetworkCredentials?.length
+          ? { testNetworkCredentials: input.testNetworkCredentials }
           : {}),
       },
     }],

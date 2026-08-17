@@ -5,7 +5,7 @@ import {
 } from '../constants/verifiable-credentials';
 import type { VerifiableCredentialV2 } from '../models/verifiable-credential';
 
-/** Lifecycle of the one GW activation licence delivered to the legal postal address. */
+/** Lifecycle of the one Test Network activation licence delivered to the legal postal address. */
 export const PostalActivationLicenseStatuses = Object.freeze({
   Issued: 'issued',
   Delivered: 'delivered',
@@ -45,7 +45,7 @@ export type PostalActivationLicenseBinding = Readonly<{
 }>;
 
 /** Input for the credential returned out-of-band to the applicant controller. */
-export type OrganizationRegistrationAuthorizationCredentialInput = Readonly<{
+export type OrganizationTestNetworkCredentialInput = Readonly<{
   issuerDid: string;
   subjectDid: string;
   credentialId: string;
@@ -73,8 +73,8 @@ function required(value: unknown, name: string): string {
  * to `Organization/_transaction`. The postal code itself never appears in the
  * credential; its confirmed, purpose-bound licence record is referenced.
  */
-export function buildOrganizationRegistrationAuthorizationCredential(
-  input: OrganizationRegistrationAuthorizationCredentialInput,
+export function buildOrganizationTestNetworkCredential(
+  input: OrganizationTestNetworkCredentialInput,
 ): VerifiableCredentialV2 {
   const applicationId = required(input.applicationId, 'applicationId');
   const organizationIdentifier = required(input.organizationIdentifier, 'organizationIdentifier');
@@ -95,7 +95,7 @@ export function buildOrganizationRegistrationAuthorizationCredential(
     id: required(input.credentialId, 'credentialId'),
     type: [
       W3cCredentialTypes.VerifiableCredential,
-      ContractCredentialTypes.OrganizationRegistrationAuthorizationCredential,
+      ContractCredentialTypes.OrganizationTestNetworkCredential,
     ],
     issuer: required(input.issuerDid, 'issuerDid'),
     credentialSubject: {
@@ -176,11 +176,11 @@ function canonicalizeValue(value: unknown): unknown {
  * same credential payload with the complete `proof` property removed, so a
  * later counter-proof cannot invalidate an earlier one.
  */
-export function canonicalizeOrganizationRegistrationAuthorizationCredential(
+export function canonicalizeOrganizationTestNetworkCredential(
   credential: VerifiableCredentialV2,
 ): string {
-  if (!credential.type.includes(ContractCredentialTypes.OrganizationRegistrationAuthorizationCredential)) {
-    throw new Error('Credential is not an organization registration authorization.');
+  if (!credential.type.includes(ContractCredentialTypes.OrganizationTestNetworkCredential)) {
+    throw new Error('Credential is not an organization Test Network admission.');
   }
   return JSON.stringify(canonicalizeValue(credential));
 }

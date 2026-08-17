@@ -52,7 +52,7 @@ describe('buildLegalOrganizationVerificationTransactionBundle', () => {
       authorizationCredential: {
         '@context': ['https://www.w3.org/ns/credentials/v2'],
         id: 'urn:uuid:authorization-1',
-        type: ['VerifiableCredential', 'OrganizationRegistrationAuthorizationCredential'],
+        type: ['VerifiableCredential', 'OrganizationTestNetworkCredential'],
         issuer: 'did:web:issuer.example',
         credentialSubject: { id: 'did:web:host.example:organization' },
         validFrom: '2026-08-10T00:00:00.000Z',
