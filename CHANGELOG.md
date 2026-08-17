@@ -4,6 +4,8 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.5.8] - 2026-08-16
+
 - Separate Test Network review authorization from postal-address verification:
   `OrganizationTestNetworkCredential` now binds only the reviewed application,
   organization, target network, controller email and controller JWK commitment.
