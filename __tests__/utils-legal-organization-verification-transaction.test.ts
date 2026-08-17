@@ -25,6 +25,7 @@ describe('buildLegalOrganizationVerificationTransactionBundle', () => {
   it('builds the canonical first-step GW CORE bundle for ICA verification', () => {
     const controllerBinding: LegalOrganizationVerificationTransactionController = {
       did: EXAMPLE_CONTROLLER_BINDING.did,
+      email: EXAMPLE_EMAIL_CONTROLLER_ORG,
       sameAs: EXAMPLE_CONTROLLER_BINDING.sameAs,
       publicKeyJwk: { ...EXAMPLE_CONTROLLER_BINDING.publicKeyJwk },
       ...(EXAMPLE_CONTROLLER_BINDING.jwks
@@ -74,6 +75,7 @@ describe('buildLegalOrganizationVerificationTransactionBundle', () => {
     expect(firstEntry?.meta).toBeUndefined();
     expect(controller?.publicKeyJwk)
       .toEqual(controllerBinding.publicKeyJwk);
+    expect(controller?.email).toBe(EXAMPLE_EMAIL_CONTROLLER_ORG);
     expect(representative?.email)
       .toBe(EXAMPLE_EMAIL_CONTROLLER_ORG);
     expect(firstEntry?.resource?.verification?.resourceType).toBe('contract');

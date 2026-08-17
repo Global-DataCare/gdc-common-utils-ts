@@ -32,6 +32,8 @@ export type LegalOrganizationVerificationTransactionEntryType =
  */
 export type LegalOrganizationVerificationTransactionController = Readonly<{
   did?: string;
+  /** Normalized controller contact bound independently from the representative. */
+  email?: string;
   sameAs?: string;
   publicKeyJwk?: Record<string, unknown>;
   jwks?: { keys: Array<Record<string, unknown>> };
