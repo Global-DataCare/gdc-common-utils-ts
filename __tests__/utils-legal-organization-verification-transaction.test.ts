@@ -50,7 +50,7 @@ describe('buildLegalOrganizationVerificationTransactionBundle', () => {
       legalRepresentativePayload: {
         email: EXAMPLE_EMAIL_CONTROLLER_ORG,
       },
-      authorizationCredential: {
+      organizationTestNetworkCredential: {
         '@context': ['https://www.w3.org/ns/credentials/v2'],
         id: 'urn:uuid:authorization-1',
         type: ['VerifiableCredential', 'OrganizationTestNetworkCredential'],
@@ -79,7 +79,7 @@ describe('buildLegalOrganizationVerificationTransactionBundle', () => {
     expect(representative?.email)
       .toBe(EXAMPLE_EMAIL_CONTROLLER_ORG);
     expect(firstEntry?.resource?.verification?.resourceType).toBe('contract');
-    expect(firstEntry?.resource?.authorizationCredential?.id).toBe('urn:uuid:authorization-1');
+    expect(firstEntry?.resource?.organizationTestNetworkCredential?.id).toBe('urn:uuid:authorization-1');
     expect((bundle as any).attachments?.[0]?.data?.links?.[0]).toBe(EXAMPLE_SIGNED_TERMS_PDF_URL);
   });
 });

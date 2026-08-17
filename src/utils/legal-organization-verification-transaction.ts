@@ -85,8 +85,8 @@ export type LegalOrganizationVerificationTransactionInput = Readonly<{
    */
   legalRepresentativePayload?: LegalOrganizationVerificationRepresentativePayload;
   verification?: LegalOrganizationVerificationRouting;
-  /** Out-of-band host authorization used only by the Test Network path. */
-  authorizationCredential?: VerifiableCredentialV2;
+  /** Reviewer-issued admission credential used only by the Test Network path. */
+  organizationTestNetworkCredential?: VerifiableCredentialV2;
   /** Three reviewer-issued domain VCs accepted only with Test Network authorization. */
   testNetworkCredentials?: readonly VerifiableCredentialV2[];
   attachments?: unknown[];
@@ -111,7 +111,7 @@ export type LegalOrganizationVerificationTransactionEntry = Readonly<{
     /** @deprecated Legacy ICA wire alias accepted only while migrating old callers. */
     legalRepresentative?: LegalOrganizationVerificationRepresentativePayload;
     verification?: LegalOrganizationVerificationRouting;
-    authorizationCredential?: VerifiableCredentialV2;
+    organizationTestNetworkCredential?: VerifiableCredentialV2;
     testNetworkCredentials?: readonly VerifiableCredentialV2[];
     [key: string]: unknown;
   };
@@ -168,8 +168,8 @@ export function buildLegalOrganizationVerificationTransactionBundle(
         verification: {
           resourceType: normalizeText(input.verification?.resourceType) || 'contract',
         },
-        ...(input.authorizationCredential
-          ? { authorizationCredential: input.authorizationCredential }
+        ...(input.organizationTestNetworkCredential
+          ? { organizationTestNetworkCredential: input.organizationTestNetworkCredential }
           : {}),
         ...(input.testNetworkCredentials?.length
           ? { testNetworkCredentials: input.testNetworkCredentials }
