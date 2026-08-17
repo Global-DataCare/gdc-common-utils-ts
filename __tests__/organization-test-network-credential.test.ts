@@ -8,9 +8,10 @@ import {
 } from '../src/utils/organization-test-network-credential';
 
 /**
- * Flow contract: a postal activation code proves delivery before an authorized
- * host employee can issue the VC later attached to Organization/_transaction.
- * Confirmation does not consume the code; `_exchange` redemption does.
+ * Teaching goal: Test Network review authorization and later postal-address
+ * verification are independent flows. The VC attached to
+ * Organization/_transaction is bound to the reviewed application and
+ * controller key, never to a postal activation secret.
  */
 describe('organization Test Network admission', () => {
   const postalLicense: PostalActivationLicenseBinding = {
@@ -33,7 +34,7 @@ describe('organization Test Network admission', () => {
     deliveredAt: '2026-08-15T00:00:00.000Z',
   };
 
-  it('builds the out-of-band VC only from a matching delivery-confirmed licence', () => {
+  it('builds the out-of-band VC from the reviewed application and controller binding', () => {
     const credential = buildOrganizationTestNetworkCredential({
       issuerDid: postalLicense.hostDid,
       subjectDid: 'did:web:host.example:DSRC-001',
@@ -47,7 +48,6 @@ describe('organization Test Network admission', () => {
       applicationId: postalLicense.applicationId,
       accessPath: 'test-network',
       targetNetwork: 'test-network',
-      postalLicense,
     });
 
     expect(credential.type).toEqual([
@@ -57,15 +57,11 @@ describe('organization Test Network admission', () => {
     expect(credential.credentialSubject).toMatchObject({
       applicationId: 'application-dsrc',
       organization: { identifier: 'DSRC-001' },
-      postalActivationLicense: {
-        id: 'lic-postal-001',
-        status: 'delivered',
-        protectedCode: { algorithm: 'scrypt-v1' },
-      },
     });
+    expect(credential.credentialSubject).not.toHaveProperty('postalActivationLicense');
   });
 
-  it('rejects a mismatched or not-yet-delivered postal licence', () => {
+  it('rejects a missing controller key without consulting postal state', () => {
     expect(() => buildOrganizationTestNetworkCredential({
       issuerDid: postalLicense.hostDid,
       subjectDid: 'did:web:host.example:DSRC-001',
@@ -75,12 +71,11 @@ describe('organization Test Network admission', () => {
       legalName: 'DSRC Example Organization',
       organizationIdentifier: postalLicense.organizationIdentifier,
       controllerEmail: postalLicense.controllerEmail,
-      controllerKeyMaterial: postalLicense.controllerKeyMaterial,
+      controllerKeyMaterial: '',
       applicationId: postalLicense.applicationId,
       accessPath: 'test-network',
       targetNetwork: 'test-network',
-      postalLicense: { ...postalLicense, status: PostalActivationLicenseStatuses.Issued },
-    })).toThrow('delivered postal activation licence');
+    })).toThrow('controllerKeyMaterial');
   });
 
   it('preserves delivered state before one final redemption', () => {
@@ -103,7 +98,6 @@ describe('organization Test Network admission', () => {
       applicationId: postalLicense.applicationId,
       accessPath: 'test-network',
       targetNetwork: 'test-network',
-      postalLicense,
     });
     const withProof = { ...base, proof: { type: 'JsonWebSignature2020', jws: 'header..signature' } };
 

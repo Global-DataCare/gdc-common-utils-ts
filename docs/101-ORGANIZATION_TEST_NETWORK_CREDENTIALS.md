@@ -5,15 +5,16 @@
 Model the evidence shared by a registration portal, a Node BFF and GW CORE
 without making the portal status equivalent to tenant admission.
 
-## The one-code rule
+## Separate postal-address verification
 
-`PostalActivationLicenseBinding` describes one purpose-bound licence:
+`PostalActivationLicenseBinding` remains a reusable model for a future,
+independent postal-address verification flow:
 
 `issued -> delivered -> redeemed`
 
-The clear code is not a VC claim. A host stores a protected digest, the
-applicant uses the code to record delivery, and `Token/_exchange` later
-consumes that same code. `revoked` and `expired` are terminal.
+It is not a Test Network admission precondition and is never embedded by
+`buildOrganizationTestNetworkCredential(...)`. The `postalLicense` builder
+input is deprecated compatibility input and is ignored.
 
 ## The admission VC
 
@@ -23,7 +24,6 @@ consumes that same code. `revoked` and `expired` are terminal.
 - application and legal-organization identifiers;
 - requested network;
 - controller email and RFC 9278 public-key commitment;
-- postal licence id, address digest and delivered timestamp.
 
 `canonicalizeOrganizationTestNetworkCredential(...)` removes
 the complete `proof` property and recursively orders the remaining keys. Every
@@ -44,5 +44,6 @@ available for production ICA evidence.
 carries exactly three reviewer-signed domain VCs. The Test Network host may
 apply this configured review policy; production must keep the ICA path.
 
-These types do not send email, dispatch physical mail, admit a Fabric member,
-create an Offer, redeem a code or complete DCR. Those are runtime concerns.
+These types do not send email, verify a postal address, admit a Fabric member,
+create an Offer, issue/exchange its activation credential or complete DCR.
+Those are separate runtime concerns.

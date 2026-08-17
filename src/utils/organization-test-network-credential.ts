@@ -5,7 +5,7 @@ import {
 } from '../constants/verifiable-credentials';
 import type { VerifiableCredentialV2 } from '../models/verifiable-credential';
 
-/** Lifecycle of the one Test Network activation licence delivered to the legal postal address. */
+/** Lifecycle for a separate postal-address verification credential. */
 export const PostalActivationLicenseStatuses = Object.freeze({
   Issued: 'issued',
   Delivered: 'delivered',
@@ -58,7 +58,12 @@ export type OrganizationTestNetworkCredentialInput = Readonly<{
   applicationId: string;
   accessPath: 'partner' | 'test-network';
   targetNetwork: 'test-network' | 'network';
-  postalLicense: PostalActivationLicenseBinding;
+  /**
+   * @deprecated Postal-address verification is a separate production-readiness
+   * flow. This compatibility input is ignored and is never embedded in a Test
+   * Network authorization credential.
+   */
+  postalLicense?: PostalActivationLicenseBinding;
   proof?: VerifiableCredentialV2['proof'];
 }>;
 
@@ -70,8 +75,8 @@ function required(value: unknown, name: string): string {
 
 /**
  * Builds the immutable VC that a controller receives out-of-band and attaches
- * to `Organization/_transaction`. The postal code itself never appears in the
- * credential; its confirmed, purpose-bound licence record is referenced.
+ * to `Organization/_transaction`. Postal-address verification is deliberately
+ * outside this credential and may be completed independently before production.
  */
 export function buildOrganizationTestNetworkCredential(
   input: OrganizationTestNetworkCredentialInput,
@@ -79,16 +84,6 @@ export function buildOrganizationTestNetworkCredential(
   const applicationId = required(input.applicationId, 'applicationId');
   const organizationIdentifier = required(input.organizationIdentifier, 'organizationIdentifier');
   const controllerEmail = required(input.controllerEmail, 'controllerEmail').toLowerCase();
-  if (input.postalLicense.status !== PostalActivationLicenseStatuses.Delivered) {
-    throw new Error('Organization registration authorization requires a delivered postal activation licence.');
-  }
-  if (input.postalLicense.applicationId !== applicationId
-    || input.postalLicense.organizationIdentifier !== organizationIdentifier
-    || input.postalLicense.controllerEmail.trim().toLowerCase() !== controllerEmail
-    || input.postalLicense.controllerKeyMaterial !== input.controllerKeyMaterial
-    || input.postalLicense.network !== input.targetNetwork) {
-    throw new Error('Postal activation licence does not match the organization registration application.');
-  }
 
   return {
     '@context': [W3cCredentialContexts.V2, 'https://schema.org'],
@@ -110,20 +105,6 @@ export function buildOrganizationTestNetworkCredential(
       controller: {
         email: controllerEmail,
         hasCredential: { material: required(input.controllerKeyMaterial, 'controllerKeyMaterial') },
-      },
-      postalActivationLicense: {
-        id: required(input.postalLicense.licenseId, 'postalLicense.licenseId'),
-        status: input.postalLicense.status,
-        postalAddressHash: required(input.postalLicense.postalAddressHash, 'postalLicense.postalAddressHash'),
-        deliveredAt: required(
-          input.postalLicense.deliveredAt,
-          'postalLicense.deliveredAt',
-        ),
-        protectedCode: {
-          algorithm: input.postalLicense.protectedCode.algorithm,
-          salt: required(input.postalLicense.protectedCode.salt, 'postalLicense.protectedCode.salt'),
-          digest: required(input.postalLicense.protectedCode.digest, 'postalLicense.protectedCode.digest'),
-        },
       },
     },
     validFrom: required(input.validFrom, 'validFrom'),

@@ -4,6 +4,12 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Separate Test Network review authorization from postal-address verification:
+  `OrganizationTestNetworkCredential` now binds only the reviewed application,
+  organization, target network, controller email and controller JWK commitment.
+  The former `postalLicense` input is optional, deprecated and ignored so new
+  credentials never embed postal delivery or activation-code material.
+
 ## [2.5.7] - 2026-08-16
 
 - Rename the Test Network admission VC transport field to
