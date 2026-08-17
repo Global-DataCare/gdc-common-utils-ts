@@ -70,8 +70,13 @@ export const IndividualCredentialTypes = Object.freeze({
  */
 export const ContractCredentialTypes = Object.freeze({
   InterTenantAccessContractCredential: 'InterTenantAccessContractCredential',
-  /** Host/ICA-issued evidence that permits one controller to submit tenant registration. */
-  OrganizationRegistrationAuthorizationCredential: 'OrganizationRegistrationAuthorizationCredential',
+  /** Reviewer-issued admission evidence that is valid only in Test Network. */
+  OrganizationTestNetworkCredential: 'OrganizationTestNetworkCredential',
+});
+
+/** Marker added to normal domain credentials issued only for Test Network. */
+export const EnvironmentCredentialTypes = Object.freeze({
+  TestNetworkCredential: 'TestNetworkCredential',
 });
 
 export const ORGANIZATION_ACTIVATION_VC_TYPES = Object.freeze([

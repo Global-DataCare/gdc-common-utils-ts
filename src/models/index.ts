@@ -54,6 +54,7 @@ export * from './response';
 export * from './subject-identifier-ledger';
 export * from './subject-identity';
 export * from './subject-identity-binding';
+export * from './test-network-organization-registration-form';
 export * from './terminology';
 export * from './urlPath';
 export * from './verifiable-credential';

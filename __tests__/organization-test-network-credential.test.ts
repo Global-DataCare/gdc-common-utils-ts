@@ -1,18 +1,18 @@
 import { describe, expect, it } from '@jest/globals';
 import {
   PostalActivationLicenseStatuses,
-  buildOrganizationRegistrationAuthorizationCredential,
-  canonicalizeOrganizationRegistrationAuthorizationCredential,
+  buildOrganizationTestNetworkCredential,
+  canonicalizeOrganizationTestNetworkCredential,
   transitionPostalActivationLicense,
   type PostalActivationLicenseBinding,
-} from '../src/utils/organization-registration-authorization';
+} from '../src/utils/organization-test-network-credential';
 
 /**
  * Flow contract: a postal activation code proves delivery before an authorized
  * host employee can issue the VC later attached to Organization/_transaction.
  * Confirmation does not consume the code; `_exchange` redemption does.
  */
-describe('organization registration authorization', () => {
+describe('organization Test Network admission', () => {
   const postalLicense: PostalActivationLicenseBinding = {
     licenseId: 'lic-postal-001',
     applicationId: 'application-dsrc',
@@ -34,7 +34,7 @@ describe('organization registration authorization', () => {
   };
 
   it('builds the out-of-band VC only from a matching delivery-confirmed licence', () => {
-    const credential = buildOrganizationRegistrationAuthorizationCredential({
+    const credential = buildOrganizationTestNetworkCredential({
       issuerDid: postalLicense.hostDid,
       subjectDid: 'did:web:host.example:DSRC-001',
       credentialId: 'urn:uuid:authorization-dsrc',
@@ -52,7 +52,7 @@ describe('organization registration authorization', () => {
 
     expect(credential.type).toEqual([
       'VerifiableCredential',
-      'OrganizationRegistrationAuthorizationCredential',
+      'OrganizationTestNetworkCredential',
     ]);
     expect(credential.credentialSubject).toMatchObject({
       applicationId: 'application-dsrc',
@@ -66,7 +66,7 @@ describe('organization registration authorization', () => {
   });
 
   it('rejects a mismatched or not-yet-delivered postal licence', () => {
-    expect(() => buildOrganizationRegistrationAuthorizationCredential({
+    expect(() => buildOrganizationTestNetworkCredential({
       issuerDid: postalLicense.hostDid,
       subjectDid: 'did:web:host.example:DSRC-001',
       credentialId: 'urn:uuid:authorization-dsrc',
@@ -90,7 +90,7 @@ describe('organization registration authorization', () => {
   });
 
   it('canonicalizes every proof over the same proof-free payload', () => {
-    const base = buildOrganizationRegistrationAuthorizationCredential({
+    const base = buildOrganizationTestNetworkCredential({
       issuerDid: postalLicense.hostDid,
       subjectDid: 'did:web:host.example:DSRC-001',
       credentialId: 'urn:uuid:authorization-dsrc',
@@ -107,7 +107,7 @@ describe('organization registration authorization', () => {
     });
     const withProof = { ...base, proof: { type: 'JsonWebSignature2020', jws: 'header..signature' } };
 
-    expect(canonicalizeOrganizationRegistrationAuthorizationCredential(withProof))
-      .toBe(canonicalizeOrganizationRegistrationAuthorizationCredential(base));
+    expect(canonicalizeOrganizationTestNetworkCredential(withProof))
+      .toBe(canonicalizeOrganizationTestNetworkCredential(base));
   });
 });
