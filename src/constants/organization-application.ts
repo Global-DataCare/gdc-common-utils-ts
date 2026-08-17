@@ -22,13 +22,13 @@ export function isOrganizationRegistrationReviewAction(
 export const OrganizationRegistrationErrors = Object.freeze({
   InvalidReviewAction: 'invalid_review_action',
   ApplicationNotReviewable: 'application_not_reviewable',
-  AuthorizationCredentialRequired: 'organization_authorization_credential_required',
+  AdmissionCredentialRequired: 'organization_test_network_credential_required',
   ReviewFailed: 'review_failed',
   InvalidOrganization: 'invalid_organization',
   ApplicationFailed: 'application_failed',
 } as const);
 
-/** Default and accepted authorization validity window for registration evidence. */
+/** Default and accepted Test Network admission validity window. */
 export const OrganizationRegistrationValidity = Object.freeze({
   DefaultDays: 180,
   MinimumDays: 1,

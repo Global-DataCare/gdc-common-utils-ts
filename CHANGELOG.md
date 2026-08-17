@@ -9,6 +9,8 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 - Rename the Test Network admission VC transport field to
   `organizationTestNetworkCredential` and remove the ambiguous authorization
   name from the active API and documentation; no legacy alias is retained.
+- Rename the shared missing-admission error to `AdmissionCredentialRequired`;
+  the authorization-named error identifier is not retained.
 
 ## [2.5.6] - 2026-08-16
 
