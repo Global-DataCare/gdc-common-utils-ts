@@ -4,6 +4,8 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.5.6] - 2026-08-16
+
 - Export the canonical Test Network organization-registration AcroForm
   contract as four composable provider, legal-organization,
   legal-representative and controller interfaces plus BFF-owned document
