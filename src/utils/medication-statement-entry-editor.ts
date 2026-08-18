@@ -58,22 +58,22 @@ export class MedicationStatementEntryEditor extends ClinicalResourceEntryEditor 
   public setCodeDisplay(display?: string | null): this { return this.setScalarClaim(MedicationStatementClaim.CodeDisplay, display); }
   /** Returns the English/international terminology display. */
   public getCodeDisplay(): string | undefined { return this.getScalarClaim(MedicationStatementClaim.CodeDisplay); }
-  /** Sets the official R5 `adherence` token SearchParameter value for `adherence.code`. */
+  /** Sets the official R5 `adherence` token; the dotted HL7 FHIRPath is never emitted as a claim key. */
   public setAdherence(value?: string | null): this { return this.setScalarClaim(MedicationStatementClaim.Adherence, value); }
   /** Returns the official R5 `adherence` token SearchParameter value. */
   public getAdherence(): string | undefined { return this.getScalarClaim(MedicationStatementClaim.Adherence); }
-  /** Sets the scalarized R5 adherence code token. */
-  public setAdherenceCode(value?: string | null): this { return this.setScalarClaim(MedicationStatementClaim.AdherenceCode, value); }
-  /** Returns the scalarized R5 adherence code token. */
-  public getAdherenceCode(): string | undefined { return this.getScalarClaim(MedicationStatementClaim.AdherenceCode); }
+  /** Convenience alias that emits the official R5 `adherence` SearchParameter claim. */
+  public setAdherenceCode(value?: string | null): this { return this.setAdherence(value); }
+  /** Convenience alias that reads the official R5 `adherence` SearchParameter claim. */
+  public getAdherenceCode(): string | undefined { return this.getAdherence(); }
   /** Sets local/manual text for the R5 adherence CodeableConcept. */
-  public setAdherenceCodeTextLocal(value?: string | null): this { return this.setScalarClaim(MedicationStatementClaim.AdherenceCodeText, value); }
+  public setAdherenceCodeTextLocal(value?: string | null): this { return this.setScalarClaim(MedicationStatementClaim.AdherenceText, value); }
   /** Returns local/manual text for the R5 adherence CodeableConcept. */
-  public getAdherenceCodeTextLocal(): string | undefined { return this.getScalarClaim(MedicationStatementClaim.AdherenceCodeText); }
+  public getAdherenceCodeTextLocal(): string | undefined { return this.getScalarClaim(MedicationStatementClaim.AdherenceText); }
   /** Sets the terminology display for the R5 adherence Coding. */
-  public setAdherenceCodeDisplay(value?: string | null): this { return this.setScalarClaim(MedicationStatementClaim.AdherenceCodeDisplay, value); }
+  public setAdherenceCodeDisplay(value?: string | null): this { return this.setScalarClaim(MedicationStatementClaim.AdherenceDisplay, value); }
   /** Returns the terminology display for the R5 adherence Coding. */
-  public getAdherenceCodeDisplay(): string | undefined { return this.getScalarClaim(MedicationStatementClaim.AdherenceCodeDisplay); }
+  public getAdherenceCodeDisplay(): string | undefined { return this.getScalarClaim(MedicationStatementClaim.AdherenceDisplay); }
   /** Sets one free-text note attached to the medication entry. */
   public setNote(note?: string | null): this { return this.setScalarClaim(MedicationStatementClaim.Note, note); }
   /** Returns the current medication note. */

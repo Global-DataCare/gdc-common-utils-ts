@@ -6,6 +6,9 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [2.5.9] - 2026-08-18
 
+- Require exactly one dot in short FHIR claim keys and keep dotted HL7 FHIRPath
+  expressions out of `resource.meta.claims`; use `adherence`,
+  `adherence-text`, and `adherence-display` for the R5 adherence token family.
 - Correct MedicationStatement claim semantics: canonical `code-text` and
   `code-display` accompany the official `code` token SearchParameter,
   `medication` remains a separate reference SearchParameter, and R5

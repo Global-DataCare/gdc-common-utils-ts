@@ -21,6 +21,7 @@ describe('canonical FHIR API claim names', () => {
         const shortClaim = value.replace(/^org\.hl7\.fhir\.api\./, '');
         expect(value).not.toMatch(/^org\.hl7\.fhir\.(?:r4|r5)\./);
         expect(shortClaim).toMatch(/^[A-Z][A-Za-z0-9]+\.[a-z][a-z0-9-]*$/);
+        expect(shortClaim.split('.')).toHaveLength(2);
         expect(shortClaim.split('.')[1]).not.toMatch(/[A-Z_]/);
       }
       expect(Object.keys(registry).length).toBeGreaterThan(0);

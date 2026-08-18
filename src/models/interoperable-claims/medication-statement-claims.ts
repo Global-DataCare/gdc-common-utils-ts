@@ -55,18 +55,12 @@ export const MedicationStatementClaim = {
   Source: 'MedicationStatement.source',
   /** @deprecated Use `CodeText`; retained only for historical payload readback. */
   MedicationText: 'MedicationStatement.medication-text',
-  /** Official R5 token SearchParameter mapped to `MedicationStatement.adherence.code`. */
+  /** Official R5 token SearchParameter; its FHIRPath expression targets the adherence CodeableConcept. */
   Adherence: 'MedicationStatement.adherence',
-  /** Scalarized R5 element claim for `MedicationStatement.adherence.code`. */
-  AdherenceCode: 'MedicationStatement.adherence-code',
-  /** Local/manual text from the adherence CodeableConcept. */
-  AdherenceCodeText: 'MedicationStatement.adherence-code-text',
-  /** Terminology display from the adherence Coding. */
-  AdherenceCodeDisplay: 'MedicationStatement.adherence-code-display',
-  /** Scalarized R5 element claim for `MedicationStatement.adherence.reason`. */
-  AdherenceReasonCode: 'MedicationStatement.adherence-reason-code',
-  AdherenceReasonText: 'MedicationStatement.adherence-reason-text',
-  AdherenceReasonDisplay: 'MedicationStatement.adherence-reason-display',
+  /** Local/manual CodeableConcept.text companion for the official `adherence` token. */
+  AdherenceText: 'MedicationStatement.adherence-text',
+  /** Terminology Coding.display companion for the official `adherence` token. */
+  AdherenceDisplay: 'MedicationStatement.adherence-display',
   UserSelected: 'MedicationStatement.user-selected',
   /**
    * Free-text clinical note.
@@ -128,10 +122,9 @@ export const MedicationStatementClaimSpecs: ClaimSpec[] = [
   { key: MedicationStatementClaim.CodeText, meaning: 'Local/manual medication concept text matching resource language.', example: 'Ibuprofeno' },
   { key: MedicationStatementClaim.CodeDisplay, meaning: 'Canonical/international medication Coding.display.', example: 'Ibuprofen' },
   { key: MedicationStatementClaim.Medication, meaning: 'Official reference SearchParameter for medication.reference.', example: 'Medication/medication-123' },
-  { key: MedicationStatementClaim.Adherence, meaning: 'Official R5 token SearchParameter for adherence.code.', example: `${MEDICATION_STATEMENT_ADHERENCE_CODE_SYSTEM}|taking-as-directed` },
-  { key: MedicationStatementClaim.AdherenceCode, meaning: 'Scalarized R5 adherence.code token.', example: `${MEDICATION_STATEMENT_ADHERENCE_CODE_SYSTEM}|taking-as-directed` },
-  { key: MedicationStatementClaim.AdherenceCodeText, meaning: 'Local/manual adherence CodeableConcept.text.', example: 'Tomando según indicación' },
-  { key: MedicationStatementClaim.AdherenceCodeDisplay, meaning: 'Canonical adherence Coding.display.', example: 'Taking As Directed' },
+  { key: MedicationStatementClaim.Adherence, meaning: 'Official R5 adherence token SearchParameter.', example: `${MEDICATION_STATEMENT_ADHERENCE_CODE_SYSTEM}|taking-as-directed` },
+  { key: MedicationStatementClaim.AdherenceText, meaning: 'Local/manual adherence CodeableConcept.text.', example: 'Tomando según indicación' },
+  { key: MedicationStatementClaim.AdherenceDisplay, meaning: 'Canonical adherence Coding.display.', example: 'Taking As Directed' },
 ];
 
 /**
@@ -167,12 +160,8 @@ export enum MedicationStatementClaimsFhirApi {
  */
 export enum MedicationStatementClaimsFhirApiExtended {
   Adherence = 'org.hl7.fhir.api.MedicationStatement.adherence',
-  AdherenceCode = 'org.hl7.fhir.api.MedicationStatement.adherence-code',
-  AdherenceCodeText = 'org.hl7.fhir.api.MedicationStatement.adherence-code-text',
-  AdherenceCodeDisplay = 'org.hl7.fhir.api.MedicationStatement.adherence-code-display',
-  AdherenceReasonCode = 'org.hl7.fhir.api.MedicationStatement.adherence-reason-code',
-  AdherenceReasonText = 'org.hl7.fhir.api.MedicationStatement.adherence-reason-text',
-  AdherenceReasonDisplay = 'org.hl7.fhir.api.MedicationStatement.adherence-reason-display',
+  AdherenceText = 'org.hl7.fhir.api.MedicationStatement.adherence-text',
+  AdherenceDisplay = 'org.hl7.fhir.api.MedicationStatement.adherence-display',
   CodeText = 'org.hl7.fhir.api.MedicationStatement.code-text',
   CodeDisplay = 'org.hl7.fhir.api.MedicationStatement.code-display',
   Category = 'org.hl7.fhir.api.MedicationStatement.category',
@@ -428,12 +417,8 @@ export const MedicationStatementClaimsFhirApiMap = {
 
 export const MedicationStatementClaimsFhirApiExtendedMap = {
   ...MedicationStatementClaimsFhirApiMap,
-  [MedicationStatementClaimsFhirApiExtended.AdherenceCode]: String,
-  [MedicationStatementClaimsFhirApiExtended.AdherenceCodeText]: String,
-  [MedicationStatementClaimsFhirApiExtended.AdherenceCodeDisplay]: String,
-  [MedicationStatementClaimsFhirApiExtended.AdherenceReasonCode]: String,
-  [MedicationStatementClaimsFhirApiExtended.AdherenceReasonText]: String,
-  [MedicationStatementClaimsFhirApiExtended.AdherenceReasonDisplay]: String,
+  [MedicationStatementClaimsFhirApiExtended.AdherenceText]: String,
+  [MedicationStatementClaimsFhirApiExtended.AdherenceDisplay]: String,
   [MedicationStatementClaimsFhirApiExtended.CodeText]: String,
   [MedicationStatementClaimsFhirApiExtended.CodeDisplay]: String,
   [MedicationStatementClaimsFhirApiExtended.DoseQuantity]: String,
@@ -515,12 +500,8 @@ export interface MedicationStatementClaimsFlat {
   [MedicationStatementClaimsFhirApi.Source]?: string;
   [MedicationStatementClaimsFhirApi.Status]?: string;
   [MedicationStatementClaimsFhirApi.Subject]?: string;
-  [MedicationStatementClaimsFhirApiExtended.AdherenceCode]?: string;
-  [MedicationStatementClaimsFhirApiExtended.AdherenceCodeText]?: string;
-  [MedicationStatementClaimsFhirApiExtended.AdherenceCodeDisplay]?: string;
-  [MedicationStatementClaimsFhirApiExtended.AdherenceReasonCode]?: string;
-  [MedicationStatementClaimsFhirApiExtended.AdherenceReasonText]?: string;
-  [MedicationStatementClaimsFhirApiExtended.AdherenceReasonDisplay]?: string;
+  [MedicationStatementClaimsFhirApiExtended.AdherenceText]?: string;
+  [MedicationStatementClaimsFhirApiExtended.AdherenceDisplay]?: string;
   [MedicationStatementClaimsFhirApiExtended.CodeText]?: string;
   [MedicationStatementClaimsFhirApiExtended.CodeDisplay]?: string;
   [MedicationStatementClaimsFhirApiExtended.DoseQuantity]?: string;
@@ -573,12 +554,8 @@ export interface MedicationStatementClaimsFlat {
 export interface MedicationStatementClaimsContextualized {
   '@context': 'org.hl7.fhir.api';
   'MedicationStatement.adherence'?: string;
-  'MedicationStatement.adherence-code'?: string;
-  'MedicationStatement.adherence-code-text'?: string;
-  'MedicationStatement.adherence-code-display'?: string;
-  'MedicationStatement.adherence-reason-code'?: string;
-  'MedicationStatement.adherence-reason-text'?: string;
-  'MedicationStatement.adherence-reason-display'?: string;
+  'MedicationStatement.adherence-text'?: string;
+  'MedicationStatement.adherence-display'?: string;
   'MedicationStatement.category'?: string;
   'MedicationStatement.code'?: string;
   'MedicationStatement.code-text'?: string;

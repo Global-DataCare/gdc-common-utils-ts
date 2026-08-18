@@ -2,7 +2,7 @@
  * Teaching goal:
  * - `code` is the token SearchParameter for `medication.concept`
  * - `medication` is the reference SearchParameter for `medication.reference`
- * - R5 `adherence` is a token SearchParameter for `adherence.code`
+ * - R5 `adherence` is a token SearchParameter; its dotted FHIRPath expression is never a claim key
  * - readable companions belong to CodeableConcept/Coding targets, not to every token parameter
  */
 import { BundleEditableResourceTypes, BundleOperations } from '../src/models/bundle-editor-types.js';
@@ -48,7 +48,10 @@ describe('101: MedicationStatement code, medication and adherence contracts', ()
     expect(claims[MedicationStatementClaim.CodeText]).toBe('Ibuprofeno');
     expect(claims[MedicationStatementClaim.CodeDisplay]).toBe('Ibuprofen');
     expect(claims[MedicationStatementClaim.Adherence]).toBe(ADHERENCE);
-    expect(claims[MedicationStatementClaim.AdherenceCode]).toBe(ADHERENCE);
+    expect(claims[MedicationStatementClaim.Adherence]).toBe(ADHERENCE);
+    expect(claims[MedicationStatementClaim.AdherenceText]).toBe('Tomando según indicación');
+    expect(claims[MedicationStatementClaim.AdherenceDisplay]).toBe('Taking As Directed');
+    expect(claims['MedicationStatement.adherence.code']).toBeUndefined();
     expect(claims[MedicationStatementClaim.MedicationText]).toBeUndefined();
     expect(claims['MedicationStatement.CodeTextLocal']).toBeUndefined();
   });
