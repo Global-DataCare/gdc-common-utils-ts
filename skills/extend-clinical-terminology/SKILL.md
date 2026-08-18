@@ -18,6 +18,9 @@ Never translate free text or guess a code from another field.
 - FHIR-like claims are version-independent FHIR API SearchParameter claims.
 - Author payloads with `@context: org.hl7.fhir.api` and short keys in the form
   `<ResourceType>.<concrete-param>`.
+- A short FHIR claim has exactly one dot: the separator after ResourceType.
+  The SearchParameter itself is one lower kebab-case segment and can never
+  contain `.`. Dotted FHIRPath expressions belong only to HL7 definitions.
 - The only valid expanded form is
   `org.hl7.fhir.api.<ResourceType>.<concrete-param>`.
 - Never create, accept or document `org.hl7.fhir.r4.*` claims. `r4` belongs to
@@ -64,15 +67,17 @@ Do not add `-text` and `-display` to every SearchParameter whose search type is
 
 MedicationStatement is a required special-case test fixture:
 
-- `code` is the official token SearchParameter for `medication.concept`, so
+- `code` is the official token SearchParameter whose HL7 FHIRPath expression
+  targets `medication.concept`, so
   the claims family is `code`, `code-text`, and `code-display`.
-- `medication` is the official reference SearchParameter for
-  `medication.reference`; it is not an alias for `code` and gets no readable
+- `medication` is the official reference SearchParameter whose FHIRPath
+  expression targets `medication.reference`; it is not an alias for `code` and gets no readable
   companions.
-- R5 `adherence` is the official token SearchParameter for `adherence.code`.
-  Keep it distinct from scalarized `adherence-code`, `adherence-code-text`, and
-  `adherence-code-display` element claims. R4 export cannot project adherence
-  into a native MedicationStatement element.
+- R5 `adherence` is the official token SearchParameter. The dotted
+  `adherence.code` string is only its HL7 FHIRPath expression and must never be
+  emitted as a claim. Its readable companions are `adherence-text` and
+  `adherence-display`. R4 export cannot project adherence into a native
+  MedicationStatement element.
 - Immunization uses its own official `vaccine-code` SearchParameter and the
   `vaccine-code-text` / `vaccine-code-display` CodeableConcept companions.
 

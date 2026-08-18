@@ -187,10 +187,15 @@ search type. A CodeableConcept supports both text and display; Coding supports
 display but not CodeableConcept.text; primitive code, Identifier, ContactPoint
 and boolean token searches do not automatically gain either suffix.
 
+A short FHIR API claim contains exactly one dot, for example
+`MedicationStatement.adherence`. Dotted strings such as `adherence.code` or
+`medication.concept` are HL7 FHIRPath expressions that explain the native JSON
+mapping; they are never SearchParameter names or `resource.meta.claims` keys.
+
 MedicationStatement is deliberately non-obvious: `code` searches
 `medication.concept`, while `medication` is a reference search over
-`medication.reference`. In R5, `adherence` is another token search over
-`adherence.code`. Immunization instead names its medication concept search
+`medication.reference`. In R5, `adherence` is another token search whose HL7
+expression targets `adherence.code`. Immunization instead names its medication concept search
 `vaccine-code`.
 
 The generic path is documented in:
