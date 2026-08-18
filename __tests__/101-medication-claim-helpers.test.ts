@@ -93,7 +93,8 @@ it('101: build medication statement claims step by step with simple setters', ()
   expect(claims[MedicationStatementClaim.Subject]).toBe(subjectId);
   expect(claims[MedicationStatementClaim.Status]).toBe(EXAMPLE_MEDICATION_STATEMENT_STATUS);
   expect(claims[MedicationStatementClaim.Effective]).toBe(EXAMPLE_MEDICATION_IBUPROFEN_EFFECTIVE);
-  expect(claims[MedicationStatementClaim.MedicationText]).toBe(EXAMPLE_MEDICATION_IBUPROFEN_TEXT);
+  expect(claims[MedicationStatementClaim.CodeText]).toBe(EXAMPLE_MEDICATION_IBUPROFEN_TEXT);
+  expect(claims[MedicationStatementClaim.MedicationText]).toBeUndefined();
   expect(claims[MedicationStatementClaimsFhirApiExtended.DoseQuantityValue]).toBe(400);
   expect(claims[MedicationStatementClaimsFhirApiExtended.DoseQuantityUnit]).toBe(EXAMPLE_MEDICATION_DOSE_UNIT_MG);
   expect(claims[MedicationStatementClaimsFhirApiExtended.TimingFrequency]).toBe(1);

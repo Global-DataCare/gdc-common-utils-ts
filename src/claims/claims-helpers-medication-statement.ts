@@ -60,14 +60,15 @@ export function setMedicationEffective(
 }
 
 export function getMedicationText(claims: MedicationInteroperableClaims): string {
-  return getMedicationScalar(claims, MedicationStatementClaim.MedicationText);
+  return getMedicationScalar(claims, MedicationStatementClaim.CodeText)
+    || getMedicationScalar(claims, MedicationStatementClaim.MedicationText);
 }
 
 export function setMedicationText(
   claims: MedicationInteroperableClaims,
   value: string,
 ): MedicationInteroperableClaims {
-  return setMedicationScalar(claims, MedicationStatementClaim.MedicationText, value);
+  return setMedicationScalar(claims, MedicationStatementClaim.CodeText, value);
 }
 
 export function getMedicationDoseQuantityValue(claims: MedicationInteroperableClaims): number | undefined {

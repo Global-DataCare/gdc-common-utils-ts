@@ -177,7 +177,7 @@ export function buildMedicationEditingCommunicationSessionExample(): {
       [MedicationStatementClaim.Identifier]: EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER,
       [MedicationStatementClaim.Subject]: EXAMPLE_SUBJECT_DID,
       [MedicationStatementClaim.Status]: EXAMPLE_MEDICATION_STATEMENT_STATUS,
-      [MedicationStatementClaim.MedicationText]: EXAMPLE_MEDICATION_STATEMENT_TEXT,
+      [MedicationStatementClaim.CodeText]: EXAMPLE_MEDICATION_STATEMENT_TEXT,
     },
     fullUrl: `urn:uuid:${EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER}`,
   });

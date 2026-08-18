@@ -106,6 +106,7 @@ export * from './smart-scope';
 export * from './service-act-reasons';
 export * from './same-as';
 export * from './subject-identity';
+export * from './connected-device-fhir-r4';
 export * from './subject-identity-binding';
 export * from './activation-request';
 export * from './actor-identifier';

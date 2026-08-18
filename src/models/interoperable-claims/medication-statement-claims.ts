@@ -1,6 +1,35 @@
 // src/models/fhir/MedicationStatement.claims.ts
 // Always create JSDoc, do not use strings inline in keys nor values, use types instead, and reuse the data test examples.
 
+import type { ClaimSpec } from './types';
+
+/** Canonical FHIR R5 code system for `MedicationStatement.adherence.code`. */
+export const MEDICATION_STATEMENT_ADHERENCE_CODE_SYSTEM =
+  'http://hl7.org/fhir/CodeSystem/medication-statement-adherence' as const;
+
+/**
+ * Codes published by the FHIR R5 Medication Statement Adherence value set.
+ *
+ * The FHIR binding strength is `example`, so applications must accept other
+ * valid Coding values even when these helpers cover the published code system.
+ */
+export const MedicationStatementAdherenceCodes = {
+  Taking: 'taking',
+  TakingAsDirected: 'taking-as-directed',
+  TakingNotAsDirected: 'taking-not-as-directed',
+  NotTaking: 'not-taking',
+  OnHold: 'on-hold',
+  OnHoldAsDirected: 'on-hold-as-directed',
+  OnHoldNotAsDirected: 'on-hold-not-as-directed',
+  Stopped: 'stopped',
+  StoppedAsDirected: 'stopped-as-directed',
+  StoppedNotAsDirected: 'stopped-not-as-directed',
+  Unknown: 'unknown',
+} as const;
+
+export type MedicationStatementAdherenceCode =
+  typeof MedicationStatementAdherenceCodes[keyof typeof MedicationStatementAdherenceCodes];
+
 /**
  * Canonical flat claim keys for the lightweight `MedicationStatement.*` mapping
  * used by shared examples, GW ingestion, and converter roundtrip tests.
@@ -12,13 +41,32 @@ export const MedicationStatementClaim = {
   Status: 'MedicationStatement.status',
   Category: 'MedicationStatement.category',
   Effective: 'MedicationStatement.effective',
+  /** Official token SearchParameter `code`; maps to the medication concept, not a root FHIR element. */
   Code: 'MedicationStatement.code',
+  /** Local/manual `CodeableConcept.text` companion for the medication concept. */
+  CodeText: 'MedicationStatement.code-text',
+  /** Readable alias for frontend authors; the emitted claim remains `MedicationStatement.code-text`. */
+  CodeTextLocal: 'MedicationStatement.code-text',
+  /** Terminology `Coding.display` companion for the medication concept. */
+  CodeDisplay: 'MedicationStatement.code-display',
+  /** Official reference SearchParameter; maps to `medication.reference`. */
   Medication: 'MedicationStatement.medication',
   PartOf: 'MedicationStatement.part-of',
   Source: 'MedicationStatement.source',
+  /** @deprecated Use `CodeText`; retained only for historical payload readback. */
   MedicationText: 'MedicationStatement.medication-text',
-  /** English/international display for the coded medication. */
-  CodeDisplay: 'MedicationStatement.code-display',
+  /** Official R5 token SearchParameter mapped to `MedicationStatement.adherence.code`. */
+  Adherence: 'MedicationStatement.adherence',
+  /** Scalarized R5 element claim for `MedicationStatement.adherence.code`. */
+  AdherenceCode: 'MedicationStatement.adherence-code',
+  /** Local/manual text from the adherence CodeableConcept. */
+  AdherenceCodeText: 'MedicationStatement.adherence-code-text',
+  /** Terminology display from the adherence Coding. */
+  AdherenceCodeDisplay: 'MedicationStatement.adherence-code-display',
+  /** Scalarized R5 element claim for `MedicationStatement.adherence.reason`. */
+  AdherenceReasonCode: 'MedicationStatement.adherence-reason-code',
+  AdherenceReasonText: 'MedicationStatement.adherence-reason-text',
+  AdherenceReasonDisplay: 'MedicationStatement.adherence-reason-display',
   UserSelected: 'MedicationStatement.user-selected',
   /**
    * Free-text clinical note.
@@ -72,6 +120,20 @@ export const MedicationStatementClaim = {
   TimingPeriodUnit: 'MedicationStatement.timing-period-unit',
 } as const;
 
+export type MedicationStatementClaimKey =
+  typeof MedicationStatementClaim[keyof typeof MedicationStatementClaim];
+
+export const MedicationStatementClaimSpecs: ClaimSpec[] = [
+  { key: MedicationStatementClaim.Code, meaning: 'Official token SearchParameter for medication.concept.', example: 'http://www.nlm.nih.gov/research/umls/rxnorm|5640' },
+  { key: MedicationStatementClaim.CodeText, meaning: 'Local/manual medication concept text matching resource language.', example: 'Ibuprofeno' },
+  { key: MedicationStatementClaim.CodeDisplay, meaning: 'Canonical/international medication Coding.display.', example: 'Ibuprofen' },
+  { key: MedicationStatementClaim.Medication, meaning: 'Official reference SearchParameter for medication.reference.', example: 'Medication/medication-123' },
+  { key: MedicationStatementClaim.Adherence, meaning: 'Official R5 token SearchParameter for adherence.code.', example: `${MEDICATION_STATEMENT_ADHERENCE_CODE_SYSTEM}|taking-as-directed` },
+  { key: MedicationStatementClaim.AdherenceCode, meaning: 'Scalarized R5 adherence.code token.', example: `${MEDICATION_STATEMENT_ADHERENCE_CODE_SYSTEM}|taking-as-directed` },
+  { key: MedicationStatementClaim.AdherenceCodeText, meaning: 'Local/manual adherence CodeableConcept.text.', example: 'Tomando según indicación' },
+  { key: MedicationStatementClaim.AdherenceCodeDisplay, meaning: 'Canonical adherence Coding.display.', example: 'Taking As Directed' },
+];
+
 /**
  * Flat claims contract for MedicationStatement using FHIR API-like search params.
  *
@@ -86,6 +148,7 @@ export const MedicationStatementClaim = {
  * @basedon https://hl7.org/fhir/medicationstatement.html#search
  */
 export enum MedicationStatementClaimsFhirApi {
+  Adherence = 'org.hl7.fhir.api.MedicationStatement.adherence',
   Category = 'org.hl7.fhir.api.MedicationStatement.category',
   Code = 'org.hl7.fhir.api.MedicationStatement.code',
   Effective = 'org.hl7.fhir.api.MedicationStatement.effective',
@@ -103,6 +166,15 @@ export enum MedicationStatementClaimsFhirApi {
  * These are intentionally scalarized to map cleanly to SQL columns.
  */
 export enum MedicationStatementClaimsFhirApiExtended {
+  Adherence = 'org.hl7.fhir.api.MedicationStatement.adherence',
+  AdherenceCode = 'org.hl7.fhir.api.MedicationStatement.adherence-code',
+  AdherenceCodeText = 'org.hl7.fhir.api.MedicationStatement.adherence-code-text',
+  AdherenceCodeDisplay = 'org.hl7.fhir.api.MedicationStatement.adherence-code-display',
+  AdherenceReasonCode = 'org.hl7.fhir.api.MedicationStatement.adherence-reason-code',
+  AdherenceReasonText = 'org.hl7.fhir.api.MedicationStatement.adherence-reason-text',
+  AdherenceReasonDisplay = 'org.hl7.fhir.api.MedicationStatement.adherence-reason-display',
+  CodeText = 'org.hl7.fhir.api.MedicationStatement.code-text',
+  CodeDisplay = 'org.hl7.fhir.api.MedicationStatement.code-display',
   Category = 'org.hl7.fhir.api.MedicationStatement.category',
   Code = 'org.hl7.fhir.api.MedicationStatement.code',
   Effective = 'org.hl7.fhir.api.MedicationStatement.effective',
@@ -187,6 +259,7 @@ export enum MedicationStatementClaimsFhirApiExtended {
  * by query builders and frontend filters.
  */
 export const MedicationStatementSearchParamNames = {
+  Adherence: 'adherence',
   Category: 'category',
   Code: 'code',
   Effective: 'effective',
@@ -266,6 +339,7 @@ export const MedicationStatementSearchParamToClaimKey: Record<
 MedicationStatementSearchParamName,
 MedicationStatementClaimsFhirApi | MedicationStatementClaimsFhirApiExtended
 > = {
+  [MedicationStatementSearchParamNames.Adherence]: MedicationStatementClaimsFhirApi.Adherence,
   [MedicationStatementSearchParamNames.Category]: MedicationStatementClaimsFhirApi.Category,
   [MedicationStatementSearchParamNames.Code]: MedicationStatementClaimsFhirApi.Code,
   [MedicationStatementSearchParamNames.Effective]: MedicationStatementClaimsFhirApi.Effective,
@@ -339,6 +413,7 @@ MedicationStatementClaimsFhirApi | MedicationStatementClaimsFhirApiExtended
 };
 
 export const MedicationStatementClaimsFhirApiMap = {
+  [MedicationStatementClaimsFhirApi.Adherence]: String,
   [MedicationStatementClaimsFhirApi.Category]: String,
   [MedicationStatementClaimsFhirApi.Code]: String,
   [MedicationStatementClaimsFhirApi.Effective]: String,
@@ -353,6 +428,14 @@ export const MedicationStatementClaimsFhirApiMap = {
 
 export const MedicationStatementClaimsFhirApiExtendedMap = {
   ...MedicationStatementClaimsFhirApiMap,
+  [MedicationStatementClaimsFhirApiExtended.AdherenceCode]: String,
+  [MedicationStatementClaimsFhirApiExtended.AdherenceCodeText]: String,
+  [MedicationStatementClaimsFhirApiExtended.AdherenceCodeDisplay]: String,
+  [MedicationStatementClaimsFhirApiExtended.AdherenceReasonCode]: String,
+  [MedicationStatementClaimsFhirApiExtended.AdherenceReasonText]: String,
+  [MedicationStatementClaimsFhirApiExtended.AdherenceReasonDisplay]: String,
+  [MedicationStatementClaimsFhirApiExtended.CodeText]: String,
+  [MedicationStatementClaimsFhirApiExtended.CodeDisplay]: String,
   [MedicationStatementClaimsFhirApiExtended.DoseQuantity]: String,
   [MedicationStatementClaimsFhirApiExtended.DoseQuantityValue]: Number,
   [MedicationStatementClaimsFhirApiExtended.DoseQuantityUnit]: String,
@@ -421,6 +504,7 @@ export const MedicationStatementClaimsFhirApiExtendedMap = {
  */
 export interface MedicationStatementClaimsFlat {
   '@context'?: 'org.hl7.fhir.api';
+  [MedicationStatementClaimsFhirApi.Adherence]?: string;
   [MedicationStatementClaimsFhirApi.Category]?: string;
   [MedicationStatementClaimsFhirApi.Code]?: string;
   [MedicationStatementClaimsFhirApi.Effective]?: string;
@@ -431,6 +515,14 @@ export interface MedicationStatementClaimsFlat {
   [MedicationStatementClaimsFhirApi.Source]?: string;
   [MedicationStatementClaimsFhirApi.Status]?: string;
   [MedicationStatementClaimsFhirApi.Subject]?: string;
+  [MedicationStatementClaimsFhirApiExtended.AdherenceCode]?: string;
+  [MedicationStatementClaimsFhirApiExtended.AdherenceCodeText]?: string;
+  [MedicationStatementClaimsFhirApiExtended.AdherenceCodeDisplay]?: string;
+  [MedicationStatementClaimsFhirApiExtended.AdherenceReasonCode]?: string;
+  [MedicationStatementClaimsFhirApiExtended.AdherenceReasonText]?: string;
+  [MedicationStatementClaimsFhirApiExtended.AdherenceReasonDisplay]?: string;
+  [MedicationStatementClaimsFhirApiExtended.CodeText]?: string;
+  [MedicationStatementClaimsFhirApiExtended.CodeDisplay]?: string;
   [MedicationStatementClaimsFhirApiExtended.DoseQuantity]?: string;
   [MedicationStatementClaimsFhirApiExtended.DoseQuantityValue]?: number;
   [MedicationStatementClaimsFhirApiExtended.DoseQuantityUnit]?: string;
@@ -480,8 +572,17 @@ export interface MedicationStatementClaimsFlat {
  */
 export interface MedicationStatementClaimsContextualized {
   '@context': 'org.hl7.fhir.api';
+  'MedicationStatement.adherence'?: string;
+  'MedicationStatement.adherence-code'?: string;
+  'MedicationStatement.adherence-code-text'?: string;
+  'MedicationStatement.adherence-code-display'?: string;
+  'MedicationStatement.adherence-reason-code'?: string;
+  'MedicationStatement.adherence-reason-text'?: string;
+  'MedicationStatement.adherence-reason-display'?: string;
   'MedicationStatement.category'?: string;
   'MedicationStatement.code'?: string;
+  'MedicationStatement.code-text'?: string;
+  'MedicationStatement.code-display'?: string;
   'MedicationStatement.effective'?: string;
   'MedicationStatement.identifier'?: string;
   'MedicationStatement.medication'?: string;
