@@ -27,7 +27,7 @@ describe('buildExampleMedicationIpsDocumentBundle', () => {
     expect(medicationResource).toBeDefined();
     expect(medicationResource?.meta?.claims?.[MedicationStatementClaim.Identifier]).toBe(medication!.identifier);
     expect(medicationResource?.meta?.claims?.[MedicationStatementClaim.Subject]).toBe(EXAMPLE_SUBJECT_DID);
-    expect(medicationResource?.meta?.claims?.[MedicationStatementClaim.MedicationText]).toBe(medication!.text);
+    expect(medicationResource?.meta?.claims?.[MedicationStatementClaim.CodeText]).toBe(medication!.text);
     expect(medicationResource?.meta?.claims?.[MedicationStatementClaim.Note]).toBe(medication!.note);
   });
 });

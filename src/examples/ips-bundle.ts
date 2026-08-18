@@ -98,7 +98,7 @@ export function buildIpsClinicalHistoryBundleExample(): IpsClinicalHistoryBundle
       [MedicationStatementClaim.Subject]: EXAMPLE_SUBJECT_DID,
       [MedicationStatementClaim.Category]: HealthcareBasicSections.HistoryOfMedicationUse.attributeValue,
       [MedicationStatementClaim.Status]: EXAMPLE_MEDICATION_STATEMENT_STATUS,
-      [MedicationStatementClaim.MedicationText]: EXAMPLE_MEDICATION_STATEMENT_TEXT,
+      [MedicationStatementClaim.CodeText]: EXAMPLE_MEDICATION_STATEMENT_TEXT,
       [MedicationStatementClaim.Effective]: '2026-05-05',
     },
     fullUrl: `urn:uuid:${EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER}`,

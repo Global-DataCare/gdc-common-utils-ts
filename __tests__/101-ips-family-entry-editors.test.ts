@@ -540,7 +540,7 @@ describe('101: IPS family entry editors', () => {
       [MedicationStatementClaim.Subject]: EXAMPLE_SUBJECT_DID,
       [MedicationStatementClaim.Patient]: EXAMPLE_SUBJECT_DID,
       [MedicationStatementClaim.Code]: EXAMPLE_MEDICATION_CODE_RXNORM,
-      [MedicationStatementClaim.MedicationText]: EXAMPLE_MEDICATION_IBUPROFEN_TEXT,
+      [MedicationStatementClaim.CodeText]: EXAMPLE_MEDICATION_IBUPROFEN_TEXT,
       [MedicationStatementClaim.CodeDisplay]: 'Ibuprofen',
       [MedicationStatementClaim.Note]: EXAMPLE_MEDICATION_IBUPROFEN_NOTE,
     });

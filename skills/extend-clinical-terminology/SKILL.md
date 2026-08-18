@@ -27,8 +27,9 @@ Never translate free text or guess a code from another field.
 
 ## Add a coded resource or field
 
-1. Identify the exact FHIR element, such as `Device.type`; do not use a generic
-   search over every `code`, `type` or `category`.
+1. Identify the official SearchParameter name, its search type, its FHIR
+   expression, and the expression's target datatype. Never infer one from the
+   resource property name or from another resource family.
 2. Define the canonical token, text and display claims in
    `src/models/interoperable-claims`.
 3. Preserve all three values in the resource-specific FHIR-to-claims converter.
@@ -49,6 +50,41 @@ Never translate free text or guess a code from another field.
 9. Add a contract assertion proving the emitted payload uses
    `@context: org.hl7.fhir.api`, short keys, and no version-specific FHIR claim
    prefix.
+
+### Token parameters and readable companions
+
+Do not add `-text` and `-display` to every SearchParameter whose search type is
+`token`. The target datatype decides which companions exist:
+
+- `CodeableConcept`: token plus `-text` for `CodeableConcept.text` and
+  `-display` for `Coding.display`.
+- `Coding`: token plus `-display`; there is no `CodeableConcept.text`.
+- primitive `code`, `Identifier`, `ContactPoint`, `boolean`, and other token
+  targets: no automatic `-text` or `-display` family.
+
+MedicationStatement is a required special-case test fixture:
+
+- `code` is the official token SearchParameter for `medication.concept`, so
+  the claims family is `code`, `code-text`, and `code-display`.
+- `medication` is the official reference SearchParameter for
+  `medication.reference`; it is not an alias for `code` and gets no readable
+  companions.
+- R5 `adherence` is the official token SearchParameter for `adherence.code`.
+  Keep it distinct from scalarized `adherence-code`, `adherence-code-text`, and
+  `adherence-code-display` element claims. R4 export cannot project adherence
+  into a native MedicationStatement element.
+- Immunization uses its own official `vaccine-code` SearchParameter and the
+  `vaccine-code-text` / `vaccine-code-display` CodeableConcept companions.
+
+### Validate vocabulary syntax without rejecting the resource
+
+- FHIR claim parameters use lower kebab-case. Omit malformed camel/PascalCase
+  or underscore keys and write a structured warning containing context, key,
+  vocabulary and reason; retain valid sibling claims.
+- Normalize only explicitly documented historical aliases. Do not silently
+  guess arbitrary spellings.
+- Schema.org is separate: reverse-DNS claims retain canonical camelCase and
+  reject hyphens and underscores.
 
 ## Add a catalog, system or language
 

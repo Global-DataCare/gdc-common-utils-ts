@@ -35,22 +35,45 @@ export class MedicationStatementEntryEditor extends ClinicalResourceEntryEditor 
   public setEffective(value?: string | null): this { return this.setScalarClaim(MedicationStatementClaim.Effective, value); }
   /** Returns the effective date or period token. */
   public getEffective(): string | undefined { return this.getScalarClaim(MedicationStatementClaim.Effective); }
-  /** Sets the coded medication identifier/value used by downstream FHIR export. */
+  /** Sets the official `code` token SearchParameter value for `medication.concept`. */
   public setCode(code?: string | null): this { return this.setScalarClaim(MedicationStatementClaim.Code, code); }
-  /** Returns the coded medication identifier/value. */
+  /** Returns the official `code` token SearchParameter value. */
   public getCode(): string | undefined { return this.getScalarClaim(MedicationStatementClaim.Code); }
-  /** Sets the human-readable medication text shown in UI cards and document narratives. */
-  public setMedicationText(text?: string | null): this { return this.setScalarClaim(MedicationStatementClaim.MedicationText, text); }
-  /** Returns the human-readable medication text. */
-  public getMedicationText(): string | undefined { return this.getScalarClaim(MedicationStatementClaim.MedicationText); }
-  /** Alias used consistently by coded IPS editors for local FHIR text. */
-  public setCodeTextLocal(text?: string | null): this { return this.setMedicationText(text); }
+  /** Sets the official `medication` reference SearchParameter value for `medication.reference`. */
+  public setMedication(reference?: string | null): this { return this.setScalarClaim(MedicationStatementClaim.Medication, reference); }
+  /** Returns the official `medication` reference SearchParameter value. */
+  public getMedication(): string | undefined { return this.getScalarClaim(MedicationStatementClaim.Medication); }
+  /** @deprecated Prefer `setCodeTextLocal`; this compatibility method now emits canonical `code-text`. */
+  public setMedicationText(text?: string | null): this { return this.setCodeTextLocal(text); }
+  /** Returns canonical `code-text`, falling back to historical `medication-text`. */
+  public getMedicationText(): string | undefined { return this.getCodeTextLocal(); }
+  /** Sets local/manual `medication.concept.text` as canonical `code-text`. */
+  public setCodeTextLocal(text?: string | null): this { return this.setScalarClaim(MedicationStatementClaim.CodeText, text); }
   /** Returns the local-language medication text. */
-  public getCodeTextLocal(): string | undefined { return this.getMedicationText(); }
+  public getCodeTextLocal(): string | undefined {
+    return this.getScalarClaim(MedicationStatementClaim.CodeText)
+      || this.getScalarClaim(MedicationStatementClaim.MedicationText);
+  }
   /** Sets the English/international terminology display. */
   public setCodeDisplay(display?: string | null): this { return this.setScalarClaim(MedicationStatementClaim.CodeDisplay, display); }
   /** Returns the English/international terminology display. */
   public getCodeDisplay(): string | undefined { return this.getScalarClaim(MedicationStatementClaim.CodeDisplay); }
+  /** Sets the official R5 `adherence` token SearchParameter value for `adherence.code`. */
+  public setAdherence(value?: string | null): this { return this.setScalarClaim(MedicationStatementClaim.Adherence, value); }
+  /** Returns the official R5 `adherence` token SearchParameter value. */
+  public getAdherence(): string | undefined { return this.getScalarClaim(MedicationStatementClaim.Adherence); }
+  /** Sets the scalarized R5 adherence code token. */
+  public setAdherenceCode(value?: string | null): this { return this.setScalarClaim(MedicationStatementClaim.AdherenceCode, value); }
+  /** Returns the scalarized R5 adherence code token. */
+  public getAdherenceCode(): string | undefined { return this.getScalarClaim(MedicationStatementClaim.AdherenceCode); }
+  /** Sets local/manual text for the R5 adherence CodeableConcept. */
+  public setAdherenceCodeTextLocal(value?: string | null): this { return this.setScalarClaim(MedicationStatementClaim.AdherenceCodeText, value); }
+  /** Returns local/manual text for the R5 adherence CodeableConcept. */
+  public getAdherenceCodeTextLocal(): string | undefined { return this.getScalarClaim(MedicationStatementClaim.AdherenceCodeText); }
+  /** Sets the terminology display for the R5 adherence Coding. */
+  public setAdherenceCodeDisplay(value?: string | null): this { return this.setScalarClaim(MedicationStatementClaim.AdherenceCodeDisplay, value); }
+  /** Returns the terminology display for the R5 adherence Coding. */
+  public getAdherenceCodeDisplay(): string | undefined { return this.getScalarClaim(MedicationStatementClaim.AdherenceCodeDisplay); }
   /** Sets one free-text note attached to the medication entry. */
   public setNote(note?: string | null): this { return this.setScalarClaim(MedicationStatementClaim.Note, note); }
   /** Returns the current medication note. */

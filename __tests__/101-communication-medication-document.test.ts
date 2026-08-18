@@ -380,7 +380,7 @@ describe('101: medication document communication orchestration', () => {
       expect(
         scenario.receivedDocumentBundleReader.getEntryClaimsByArrayIndex(
           medicationEntryIndex as number,
-        )[MedicationStatementClaim.MedicationText],
+        )[MedicationStatementClaim.CodeText],
       ).toBe(EXAMPLE_MEDICATION_STATEMENT_TEXT_CORRECTED);
       expect(
         scenario.receivedDocumentBundleReader.getEntryClaimsByArrayIndex(

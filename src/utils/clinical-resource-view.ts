@@ -613,8 +613,8 @@ function resolveTitle(
 
   if (resourceType === ResourceTypesFhirR4.MedicationStatement) {
     const text = firstClaimValue(claims, [
+      MedicationStatementClaim.CodeText,
       MedicationStatementClaim.MedicationText,
-      MedicationStatementClaimsFhirApi.Medication,
     ]);
     const codeText = findFirstClaimBySuffixes(claims, ['.code-text', '.code-text-local', '.codetextlocal']);
     const codeDisplay = findFirstClaimBySuffixes(claims, ['.code-display', '.codedisplay']);

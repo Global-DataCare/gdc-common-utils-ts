@@ -43,7 +43,7 @@ describe('101 IPS bundle meta.claims extraction', () => {
         }),
         expect.objectContaining({
           system: DEFAULT_META_CLAIM_TAG_SYSTEM,
-          code: 'MedicationStatement.medication-text',
+          code: 'MedicationStatement.code-text',
         }),
         expect.objectContaining({
           system: DEFAULT_META_CLAIM_TAG_SYSTEM,

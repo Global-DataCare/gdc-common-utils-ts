@@ -260,7 +260,7 @@ describe('clinical-resource-converters', () => {
       [MedicationStatementClaim.Status]: 'active',
       [MedicationStatementClaim.Effective]: '2026-05-17T08:00:00Z',
       [MedicationStatementClaim.Code]: 'http://rxnorm|123',
-      [MedicationStatementClaim.MedicationText]: 'Paracetamol 500mg capsule',
+      [MedicationStatementClaim.CodeText]: 'Paracetamol 500mg capsule',
       [MedicationStatementClaim.Note]: 'captured by [device]',
       [MedicationStatementClaim.DosageInstruction]: '1 capsule every 8 hours',
       [MedicationStatementClaim.MedicationIdentifier]: '08470001234567',
@@ -275,7 +275,7 @@ describe('clinical-resource-converters', () => {
     const flat = {
       [MedicationStatementClaim.Subject]: 'Patient/p2',
       [MedicationStatementClaim.Status]: 'active',
-      [MedicationStatementClaim.MedicationText]: 'Ibuprofen 400mg tablet',
+      [MedicationStatementClaim.CodeText]: 'Ibuprofen 400mg tablet',
       [MedicationStatementClaim.MedicationIdentifier]: '05550001112222',
       [MedicationStatementClaim.MedicationSerialNumber]: 'LOT-IBU-9',
       [MedicationStatementClaim.MedicationExpirationDate]: '2028-01-01',

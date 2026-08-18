@@ -807,7 +807,7 @@ export function buildExampleMedicationIpsDocumentBundle(
     [MedicationStatementClaim.Identifier]: input.medication.identifier,
     [MedicationStatementClaim.Subject]: subjectDid,
     [MedicationStatementClaim.Status]: EXAMPLE_MEDICATION_STATEMENT_STATUS,
-    [MedicationStatementClaim.MedicationText]: input.medication.text,
+    [MedicationStatementClaim.CodeText]: input.medication.text,
     [MedicationStatementClaim.Effective]: input.medication.effectiveDateTime,
     [MedicationStatementClaim.Note]: input.medication.note,
     [MedicationStatementClaim.Category]: input.medication.section || HealthcareBasicSections.HistoryOfMedicationUse.attributeValue,

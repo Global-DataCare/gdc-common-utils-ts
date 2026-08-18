@@ -106,7 +106,7 @@ describe('101: IPS bundle editor', () => {
     expect(builtMedicationEntry.resource.meta?.claims?.[MedicationStatementClaim.Identifier]).toBe(
       EXAMPLE_MEDICATION_STATEMENT_UUID,
     );
-    expect(builtMedicationEntry.resource.meta?.claims?.[MedicationStatementClaim.MedicationText]).toBe(
+    expect(builtMedicationEntry.resource.meta?.claims?.[MedicationStatementClaim.CodeText]).toBe(
       `${EXAMPLE_MEDICATION_IBUPROFEN_TEXT} - edited once`,
     );
 
@@ -150,7 +150,7 @@ describe('101: IPS bundle editor', () => {
     expect(reopenedEntryClaims[MedicationStatementClaim.Identifier]).toBe(
       EXAMPLE_MEDICATION_STATEMENT_UUID,
     );
-    expect(reopenedEntryClaims[MedicationStatementClaim.MedicationText]).toBe(
+    expect(reopenedEntryClaims[MedicationStatementClaim.CodeText]).toBe(
       `${EXAMPLE_MEDICATION_IBUPROFEN_TEXT} - edited once`,
     );
   });

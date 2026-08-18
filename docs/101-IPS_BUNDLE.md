@@ -182,6 +182,17 @@ for another locale. If translation is unavailable it falls back to display and
 then local text. It must never show `system|code` as the clinical name or copy
 that token into an editable name field.
 
+These companions depend on the FHIR target datatype, not merely on a `token`
+search type. A CodeableConcept supports both text and display; Coding supports
+display but not CodeableConcept.text; primitive code, Identifier, ContactPoint
+and boolean token searches do not automatically gain either suffix.
+
+MedicationStatement is deliberately non-obvious: `code` searches
+`medication.concept`, while `medication` is a reference search over
+`medication.reference`. In R5, `adherence` is another token search over
+`adherence.code`. Immunization instead names its medication concept search
+`vaccine-code`.
+
 The generic path is documented in:
 
 - [101-BUNDLE_EDITOR_READER.md](./101-BUNDLE_EDITOR_READER.md)

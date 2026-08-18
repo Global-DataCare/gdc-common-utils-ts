@@ -166,7 +166,8 @@ describe('medication claim list helpers', () => {
     expect(claims[MedicationStatementClaim.Subject]).toBe('did:web:patient.example.org');
     expect(claims[MedicationStatementClaim.Status]).toBe('active');
     expect(claims[MedicationStatementClaim.Effective]).toBe('2026-06-01');
-    expect(claims[MedicationStatementClaim.MedicationText]).toBe('Ibuprofen 400mg');
+    expect(claims[MedicationStatementClaim.CodeText]).toBe('Ibuprofen 400mg');
+    expect(claims[MedicationStatementClaim.MedicationText]).toBeUndefined();
   });
 
   it('supports scalar get/set helpers for dose, timing, and PRN medication fields', () => {
