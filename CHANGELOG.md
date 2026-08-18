@@ -4,6 +4,21 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Correct MedicationStatement claim semantics: canonical `code-text` and
+  `code-display` accompany the official `code` token SearchParameter,
+  `medication` remains a separate reference SearchParameter, and R5
+  `adherence` plus typed adherence code helpers are defined explicitly.
+- Preserve historical `medication-text` on reads while new editors, helpers,
+  examples and R4 roundtrips emit `code-text`; ensure R4 `medication[x]` never
+  emits both the concept and reference choices.
+- Document that readable suffixes depend on the FHIR target datatype rather
+  than applying to every token SearchParameter, including the distinct
+  Immunization `vaccine-code` family.
+- Add a neutral connected-device FHIR R4 transaction builder and validator
+  for human and animal Subjects. It requires exact card identity, Device,
+  coded Observations and Provenance, then emits registered scalar Device and
+  Observation claims without treating the FHIR wire model as canonical storage.
+
 ## [2.5.8] - 2026-08-16
 
 - Separate Test Network review authorization from postal-address verification:
