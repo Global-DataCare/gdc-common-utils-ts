@@ -4,6 +4,8 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.5.9] - 2026-08-18
+
 - Correct MedicationStatement claim semantics: canonical `code-text` and
   `code-display` accompany the official `code` token SearchParameter,
   `medication` remains a separate reference SearchParameter, and R5
