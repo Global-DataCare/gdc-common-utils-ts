@@ -80,4 +80,41 @@ describe('101: license list and search', () => {
       inactive: 0,
     });
   });
+
+  it('reads license rows nested in the current GW search entry without counting the response wrapper', () => {
+    const nestedResponse = {
+      resourceType: 'Bundle',
+      data: [{
+        type: 'device-license',
+        resource: {
+          total: 2,
+          data: EXAMPLE_LICENSE_LIST_RESPONSE_BODY.data,
+        },
+        response: { status: '200' },
+      }],
+    };
+
+    expect(readLicenseListRecords(nestedResponse).map((record) => record.id)).toEqual([
+      EXAMPLE_LICENSE_ACTIVE_RECORD.id,
+      EXAMPLE_LICENSE_AVAILABLE_RECORD.id,
+    ]);
+    expect(summarizeLicenseListRecords(nestedResponse)).toEqual({
+      contracted: 2,
+      free: 1,
+      used: 1,
+      available: 1,
+      issued: 0,
+      active: 1,
+      inactive: 0,
+    });
+  });
+
+  it('ignores operation outcomes and empty GW response wrappers', () => {
+    expect(readLicenseListRecords({
+      data: [
+        { type: 'OperationOutcome', resource: { issue: [{ diagnostics: 'example failure' }] } },
+        { type: 'device-license', resource: { total: 0, data: [] }, response: { status: '200' } },
+      ],
+    })).toEqual([]);
+  });
 });
