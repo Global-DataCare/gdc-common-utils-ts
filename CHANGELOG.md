@@ -4,6 +4,10 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Preserve case-sensitive hosted `did:web` routing by canonicalizing VAT tenant
+  identifiers to uppercase and `cds-<jurisdiction>` to uppercase ISO casing,
+  while continuing to lowercase only the DNS authority and ordinary markers.
+
 ## [2.5.9] - 2026-08-18
 
 - Require exactly one dot in short FHIR claim keys and keep dotted HL7 FHIRPath
