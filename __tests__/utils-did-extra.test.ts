@@ -21,6 +21,28 @@ describe('did utilities', () => {
     expect(normalizeDidWeb(input)).toBe('did:web:api.acme.org:employee:doctor1@acme.org:role:isco-08|2211');
   });
 
+  it('restores canonical hosted VAT tenant and jurisdiction casing', () => {
+    expect(
+      normalizeDidWeb(
+        'did:web:UHC-GW.UNID.ONLINE:vates-g02793479:cds-es:v1:onehealth-research',
+      ),
+    ).toBe(
+      'did:web:uhc-gw.unid.online:VATES-G02793479:cds-ES:v1:onehealth-research',
+    );
+    expect(
+      normalizeDidWeb('did:web:LOCALHOST%3a3000:vates-b00000000:cds-es:v1:health-care'),
+    ).toBe('did:web:localhost%3A3000:VATES-B00000000:cds-ES:v1:health-care');
+  });
+
+  it('does not uppercase non-VAT tenant path segments', () => {
+    expect(
+      normalizeDidWeb('did:web:GW.EXAMPLE.ORG:Acme-Tenant:cds-es:v1:Health-Care'),
+    ).toBe('did:web:gw.example.org:acme-tenant:cds-ES:v1:Health-Care');
+    expect(normalizeDidWeb('urn:example:VATES-G02793479')).toBe(
+      'urn:example:VATES-G02793479',
+    );
+  });
+
   it('creates hosted did:web strings', () => {
     const did = createHostedDidWeb('did:web:host.example.com', 'acme', {
       jurisdiction: 'es',

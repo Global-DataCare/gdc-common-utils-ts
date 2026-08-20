@@ -63,7 +63,10 @@ export function generateServiceId(selector: ServiceEndpointSelector): string {
  * due to case sensitivity in the path component of the underlying URL.
  *
  * The rule is:
- * - All segments are lowercased, EXCEPT the final segment.
+ * - The DNS authority and ordinary non-final path segments are lowercased.
+ * - A hosted VAT tenant segment is uppercased (`vates-b...` -> `VATES-B...`).
+ * - A `cds-<jurisdiction>` segment uses an uppercase ISO jurisdiction.
+ * - The final segment is preserved.
  * - If the final segment represents a `system|code` pair (e.g., for a role),
  *   the `system` part is lowercased, but the `code` is preserved as-is.
  * - If the final segment is a unique identifier (like a Tax ID), it is preserved as-is.
@@ -78,18 +81,31 @@ export function normalizeDidWeb(did: string): string {
     return did;
   }
 
-  // Lowercase all parts except the very last one.
-  const lowercasedParts = parts.slice(0, -1).map(part => part.toLowerCase());
-  let lastPart = parts[parts.length - 1];
+  const lastIndex = parts.length - 1;
+  return parts.map((part, index) => {
+    if (index < 2) return part.toLowerCase();
+    if (index === 2) return part.toLowerCase().replace(/%3a/gi, '%3A');
 
-  // Special handling for the last part if it contains a role descriptor.
-  if (lastPart.includes('|')) {
-    const [system, ...codeParts] = lastPart.split('|');
-    const code = codeParts.join('|'); // Re-join in case the code itself has a pipe.
-    lastPart = `${system.toLowerCase()}|${code}`;
-  }
+    // Hosted tenant identifiers use the canonical VAT + ISO country prefix.
+    // Keep this deliberately narrow so unrelated opaque DID path identifiers
+    // are not modified merely because they contain the letters "vat".
+    if (/^vat[a-z]{2}[-a-z0-9._]+$/i.test(part)) {
+      return part.toUpperCase();
+    }
 
-  return [...lowercasedParts, lastPart].join(':');
+    const jurisdictionMatch = /^cds-([a-z]{2})$/i.exec(part);
+    if (jurisdictionMatch) {
+      return `cds-${jurisdictionMatch[1].toUpperCase()}`;
+    }
+
+    if (index === lastIndex) {
+      if (!part.includes('|')) return part;
+      const [system, ...codeParts] = part.split('|');
+      return `${system.toLowerCase()}|${codeParts.join('|')}`;
+    }
+
+    return part.toLowerCase();
+  }).join(':');
 }
 
 /**
