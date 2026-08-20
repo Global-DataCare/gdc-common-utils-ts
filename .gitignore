@@ -11,3 +11,8 @@ yarn-error.log*
 pnpm-debug.log*
 *.tsbuildinfo
 *.tgz
+
+# Local runtime diagnostics may contain tenant or actor data.
+cloud_logs*.json
+kubectl*.log
+namespace*_logs.json
