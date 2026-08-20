@@ -24,10 +24,10 @@ describe('did utilities', () => {
   it('restores canonical hosted VAT tenant and jurisdiction casing', () => {
     expect(
       normalizeDidWeb(
-        'did:web:UHC-GW.UNID.ONLINE:vates-g02793479:cds-es:v1:onehealth-research',
+        'did:web:GW.EXAMPLE.ORG:vates-g02793479:cds-es:v1:research',
       ),
     ).toBe(
-      'did:web:uhc-gw.unid.online:VATES-G02793479:cds-ES:v1:onehealth-research',
+      'did:web:gw.example.org:VATES-G02793479:cds-ES:v1:research',
     );
     expect(
       normalizeDidWeb('did:web:LOCALHOST%3a3000:vates-b00000000:cds-es:v1:health-care'),
