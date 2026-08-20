@@ -6,6 +6,8 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 - Normalize both flat and current nested GW licence-search responses without
   counting Bundle response wrappers or OperationOutcome entries as seats.
+- Keep hosted DID casing fixtures product-neutral so the publish gate remains
+  enforceable for the shared package.
 
 ## [2.5.10] - 2026-08-20
 
