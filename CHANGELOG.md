@@ -4,6 +4,11 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Normalize both flat and current nested GW licence-search responses without
+  counting Bundle response wrappers or OperationOutcome entries as seats.
+
+## [2.5.10] - 2026-08-20
+
 - Preserve case-sensitive hosted `did:web` routing by canonicalizing VAT tenant
   identifiers to uppercase and `cds-<jurisdiction>` to uppercase ISO casing,
   while continuing to lowercase only the DNS authority and ordinary markers.

@@ -221,6 +221,39 @@ function extractClaims(entry: Record<string, unknown>): Record<string, unknown> 
   return { ...(resourceClaims || {}), ...(metaClaims || {}) };
 }
 
+function isLicenseListEntry(entry: Record<string, unknown>): boolean {
+  const meta = entry.meta && typeof entry.meta === 'object'
+    ? entry.meta as Record<string, unknown>
+    : {};
+  const claims = extractClaims(entry);
+  return !!(
+    normalizeText(meta.status)
+    || normalizeText(entry.status)
+    || normalizeText(entry.id)
+    || normalizeText(claims[ClaimsIndividualProductSchemaorg.serialNumber])
+    || normalizeText(claims[ClaimsOfferSchemaorg.serialNumber])
+  );
+}
+
+function extractLicenseListEntries(node: unknown): Record<string, unknown>[] {
+  if (!node || typeof node !== 'object') return [];
+  if (Array.isArray(node)) {
+    return node.flatMap((entry) => extractLicenseListEntries(entry));
+  }
+
+  const entry = node as Record<string, unknown>;
+  const resource = entry.resource && typeof entry.resource === 'object'
+    ? entry.resource as Record<string, unknown>
+    : undefined;
+  if (resource && Array.isArray(resource.data)) {
+    return extractLicenseListEntries(resource.data);
+  }
+  if (Array.isArray(entry.data)) {
+    return extractLicenseListEntries(entry.data);
+  }
+  return isLicenseListEntry(entry) ? [entry] : [];
+}
+
 /**
  * Reads license-like search/list records from one current GW-style response
  * body without exposing raw claim access to frontend code.
@@ -228,7 +261,7 @@ function extractClaims(entry: Record<string, unknown>): Record<string, unknown> 
 export function readLicenseListRecords(body: unknown): LicenseListRecord[] {
   const root = body && typeof body === 'object' ? body as Record<string, unknown> : {};
   const bodyNode = root.body && typeof root.body === 'object' ? root.body as Record<string, unknown> : root;
-  const data = Array.isArray(bodyNode.data) ? bodyNode.data : [];
+  const data = extractLicenseListEntries(bodyNode);
 
   return data
     .filter((entry): entry is Record<string, unknown> => !!entry && typeof entry === 'object')
@@ -241,9 +274,9 @@ export function readLicenseListRecords(body: unknown): LicenseListRecord[] {
           || claims[ClaimsOfferSchemaorg.serialNumber]
           || (entry as Record<string, unknown>).id,
         ),
-        status: normalizeText(meta.status),
-        subjectId: normalizeText(meta.subjectId),
-        ownerOrganizationId: normalizeText(meta.ownerOrganizationId || claims['License.ownerOrganizationId']),
+        status: normalizeText(meta.status || entry.status),
+        subjectId: normalizeText(meta.subjectId || entry.subjectId),
+        ownerOrganizationId: normalizeText(meta.ownerOrganizationId || entry.ownerOrganizationId || claims['License.ownerOrganizationId']),
         email: normalizeText(claims[ClaimsPersonSchemaorg.email]),
         telephone: normalizeText(claims[ClaimsPersonSchemaorg.telephone]),
         role: normalizeText(claims[ClaimsPersonSchemaorg.hasOccupationalRoleValue]),
