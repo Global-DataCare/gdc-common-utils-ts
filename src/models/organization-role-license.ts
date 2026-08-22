@@ -38,7 +38,8 @@ export interface OrganizationRoleLicenseDevice {
  */
 export interface OrganizationRoleLicense {
   id: string;
-  organizationId: string;
+  /** Official legal identifier value; never an embedded `urn:org:*` identifier. */
+  organizationOfficialId: string;
   jurisdiction: string;
   stableContactIdentifier: string;
   licensedRole: string;
@@ -49,4 +50,3 @@ export interface OrganizationRoleLicense {
   updatedAt: number;
   revokedAt?: number;
 }
-

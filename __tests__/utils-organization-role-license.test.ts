@@ -14,20 +14,25 @@ import {
   EXAMPLE_ORGANIZATION_ROLE_LICENSE_IDENTITY,
   EXAMPLE_ORGANIZATION_ROLE_LICENSE_POLICIES,
 } from '../src/examples/organization-role-license';
+import {
+  EXAMPLE_HEALTHCARE_ACTOR_ROLE_GENERALIST_MEDICAL_PRACTITIONER,
+  EXAMPLE_JURISDICTION,
+  EXAMPLE_ORGANIZATION_CONTROLLER_ROLE,
+} from '../src/examples/shared';
 
 const stableContactIdentifier = EXAMPLE_ORGANIZATION_ROLE_LICENSE_IDENTITY.stableContactIdentifier;
 
 const identity = {
-  jurisdiction: 'ES',
-  organizationId: EXAMPLE_ORGANIZATION_ROLE_LICENSE_IDENTITY.organizationId,
+  jurisdiction: EXAMPLE_JURISDICTION,
+  organizationOfficialId: EXAMPLE_ORGANIZATION_ROLE_LICENSE_IDENTITY.organizationOfficialId,
   stableContactIdentifier,
-  licensedRole: 'RESPRSN',
+  licensedRole: EXAMPLE_ORGANIZATION_CONTROLLER_ROLE,
 } as const;
 
 describe('organization role licence contract', () => {
   it('uses the compact CDS preimage and a deterministic SHA3-384 multihash id', () => {
     expect(buildOrganizationRoleLicensePreimage(identity)).toBe(
-      `urn:cds-es:urn:org:TAX:ES-B12345678:${stableContactIdentifier}:RESPRSN`,
+      `urn:cds-${EXAMPLE_JURISDICTION.toLowerCase()}:${identity.organizationOfficialId}:${stableContactIdentifier}:${EXAMPLE_ORGANIZATION_CONTROLLER_ROLE}`,
     );
     expect(buildOrganizationRoleLicenseId(identity)).toMatch(/^urn:multibase:z/);
     expect(buildOrganizationRoleLicenseId(identity)).toBe(buildOrganizationRoleLicenseId(identity));
@@ -36,8 +41,15 @@ describe('organization role licence contract', () => {
   it('keeps the role in the identity so controller and doctor are distinct seats', () => {
     expect(buildOrganizationRoleLicenseId(identity)).not.toBe(buildOrganizationRoleLicenseId({
       ...identity,
-      licensedRole: '2211',
+      licensedRole: EXAMPLE_HEALTHCARE_ACTOR_ROLE_GENERALIST_MEDICAL_PRACTITIONER,
     }));
+  });
+
+  it('rejects an organization URN where the official identifier value is required', () => {
+    expect(() => buildOrganizationRoleLicensePreimage({
+      ...identity,
+      organizationOfficialId: `urn:org:tax:${identity.organizationOfficialId}`,
+    })).toThrow(/official identifier value/);
   });
 
   it('normalizes policies and rejects duplicate or invalid device limits', () => {
