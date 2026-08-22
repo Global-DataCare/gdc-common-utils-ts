@@ -9,7 +9,7 @@ import { encodeMultibaseSha3 } from './multibasehash';
 
 export type OrganizationRoleLicenseIdentity = Readonly<{
   jurisdiction: string;
-  organizationId: string;
+  organizationOfficialId: string;
   stableContactIdentifier: string;
   licensedRole: string;
 }>;
@@ -32,6 +32,16 @@ function validateStableContactIdentifier(value: string): string {
   return normalized;
 }
 
+export function validateOrganizationOfficialId(value: string): string {
+  const normalized = required(value, 'organizationOfficialId');
+  if (normalized.includes(':') || /^urn:/i.test(normalized)) {
+    throw new TypeError(
+      'organizationOfficialId must be the official identifier value, not an organization URN.',
+    );
+  }
+  return normalized;
+}
+
 /**
  * Builds the exact, compact licence preimage agreed across portals and hosts.
  * The preimage is hashed before persistence and is never itself a ledger key.
@@ -40,10 +50,10 @@ export function buildOrganizationRoleLicensePreimage(
   identity: OrganizationRoleLicenseIdentity,
 ): string {
   const jurisdiction = required(identity.jurisdiction, 'jurisdiction').toLowerCase();
-  const organizationId = required(identity.organizationId, 'organizationId');
+  const organizationOfficialId = validateOrganizationOfficialId(identity.organizationOfficialId);
   const stableContactIdentifier = validateStableContactIdentifier(identity.stableContactIdentifier);
   const licensedRole = required(identity.licensedRole, 'licensedRole');
-  return `urn:cds-${jurisdiction}:${organizationId}:${stableContactIdentifier}:${licensedRole}`;
+  return `urn:cds-${jurisdiction}:${organizationOfficialId}:${stableContactIdentifier}:${licensedRole}`;
 }
 
 /** SHA3-384 multihash identifier for organization + contact + licensed role. */

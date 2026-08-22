@@ -1,21 +1,31 @@
 // Copyright 2026 Antifraud Services Inc. under the Apache License, Version 2.0.
 
 import type { OrganizationRoleLicense } from '../models/organization-role-license';
-import { buildStableActorIdentifier } from '../utils/actor-identifier';
+import { buildStableActorIdentifier, StableActorContactKinds } from '../utils/actor-identifier';
 import {
   buildOrganizationRoleLicenseId,
   type OrganizationRoleLicenseIdentity,
 } from '../utils/organization-role-license';
+import {
+  EXAMPLE_EMAIL_PROFESSIONAL,
+  EXAMPLE_EMPLOYEE_DEVICE_CLIENT_ID_PRIMARY,
+  EXAMPLE_EMPLOYEE_DEVICE_INSTANCE_ID_PRIMARY,
+  EXAMPLE_HOST_PUBLIC_HOSTNAME,
+  EXAMPLE_JURISDICTION,
+  EXAMPLE_LEGAL_ORGANIZATION_TAX_ID,
+  EXAMPLE_ORGANIZATION_CONTROLLER_ROLE,
+  EXAMPLE_SECTOR,
+} from './shared';
 
 /** Reusable synthetic identity for role-licence contract and consumer tests. */
 export const EXAMPLE_ORGANIZATION_ROLE_LICENSE_IDENTITY: OrganizationRoleLicenseIdentity = Object.freeze({
-  jurisdiction: 'es',
-  organizationId: 'urn:org:TAX:ES-B12345678',
+  jurisdiction: EXAMPLE_JURISDICTION,
+  organizationOfficialId: EXAMPLE_LEGAL_ORGANIZATION_TAX_ID,
   stableContactIdentifier: buildStableActorIdentifier({
-    contactKind: 'email',
-    contact: 'professional@example.org',
+    contactKind: StableActorContactKinds.Email,
+    contact: EXAMPLE_EMAIL_PROFESSIONAL,
   }),
-  licensedRole: 'RESPRSN',
+  licensedRole: EXAMPLE_ORGANIZATION_CONTROLLER_ROLE,
 });
 
 /** Reusable catch-all plus exact-override policy example. */
@@ -32,10 +42,10 @@ export const EXAMPLE_ORGANIZATION_ROLE_LICENSE: OrganizationRoleLicense = Object
   data: [...EXAMPLE_ORGANIZATION_ROLE_LICENSE_POLICIES],
   devices: [
     Object.freeze({
-      clientId: 'example-client-health-1',
-      clientInstanceId: 'example-installation-health-1',
-      sector: 'health-care',
-      host: 'https://gw.example.org',
+      clientId: EXAMPLE_EMPLOYEE_DEVICE_CLIENT_ID_PRIMARY,
+      clientInstanceId: EXAMPLE_EMPLOYEE_DEVICE_INSTANCE_ID_PRIMARY,
+      sector: EXAMPLE_SECTOR,
+      host: `https://${EXAMPLE_HOST_PUBLIC_HOSTNAME}`,
       status: 'active',
       activatedAt: 1_700_000_000,
     }),
@@ -43,4 +53,3 @@ export const EXAMPLE_ORGANIZATION_ROLE_LICENSE: OrganizationRoleLicense = Object
   createdAt: 1_700_000_000,
   updatedAt: 1_700_000_000,
 });
-

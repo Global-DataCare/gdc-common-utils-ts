@@ -4,6 +4,8 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Correct organization role-license identities to hash the official legal identifier value directly; embedded `urn:org:*` identifiers are rejected so the preimage remains `urn:cds-<jurisdiction>:<orgOfficialId>:<stableContactIdentifier>:<licensedRole>`.
+
 - Add the product-neutral organization role-licence ledger model. Its SHA3-384
   multihash identity binds jurisdiction, official organization identifier,
   stable hashed contact and licensed role without exposing contact data or a

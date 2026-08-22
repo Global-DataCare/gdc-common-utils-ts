@@ -1,7 +1,13 @@
 import { normalizePhone } from './consent.js';
 import { normalizeSameAsHash, normalizeTelephoneHash } from './same-as.js';
 
-export type StableActorContactKind = 'email' | 'phone';
+export const StableActorContactKinds = Object.freeze({
+  Email: 'email',
+  Phone: 'phone',
+} as const);
+
+export type StableActorContactKind =
+  typeof StableActorContactKinds[keyof typeof StableActorContactKinds];
 
 /**
  * Builds the private, stable actor identifier shared by independent portals.
