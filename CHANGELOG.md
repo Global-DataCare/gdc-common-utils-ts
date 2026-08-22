@@ -4,6 +4,11 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Add canonical Schema.org `Order.confirmationNumber`; reuse the existing
+  protected postal-code binding model; and export shared license, payment,
+  postal and standard LOINC/SNOMED CT/FHIR event-timing fixtures so consumers
+  and tests no longer invent private claims, tag systems or local literals.
+
 ## [2.5.10] - 2026-08-20
 
 - Normalize both flat and current nested GW licence-search responses without

@@ -16,6 +16,11 @@ It is not a Test Network admission precondition and is never embedded by
 `buildOrganizationTestNetworkCredential(...)`. The `postalLicense` builder
 input is deprecated compatibility input and is ignored.
 
+The reusable `PostalActivationLicenseBinding.protectedCode` shape owns the
+server-side `algorithm`, `salt` and `digest`; these values are protected
+persistence metadata, never business claims. A clear value submitted later in
+an Order uses the standard Schema.org `Order.confirmationNumber` claim.
+
 ## The admission VC
 
 `buildOrganizationTestNetworkCredential(...)` creates an

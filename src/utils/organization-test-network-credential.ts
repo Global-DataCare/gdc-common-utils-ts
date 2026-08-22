@@ -5,6 +5,9 @@ import {
 } from '../constants/verifiable-credentials';
 import type { VerifiableCredentialV2 } from '../models/verifiable-credential';
 
+/** Canonical protected-code algorithm used by postal activation bindings. */
+export const POSTAL_ACTIVATION_CODE_BINDING_ALGORITHM = 'scrypt-v1' as const;
+
 /** Lifecycle for a separate postal-address verification credential. */
 export const PostalActivationLicenseStatuses = Object.freeze({
   Issued: 'issued',
@@ -31,7 +34,7 @@ export type PostalActivationLicenseBinding = Readonly<{
   controllerKeyMaterial: string;
   postalAddressHash: string;
   protectedCode: Readonly<{
-    algorithm: 'scrypt-v1';
+    algorithm: typeof POSTAL_ACTIVATION_CODE_BINDING_ALGORITHM;
     salt: string;
     digest: string;
   }>;
@@ -43,6 +46,9 @@ export type PostalActivationLicenseBinding = Readonly<{
   deliveredAt?: string;
   redeemedAt?: string;
 }>;
+
+/** Reusable protected-code slice stored in encrypted host registration state. */
+export type PostalActivationCodeBinding = PostalActivationLicenseBinding['protectedCode'];
 
 /** Input for the credential returned out-of-band to the applicant controller. */
 export type OrganizationTestNetworkCredentialInput = Readonly<{

@@ -150,6 +150,8 @@ export enum ClaimsIndividualProductSchemaorg {
 
 export enum ClaimsOrderSchemaorg {
     acceptedOfferIdentifier = "org.schema.Order.acceptedOffer.identifier",
+    /** Schema.org Order.confirmationNumber; used for a customer-supplied order confirmation code. */
+    confirmationNumber = "org.schema.Order.confirmationNumber",
     partOfInvoice = "org.schema.Order.partOfInvoice",
     paymentMethod = "org.schema.Order.paymentMethod",
     paymentUrl = "org.schema.Order.paymentUrl",
