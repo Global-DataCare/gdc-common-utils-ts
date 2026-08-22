@@ -382,9 +382,14 @@ export const EXAMPLE_LICENSE_CURRENCY = 'EUR' as const;
 export const EXAMPLE_LICENSE_PLAN_NAME = 'Family starter' as const;
 export const EXAMPLE_LICENSE_SKU = 'FAM-START' as const;
 export const EXAMPLE_LICENSE_PAYMENT_METHOD_INVOICE = 'invoice' as const;
+export const EXAMPLE_LICENSE_PAYMENT_METHOD_STRIPE = 'Stripe' as const;
 export const EXAMPLE_LICENSE_CHECKOUT_URL = 'https://pay.example/offer-001' as const;
 export const EXAMPLE_LICENSE_PAYMENT_URL = 'https://pay.example/invoice-001' as const;
 export const EXAMPLE_LICENSE_INVOICE_ID = 'invoice-001' as const;
+export const EXAMPLE_POSTAL_ACTIVATION_CODE = 'EXAMPLE-ACTIVATION-001' as const;
+export const EXAMPLE_POSTAL_ACTIVATION_CODE_INVALID = 'EXAMPLE-ACTIVATION-INVALID' as const;
+export const EXAMPLE_POSTAL_ACTIVATION_PEPPER = 'example-host-pepper' as const;
+export const EXAMPLE_POSTAL_ACTIVATION_SALT = 'example-base64url-salt' as const;
 export const EXAMPLE_INVOICE_DATE = '2026-06-11T10:00:00Z' as const;
 export const EXAMPLE_INVOICE_CHARGEITEM_PRODUCT_CODE = '08412345678903' as const;
 export const EXAMPLE_INVOICE_CHARGEITEM_PRODUCT_NAME = 'Sterile saline bottle 500 mL' as const;
@@ -435,6 +440,24 @@ export const EXAMPLE_VITAL_SIGN_VALUE_BODY_TEMPERATURE = 37.1 as const;
 export const EXAMPLE_VITAL_SIGN_UNIT_BEATS_PER_MINUTE = '/min' as const;
 export const EXAMPLE_OBSERVATION_CATEGORY_VITAL_SIGNS =
   'http://terminology.hl7.org/CodeSystem/observation-category|vital-signs' as const;
+/** Reusable LOINC Coding for body-weight Observation examples and metadata. */
+export const EXAMPLE_OBSERVATION_BODY_WEIGHT_CODING = Object.freeze({
+  system: FhirCodeSystems.Loinc,
+  code: '29463-7',
+  display: 'Body weight',
+});
+/** Reusable SNOMED CT Coding for anxiety Observation examples and metadata. */
+export const EXAMPLE_OBSERVATION_ANXIETY_CODING = Object.freeze({
+  system: FhirCodeSystems.SnomedCt,
+  code: '48694002',
+  display: 'Anxiety',
+});
+/** Reusable FHIR event-timing Coding for a night-time event. */
+export const EXAMPLE_OBSERVATION_EVENT_TIMING_NIGHT_CODING = Object.freeze({
+  system: FhirCodeSystems.EventTiming,
+  code: 'NIGHT',
+  display: 'Night',
+});
 export const EXAMPLE_VITAL_SIGN_CODE_HEART_RATE = '8867-4' as const;
 export const EXAMPLE_VITAL_SIGN_CODE_BODY_TEMPERATURE = '8310-5' as const;
 export const EXAMPLE_VITAL_SIGN_CODE_BLOOD_PRESSURE_PANEL = '85354-9' as const;

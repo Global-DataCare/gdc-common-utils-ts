@@ -17,6 +17,7 @@ function defineCoding(system: string, code: string, display?: string): CodingDes
  * Canonical LOINC descriptors for the currently supported Vital Signs.
  */
 export const VitalSignsCodes = Object.freeze({
+  BodyWeight: defineCoding(FhirCodeSystems.Loinc, '29463-7', 'Body weight'),
   HeartRate: defineCoding(FhirCodeSystems.Loinc, '8867-4', 'Heart rate'),
   BloodPressure: defineCoding(FhirCodeSystems.Loinc, '85354-9', 'Blood pressure panel'),
   SystolicBloodPressure: defineCoding(FhirCodeSystems.Loinc, '8480-6', 'Systolic blood pressure'),

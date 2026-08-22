@@ -39,6 +39,7 @@ import {
   EXAMPLE_LICENSE_SKU,
   EXAMPLE_LICENSE_SUBJECT_ID_ACTIVE,
   EXAMPLE_LICENSE_SUBJECT_ID_AVAILABLE,
+  EXAMPLE_TENANT_IDENTIFIER,
 } from './shared';
 import { DEFAULT_LICENSE_DEVICE_ALLOWANCE } from '../utils/license';
 import { EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE } from './employee';
@@ -115,6 +116,21 @@ export const EXAMPLE_LICENSE_AVAILABLE_RECORD = Object.freeze({
     ...EXAMPLE_LICENSE_ACTIVE_RECORD.claims,
     [ClaimsIndividualProductSchemaorg.serialNumber]: EXAMPLE_LICENSE_SEAT_UUID_AVAILABLE,
   },
+} as const);
+
+/** Complete stored device-license fixture for manager and repository tests. */
+export const EXAMPLE_DEVICE_LICENSE_AVAILABLE = Object.freeze({
+  id: EXAMPLE_LICENSE_SEAT_UUID_AVAILABLE,
+  tenantId: EXAMPLE_TENANT_IDENTIFIER,
+  orderId: EXAMPLE_LICENSE_INVOICE_ID,
+  userClass: DeviceUserClasses.Employee,
+  userCategory: EXAMPLE_HEALTHCARE_ACTOR_ROLE_GENERALIST_MEDICAL_PRACTITIONER,
+  type: DeviceAppTypes.Mobile,
+  status: LicenseStatuses.Available,
+  plan: EXAMPLE_LICENSE_PLAN_DEFAULT,
+  renewalCycle: EXAMPLE_LICENSE_RENEWAL_CYCLE_YEARLY,
+  reactivationEnabled: false,
+  exp: 1_893_456_000,
 } as const);
 
 export const EXAMPLE_LICENSE_LIST_RESPONSE_BODY = Object.freeze({
