@@ -88,6 +88,7 @@ export * from './organization-test-network-credential';
 export * from './test-network-organization-credentials';
 export * from './local-terminology-provider';
 export * from './license';
+export * from './organization-role-license';
 export * from './license-commercial-search';
 export * from './license-list-search';
 export * from './license-offer-order';

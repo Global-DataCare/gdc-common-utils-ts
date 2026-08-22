@@ -9,6 +9,7 @@ export * from './individual-controller';
 export * from './professional';
 export * from './employee';
 export * from './license';
+export * from './organization-role-license';
 export * from './invoice';
 export * from './inter-tenant-access-contract';
 export * from './subject-identity-binding';
