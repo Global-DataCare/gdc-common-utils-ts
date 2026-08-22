@@ -4,6 +4,12 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Add the product-neutral organization role-licence ledger model. Its SHA3-384
+  multihash identity binds jurisdiction, official organization identifier,
+  stable hashed contact and licensed role without exposing contact data or a
+  tenant-local employee UUID. Exact sector policies override the empty-sector
+  catch-all; `maxDevices: null` delegates to GW/portal policy, and DCR devices
+  remain concrete per sector and host.
 - Add canonical Schema.org `Order.confirmationNumber`; reuse the existing
   protected postal-code binding model; and export shared license, payment,
   postal and standard LOINC/SNOMED CT/FHIR event-timing fixtures so consumers
