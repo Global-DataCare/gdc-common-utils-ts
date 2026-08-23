@@ -89,6 +89,30 @@ describe('CryptographyService (PQC)', () => {
     expect(await service.verifyDetachedJws(payloadBytes, detached, publicJWKey)).toBe(true);
   });
 
+  it('verifies RFC 7797 detached JWS with an unencoded payload and rejects tampering', async () => {
+    const { publicJWKey, secretKeyBytes } = await service.generateKeyPairMlDsa(undefined, 'ML-DSA-65');
+    const payloadBytes = Content.stringToBytesUTF8(JSON.stringify({ targetNetwork: 'test-network' }));
+    const protectedHeader = Content.objectToRawBase64UrlSafe({
+      alg: 'ML-DSA-65',
+      typ: 'application/vc+ld+json',
+      b64: false,
+      crit: ['b64'],
+    });
+    const signingInput = new Uint8Array(Buffer.concat([
+      Buffer.from(`${protectedHeader}.`, 'ascii'),
+      Buffer.from(payloadBytes),
+    ]));
+    const signature = await service.signBytes(signingInput, secretKeyBytes, 'ML-DSA-65');
+    const detached = `${protectedHeader}..${Content.bytesToRawBase64UrlSafe(signature)}`;
+
+    await expect(service.verifyDetachedJws(payloadBytes, detached, publicJWKey)).resolves.toBe(true);
+    await expect(service.verifyDetachedJws(
+      Content.stringToBytesUTF8(`${Content.bytesToStringUTF8(payloadBytes)}-tampered`),
+      detached,
+      publicJWKey,
+    )).resolves.toBe(false);
+  });
+
   it('throws on invalid detached JWS format', async () => {
     await expect(service.verifyDetachedJws(new Uint8Array([1]), 'not-detached', { kty: 'AKP', alg: 'ML-DSA-44', pub: 'AA' }))
       .rejects.toThrow(/Detached JWS format/);

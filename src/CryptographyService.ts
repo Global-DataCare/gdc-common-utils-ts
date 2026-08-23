@@ -282,10 +282,28 @@ export class CryptographyService implements ICryptography {
     if (parts.length !== 2) throw new Error("Invalid Detached JWS format");
     const protectedHeaderB64Url = parts[0];
     const signatureB64Url = parts[1];
-
-    const payloadB64Url = Content.bytesToRawBase64UrlSafe(payloadBytes);
-    const signingInput = `${protectedHeaderB64Url}.${payloadB64Url}`;
-    const signingInputBytes = Content.stringToBytesUTF8(signingInput);
+    const protectedHeader = Content.base64UrlSafeToJSON(protectedHeaderB64Url) as {
+      b64?: boolean;
+      crit?: unknown;
+    };
+    if (protectedHeader.b64 !== undefined && typeof protectedHeader.b64 !== 'boolean') {
+      throw new Error("Detached JWS protected header 'b64' must be boolean.");
+    }
+    if (protectedHeader.b64 === false
+      && (!Array.isArray(protectedHeader.crit) || !protectedHeader.crit.includes('b64'))) {
+      throw new Error("RFC 7797 detached JWS with 'b64=false' must mark 'b64' critical.");
+    }
+    let signingInputBytes: Uint8Array;
+    if (protectedHeader.b64 === false) {
+      const prefix = Content.stringToBytesUTF8(`${protectedHeaderB64Url}.`);
+      signingInputBytes = new Uint8Array(prefix.length + payloadBytes.length);
+      signingInputBytes.set(prefix);
+      signingInputBytes.set(payloadBytes, prefix.length);
+    } else {
+      signingInputBytes = Content.stringToBytesUTF8(
+        `${protectedHeaderB64Url}.${Content.bytesToRawBase64UrlSafe(payloadBytes)}`,
+      );
+    }
     const signatureBytes = Content.base64ToBytes(signatureB64Url);
 
     return this.verifyBytes(signatureBytes, signingInputBytes, publicJWKey);
