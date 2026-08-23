@@ -2,10 +2,10 @@
 
 import type {
   OrganizationRoleLicense,
-  OrganizationRoleLicenseDevice,
   OrganizationRoleLicenseSectorPolicy,
 } from '../models/organization-role-license';
 import { encodeMultibaseSha3 } from './multibasehash';
+import { DataspaceSectors, type DataspaceSector } from '../constants/sectors';
 
 export type OrganizationRoleLicenseIdentity = Readonly<{
   jurisdiction: string;
@@ -23,6 +23,12 @@ function required(value: string, label: string): string {
 function normalizedSector(value: string): string {
   return String(value || '').trim().toLowerCase();
 }
+
+export const DEFAULT_ORGANIZATION_ROLE_LICENSE_POLICY: OrganizationRoleLicenseSectorPolicy =
+  Object.freeze({
+    sector: DataspaceSectors.OneHealthResearch,
+    active: true,
+  });
 
 function validateStableContactIdentifier(value: string): string {
   const normalized = required(value, 'stableContactIdentifier');
@@ -70,27 +76,34 @@ export function normalizeOrganizationRoleLicensePolicies(
   if (!Array.isArray(policies) || policies.length === 0) {
     throw new TypeError('At least one licence sector policy is required.');
   }
-  const seen = new Set<string>();
+  const seen = new Set<DataspaceSector>();
   return policies.map((policy) => {
-    const sector = normalizedSector(policy.sector);
-    if (seen.has(sector)) throw new TypeError(`Duplicate licence sector policy: ${sector || '<all>'}.`);
-    seen.add(sector);
-    if (policy.maxDevices !== null
-      && (!Number.isInteger(policy.maxDevices) || policy.maxDevices < 1)) {
-      throw new TypeError('maxDevices must be null or a positive integer.');
+    const sector = normalizedSector(policy.sector) as DataspaceSector;
+    if (!sector) throw new TypeError('Licence sector policy requires a canonical sector.');
+    if (!Object.values(DataspaceSectors).includes(sector)) {
+      throw new TypeError(`Unsupported licence sector policy: ${sector}.`);
     }
-    return { sector, active: Boolean(policy.active), maxDevices: policy.maxDevices };
+    if (seen.has(sector)) throw new TypeError(`Duplicate licence sector policy: ${sector}.`);
+    seen.add(sector);
+    if (policy.maxDevices !== undefined
+      && (!Number.isInteger(policy.maxDevices) || policy.maxDevices < 1)) {
+      throw new TypeError('maxDevices must be omitted or a positive integer.');
+    }
+    return {
+      sector,
+      active: Boolean(policy.active),
+      ...(policy.maxDevices === undefined ? {} : { maxDevices: policy.maxDevices }),
+    };
   });
 }
 
-/** Exact sector policy wins; the empty-sector catch-all is only a fallback. */
+/** Resolves the exact canonical sector policy. */
 export function resolveOrganizationRoleLicensePolicy(
   policies: readonly OrganizationRoleLicenseSectorPolicy[],
   sector: string,
 ): OrganizationRoleLicenseSectorPolicy | undefined {
   const requested = required(sector, 'sector').toLowerCase();
-  return policies.find((policy) => normalizedSector(policy.sector) === requested)
-    ?? policies.find((policy) => normalizedSector(policy.sector) === '');
+  return policies.find((policy) => normalizedSector(policy.sector) === requested);
 }
 
 /** Returns the contractual limit or the positive GW/portal default. */
@@ -98,14 +111,14 @@ export function resolveOrganizationRoleLicenseMaxDevices(
   policy: OrganizationRoleLicenseSectorPolicy,
   defaultMaxDevices: number,
 ): number {
-  if (policy.maxDevices !== null) return policy.maxDevices;
+  if (policy.maxDevices !== undefined) return policy.maxDevices;
   if (!Number.isInteger(defaultMaxDevices) || defaultMaxDevices < 1) {
     throw new TypeError('defaultMaxDevices must be a positive integer.');
   }
   return defaultMaxDevices;
 }
 
-/** Checks global status plus the resolved exact/catch-all sector policy. */
+/** Checks global status plus the resolved exact-sector policy. */
 export function organizationRoleLicenseAllowsSector(
   license: Readonly<{
     status: OrganizationRoleLicense['status'];
@@ -115,40 +128,4 @@ export function organizationRoleLicenseAllowsSector(
 ): boolean {
   if (license.status !== 'active') return false;
   return resolveOrganizationRoleLicensePolicy(license.data, sector)?.active === true;
-}
-
-/** Active DCR installations are counted per concrete sector, across hosts/apps. */
-export function countActiveOrganizationRoleLicenseDevices(
-  devices: readonly OrganizationRoleLicenseDevice[],
-  sector: string,
-): number {
-  const requested = required(sector, 'sector').toLowerCase();
-  return devices.filter((device) => device.status === 'active'
-    && normalizedSector(device.sector) === requested).length;
-}
-
-/**
- * Deterministic DCR admission decision. Re-registering the same active client
- * is idempotent and does not consume an additional device slot.
- */
-export function organizationRoleLicenseAllowsDevice(
-  license: Readonly<{
-    status: OrganizationRoleLicense['status'];
-    data: readonly OrganizationRoleLicenseSectorPolicy[];
-    devices: readonly OrganizationRoleLicenseDevice[];
-  }>,
-  input: Readonly<{ sector: string; clientId: string; clientInstanceId: string; defaultMaxDevices: number }>,
-): boolean {
-  const sector = required(input.sector, 'sector').toLowerCase();
-  const clientId = required(input.clientId, 'clientId');
-  const clientInstanceId = required(input.clientInstanceId, 'clientInstanceId');
-  if (!organizationRoleLicenseAllowsSector(license, sector)) return false;
-  if (license.devices.some((device) => device.status === 'active'
-    && device.clientId === clientId
-    && device.clientInstanceId === clientInstanceId
-    && normalizedSector(device.sector) === sector)) return true;
-  const policy = resolveOrganizationRoleLicensePolicy(license.data, sector);
-  if (!policy) return false;
-  return countActiveOrganizationRoleLicenseDevices(license.devices, sector)
-    < resolveOrganizationRoleLicenseMaxDevices(policy, input.defaultMaxDevices);
 }

@@ -4,13 +4,10 @@ import {
   buildOrganizationRoleLicenseId,
   buildOrganizationRoleLicensePreimage,
   normalizeOrganizationRoleLicensePolicies,
-  organizationRoleLicenseAllowsDevice,
   organizationRoleLicenseAllowsSector,
   resolveOrganizationRoleLicensePolicy,
 } from '../src/utils/organization-role-license';
-import type { OrganizationRoleLicense } from '../src/models/organization-role-license';
 import {
-  EXAMPLE_ORGANIZATION_ROLE_LICENSE,
   EXAMPLE_ORGANIZATION_ROLE_LICENSE_IDENTITY,
   EXAMPLE_ORGANIZATION_ROLE_LICENSE_POLICIES,
 } from '../src/examples/organization-role-license';
@@ -19,6 +16,7 @@ import {
   EXAMPLE_JURISDICTION,
   EXAMPLE_ORGANIZATION_CONTROLLER_ROLE,
 } from '../src/examples/shared';
+import { DataspaceSectors } from '../src/constants/sectors';
 
 const stableContactIdentifier = EXAMPLE_ORGANIZATION_ROLE_LICENSE_IDENTITY.stableContactIdentifier;
 
@@ -54,28 +52,31 @@ describe('organization role licence contract', () => {
 
   it('normalizes policies and rejects duplicate or invalid device limits', () => {
     expect(normalizeOrganizationRoleLicensePolicies([
-      { sector: 'Health-Care', active: true, maxDevices: 5 },
-      { sector: '', active: true, maxDevices: null },
+      { sector: DataspaceSectors.HealthCare, active: true, maxDevices: 5 },
+      { sector: DataspaceSectors.OneHealthResearch, active: true },
     ])).toEqual([
-      { sector: 'health-care', active: true, maxDevices: 5 },
-      { sector: '', active: true, maxDevices: null },
+      { sector: DataspaceSectors.HealthCare, active: true, maxDevices: 5 },
+      { sector: DataspaceSectors.OneHealthResearch, active: true },
     ]);
     expect(() => normalizeOrganizationRoleLicensePolicies([
-      { sector: '', active: true, maxDevices: null },
-      { sector: '', active: false, maxDevices: 2 },
+      { sector: DataspaceSectors.AnimalCare, active: true },
+      { sector: DataspaceSectors.AnimalCare, active: false, maxDevices: 2 },
     ])).toThrow(/Duplicate/);
     expect(() => normalizeOrganizationRoleLicensePolicies([
-      { sector: '', active: true, maxDevices: 0 },
+      { sector: DataspaceSectors.HealthCare, active: true, maxDevices: 0 },
     ])).toThrow(/positive integer/);
+    expect(() => normalizeOrganizationRoleLicensePolicies([
+      { sector: '' as any, active: true },
+    ])).toThrow(/requires a canonical sector/);
   });
 
-  it('uses an exact sector entry before the catch-all entry', () => {
+  it('resolves only an exact canonical sector entry', () => {
     const policies = [
-      { sector: '', active: true, maxDevices: null },
-      { sector: 'animal-care', active: false, maxDevices: 2 },
-    ];
-    expect(resolveOrganizationRoleLicensePolicy(policies, 'animal-care')).toEqual(policies[1]);
-    expect(resolveOrganizationRoleLicensePolicy(policies, 'health-care')).toEqual(policies[0]);
+      { sector: DataspaceSectors.OneHealthResearch, active: true },
+      { sector: DataspaceSectors.AnimalCare, active: false, maxDevices: 2 },
+    ] as const;
+    expect(resolveOrganizationRoleLicensePolicy(policies, DataspaceSectors.AnimalCare)).toEqual(policies[1]);
+    expect(resolveOrganizationRoleLicensePolicy(policies, DataspaceSectors.HealthCare)).toBeUndefined();
   });
 
   it('deactivates one sector without revoking the global licence', () => {
@@ -83,29 +84,8 @@ describe('organization role licence contract', () => {
       status: 'active',
       data: EXAMPLE_ORGANIZATION_ROLE_LICENSE_POLICIES,
     } as const;
-    expect(organizationRoleLicenseAllowsSector(license, 'health-care')).toBe(true);
-    expect(organizationRoleLicenseAllowsSector(license, 'animal-care')).toBe(false);
+    expect(organizationRoleLicenseAllowsSector(license, DataspaceSectors.OneHealthResearch)).toBe(true);
+    expect(organizationRoleLicenseAllowsSector(license, DataspaceSectors.AnimalCare)).toBe(false);
   });
 
-  it('counts installations per sector across hosts and applies the portal default', () => {
-    const base = {
-      ...EXAMPLE_ORGANIZATION_ROLE_LICENSE,
-      data: [{ sector: '', active: true, maxDevices: null }],
-      devices: [
-        { clientId: 'client-a', clientInstanceId: 'install-a', sector: 'health-care', host: 'https://a.example', status: 'active', activatedAt: 1 },
-        { clientId: 'client-b', clientInstanceId: 'install-b', sector: 'health-care', host: 'https://b.example', status: 'active', activatedAt: 2 },
-        { clientId: 'client-c', clientInstanceId: 'install-c', sector: 'animal-care', host: 'https://b.example', status: 'active', activatedAt: 3 },
-      ],
-      updatedAt: 3,
-    } satisfies OrganizationRoleLicense;
-    expect(organizationRoleLicenseAllowsDevice(base, {
-      sector: 'health-care', clientId: 'client-b', clientInstanceId: 'install-b', defaultMaxDevices: 2,
-    })).toBe(true);
-    expect(organizationRoleLicenseAllowsDevice(base, {
-      sector: 'health-care', clientId: 'client-new', clientInstanceId: 'install-new', defaultMaxDevices: 2,
-    })).toBe(false);
-    expect(organizationRoleLicenseAllowsDevice(base, {
-      sector: 'animal-care', clientId: 'client-new', clientInstanceId: 'install-new', defaultMaxDevices: 2,
-    })).toBe(true);
-  });
 });
