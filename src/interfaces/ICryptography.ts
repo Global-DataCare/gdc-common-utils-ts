@@ -149,6 +149,7 @@ export interface ICryptography {
    * @param publicJWKey The signer's public key (JWK) to use for verification.
    * @returns A boolean indicating if the signature is valid.
    */
+  /** Verifies encoded detached JWS and RFC 7797 `b64=false` detached payloads. */
   verifyDetachedJws(payloadBytes: Uint8Array, detachedJws: string, publicJWKey: PublicJwk): Promise<boolean>;  
   
   // --- Formatting & Parsing Utilities (Note: from cryptoEncode, cryptoDecode, jwt utils ... ---
@@ -174,4 +175,3 @@ export interface ICryptography {
    */
   parseCompactJwe(jweString: string): JweObject;
 }
-

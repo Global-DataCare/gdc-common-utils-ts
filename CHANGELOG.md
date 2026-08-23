@@ -4,6 +4,11 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Verify RFC 7797 detached JWS signing input correctly when the protected
+  header declares `b64=false` and `crit=["b64"]`. ML-DSA Test Network
+  admission proofs created by managed wallets are no longer re-encoded before
+  verification; encoded detached JWS compatibility remains unchanged.
+
 - Remove empty-sector role-license wildcards. Policies now require a canonical
   `DataspaceSectors` value, default to `OneHealthResearch`, and omit
   `maxDevices` when the numeric limit is delegated to GW/portal policy. DCR
