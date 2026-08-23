@@ -1,6 +1,6 @@
 // Copyright 2026 Antifraud Services Inc. under the Apache License, Version 2.0.
 
-import type { DeviceBindingStatus } from '../constants/device';
+import type { DataspaceSector } from '../constants/sectors';
 
 /** Lifecycle of one organization-owned, role-bearing licence assignment. */
 export type OrganizationRoleLicenseStatus = 'active' | 'revoked';
@@ -8,33 +8,21 @@ export type OrganizationRoleLicenseStatus = 'active' | 'revoked';
 /**
  * Contractual policy for one sector.
  *
- * `sector: ""` is the catch-all policy. An exact sector entry overrides it.
- * `maxDevices: null` delegates the numeric limit to the GW/portal policy; it
- * does not mean an unlimited number of installations.
+ * Every entry targets one canonical dataspace sector. Omitting `maxDevices`
+ * delegates the numeric limit to the GW/portal policy.
  */
 export interface OrganizationRoleLicenseSectorPolicy {
-  sector: string;
+  sector: DataspaceSector;
   active: boolean;
-  maxDevices: number | null;
-}
-
-/** One concrete DCR installation registered against the licence. */
-export interface OrganizationRoleLicenseDevice {
-  clientId: string;
-  clientInstanceId: string;
-  sector: string;
-  host: string;
-  status: DeviceBindingStatus;
-  activatedAt: number;
-  revokedAt?: number;
+  maxDevices?: number;
 }
 
 /**
  * Public ledger projection of one licence assigned by an organization.
  *
  * The stable contact is a one-way `urn:multibase:` identifier. Clear email,
- * telephone, tenant-local employee UUIDs, payment details and application
- * permissions must never be written to this asset.
+ * telephone, tenant-local employee UUIDs, payment details, DCR registrations,
+ * hosts and application permissions must never be written to this asset.
  */
 export interface OrganizationRoleLicense {
   id: string;
@@ -45,7 +33,6 @@ export interface OrganizationRoleLicense {
   licensedRole: string;
   status: OrganizationRoleLicenseStatus;
   data: OrganizationRoleLicenseSectorPolicy[];
-  devices: OrganizationRoleLicenseDevice[];
   createdAt: number;
   updatedAt: number;
   revokedAt?: number;
