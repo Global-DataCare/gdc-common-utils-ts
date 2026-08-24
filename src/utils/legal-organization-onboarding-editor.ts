@@ -26,6 +26,8 @@ export type LegalOrganizationFormTemplateFields = Readonly<{
   controllerRole?: string;
   serviceCategory?: string;
   serviceIdentifier?: string;
+  /** Canonical CSV of capabilities stored in `org.schema.Service.serviceType`. */
+  serviceType?: string;
   serviceUrl?: string;
   tenantAlias?: string;
 }>;
@@ -114,6 +116,8 @@ export interface LegalOrganizationOnboardingFacade {
   getServiceCategory(fields: LegalOrganizationFormTemplateFields): string | undefined;
   setServiceIdentifier(fields: LegalOrganizationFormTemplateFields, value: string): LegalOrganizationFormTemplateFields;
   getServiceIdentifier(fields: LegalOrganizationFormTemplateFields): string | undefined;
+  setServiceType(fields: LegalOrganizationFormTemplateFields, value: string): LegalOrganizationFormTemplateFields;
+  getServiceType(fields: LegalOrganizationFormTemplateFields): string | undefined;
   setServiceUrl(fields: LegalOrganizationFormTemplateFields, value: string): LegalOrganizationFormTemplateFields;
   getServiceUrl(fields: LegalOrganizationFormTemplateFields): string | undefined;
   /**
@@ -179,6 +183,8 @@ export interface LegalOrganizationOnboardingEditor {
   getServiceCategory(): string | undefined;
   setServiceIdentifier(value: string): LegalOrganizationOnboardingEditor;
   getServiceIdentifier(): string | undefined;
+  setServiceType(value: string): LegalOrganizationOnboardingEditor;
+  getServiceType(): string | undefined;
   setServiceUrl(value: string): LegalOrganizationOnboardingEditor;
   getServiceUrl(): string | undefined;
   setTenantAlias(value: string): LegalOrganizationOnboardingEditor;
@@ -266,6 +272,8 @@ function createEditorFromFacade(
     getServiceCategory() { return facade.getServiceCategory(formFields); },
     setServiceIdentifier(value) { formFields = facade.setServiceIdentifier(formFields, value); return editor; },
     getServiceIdentifier() { return facade.getServiceIdentifier(formFields); },
+    setServiceType(value) { formFields = facade.setServiceType(formFields, value); return editor; },
+    getServiceType() { return facade.getServiceType(formFields); },
     setServiceUrl(value) { formFields = facade.setServiceUrl(formFields, value); return editor; },
     getServiceUrl() { return facade.getServiceUrl(formFields); },
     setTenantAlias(value) { formFields = facade.setTenantAlias(formFields, value); return editor; },
@@ -369,6 +377,14 @@ export function createLegalOrganizationOnboardingFacade(): LegalOrganizationOnbo
       return normalizeOptionalText(fields.serviceIdentifier);
     },
 
+    setServiceType(fields, value) {
+      return patchFields(fields, { serviceType: normalizeText(value) });
+    },
+
+    getServiceType(fields) {
+      return normalizeOptionalText(fields.serviceType);
+    },
+
     setServiceUrl(fields, value) {
       return patchFields(fields, { serviceUrl: normalizeText(value) });
     },
@@ -416,6 +432,9 @@ export function createLegalOrganizationOnboardingFacade(): LegalOrganizationOnbo
       }
       if (normalizeOptionalText(fields.serviceIdentifier)) {
         claims[ClaimsServiceSchemaorg.identifier] = normalizeText(fields.serviceIdentifier);
+      }
+      if (normalizeOptionalText(fields.serviceType)) {
+        claims[ClaimsServiceSchemaorg.serviceType] = normalizeText(fields.serviceType);
       }
       if (normalizeOptionalText(fields.serviceUrl)) {
         claims[ClaimsServiceSchemaorg.url] = normalizeText(fields.serviceUrl);
@@ -479,6 +498,14 @@ export function createLegalOrganizationOnboardingFacade(): LegalOrganizationOnbo
           code: 'missing-service-category',
           message: 'serviceCategory is required for legal-organization onboarding.',
           field: 'serviceCategory',
+        });
+      }
+      if (!normalizeOptionalText(fields.serviceType)) {
+        issues.push({
+          severity: 'error',
+          code: 'missing-service-type',
+          message: 'serviceType is required because GW authorizes activation capabilities from it.',
+          field: 'serviceType',
         });
       }
       if (!normalizeOptionalText(fields.controllerRole)) {

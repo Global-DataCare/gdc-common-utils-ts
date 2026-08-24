@@ -4,6 +4,11 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Add typed `serviceType` setters/getters to the legal-organization onboarding
+  editor, emit canonical `org.schema.Service.serviceType`, and fail validation
+  when activation capabilities are missing. Runtime and 101 tests now reuse
+  the same shared service-capability example.
+
 - Verify RFC 7797 detached JWS signing input correctly when the protected
   header declares `b64=false` and `crit=["b64"]`. ML-DSA Test Network
   admission proofs created by managed wallets are no longer re-encoded before

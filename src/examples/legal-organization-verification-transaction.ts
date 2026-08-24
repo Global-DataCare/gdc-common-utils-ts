@@ -52,6 +52,16 @@ const exampleControllerBinding: LegalOrganizationVerificationTransactionControll
     : {}),
 };
 
+/** Canonical capabilities reused by organization-onboarding editor tests. */
+const exampleLegalOrganizationServiceType = serializeServiceCapabilityTokens([
+  ServiceCapability.IndexProvider,
+  ServiceCapability.DigitalTwinReader,
+]);
+if (!exampleLegalOrganizationServiceType) {
+  throw new Error('Canonical legal-organization example capabilities must not be empty.');
+}
+export const EXAMPLE_LEGAL_ORGANIZATION_SERVICE_TYPE = exampleLegalOrganizationServiceType;
+
 export const EXAMPLE_LEGAL_ORGANIZATION_VERIFICATION_TRANSACTION_BUNDLE =
   buildLegalOrganizationVerificationTransactionBundle({
     claims: {
@@ -65,10 +75,7 @@ export const EXAMPLE_LEGAL_ORGANIZATION_VERIFICATION_TRANSACTION_BUNDLE =
       [ClaimsServiceSchemaorg.category]: EXAMPLE_SECTOR,
       [ClaimsServiceSchemaorg.identifier]: EXAMPLE_TENANT_SERVICE_DID,
       [ClaimsServiceSchemaorg.url]: `https://operator.example.net/acme/cds-${String(EXAMPLE_JURISDICTION).toLowerCase()}/v1/${EXAMPLE_SECTOR}`,
-      [ClaimsServiceSchemaorg.serviceType]: serializeServiceCapabilityTokens([
-        ServiceCapability.IndexProvider,
-        ServiceCapability.DigitalTwinReader,
-      ]),
+      [ClaimsServiceSchemaorg.serviceType]: EXAMPLE_LEGAL_ORGANIZATION_SERVICE_TYPE,
     },
     controller: exampleControllerBinding,
     organization: {

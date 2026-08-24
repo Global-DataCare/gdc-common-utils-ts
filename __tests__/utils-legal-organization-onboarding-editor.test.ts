@@ -13,6 +13,7 @@ import {
 import {
   createLegalOrganizationOnboardingEditor,
 } from '../src/utils/legal-organization-onboarding-editor';
+import { EXAMPLE_LEGAL_ORGANIZATION_SERVICE_TYPE } from '../src/examples/legal-organization-verification-transaction';
 
 const exampleControllerBinding = {
   did: EXAMPLE_CONTROLLER_BINDING.did,
@@ -39,6 +40,7 @@ describe('legal organization onboarding editor', () => {
       .setControllerRole('RESPRSN')
       .setServiceCategory(EXAMPLE_SECTOR)
       .setServiceIdentifier(EXAMPLE_TENANT_SERVICE_DID)
+      .setServiceType(EXAMPLE_LEGAL_ORGANIZATION_SERVICE_TYPE)
       .setServiceUrl('https://provider.example.org')
       .buildDraft();
 
@@ -47,6 +49,7 @@ describe('legal organization onboarding editor', () => {
     expect(draft.claims['org.schema.Organization.taxID']).toBe(EXAMPLE_LEGAL_ORGANIZATION_TAX_ID);
     expect(draft.claims['org.schema.Organization.identifier.value']).toBe(EXAMPLE_LEGAL_ORGANIZATION_TAX_ID);
     expect(draft.claims['org.schema.Organization.alternateName']).toBe(EXAMPLE_LEGAL_ORGANIZATION_TAX_ID);
+    expect(draft.claims['org.schema.Service.serviceType']).toBe(EXAMPLE_LEGAL_ORGANIZATION_SERVICE_TYPE);
   });
 
   it('builds the canonical verification-transaction input from the same form draft', () => {
@@ -59,6 +62,7 @@ describe('legal organization onboarding editor', () => {
       .setControllerEmail(EXAMPLE_EMAIL_CONTROLLER_ORG)
       .setControllerRole('RESPRSN')
       .setServiceCategory(EXAMPLE_SECTOR)
+      .setServiceType(EXAMPLE_LEGAL_ORGANIZATION_SERVICE_TYPE)
       .buildVerificationTransactionInput({
         controller: exampleControllerBinding,
         legalRepresentativePayload: {
@@ -96,6 +100,7 @@ describe('legal organization onboarding editor', () => {
       'missing-legal-identifier-type',
       'missing-address-country',
       'missing-controller-email',
+      'missing-service-type',
     ]));
     expect(validation.warnings.map((issue) => issue.code)).toEqual(expect.arrayContaining([
       'missing-controller-role',
