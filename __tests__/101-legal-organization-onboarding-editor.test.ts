@@ -21,6 +21,7 @@ import {
 import {
   createLegalOrganizationOnboardingEditor,
 } from '../src/utils/legal-organization-onboarding-editor';
+import { EXAMPLE_LEGAL_ORGANIZATION_SERVICE_TYPE } from '../src/examples/legal-organization-verification-transaction';
 
 const exampleControllerBinding = {
   did: EXAMPLE_CONTROLLER_BINDING.did,
@@ -48,6 +49,7 @@ describe('101: legal-organization onboarding editor', () => {
       .setControllerRole('RESPRSN')
       .setServiceCategory(EXAMPLE_SECTOR)
       .setServiceIdentifier(EXAMPLE_TENANT_SERVICE_DID)
+      .setServiceType(EXAMPLE_LEGAL_ORGANIZATION_SERVICE_TYPE)
       .setServiceUrl('https://provider.example.org');
 
     // Step 2: the frontend/BFF validates and normalizes the shared claim set.
@@ -60,6 +62,7 @@ describe('101: legal-organization onboarding editor', () => {
     expect(editor.getControllerEmail()).toBe(EXAMPLE_EMAIL_CONTROLLER_ORG);
     expect(editor.getServiceCategory()).toBe(EXAMPLE_SECTOR);
     expect(editor.getServiceIdentifier()).toBe(EXAMPLE_TENANT_SERVICE_DID);
+    expect(editor.getServiceType()).toBe(EXAMPLE_LEGAL_ORGANIZATION_SERVICE_TYPE);
     expect(editor.getServiceUrl()).toBe('https://provider.example.org');
     expect(draft.claims['org.schema.Organization.identifier.value']).toBe(EXAMPLE_LEGAL_ORGANIZATION_TAX_ID);
     expect(draft.claims['org.schema.Organization.alternateName']).toBe(EXAMPLE_LEGAL_ORGANIZATION_TAX_ID);
@@ -97,6 +100,7 @@ describe('101: legal-organization onboarding editor', () => {
       .setControllerEmail(EXAMPLE_EMAIL_CONTROLLER_ORG)
       .setServiceCategory(EXAMPLE_SECTOR)
       .setServiceIdentifier(EXAMPLE_TENANT_SERVICE_DID)
+      .setServiceType(EXAMPLE_LEGAL_ORGANIZATION_SERVICE_TYPE)
       .setServiceUrl('https://provider.example.org');
 
     const verificationRequest = editor.buildGatewayVerificationRequest({
