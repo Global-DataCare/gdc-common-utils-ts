@@ -4,6 +4,10 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Scope atomic consent-rule identities by the stable source
+  `Consent.identifier`, so independent portal and future-study consents do not
+  collide while updates to the same consent retain one ledger identity.
+
 - Add typed `serviceType` setters/getters to the legal-organization onboarding
   editor, emit canonical `org.schema.Service.serviceType`, and fail validation
   when activation capabilities are missing. Runtime and 101 tests now reuse

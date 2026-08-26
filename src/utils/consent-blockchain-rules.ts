@@ -131,6 +131,7 @@ function deriveRuleEntriesFromConsentEntry(
     for (const purpose of purposes) {
       for (const role of normalizedRoles) {
         const ruleId = buildConsentAtomicRuleId({
+          sourceConsentIdentifier,
           subject,
           decision,
           actorIdentifier,

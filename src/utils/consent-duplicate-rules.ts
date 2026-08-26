@@ -56,9 +56,12 @@ const RESOURCE_TYPE_PREFIX = 'resourceType:';
  *
  * The identifier intentionally excludes section/resource targets so that two
  * entries that authorize different target sets for the same subject, decision,
- * actor, purpose, and role collide into the same duplicate group.
+ * actor, purpose, and role collide into the same duplicate group. It includes
+ * the stable source Consent identifier so independent portal or study
+ * consents never collapse into the same rule.
  */
 export function buildConsentAtomicRuleId(input: Readonly<{
+  sourceConsentIdentifier?: string;
   subject?: string;
   decision?: string;
   actorIdentifier: string;
@@ -66,6 +69,7 @@ export function buildConsentAtomicRuleId(input: Readonly<{
   role?: string;
 }>): string {
   return [
+    normalizeRuleKeyPart(input.sourceConsentIdentifier),
     normalizeRuleKeyPart(input.subject),
     normalizeDecision(input.decision).toLowerCase(),
     normalizeRuleKeyPart(input.actorIdentifier),
@@ -168,6 +172,7 @@ function deriveAtomicConsentRules(entry: BundleEntry, entryIndex: number): Deriv
       for (const role of normalizedRoles) {
         derived.push({
           ruleId: buildConsentAtomicRuleId({
+            sourceConsentIdentifier: identifier,
             subject,
             decision,
             actorIdentifier,

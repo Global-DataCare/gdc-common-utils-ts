@@ -152,6 +152,7 @@ describe('Consent blockchain rule primary-document utilities', () => {
     expect(document.data).toHaveLength(2);
 
     const expectedFirstRuleId = buildConsentAtomicRuleId({
+      sourceConsentIdentifier: EXAMPLE_CONSENT_IDENTIFIER,
       subject: String(firstConsentClaims[ClaimConsent.subject]),
       decision: ConsentDecisions.Permit,
       actorIdentifier: String(firstConsentClaims[ClaimConsent.actorIdentifier]),
@@ -174,6 +175,7 @@ describe('Consent blockchain rule primary-document utilities', () => {
     expect(document.data[0].resource.meta.claims[ClaimConsent.purpose]).toBeUndefined();
 
     const expectedSecondRuleId = buildConsentAtomicRuleId({
+      sourceConsentIdentifier: EXAMPLE_CONTENT_ADDRESSED_CONSENT_IDENTIFIER,
       subject: String(secondConsentClaims[ClaimConsent.subject]),
       decision: ConsentDecisions.Permit,
       actorIdentifier: String(secondConsentClaims[ClaimConsent.actorIdentifier]),
@@ -310,6 +312,7 @@ describe('Consent blockchain rule primary-document utilities', () => {
     expect(deriveConsentRuleBlockchainStatus(revokedClaims, { now: evaluationTime })).toBe('revoked');
 
     const activeRuleId = buildConsentAtomicRuleId({
+      sourceConsentIdentifier: EXAMPLE_CONSENT_IDENTIFIER,
       subject: String(activeClaims[ClaimConsent.subject]),
       decision: ConsentDecisions.Permit,
       actorIdentifier: String(activeClaims[ClaimConsent.actorIdentifier]),
@@ -317,6 +320,7 @@ describe('Consent blockchain rule primary-document utilities', () => {
       role: String(activeClaims[ClaimConsent.actorRole]),
     });
     const revokedRuleId = buildConsentAtomicRuleId({
+      sourceConsentIdentifier: EXAMPLE_CONSENT_IDENTIFIER,
       subject: String(revokedClaims[ClaimConsent.subject]),
       decision: ConsentDecisions.Permit,
       actorIdentifier: String(revokedClaims[ClaimConsent.actorIdentifier]),
