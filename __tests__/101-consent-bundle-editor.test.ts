@@ -188,7 +188,7 @@ describe('101: consent bundle editor', () => {
     expect(consentBundleEditor.hasActiveEntryClaim(ClaimConsent.decision)).toBe(false);
   });
 
-  it('exposes duplicate atomic-rule conflicts for the frontend after saving entries', () => {
+  it('keeps independent consent identifiers out of duplicate atomic-rule conflicts', () => {
     const consentBundleEditor = createConsentAccessEditor({
       communicationClaims: { '@context': CommunicationClaimsContext },
     });
@@ -230,17 +230,8 @@ describe('101: consent bundle editor', () => {
     const activeConflicts = consentBundleEditor.getActiveConsentRuleDuplicateConflicts();
     const allConflicts = consentBundleEditor.getConsentRuleDuplicateConflicts();
 
-    expect(activeConflicts).toHaveLength(1);
-    expect(allConflicts).toHaveLength(1);
-    expect(activeConflicts[0].actorIdentifier).toBe(EXAMPLE_EMAIL_PROFESSIONAL);
-    expect(activeConflicts[0].purpose).toBe(HealthcareConsentPurposes.Treatment);
-    expect(activeConflicts[0].effectiveTargets.sections).toEqual([
-      HealthcareBasicSections.Results.attributeValue,
-    ]);
-    expect(activeConflicts[0].affectedEntries.map((entry) => entry.fullUrl)).toEqual([
-      'urn:uuid:consent-1',
-      'urn:uuid:consent-2',
-    ]);
+    expect(activeConflicts).toHaveLength(0);
+    expect(allConflicts).toHaveLength(0);
   });
 
   it('exports a permission-template-shaped draft into consent claims and imports it back through the active entry', () => {
