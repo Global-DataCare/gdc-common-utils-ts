@@ -140,6 +140,7 @@ export const EXAMPLE_TENANT_ENABLE_MESSAGE = {
   },
   claims: {
     '@context': 'org.schema',
+    [ClaimsOrganizationSchemaorg.identifierType]: 'taxID',
     [ClaimsOrganizationSchemaorg.identifierValue]: EXAMPLE_LIFECYCLE_PLACEHOLDERS.tenantTaxId,
     [ClaimsOrganizationSchemaorg.taxId]: EXAMPLE_LIFECYCLE_PLACEHOLDERS.tenantTaxId,
     [ClaimsOrganizationSchemaorg.identifier]: EXAMPLE_LIFECYCLE_PLACEHOLDERS.tenantDid,
@@ -156,6 +157,7 @@ export const EXAMPLE_TENANT_DISABLE_MESSAGE = {
   },
   claims: {
     '@context': 'org.schema',
+    [ClaimsOrganizationSchemaorg.identifierType]: 'taxID',
     [ClaimsOrganizationSchemaorg.identifierValue]: EXAMPLE_LIFECYCLE_PLACEHOLDERS.tenantTaxId,
     [ClaimsOrganizationSchemaorg.taxId]: EXAMPLE_LIFECYCLE_PLACEHOLDERS.tenantTaxId,
     [ClaimsOrganizationSchemaorg.identifier]: EXAMPLE_LIFECYCLE_PLACEHOLDERS.tenantDid,
@@ -177,6 +179,7 @@ export const EXAMPLE_TENANT_DELETE_MESSAGE = {
   },
   claims: {
     '@context': 'org.schema',
+    [ClaimsOrganizationSchemaorg.identifierType]: 'taxID',
     [ClaimsOrganizationSchemaorg.identifierValue]: EXAMPLE_LIFECYCLE_PLACEHOLDERS.tenantTaxId,
     [ClaimsOrganizationSchemaorg.taxId]: EXAMPLE_LIFECYCLE_PLACEHOLDERS.tenantTaxId,
     [ClaimsOrganizationSchemaorg.identifier]: EXAMPLE_LIFECYCLE_PLACEHOLDERS.tenantDid,

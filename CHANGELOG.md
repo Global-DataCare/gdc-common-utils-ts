@@ -7,6 +7,10 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 - Scope atomic consent-rule identities by the stable source
   `Consent.identifier`, so independent portal and future-study consents do not
   collide while updates to the same consent retain one ledger identity.
+- Add typed legal-organization identifier extraction/comparison and lifecycle
+  editor accessors. Lifecycle authorization can now bind the declared
+  jurisdictional identifier type and complete value without assuming
+  `memberOf.taxID` or removing punctuation.
 
 - Add typed `serviceType` setters/getters to the legal-organization onboarding
   editor, emit canonical `org.schema.Service.serviceType`, and fail validation

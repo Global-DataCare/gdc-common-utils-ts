@@ -119,6 +119,17 @@ export class OrganizationLifecycleEditor {
     return this;
   }
 
+  /** Sets the jurisdiction-defined identifier type independently from its complete value. */
+  setIdentifierType(identifierType: string): this {
+    this.draft = patchDraft(this.draft, {
+      claims: {
+        ...this.draft.claims,
+        [ClaimsOrganizationSchemaorg.identifierType]: String(identifierType).trim(),
+      },
+    });
+    return this;
+  }
+
   setTaxId(taxId: string): this {
     this.draft = patchDraft(this.draft, {
       claims: {
@@ -154,6 +165,11 @@ export class OrganizationLifecycleEditor {
 
   getIdentifierValue(): string | undefined {
     return normalizeText(this.draft.claims[ClaimsOrganizationSchemaorg.identifierValue]) || undefined;
+  }
+
+  /** Returns the jurisdiction-defined identifier type used by lifecycle authorization. */
+  getIdentifierType(): string | undefined {
+    return normalizeText(this.draft.claims[ClaimsOrganizationSchemaorg.identifierType]) || undefined;
   }
 
   getTaxId(): string | undefined {

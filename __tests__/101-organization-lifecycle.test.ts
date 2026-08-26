@@ -19,6 +19,7 @@ describe('101: organization lifecycle editor', () => {
   it('builds the shared current GW payload for tenant or host lifecycle through explicit set/get methods', () => {
     const editor = new OrganizationLifecycleEditor()
       .setIdentifier(String(EXAMPLE_TENANT_DISABLE_MESSAGE.claims[ClaimsOrganizationSchemaorg.identifier]))
+      .setIdentifierType(String(EXAMPLE_TENANT_DISABLE_MESSAGE.claims[ClaimsOrganizationSchemaorg.identifierType]))
       .setIdentifierValue(String(EXAMPLE_TENANT_DISABLE_MESSAGE.claims[ClaimsOrganizationSchemaorg.identifierValue]))
       .setTaxId(String(EXAMPLE_TENANT_DISABLE_MESSAGE.claims[ClaimsOrganizationSchemaorg.taxId]))
       .setOperation(OrganizationLifecycleOperations.Disable)
@@ -32,6 +33,7 @@ describe('101: organization lifecycle editor', () => {
     expect(editor.getIdentifierValue()).toBe(
       EXAMPLE_TENANT_DISABLE_MESSAGE.claims[ClaimsOrganizationSchemaorg.identifierValue],
     );
+    expect(editor.getIdentifierType()).toBe('taxID');
     expect(editor.getTaxId()).toBe(
       EXAMPLE_TENANT_DISABLE_MESSAGE.claims[ClaimsOrganizationSchemaorg.taxId],
     );

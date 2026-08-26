@@ -1,11 +1,14 @@
 // Always create JSDoc, do not use strings inline in keys nor values, use types instead, and reuse the data test examples.
 import {
   buildMemberDidWeb,
+  extractOrganizationLegalIdentifier,
+  extractRepresentativeMemberOfLegalIdentifier,
   extractOrganizationControllerOccupationCodes,
   extractOrganizationControllerRoleCodes,
   extractRepresentativeSubjectId,
   extractDidWebFromCredential,
   isMemberDidWebUnderOwner,
+  legalOrganizationIdentifiersMatch,
   validateActivationServiceAuthorizationPolicy,
   validateActivationRepresentativePolicy,
 } from '../src/utils/activation-policy';
@@ -54,6 +57,30 @@ describe('Activation Policy Utils', () => {
   it('extracts controller authority and ISCO occupation independently from one controller VC', () => {
     expect(extractOrganizationControllerRoleCodes(controllerCredential)).toEqual([EXAMPLE_REPRESENTATIVE_ROLE_CODE]);
     expect(extractOrganizationControllerOccupationCodes(controllerCredential)).toEqual(['ISCO-08|1330']);
+  });
+
+  it('matches typed international organization identifiers without removing punctuation', () => {
+    const organization = {
+      credentialSubject: {
+        identifier: { additionalType: 'BUSINESS_REGISTRATION', value: 'CA-REG-12-345' },
+      },
+    };
+    const representative = {
+      credentialSubject: {
+        memberOf: {
+          identifier: { additionalType: 'business_registration', value: 'ca-reg-12-345' },
+        },
+      },
+    };
+    const organizationIdentifier = extractOrganizationLegalIdentifier(organization);
+    const representativeIdentifier = extractRepresentativeMemberOfLegalIdentifier(representative);
+
+    expect(organizationIdentifier).toEqual({ type: 'BUSINESS_REGISTRATION', value: 'CA-REG-12-345' });
+    expect(representativeIdentifier).toEqual({ type: 'BUSINESS_REGISTRATION', value: 'CA-REG-12-345' });
+    expect(legalOrganizationIdentifiersMatch(organizationIdentifier, representativeIdentifier)).toBe(true);
+    expect(legalOrganizationIdentifiersMatch(organizationIdentifier, {
+      type: 'taxID', value: 'CA-REG-12-345',
+    })).toBe(false);
   });
 
   it('validates controller authority from ServiceControllerCredential while representative keeps ISCO', () => {

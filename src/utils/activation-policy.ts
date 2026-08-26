@@ -28,6 +28,12 @@ export type ActivationServiceAuthorizationPolicyError = {
   message: string;
 };
 
+/** Typed legal identifier used to bind one organization across credentials and lifecycle commands. */
+export type LegalOrganizationIdentifier = Readonly<{
+  type: string;
+  value: string;
+}>;
+
 function asObject(value: unknown): Record<string, unknown> | undefined {
   if (!value || typeof value !== 'object') return undefined;
   return value as Record<string, unknown>;
@@ -62,6 +68,58 @@ export function normalizeTaxIdentifier(value: unknown): string | undefined {
 }
 
 /**
+ * Normalizes a typed organization identifier for equality checks without
+ * changing the canonical value stored in credentials or tenant records.
+ */
+export function normalizeLegalOrganizationIdentifier(
+  identifier: Readonly<{ type?: unknown; value?: unknown }> | undefined,
+): LegalOrganizationIdentifier | undefined {
+  const rawType = String(identifier?.type || '').trim().toUpperCase();
+  const type = rawType === 'TAXID' || rawType === 'TAX_ID' ? 'TAX' : rawType;
+  const value = String(identifier?.value || '').trim().toUpperCase();
+  return type && value ? { type, value } : undefined;
+}
+
+function extractLegalOrganizationIdentifier(value: unknown): LegalOrganizationIdentifier | undefined {
+  const source = asObject(value) || {};
+  const identifier = asObject(source.identifier) || {};
+  const taxId = source.taxID ?? source.taxId;
+  return normalizeLegalOrganizationIdentifier(taxId !== undefined
+    ? { type: 'taxID', value: taxId }
+    : {
+      type: identifier.additionalType ?? identifier.type ?? source.identifierType,
+      value: identifier.value ?? source.identifierValue,
+    });
+}
+
+/** Extracts the typed legal identifier from an organization credential subject. */
+export function extractOrganizationLegalIdentifier(
+  organizationCredential: unknown,
+): LegalOrganizationIdentifier | undefined {
+  return extractLegalOrganizationIdentifier(extractCredentialSubject(organizationCredential));
+}
+
+/** Extracts the typed organization identifier from a representative `memberOf` binding. */
+export function extractRepresentativeMemberOfLegalIdentifier(
+  representativeCredential: unknown,
+): LegalOrganizationIdentifier | undefined {
+  const subject = extractCredentialSubject(representativeCredential) || {};
+  return extractLegalOrganizationIdentifier(subject.memberOf);
+}
+
+/** Compares typed legal identifiers without discarding punctuation from their values. */
+export function legalOrganizationIdentifiersMatch(
+  left: Readonly<{ type?: unknown; value?: unknown }> | undefined,
+  right: Readonly<{ type?: unknown; value?: unknown }> | undefined,
+): boolean {
+  const normalizedLeft = normalizeLegalOrganizationIdentifier(left);
+  const normalizedRight = normalizeLegalOrganizationIdentifier(right);
+  return Boolean(normalizedLeft && normalizedRight
+    && normalizedLeft.type === normalizedRight.type
+    && normalizedLeft.value === normalizedRight.value);
+}
+
+/**
  * Extracts an organization tax id from a VC-like organization credential.
  *
  * @param organizationCredential Candidate organization credential.
@@ -69,12 +127,8 @@ export function normalizeTaxIdentifier(value: unknown): string | undefined {
 export function extractOrganizationTaxId(organizationCredential: unknown): string | undefined {
   const subject = extractCredentialSubject(organizationCredential) || {};
   const identifier = asObject(subject.identifier);
-  return (
-    normalizeTaxIdentifier(subject.taxID)
-    || normalizeTaxIdentifier(subject.taxId)
-    || normalizeTaxIdentifier(identifier?.value)
-    || normalizeTaxIdentifier(subject.identifierValue)
-  );
+  const value = String(subject.taxID ?? subject.taxId ?? identifier?.value ?? '').trim();
+  return normalizeTaxIdentifier(value) || undefined;
 }
 
 /**
@@ -86,12 +140,8 @@ export function extractRepresentativeMemberOfTaxId(representativeCredential: unk
   const subject = extractCredentialSubject(representativeCredential) || {};
   const memberOf = asObject(subject.memberOf) || {};
   const identifier = asObject(memberOf.identifier);
-  return (
-    normalizeTaxIdentifier(memberOf.taxID)
-    || normalizeTaxIdentifier(memberOf.taxId)
-    || normalizeTaxIdentifier(identifier?.value)
-    || normalizeTaxIdentifier(memberOf.identifierValue)
-  );
+  const value = String(memberOf.taxID ?? memberOf.taxId ?? identifier?.value ?? '').trim();
+  return normalizeTaxIdentifier(value) || undefined;
 }
 
 /**
