@@ -67,6 +67,10 @@ export const EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_AGREEMENT_PDF_URL =
   'https://portal.example.org/files/contracts/inter-tenant-contract-acme-lab-001.pdf' as const;
 export const EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONSUMER_PROFESSIONAL_DID =
   `${EXAMPLE_RESEARCH_API_ORGANIZATION_DID}:employee:researcher1@lab.org:${EXAMPLE_HEALTHCARE_ACTOR_ROLE_PHYSICIAN}` as const;
+export const EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_PROVIDER_AUTHORIZED_SIGNATORY_DID =
+  'did:web:provider-signatory.example.org' as const;
+export const EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONSUMER_AUTHORIZED_SIGNATORY_DID =
+  'did:web:consumer-signatory.example.org' as const;
 export const EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_SMART_SCOPE =
   `${EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_SCOPE}?subject=${EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_SUBJECT_DID}&section=${EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_SECTION}` as const;
 
@@ -79,8 +83,8 @@ export const EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CLAIMS = Object.freeze({
   [ClaimInterTenantAccessContract.appliesEnd]: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_VALID_UNTIL,
   [ClaimInterTenantAccessContract.providerOrganization]: EXAMPLE_API_ORGANIZATION_DID,
   [ClaimInterTenantAccessContract.consumerOrganization]: EXAMPLE_RESEARCH_API_ORGANIZATION_DID,
-  [ClaimInterTenantAccessContract.providerAuthorizedSignatory]: EXAMPLE_CONTROLLER_DID,
-  [ClaimInterTenantAccessContract.consumerAuthorizedSignatory]: EXAMPLE_RESEARCH_CONTROLLER_DID,
+  [ClaimInterTenantAccessContract.providerAuthorizedSignatory]: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_PROVIDER_AUTHORIZED_SIGNATORY_DID,
+  [ClaimInterTenantAccessContract.consumerAuthorizedSignatory]: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONSUMER_AUTHORIZED_SIGNATORY_DID,
   [ClaimInterTenantAccessContract.capability]: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_SCOPE,
   [ClaimInterTenantAccessContract.purpose]: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_PURPOSE,
   [ClaimInterTenantAccessContract.instantiatesUri]: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_AGREEMENT_PDF_URL,
@@ -102,13 +106,13 @@ export const EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CREDENTIAL = Object.freeze(
         {
           type: 'JsonWebSignature2020',
           proofPurpose: 'contractAgreement',
-          verificationMethod: `${EXAMPLE_CONTROLLER_DID}#contract-agreement`,
+          verificationMethod: `${EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_PROVIDER_AUTHORIZED_SIGNATORY_DID}#contract-agreement`,
           jws: 'provider-authorized-signatory-proof',
         },
         {
           type: 'JsonWebSignature2020',
           proofPurpose: 'contractAgreement',
-          verificationMethod: `${EXAMPLE_RESEARCH_CONTROLLER_DID}#contract-agreement`,
+          verificationMethod: `${EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONSUMER_AUTHORIZED_SIGNATORY_DID}#contract-agreement`,
           jws: 'consumer-authorized-signatory-proof',
         },
       ],
