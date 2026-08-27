@@ -46,13 +46,13 @@ export enum ClaimInterTenantAccessContract {
    * - in the current example this is `did:web:api.lab.org`
    */
   consumerOrganization = 'Contract.consumer-organization',
-  /**
-   * DID of the controller who signed on behalf of the provider organization.
-   */
+  /** DID of the person legally authorized to sign for the provider. */
+  providerAuthorizedSignatory = 'Contract.provider-authorized-signatory',
+  /** DID of the person legally authorized to sign for the consumer. */
+  consumerAuthorizedSignatory = 'Contract.consumer-authorized-signatory',
+  /** @deprecated Read-only compatibility alias. Technical control is not legal signing authority. */
   providerController = 'Contract.provider-controller',
-  /**
-   * DID of the controller who signed on behalf of the consumer organization.
-   */
+  /** @deprecated Read-only compatibility alias. Technical control is not legal signing authority. */
   consumerController = 'Contract.consumer-controller',
   /**
    * Allowed operational capability, expressed with the same vocabulary used by
@@ -94,8 +94,14 @@ export type InterTenantAccessContractSummary = Readonly<{
   appliesEnd?: string;
   providerOrganizationDid?: string;
   consumerOrganizationDid?: string;
+  providerAuthorizedSignatoryDid?: string;
+  consumerAuthorizedSignatoryDid?: string;
+  /** @deprecated Use providerAuthorizedSignatoryDid. */
   providerControllerDid?: string;
+  /** @deprecated Use consumerAuthorizedSignatoryDid. */
   consumerControllerDid?: string;
+  hasProviderContractAgreementProof: boolean;
+  hasConsumerContractAgreementProof: boolean;
   capabilities: readonly string[];
   purposes: readonly string[];
 }>;
@@ -106,6 +112,8 @@ export type InterTenantAccessContractMatchCriteria = Readonly<{
   requiredCapabilities?: readonly string[];
   purpose?: string;
   now?: string | Date;
+  /** Defaults to true for access-token authorization. */
+  requireBilateralContractAgreementProofs?: boolean;
 }>;
 
 export type InterTenantContractAuthorizationConsentCriteria = Readonly<{

@@ -4,6 +4,12 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Replace ambiguous inter-tenant `provider-controller` and
+  `consumer-controller` signer output with `provider-authorized-signatory` and
+  `consumer-authorized-signatory`, retaining the old roles as read aliases.
+  SMART authorization matching now requires both already-verified
+  `contractAgreement` proofs over the same FHIR Contract VC.
+
 - Scope atomic consent-rule identities by the stable source
   `Consent.identifier`, so independent portal and future-study consents do not
   collide while updates to the same consent retain one ledger identity.

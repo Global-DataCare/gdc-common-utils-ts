@@ -79,8 +79,8 @@ export const EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CLAIMS = Object.freeze({
   [ClaimInterTenantAccessContract.appliesEnd]: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_VALID_UNTIL,
   [ClaimInterTenantAccessContract.providerOrganization]: EXAMPLE_API_ORGANIZATION_DID,
   [ClaimInterTenantAccessContract.consumerOrganization]: EXAMPLE_RESEARCH_API_ORGANIZATION_DID,
-  [ClaimInterTenantAccessContract.providerController]: EXAMPLE_CONTROLLER_DID,
-  [ClaimInterTenantAccessContract.consumerController]: EXAMPLE_RESEARCH_CONTROLLER_DID,
+  [ClaimInterTenantAccessContract.providerAuthorizedSignatory]: EXAMPLE_CONTROLLER_DID,
+  [ClaimInterTenantAccessContract.consumerAuthorizedSignatory]: EXAMPLE_RESEARCH_CONTROLLER_DID,
   [ClaimInterTenantAccessContract.capability]: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_SCOPE,
   [ClaimInterTenantAccessContract.purpose]: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_PURPOSE,
   [ClaimInterTenantAccessContract.instantiatesUri]: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_AGREEMENT_PDF_URL,
@@ -98,6 +98,20 @@ export const EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CREDENTIAL = Object.freeze(
     validUntil: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_VALID_UNTIL,
     additionalCredential: {
       id: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_ID,
+      proof: [
+        {
+          type: 'JsonWebSignature2020',
+          proofPurpose: 'contractAgreement',
+          verificationMethod: `${EXAMPLE_CONTROLLER_DID}#contract-agreement`,
+          jws: 'provider-authorized-signatory-proof',
+        },
+        {
+          type: 'JsonWebSignature2020',
+          proofPurpose: 'contractAgreement',
+          verificationMethod: `${EXAMPLE_RESEARCH_CONTROLLER_DID}#contract-agreement`,
+          jws: 'consumer-authorized-signatory-proof',
+        },
+      ],
     },
   }),
 );

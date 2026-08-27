@@ -26,6 +26,14 @@ import { buildConsentRulePrimaryDocument } from '../src/utils/permission-templat
 import { ClaimConsent } from '../src/models/consent-rule.js';
 import { HealthcareConsentPurposes } from '../src/constants/healthcare.js';
 
+/**
+ * Flow contract:
+ * 1. provider and consumer identify their legally authorized signatories;
+ * 2. both sign the same immutable FHIR Contract VC with contractAgreement proofs;
+ * 3. the verified VP is accepted only when tenant pair, purpose, capability,
+ *    validity and both signatory proofs match;
+ * 4. historical controller role labels remain readable but are never emitted.
+ */
 describe('inter-tenant access contract utils', () => {
   it('uses the canonical HL7 healthcare-research purpose', () => {
     expect(EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONTEXT.purpose).toBe(
@@ -59,6 +67,10 @@ describe('inter-tenant access contract utils', () => {
     );
     expect(resource.term?.[0]?.offer?.securityLabel).toEqual([
       { text: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONTEXT.requestedScope },
+    ]);
+    expect(resource.signer).toEqual([
+      expect.objectContaining({ type: [{ text: 'provider-authorized-signatory' }] }),
+      expect.objectContaining({ type: [{ text: 'consumer-authorized-signatory' }] }),
     ]);
   });
 
@@ -138,6 +150,38 @@ describe('inter-tenant access contract utils', () => {
     expect(summarizeInterTenantAccessContract(matched)).toMatchObject({
       providerOrganizationDid: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONTEXT.providerOrganizationDid,
       consumerOrganizationDid: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONTEXT.consumerOrganizationDid,
+    });
+  });
+
+  it('rejects a matching contract whose verified credential lacks either bilateral contractAgreement proof', () => {
+    const credential = {
+      ...EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CREDENTIAL,
+      proof: [
+        (EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CREDENTIAL as any).proof[0],
+      ],
+    };
+    const vpPayload = createVP({
+      iss: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONTEXT.consumerOrganizationDid,
+    });
+    addVC(vpPayload, credential as any);
+
+    expect(getMatchingInterTenantAccessContractFromVpToken(JSON.stringify(vpPayload), {
+      providerOrganizationDid: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONTEXT.providerOrganizationDid,
+      consumerOrganizationDid: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONTEXT.consumerOrganizationDid,
+      requiredCapabilities: [EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONTEXT.requestedScope],
+      purpose: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONTEXT.purpose,
+      now: '2026-07-01T00:00:00.000Z',
+    })).toBeUndefined();
+  });
+
+  it('reads legacy controller signer roles as compatibility aliases', () => {
+    const credential = structuredClone(EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CREDENTIAL) as any;
+    credential.credentialSubject.signer[0].type = [{ text: 'provider-controller' }];
+    credential.credentialSubject.signer[1].type = [{ text: 'consumer-controller' }];
+
+    expect(summarizeInterTenantAccessContract(credential)).toMatchObject({
+      providerAuthorizedSignatoryDid: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CLAIMS[ClaimInterTenantAccessContract.providerAuthorizedSignatory],
+      consumerAuthorizedSignatoryDid: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CLAIMS[ClaimInterTenantAccessContract.consumerAuthorizedSignatory],
     });
   });
 

@@ -18,8 +18,10 @@ type ContractLike = Record<string, any>;
 const ACTIVE_CONTRACT_STATUSES = new Set(['executed', 'amended', 'appended']);
 const PROVIDER_ROLE = 'provider';
 const CONSUMER_ROLE = 'consumer';
-const PROVIDER_CONTROLLER_ROLE = 'provider-controller';
-const CONSUMER_CONTROLLER_ROLE = 'consumer-controller';
+const PROVIDER_AUTHORIZED_SIGNATORY_ROLE = 'provider-authorized-signatory';
+const CONSUMER_AUTHORIZED_SIGNATORY_ROLE = 'consumer-authorized-signatory';
+const LEGACY_PROVIDER_CONTROLLER_ROLE = 'provider-controller';
+const LEGACY_CONSUMER_CONTROLLER_ROLE = 'consumer-controller';
 
 function splitCsv(value: unknown): string[] {
   return Array.from(new Set(
@@ -124,6 +126,24 @@ function extractSignerReference(contract: ContractLike, expectedRole: string): s
   return undefined;
 }
 
+function extractSignerReferenceWithAliases(
+  contract: ContractLike,
+  canonicalRole: string,
+  legacyRole: string,
+): string | undefined {
+  return extractSignerReference(contract, canonicalRole) || extractSignerReference(contract, legacyRole);
+}
+
+function hasContractAgreementProof(credential: Record<string, any>, signatoryDid?: string): boolean {
+  if (!signatoryDid) return false;
+  const proofs = Array.isArray(credential.proof) ? credential.proof : credential.proof ? [credential.proof] : [];
+  return proofs.some((proof: any) => {
+    if (String(proof?.proofPurpose || '').trim() !== 'contractAgreement') return false;
+    const verificationMethod = String(proof?.verificationMethod || '').trim();
+    return verificationMethod === signatoryDid || verificationMethod.startsWith(`${signatoryDid}#`);
+  });
+}
+
 function extractPurposes(contract: ContractLike): string[] {
   const terms = Array.isArray(contract.term) ? contract.term : contract.term ? [contract.term] : [];
   return Array.from(new Set(
@@ -155,6 +175,11 @@ function normalizeNow(input?: string | Date): number {
   return Date.now();
 }
 
+/**
+ * Builds the canonical FHIR Contract. Signer entries identify legally
+ * authorized signatories; technical tenant controllers are not inferred as
+ * signatories. Historical controller role labels are accepted only on read.
+ */
 export function buildInterTenantAccessContractResource(
   claims: InterTenantAccessContractClaims,
 ): ContractLike {
@@ -168,8 +193,16 @@ export function buildInterTenantAccessContractResource(
   const appliesEnd = readClaimWithAliases(claims, ClaimInterTenantAccessContract.appliesEnd, ['Contract.applies.end']) || '';
   const providerOrganization = readClaimWithAliases(claims, ClaimInterTenantAccessContract.providerOrganization, ['Contract.term.offer.party.provider']) || '';
   const consumerOrganization = readClaimWithAliases(claims, ClaimInterTenantAccessContract.consumerOrganization, ['Contract.term.offer.party.consumer']) || '';
-  const providerController = readClaimWithAliases(claims, ClaimInterTenantAccessContract.providerController, ['Contract.signer.provider']) || '';
-  const consumerController = readClaimWithAliases(claims, ClaimInterTenantAccessContract.consumerController, ['Contract.signer.consumer']) || '';
+  const providerAuthorizedSignatory = readClaimWithAliases(
+    claims,
+    ClaimInterTenantAccessContract.providerAuthorizedSignatory,
+    [ClaimInterTenantAccessContract.providerController, 'Contract.signer.provider'],
+  ) || '';
+  const consumerAuthorizedSignatory = readClaimWithAliases(
+    claims,
+    ClaimInterTenantAccessContract.consumerAuthorizedSignatory,
+    [ClaimInterTenantAccessContract.consumerController, 'Contract.signer.consumer'],
+  ) || '';
   const instantiatesUri = readClaimWithAliases(claims, ClaimInterTenantAccessContract.instantiatesUri, ['Contract.instantiatesUri']) || '';
   const capabilities = splitCsv(readClaimWithAliases(claims, ClaimInterTenantAccessContract.capability, ['Contract.term.offer.securityLabel']));
   const purposes = splitCsv(readClaimWithAliases(claims, ClaimInterTenantAccessContract.purpose, ['Contract.term.type']));
@@ -187,16 +220,16 @@ export function buildInterTenantAccessContractResource(
       ...(appliesEnd ? { end: appliesEnd } : {}),
     },
     signer: [
-      providerController
+      providerAuthorizedSignatory
         ? {
-            type: [{ text: PROVIDER_CONTROLLER_ROLE }],
-            party: { reference: providerController },
+            type: [{ text: PROVIDER_AUTHORIZED_SIGNATORY_ROLE }],
+            party: { reference: providerAuthorizedSignatory },
           }
         : undefined,
-      consumerController
+      consumerAuthorizedSignatory
         ? {
-            type: [{ text: CONSUMER_CONTROLLER_ROLE }],
-            party: { reference: consumerController },
+            type: [{ text: CONSUMER_AUTHORIZED_SIGNATORY_ROLE }],
+            party: { reference: consumerAuthorizedSignatory },
           }
         : undefined,
     ].filter(Boolean),
@@ -244,6 +277,7 @@ export function buildInterTenantAccessContractCredential(input: Readonly<{
   };
 }
 
+/** Summarizes tenant, authority and bilateral proof evidence from one Contract VC. */
 export function summarizeInterTenantAccessContract(
   credential: unknown,
 ): InterTenantAccessContractSummary | undefined {
@@ -254,6 +288,17 @@ export function summarizeInterTenantAccessContract(
   const subject = ((credential as any).credentialSubject || {}) as ContractLike;
   if (String(subject.resourceType || '').trim() !== 'Contract') return undefined;
 
+  const providerAuthorizedSignatoryDid = extractSignerReferenceWithAliases(
+    subject,
+    PROVIDER_AUTHORIZED_SIGNATORY_ROLE,
+    LEGACY_PROVIDER_CONTROLLER_ROLE,
+  );
+  const consumerAuthorizedSignatoryDid = extractSignerReferenceWithAliases(
+    subject,
+    CONSUMER_AUTHORIZED_SIGNATORY_ROLE,
+    LEGACY_CONSUMER_CONTROLLER_ROLE,
+  );
+
   return {
     identifier: firstIdentifierValue(subject.identifier) || String(subject.id || '').trim() || undefined,
     status: String(subject.status || '').trim() || undefined,
@@ -262,8 +307,12 @@ export function summarizeInterTenantAccessContract(
     appliesEnd: String(subject.applies?.end || '').trim() || undefined,
     providerOrganizationDid: extractOfferPartyReference(subject, PROVIDER_ROLE),
     consumerOrganizationDid: extractOfferPartyReference(subject, CONSUMER_ROLE),
-    providerControllerDid: extractSignerReference(subject, PROVIDER_CONTROLLER_ROLE),
-    consumerControllerDid: extractSignerReference(subject, CONSUMER_CONTROLLER_ROLE),
+    providerAuthorizedSignatoryDid,
+    consumerAuthorizedSignatoryDid,
+    providerControllerDid: providerAuthorizedSignatoryDid,
+    consumerControllerDid: consumerAuthorizedSignatoryDid,
+    hasProviderContractAgreementProof: hasContractAgreementProof(credential as Record<string, any>, providerAuthorizedSignatoryDid),
+    hasConsumerContractAgreementProof: hasContractAgreementProof(credential as Record<string, any>, consumerAuthorizedSignatoryDid),
     capabilities: extractCapabilities(subject),
     purposes: extractPurposes(subject),
   };
@@ -286,6 +335,11 @@ export function isInterTenantAccessContractActive(
   return true;
 }
 
+/**
+ * Matches an active contract and, by default, requires contractAgreement
+ * proofs whose verification methods belong to both named signatories.
+ * Cryptographic proof verification must occur before this structural match.
+ */
 export function matchesInterTenantAccessContract(
   summary: InterTenantAccessContractSummary | undefined,
   criteria: InterTenantAccessContractMatchCriteria,
@@ -293,6 +347,8 @@ export function matchesInterTenantAccessContract(
   if (!isInterTenantAccessContractActive(summary, { now: criteria.now })) return false;
   if (String(summary?.providerOrganizationDid || '').trim() !== String(criteria.providerOrganizationDid || '').trim()) return false;
   if (String(summary?.consumerOrganizationDid || '').trim() !== String(criteria.consumerOrganizationDid || '').trim()) return false;
+  if ((criteria.requireBilateralContractAgreementProofs ?? true)
+    && (!summary?.hasProviderContractAgreementProof || !summary?.hasConsumerContractAgreementProof)) return false;
 
   const requiredCapabilities = Array.from(new Set((criteria.requiredCapabilities || []).map((value) => String(value || '').trim()).filter(Boolean)));
   if (requiredCapabilities.length > 0) {
