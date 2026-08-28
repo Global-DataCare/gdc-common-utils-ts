@@ -37,7 +37,9 @@ human or institutional proof therefore signs the same payload.
 `buildTestNetworkOrganizationCredentialSet(...)` creates the normal
 `OrganizationCredential`, `LegalRepresentativeCredential` and
 `ServiceControllerCredential`. Each also carries `TestNetworkCredential`,
-`targetNetwork=test-network`, the immutable PDF digest and its domain binding.
+`TestNetworkCredential` in the signed `type[]`, the immutable PDF digest and
+its domain binding. Do not add `targetNetwork` to schema.org credential
+subjects; the credential type is the environment discriminator.
 They are drafts until the reviewer adds an ML-DSA-65 assertion proof to each.
 
 ## Transaction boundary

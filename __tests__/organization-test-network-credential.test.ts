@@ -8,7 +8,7 @@ import {
 } from '../src/utils/organization-test-network-credential';
 
 /**
- * Teaching goal: Test Network review authorization and later postal-address
+ * Flow contract and teaching goal: Test Network review authorization and later postal-address
  * verification are independent flows. The VC attached to
  * Organization/_transaction is bound to the reviewed application and
  * controller key, never to a postal activation secret.
@@ -47,7 +47,6 @@ describe('organization Test Network admission', () => {
       controllerKeyMaterial: postalLicense.controllerKeyMaterial,
       applicationId: postalLicense.applicationId,
       accessPath: 'test-network',
-      targetNetwork: 'test-network',
     });
 
     expect(credential.type).toEqual([
@@ -58,6 +57,7 @@ describe('organization Test Network admission', () => {
       applicationId: 'application-dsrc',
       organization: { identifier: 'DSRC-001' },
     });
+    expect(credential.credentialSubject).not.toHaveProperty('targetNetwork');
     expect(credential.credentialSubject).not.toHaveProperty('postalActivationLicense');
   });
 
@@ -74,7 +74,6 @@ describe('organization Test Network admission', () => {
       controllerKeyMaterial: '',
       applicationId: postalLicense.applicationId,
       accessPath: 'test-network',
-      targetNetwork: 'test-network',
     })).toThrow('controllerKeyMaterial');
   });
 
@@ -97,7 +96,6 @@ describe('organization Test Network admission', () => {
       controllerKeyMaterial: postalLicense.controllerKeyMaterial,
       applicationId: postalLicense.applicationId,
       accessPath: 'test-network',
-      targetNetwork: 'test-network',
     });
     const withProof = { ...base, proof: { type: 'JsonWebSignature2020', jws: 'header..signature' } };
 

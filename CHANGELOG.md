@@ -4,6 +4,13 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.5.21] - 2026-08-28
+
+- Keep Test Network scope exclusively in the signed VC `type[]` marker
+  `TestNetworkCredential`. Remove the non-schema.org `targetNetwork` member
+  from organization, legal-representative, service-controller and admission
+  credential subjects, their evidence, and detached-proof validation.
+
 - Replace ambiguous inter-tenant `provider-controller` and
   `consumer-controller` signer output with `provider-authorized-signatory` and
   `consumer-authorized-signatory`, retaining the old roles as read aliases.
