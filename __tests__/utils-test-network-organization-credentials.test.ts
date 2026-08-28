@@ -1,3 +1,7 @@
+/**
+ * Flow contract: Test Network scope is carried by the signed credential
+ * `type[]`; schema.org credential subjects contain only domain properties.
+ */
 import {
   buildTestNetworkOrganizationCredentialSet,
   canonicalizeTestNetworkOrganizationCredential,
@@ -32,7 +36,6 @@ describe('Test Network organization credential set', () => {
     expect(representative.credentialSubject).toMatchObject({
       hasOccupation: { occupationalCategory: 'ISCO-08|1120' },
       memberOf: { taxID: input.organizationIdentifier },
-      targetNetwork: 'test-network',
     });
     expect(controller.type).toContain('ServiceControllerCredential');
     expect(controller.type).toContain('TestNetworkCredential');
@@ -42,8 +45,10 @@ describe('Test Network organization credential set', () => {
         hasOccupation: { occupationalCategory: 'ISCO-08|1330' },
         hasCredential: { material: input.controllerKeyMaterial },
       },
-      targetNetwork: 'test-network',
     });
+    expect(organization.credentialSubject).not.toHaveProperty('targetNetwork');
+    expect(representative.credentialSubject).not.toHaveProperty('targetNetwork');
+    expect(controller.credentialSubject).not.toHaveProperty('targetNetwork');
   });
 
   it('canonicalizes without proof so the reviewer can add detached signatures', () => {

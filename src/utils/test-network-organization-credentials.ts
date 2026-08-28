@@ -72,7 +72,6 @@ export function buildTestNetworkOrganizationCredentialSet(
     id: `urn:sha256:${required(input.pdfSha256, 'pdfSha256')}`,
     documentVersion: required(input.documentVersion, 'documentVersion'),
     applicationId,
-    targetNetwork: 'test-network',
   }] as any;
   const base: Pick<VerifiableCredentialV2, '@context' | 'issuer' | 'validFrom' | 'validUntil' | 'evidence'> = {
     '@context': [W3cCredentialContexts.V2, 'https://schema.org'],
@@ -97,7 +96,6 @@ export function buildTestNetworkOrganizationCredentialSet(
       ...(identifierType === 'taxID' ? { taxID: organizationIdentifier } : {}),
       address: { '@type': 'PostalAddress', addressCountry },
       makesOffer: { '@type': 'Offer', category: serviceCategory },
-      targetNetwork: 'test-network',
     },
   };
   const representative: VerifiableCredentialV2 = {
@@ -122,7 +120,6 @@ export function buildTestNetworkOrganizationCredentialSet(
           ? { taxID: organizationIdentifier }
           : { identifier: { additionalType: identifierType, value: organizationIdentifier } }),
       },
-      targetNetwork: 'test-network',
     },
   };
   const controller: VerifiableCredentialV2 = {
@@ -152,7 +149,6 @@ export function buildTestNetworkOrganizationCredentialSet(
         hasOccupation: { '@type': 'Occupation', occupationalCategory: 'ISCO-08|1330' },
         hasCredential: { material: required(input.controllerKeyMaterial, 'controllerKeyMaterial') },
       },
-      targetNetwork: 'test-network',
     },
   };
   return [organization, representative, controller];
@@ -169,15 +165,18 @@ function canonicalizeValue(value: unknown): unknown {
   );
 }
 
-/** Deterministic detached-proof payload for one of the three Test Network VCs. */
+/**
+ * Deterministic detached-proof payload for one of the three Test Network VCs.
+ * The signed `TestNetworkCredential` type is the sole environment marker.
+ */
 export function canonicalizeTestNetworkOrganizationCredential(
   credential: VerifiableCredentialV2,
 ): string {
   if (!TestNetworkOrganizationCredentialTypes.some(type => credential.type.includes(type))) {
     throw new Error('Credential is not a Test Network organization credential.');
   }
-  if (credential.credentialSubject?.targetNetwork !== 'test-network') {
-    throw new Error('Test Network organization credential requires targetNetwork=test-network.');
+  if (!credential.type.includes(EnvironmentCredentialTypes.TestNetworkCredential)) {
+    throw new Error('Test Network organization credential requires TestNetworkCredential in type[].');
   }
   return JSON.stringify(canonicalizeValue(credential));
 }

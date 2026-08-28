@@ -63,7 +63,6 @@ export type OrganizationTestNetworkCredentialInput = Readonly<{
   controllerKeyMaterial: string;
   applicationId: string;
   accessPath: 'partner' | 'test-network';
-  targetNetwork: 'test-network' | 'network';
   /**
    * @deprecated Postal-address verification is a separate production-readiness
    * flow. This compatibility input is ignored and is never embedded in a Test
@@ -83,6 +82,8 @@ function required(value: unknown, name: string): string {
  * Builds the immutable VC that a controller receives out-of-band and attaches
  * to `Organization/_transaction`. Postal-address verification is deliberately
  * outside this credential and may be completed independently before production.
+ * Test Network scope is expressed by `OrganizationTestNetworkCredential` in
+ * the signed `type[]`, not by a non-schema.org credential-subject property.
  */
 export function buildOrganizationTestNetworkCredential(
   input: OrganizationTestNetworkCredentialInput,
@@ -103,7 +104,6 @@ export function buildOrganizationTestNetworkCredential(
       id: required(input.subjectDid, 'subjectDid'),
       applicationId,
       accessPath: input.accessPath,
-      targetNetwork: input.targetNetwork,
       organization: {
         legalName: required(input.legalName, 'legalName'),
         identifier: organizationIdentifier,
