@@ -6,6 +6,7 @@
  *   in the editor classes.
  */
 import { ResourceTypesFhirR4 } from '../constants/fhir-resource-types';
+import { HttpRequestMethods } from '../constants/http';
 import { type BundleRequest } from '../models/bundle';
 import {
   AllergyIntoleranceClaim,
@@ -49,6 +50,39 @@ export function normalizeOptionalIdentifier(value: unknown): string | undefined 
   }
   const normalized = String(value).trim();
   return normalized ? normalized : undefined;
+}
+
+/** Builds the canonical relative FHIR request URL for one technical resource id. */
+export function buildFhirResourceRequestUrl(resourceType: string, resourceId: string): string {
+  const normalizedType = normalizeOptionalIdentifier(resourceType);
+  const normalizedId = normalizeOptionalIdentifier(resourceId);
+  if (!normalizedType || !normalizedId) {
+    throw new Error('FHIR resource request URL requires resource type and technical resource id.');
+  }
+  const prefix = `${normalizedType}/`;
+  return normalizedId.startsWith(prefix) ? normalizedId : `${prefix}${normalizedId}`;
+}
+
+/** Converts one content version id into the weak ETag shape used by FHIR ifMatch. */
+export function buildFhirIfMatch(versionId: string): string {
+  const normalized = normalizeOptionalIdentifier(versionId);
+  if (!normalized) throw new Error('ifMatch requires a non-empty version id.');
+  if (/^(W\/)?"[^"]+"$/.test(normalized)) return normalized;
+  return `W/"${normalized}"`;
+}
+
+/** Clones a staged entry and removes the resource body required to be absent for DELETE. */
+export function materializeBundleEntry<T extends {
+  request?: { method: BundleRequest['method'] };
+  resource?: unknown;
+  omitResource?: boolean;
+}>(entry: T): T {
+  const materialized = cloneEntry(entry);
+  if (materialized.request?.method === HttpRequestMethods.Delete && materialized.omitResource) {
+    delete materialized.resource;
+  }
+  delete materialized.omitResource;
+  return materialized;
 }
 
 /** Returns one canonical `urn:uuid:*` identifier for new entry/resource drafts. */

@@ -71,7 +71,7 @@ export type AllowedResourceType = string;
 /** Mutable staged entry shape kept inside `BundleEditor` before final materialization. */
 export type BuiltBundleEntry = {
   type: string;
-  request: { method: BundleRequest['method']; url?: string };
+  request: { method: BundleRequest['method']; url?: string; ifMatch?: string };
   resource: {
     resourceType: string;
     id?: string;
@@ -79,6 +79,8 @@ export type BuiltBundleEntry = {
     [key: string]: unknown;
   };
   fullUrl?: string;
+  /** @internal Materialization hint for request-only FHIR operations. */
+  omitResource?: boolean;
 };
 
 export const BundleTypes = Object.freeze({

@@ -37,6 +37,7 @@ import {
   createCanonicalIdentifierUrn,
   inferGenericEntryType,
   normalizeOptionalIdentifier,
+  materializeBundleEntry,
   resolveEntryTypeForOperation,
   resolveRequestMethodForOperation,
 } from './bundle-editor-helpers';
@@ -125,7 +126,7 @@ export class BundleEditor {
     if (!Object.values(BundleTypes).includes(bundle.type as BundleType)) {
       throw new TypeError(`BundleEditor.setBundle does not support Bundle.type: ${String(bundle.type || '')}`);
     }
-    const operation = this.requireBundleOperation();
+    const operation = this.bundleOperation || EmployeeBundleOperations.create;
     const nextEntries = bundle.data.map((source, index): BuiltBundleEntry => {
       const resource = source?.resource;
       const resourceType = normalizeOptionalIdentifier(resource?.resourceType);
@@ -231,7 +232,11 @@ export class BundleEditor {
 
   /** Opens one new entry with an explicit resource type, mainly for document bundles. */
   public newEntryAs<T extends AllowedResourceType>(resourceType: T, resourceId?: string): ResourceTypeEntryEditor<T> {
-    return this.newEntry(resourceId, resourceType).asResourceType(resourceType);
+    const operation = this.bundleOperation || EmployeeBundleOperations.create;
+    const resolvedResourceType = this.resolveEntryResourceType(resourceType);
+    const entry = this.createEntryDraft(operation, resolvedResourceType, resourceId);
+    this.entries.push(entry);
+    return new BundleEntryEditor(this, this.entries.length - 1).asResourceType(resourceType);
   }
 
   /** Reopens one existing entry by `resource.id` or `fullUrl`. */
@@ -331,10 +336,10 @@ export class BundleEditor {
         entry: BuiltBundleEntry[];
       };
     }
-    const operation = this.requireBundleOperation();
-    const resourceType = this.requireAllowedResourceType();
+    const operation = this.bundleOperation;
 
     if (operation === EmployeeBundleOperations.search) {
+      const resourceType = this.requireAllowedResourceType();
       if (resourceType !== EmployeeResourceTypes.employee) {
         throw new Error(`BundleEditor search currently supports only resource type: ${EmployeeResourceTypes.employee}`);
       }
@@ -345,6 +350,7 @@ export class BundleEditor {
     }
 
     if (operation === EmployeeBundleOperations.purge) {
+      const resourceType = this.requireAllowedResourceType();
       if (resourceType !== EmployeeResourceTypes.employee) {
         throw new Error(`BundleEditor purge currently supports only resource type: ${EmployeeResourceTypes.employee}`);
       }
@@ -371,7 +377,7 @@ export class BundleEditor {
     return {
       resourceType: ResourceTypesFhirR4.Bundle,
       type: this.bundleType,
-      entry: this.entries.map((entry) => cloneEntry(entry)),
+      entry: this.entries.map((entry) => materializeBundleEntry(entry)) as BuiltBundleEntry[],
     };
   }
 
@@ -387,12 +393,13 @@ export class BundleEditor {
       resourceType: ResourceTypesFhirR4.Bundle,
       type: this.bundleType,
       data: this.entries.map((entry): BundleEntry => {
-        const clonedEntry = cloneEntry(entry) as BuiltBundleEntry;
+        const clonedEntry = materializeBundleEntry(entry) as BuiltBundleEntry;
         const { request: _requestIgnored, ...clonedEntryWithoutRequest } = clonedEntry;
         const normalizedRequest: BundleRequest | undefined = clonedEntry.request
           ? {
             method: clonedEntry.request.method,
             url: clonedEntry.request.url || '',
+            ...(clonedEntry.request.ifMatch ? { ifMatch: clonedEntry.request.ifMatch } : {}),
           }
           : undefined;
         return normalizedRequest
