@@ -46,8 +46,10 @@ import { OperationOutcome } from "./operation-outcome";
  * - `BundleEntry.type` remains a separate internal business/message label
  */
 export interface BundleRequest {
-  method: 'POST' | 'PUT' | 'DELETE' | 'GET';
+  method: 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'GET';
   url: string;
+  /** Weak or strong ETag used for optimistic update/delete contention. */
+  ifMatch?: string;
 }
 
 /**

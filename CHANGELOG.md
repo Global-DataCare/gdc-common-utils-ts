@@ -4,6 +4,18 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.6.0] - 2026-08-28
+
+- Add per-entry clinical batch operations to `BundleEntryEditor`: typed
+  `.create()`, `.update()`, `.delete()`, and `.ifMatch()` methods allow one
+  `Bundle.type=batch` to mix independent FHIR writes and version-checked
+  deletes. DELETE entries materialize without a resource body, while legacy
+  bundle-wide employee lifecycle behavior remains compatible.
+- Extend the shared request contract with `PATCH`, `ifMatch`, and canonical
+  `PUT`/`DELETE` method constants. Explicitly typed `newEntryAs(...)` authoring
+  no longer requires one bundle-wide operation, so callers do not construct
+  raw request method or URL literals.
+
 ## [2.5.21] - 2026-08-28
 
 - Keep Test Network scope exclusively in the signed VC `type[]` marker

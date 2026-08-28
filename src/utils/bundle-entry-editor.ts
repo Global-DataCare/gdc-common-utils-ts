@@ -5,6 +5,7 @@
  * - Resource-specific semantics must live in the dedicated typed entry editors.
  */
 import { ResourceTypesFhirR4 } from '../constants/fhir-resource-types';
+import { HttpRequestMethods } from '../constants/http';
 import type { BundleEditor } from './bundle-editor-core';
 import {
   AllowedResourceType,
@@ -38,7 +39,12 @@ import {
   EmployeeResourceTypes,
   type EmployeeClaims,
 } from './employee';
-import { cloneClaimValue, normalizeOptionalIdentifier } from './bundle-editor-helpers';
+import {
+  buildFhirIfMatch,
+  buildFhirResourceRequestUrl,
+  cloneClaimValue,
+  normalizeOptionalIdentifier,
+} from './bundle-editor-helpers';
 import { createRegisteredBundleEntryEditor } from './bundle-editor-registry';
 
 export class BundleEntryEditor {
@@ -46,6 +52,68 @@ export class BundleEntryEditor {
     protected readonly bundleEditor: BundleEditor,
     protected readonly entryIndex: number,
   ) {}
+
+  /** Stages a FHIR create request for only this batch entry. */
+  public create(): this {
+    const entry = this.getMutableEntry();
+    const resourceType = this.requireResourceType('create');
+    entry.request = { method: HttpRequestMethods.Post, url: resourceType };
+    entry.omitResource = false;
+    return this;
+  }
+
+  /** Stages a FHIR update request for only this batch entry. */
+  public update(): this {
+    const entry = this.getMutableEntry();
+    const resourceType = this.requireResourceType('update');
+    const resourceId = this.requireTechnicalResourceId('update');
+    entry.request = {
+      method: HttpRequestMethods.Put,
+      url: buildFhirResourceRequestUrl(resourceType, resourceId),
+    };
+    entry.omitResource = false;
+    return this;
+  }
+
+  /**
+   * Stages a FHIR delete request for only this batch entry.
+   *
+   * The mutable editor keeps the resource shell so typed methods can still
+   * inspect identity. Materialization removes that shell because DELETE has no
+   * request body.
+   */
+  public delete(): this {
+    const entry = this.getMutableEntry();
+    const resourceType = this.requireResourceType('delete');
+    const resourceId = this.requireTechnicalResourceId('delete');
+    entry.request = {
+      method: HttpRequestMethods.Delete,
+      url: buildFhirResourceRequestUrl(resourceType, resourceId),
+    };
+    entry.omitResource = true;
+    return this;
+  }
+
+  /** Adds optimistic version matching to this update or delete entry. */
+  public ifMatch(versionId: string): this {
+    const entry = this.getMutableEntry();
+    if (
+      entry.request?.method !== HttpRequestMethods.Put
+      && entry.request?.method !== HttpRequestMethods.Delete
+    ) {
+      throw new Error('ifMatch is supported only for update or delete entries.');
+    }
+    entry.request = {
+      ...entry.request,
+      ifMatch: buildFhirIfMatch(versionId),
+    };
+    return this;
+  }
+
+  /** Reads the staged optimistic version ETag. */
+  public getIfMatch(): string | undefined {
+    return normalizeOptionalIdentifier(this.getMutableEntry().request?.ifMatch);
+  }
 
   /**
    * Reopens the current slot as one typed resource editor.
@@ -385,6 +453,20 @@ export class BundleEntryEditor {
   /** Returns control to the parent bundle editor. */
   public doneEntry(): BundleEditor {
     return this.bundleEditor;
+  }
+
+  private requireResourceType(operation: string): string {
+    const resourceType = normalizeOptionalIdentifier(this.getMutableEntry().resource?.resourceType);
+    if (!resourceType) throw new Error(`${operation} requires a resource type.`);
+    return resourceType;
+  }
+
+  private requireTechnicalResourceId(operation: string): string {
+    const entry = this.getMutableEntry();
+    const resourceId = normalizeOptionalIdentifier(entry.resource?.id)
+      || normalizeOptionalIdentifier(entry.fullUrl);
+    if (!resourceId) throw new Error(`${operation} requires a technical resource id.`);
+    return resourceId;
   }
 
   /** Returns the mutable staged entry owned by this editor wrapper. */

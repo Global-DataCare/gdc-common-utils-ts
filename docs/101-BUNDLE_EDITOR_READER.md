@@ -93,8 +93,10 @@ For the current individual clinical story, the canonical mode is:
 - add/reopen resource entries one by one
 - finish with `buildDocument()`
 
-Keep `batch` for flows such as employees and current consent batch-style
-payloads.
+Use `batch` for independently processed clinical section mutations as well as
+employee and consent batch-style payloads. A clinical batch may mix create,
+update, and delete entries; each entry receives its own response and one
+failure does not roll back the others.
 
 Important distinction:
 
@@ -117,6 +119,28 @@ not like:
 
 Those lower-level request methods are transport details that may be derived
 later and may differ by backend contract.
+
+Clinical batch callers do not set those transport details directly. The typed
+entry editor derives them from per-entry methods:
+
+```ts
+const batch = new BundleEditor().setBundleType(BundleTypes.batch);
+
+batch
+  .newEntryAs(BundleEditableResourceTypes.observation, observationId)
+  .create();
+
+batch
+  .newEntryAs(BundleEditableResourceTypes.allergyIntolerance, allergyId)
+  .delete()
+  .ifMatch(allergyVersionId);
+```
+
+`.create()` emits `POST` plus the resource body, `.update()` emits `PUT`, and
+`.delete()` emits a request-only `DELETE ResourceType/id`. `.ifMatch()` accepts
+the resource content version and emits the FHIR ETag condition. These methods
+apply to one entry; `setBundleOperation(...)` remains the compatible
+bundle-wide business lifecycle surface for employee and older flows.
 
 Target shape:
 

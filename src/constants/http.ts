@@ -16,7 +16,9 @@ export const HttpStatusCodes = Object.freeze({
 export const HttpRequestMethods = Object.freeze({
   Get: 'GET',
   Post: 'POST',
+  Put: 'PUT',
   Patch: 'PATCH',
+  Delete: 'DELETE',
 } as const);
 
 /** Canonical HTTP header names. */
