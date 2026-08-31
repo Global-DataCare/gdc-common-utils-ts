@@ -4,6 +4,17 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.6.2] - 2026-08-31
+
+- Add a reusable emergency-access policy and subject-kind matcher contract.
+  Shared defaults recognize only neutral subject identifiers; domain packages
+  can inject exact identifier matchers without adding their formats to GW CORE.
+- Remove product-specific identifier assumptions and examples from the shared
+  subject identity helpers, tests and documentation, and extend the neutrality
+  gate to reject them across the package.
+
+## [2.6.1] - 2026-08-31
+
 - Added canonical flat `schema.org/Person` country and region claims so portals
   can keep each evidenced civil identity as its own Person resource without
   inventing FHIR identity fields or browser-only claim names.

@@ -185,6 +185,8 @@ export const EXAMPLE_PROVIDER_ORGANIZATION_DID = 'did:web:hospital.acme.org' as 
 export const EXAMPLE_PROVIDER_ORGANIZATION_URL = 'https://hospital.acme.org' as const;
 export const EXAMPLE_GATEWAY_PUBLIC_ORIGIN = 'https://gateway.example.com' as const;
 export const EXAMPLE_HOST_PUBLIC_HOSTNAME = 'host.example.com' as const;
+export const EXAMPLE_PERSON_CARD_URI = 'urn:example:card:person:subject-001' as const;
+export const EXAMPLE_ANIMAL_CARD_URI = 'urn:example:card:animal:subject-002' as const;
 export const EXAMPLE_PROVIDER_TAX_ID = 'VATES-B00112233' as const;
 export const EXAMPLE_PROVIDER_DOMAIN = 'health-care.provider.example.org' as const;
 /** Synthetic public portal domain used to derive organization path DIDs. */
