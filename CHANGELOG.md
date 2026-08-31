@@ -4,6 +4,10 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Added canonical flat `schema.org/Person` country and region claims so portals
+  can keep each evidenced civil identity as its own Person resource without
+  inventing FHIR identity fields or browser-only claim names.
+
 ## [2.6.0] - 2026-08-28
 
 - Add per-entry clinical batch operations to `BundleEntryEditor`: typed

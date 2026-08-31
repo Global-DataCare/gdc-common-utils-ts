@@ -1,3 +1,4 @@
+// TDD: schema.org Person identity resources expose canonical flat jurisdiction claims before portals consume them.
 import {
   ClaimsIndividualProductSchemaorg,
   ClaimsOrganizationSchemaorg,
@@ -19,6 +20,11 @@ describe('schemaorg claims', () => {
     expect(ClaimsPersonSchemaorg.hasOccupationalCategory)
       .toBe('org.schema.Person.hasOccupation.occupationalCategory');
     expect(ClaimsPersonSchemaorg.hasCredentialMaterial).toBe('org.schema.Person.hasCredential.material');
+  });
+
+  it('includes identity-document country and region claims on Person rather than FHIR identity fields', () => {
+    expect(ClaimsPersonSchemaorg.addressCountry).toBe('org.schema.Person.address.addressCountry');
+    expect(ClaimsPersonSchemaorg.addressRegion).toBe('org.schema.Person.address.addressRegion');
   });
 
   it('includes service discovery areaServed claim', () => {
