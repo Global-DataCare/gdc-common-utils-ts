@@ -26,7 +26,7 @@ function isDidWeb(value: string): boolean {
 
 function isPhysicalSupportDid(value: string): boolean {
   const segments = value.toLowerCase().split(':');
-  return segments.includes('card') || segments.includes('petd');
+  return segments.includes('card');
 }
 
 function isIndividualIdentityDid(value: string): boolean {

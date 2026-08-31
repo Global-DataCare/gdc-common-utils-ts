@@ -12,6 +12,7 @@ export * from './license';
 export * from './organization-role-license';
 export * from './invoice';
 export * from './inter-tenant-access-contract';
+export * from './break-glass';
 export * from './subject-identity-binding';
 export * from './related-person';
 export * from './consent-access';

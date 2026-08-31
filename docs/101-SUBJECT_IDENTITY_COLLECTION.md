@@ -22,10 +22,12 @@ identifier in Fabric.
 ```ts
 import { buildSubjectIdentityBundleEntry } from
   'gdc-common-utils-ts/utils/subject-identity';
+import { EXAMPLE_ANIMAL_CARD_URI } from
+  'gdc-common-utils-ts/examples/shared';
 
 const microchipIdentity = buildSubjectIdentityBundleEntry({
   subjectKind: 'animal',
-  cardId: 'urn:vetchain:card:animal:luna',
+  cardId: EXAMPLE_ANIMAL_CARD_URI,
   codingSystem: 'urn:iso:std:iso:11784-11785',
   jurisdiction: '', // global lookup keeps the middle component explicitly empty
   codeValue: '981020000123456',

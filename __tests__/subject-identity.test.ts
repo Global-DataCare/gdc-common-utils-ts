@@ -1,3 +1,4 @@
+// Flow contract: reuse shared test fixtures and canonical types; do not introduce duplicated literals.
 /**
  * Teaching goal:
  *
@@ -12,13 +13,17 @@ import {
   readSubjectIdentityBundleEntry,
 } from '../src/utils/subject-identity';
 import { buildIndividualIdentifierLedgerAssetId } from '../src/utils/individual-identifier';
+import {
+  EXAMPLE_ANIMAL_CARD_URI,
+  EXAMPLE_PERSON_CARD_URI,
+} from '../src/examples/shared';
 
 describe('Subject identity collection', () => {
   it('builds one human Person whose private identifier points to the public card', () => {
     // Step 1. The controller supplies one exact identifier already known to them.
     const entry = buildSubjectIdentityBundleEntry({
       subjectKind: 'person',
-      cardId: 'urn:example:card:person:alice',
+      cardId: EXAMPLE_PERSON_CARD_URI,
       codingSystem: 'NN',
       jurisdiction: 'ES',
       codeValue: '12345678Z',
@@ -29,7 +34,7 @@ describe('Subject identity collection', () => {
     expect(entry.request).toEqual({ method: 'POST', url: 'Subject' });
     expect(entry.resource?.resourceType).toBe('Person');
     expect(entry.resource?.meta?.claims).toMatchObject({
-      'org.schema.Person.sameAs': 'urn:example:card:person:alice',
+      'org.schema.Person.sameAs': EXAMPLE_PERSON_CARD_URI,
       'org.schema.Person.identifier.additionalType': 'org.hl7.terminology.CodeSystem.v2-0203.NN',
       'org.schema.Person.identifier.jurisdiction': 'ES',
       'org.schema.Person.identifier.value': '12345678Z',
@@ -40,7 +45,7 @@ describe('Subject identity collection', () => {
     expect(readSubjectIdentityBundleEntry(entry)).toMatchObject({
       subjectKind: 'person',
       resourceType: 'Person',
-      cardId: 'urn:example:card:person:alice',
+      cardId: EXAMPLE_PERSON_CARD_URI,
       codingSystem: 'org.hl7.terminology.CodeSystem.v2-0203.NN',
       jurisdiction: 'ES',
       codeValue: '12345678Z',
@@ -50,7 +55,7 @@ describe('Subject identity collection', () => {
   it('uses the same collection contract for an ISO animal microchip', () => {
     const entry = buildSubjectIdentityBundleEntry({
       subjectKind: 'animal',
-      cardId: 'urn:vetchain:card:animal:luna',
+      cardId: EXAMPLE_ANIMAL_CARD_URI,
       codingSystem: 'urn:iso:std:iso:11784-11785',
       jurisdiction: '',
       codeValue: '981020000123456',
@@ -58,7 +63,7 @@ describe('Subject identity collection', () => {
 
     expect(entry.resource?.resourceType).toBe('Animal');
     expect(entry.resource?.meta?.claims?.['org.schema.Animal.sameAs'])
-      .toBe('urn:vetchain:card:animal:luna');
+      .toBe(EXAMPLE_ANIMAL_CARD_URI);
     expect(readSubjectIdentityBundleEntry(entry).subjectKind).toBe('animal');
   });
 

@@ -118,3 +118,4 @@ export * from './wallet-memory-queue';
 export * from './profile-outbox-memory-repository';
 export * from './backend-message-manager-mem';
 export * from './profile-manager-mem';
+export * from './break-glass-policy';

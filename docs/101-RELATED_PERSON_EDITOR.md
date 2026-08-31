@@ -55,9 +55,9 @@ public identifier. The opaque resource id is used for internal references but
 must not replace those public values because the blockchain rule asset id must
 remain independently reproducible.
 
-A future set of countries for role-scoped emergency permissions is a SOSChain
-flow. It is a country set, not a FHIR Group, and is not part of the current
-person/organization demonstration.
+A future set of countries for role-scoped emergency permissions is a domain
+extension. It is a country set, not a FHIR Group, and is not part of the
+current person/organization demonstration.
 
 ## Frontend Path
 
