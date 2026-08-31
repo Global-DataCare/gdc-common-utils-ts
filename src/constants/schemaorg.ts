@@ -169,6 +169,10 @@ export enum ClaimsOrderSchemaorg {
 export enum ClaimsPersonSchemaorg {
     /** Schema.org additional type; service-controller VCs use bare `RESPRSN`. */
     additionalType = "org.schema.Person.additionalType",
+    /** ISO 3166 country governing one independently evidenced identity document. */
+    addressCountry = "org.schema.Person.address.addressCountry",
+    /** ISO 3166-2 subdivision when the evidenced identifier is regional. */
+    addressRegion = "org.schema.Person.address.addressRegion",
     /** Second surname or mother's maiden name */
     additionalName = "org.schema.Person.additionalName",
     /** Short friendly name */
