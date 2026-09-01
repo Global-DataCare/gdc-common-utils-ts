@@ -390,15 +390,26 @@ function mergeContainedResourceReferenceList(
   };
 }
 
+/**
+ * Detects the native FHIR resource represented by one version-neutral claims
+ * map. A Composition-only map is a complete resource input: it is not merely
+ * metadata for another resource and must remain translatable for strict FHIR
+ * `contained[]` output. When another resource prefix is present,
+ * `Composition.*` remains section-membership metadata and cannot replace that
+ * resource's type.
+ */
 export function detectClaimsResourceType(claims: BundleDocumentClaims): string | undefined {
   const keys = Object.keys(claims || {});
   if (keys.some((key) => key.startsWith('MedicationStatement.'))) return ResourceTypesFhirR4.MedicationStatement;
   if (keys.some((key) => key.startsWith('AllergyIntolerance.'))) return ResourceTypesFhirR4.AllergyIntolerance;
   if (keys.some((key) => key.startsWith('Condition.'))) return ResourceTypesFhirR4.Condition;
   if (keys.some((key) => key.startsWith('DocumentReference.'))) return ResourceTypesFhirR4.DocumentReference;
-  const firstContextualized = keys
+  const qualifiedKeys = keys
     .map((key) => getSimpleClaimAttributeName(key))
-    .find((key) => key.includes('.') && !key.startsWith(`${ResourceTypesFhirR4.Composition}.`));
+    .filter((key) => key.includes('.') && !key.startsWith('@'));
+  const firstContextualized = qualifiedKeys.find(
+    (key) => !key.startsWith(`${ResourceTypesFhirR4.Composition}.`),
+  ) || qualifiedKeys.find((key) => key.startsWith(`${ResourceTypesFhirR4.Composition}.`));
   if (firstContextualized) {
     return firstContextualized.split('.')[0];
   }

@@ -4,6 +4,16 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.6.6] - 2026-09-01
+
+- Detect and translate claims-only Composition resources so Digital Twin
+  aggregates can expose strict FHIR R4/R5 Composition data through
+  `ResearchSubject.contained[]` while claims-first responses retain the mixed
+  version-neutral claims map. Preserve the owning resource type when ordinary
+  clinical claims also carry `Composition.section` membership metadata.
+- Read License search status, identifier and claims from the canonical primary
+  resource at `body.data[].resource`, while retaining deprecated aggregate
+  input as read-only compatibility.
 - Resolve `did:web` authorities on explicit local loopback hosts (including
   `127.0.0.1`) over HTTP so real local UI/BFF/GW tests can retrieve tenant DID
   documents. Every non-loopback authority remains HTTPS-only.

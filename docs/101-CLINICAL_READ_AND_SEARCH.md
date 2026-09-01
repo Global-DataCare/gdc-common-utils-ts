@@ -115,6 +115,30 @@ const filteredCount = allergyView.getResourceCount();
 Both calls are local reads over `summary.bundle`; neither performs a new GW
 request.
 
+## Read A Digital Twin Aggregate
+
+Digital-twin discovery returns `ResearchSubject`, not a loose clinical record.
+Its canonical Composition index has two equivalent public representations:
+
+- Claims-first `org.hl7.fhir.api` keeps version-neutral `ResearchSubject.*`
+  and `Composition.*` keys together in one `ResearchSubject.meta.claims` map.
+- Strict FHIR R4/R5 separates the resources and carries the translated
+  Composition in `ResearchSubject.contained[]`.
+
+Applications use the high-level SDK, which normalizes both representations:
+
+```ts
+const result = await digitalTwin.search(routeContext, searchInput);
+
+// No DIDComm envelope or representation branching is needed in application code.
+const firstTwin = result.matches[0];
+const pseudonymousSubject = firstTwin['Composition.subject'];
+const canonicalComposition = firstTwin.composition;
+```
+
+`ResearchSubject.composition` is never a GW wire property. The normalized
+`firstTwin.composition` convenience belongs only to the SDK reader.
+
 ## Other Local Queries
 
 ```ts

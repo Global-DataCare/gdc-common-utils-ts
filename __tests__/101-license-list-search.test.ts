@@ -1,3 +1,4 @@
+// Flow contract: reuse shared test fixtures and canonical types; do not introduce duplicated literals.
 /**
  * 101 note:
  * - Teach the highest-level public `common-utils` helper available for this topic.
@@ -105,6 +106,33 @@ describe('101: license list and search', () => {
       available: 1,
       issued: 0,
       active: 1,
+      inactive: 0,
+    });
+  });
+
+  it('reads status and ownership from canonical primary-resource metadata', () => {
+    const primaryResourceResponse = {
+      resourceType: 'Bundle',
+      data: [{
+        type: 'License-search-response-v1.0',
+        resource: {
+          id: EXAMPLE_LICENSE_AVAILABLE_RECORD.id,
+          meta: {
+            status: LicenseStatuses.Available,
+            claims: EXAMPLE_LICENSE_AVAILABLE_RECORD.claims,
+          },
+        },
+        response: { status: '200' },
+      }],
+    };
+
+    expect(summarizeLicenseListRecords(primaryResourceResponse)).toEqual({
+      contracted: 1,
+      free: 1,
+      used: 0,
+      available: 1,
+      issued: 0,
+      active: 0,
       inactive: 0,
     });
   });
