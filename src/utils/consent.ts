@@ -12,7 +12,7 @@ import type {
   NormalizedConsentTarget,
   ResolvedConsentActor,
 } from '../models/consent-access.js';
-import { ClaimConsent, type ConsentRule } from '../models/consent-rule.js';
+import { ClaimConsent, ConsentStatuses, type ConsentRule } from '../models/consent-rule.js';
 import { assignCidToClaimsId } from './fhir-cid.js';
 
 /**
@@ -678,6 +678,7 @@ export function resolveConsentActor(actor: ConsentActorDescriptor): ResolvedCons
  *
  * A rule is active when:
  * - it matches the requested subject when one is provided
+ * - `Consent.status` is absent for legacy compatibility or is exactly `active`
  * - `Consent.period-start` is absent or already effective
  * - `Consent.period-end` is absent or still in the future
  *
@@ -695,6 +696,8 @@ export function isConsentRuleActive(
   if (options.subject && String(readConsentRuleClaim(rule, ClaimConsent.subject) || '').trim() !== String(options.subject || '').trim()) {
     return false;
   }
+  const status = String(readConsentRuleClaim(rule, ClaimConsent.status) || '').trim();
+  if (status && status !== ConsentStatuses.Active) return false;
   const now = options.now instanceof Date
     ? options.now.getTime()
     : options.now

@@ -4,6 +4,12 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Add the canonical FHIR R5 `Consent.status` vocabulary and typed
+  `ConsentEntryEditor.setStatus(...)` support. Professional permission
+  requests are ordinary Bundles of draft Consent resources; draft, inactive
+  and failed states never participate in access evaluation, while status-less
+  historical rules remain readable during migration.
+
 ## [2.7.1] - 2026-09-01
 
 - Define the canonical DIDComm/FAPI identity boundary with reusable direct
