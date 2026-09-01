@@ -325,6 +325,7 @@ export const EXAMPLE_CONTENT_TYPE_FHIR_JSON = 'application/fhir+json' as const;
 export const EXAMPLE_IPS_BUNDLE_ATTACHMENT_TITLE = 'IPS Document Bundle' as const;
 export const EXAMPLE_BUNDLE_RESOURCE_TYPE = 'Bundle' as const;
 export const EXAMPLE_BUNDLE_TYPE_BATCH = 'batch' as const;
+export const EXAMPLE_BUNDLE_TYPE_BATCH_RESPONSE = 'batch-response' as const;
 export const EXAMPLE_BUNDLE_TYPE_DOCUMENT = 'document' as const;
 export const EXAMPLE_MEDICATION_STATEMENT_UUID = 'urn:uuid:medication-statement-example-001' as const;
 export const EXAMPLE_MEDICATION_STATEMENT_IDENTIFIER = EXAMPLE_MEDICATION_STATEMENT_UUID;

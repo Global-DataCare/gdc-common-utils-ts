@@ -4,6 +4,11 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Extract canonical search results from the primary DIDComm Bundle at
+  `body.data[].resource`, retain the old nested aggregate as read-only rolling
+  upgrade compatibility, and publish reusable Employee/License response
+  fixtures so GW and SDK tests do not duplicate identifiers or wire literals.
+
 ## [2.6.2] - 2026-08-31
 
 - Add a reusable emergency-access policy and subject-kind matcher contract.

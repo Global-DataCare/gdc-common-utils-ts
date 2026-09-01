@@ -35,22 +35,50 @@ export function readEmployeeActivationCode(value: unknown): string {
   return '';
 }
 
-/** Extracts GW search rows regardless of async job envelope depth. */
-export function extractGwSearchResources(value: unknown): ReadonlyArray<Record<string, unknown>> {
+/**
+ * Extracts primary resources from a DIDComm FHIR-like response Bundle.
+ *
+ * Canonical search matches live at `body.data[].resource`. The deprecated
+ * `resource.{total,data}` aggregate remains a read-only compatibility path so
+ * an SDK can survive a rolling GW deployment; producers must not emit it.
+ */
+export function extractBundleSearchResources(value: unknown): ReadonlyArray<Record<string, unknown>> {
   for (const candidate of listNestedRecords(value)) {
-    const data = record(candidate.resource)?.data || candidate.data;
-    if (Array.isArray(data)) return data.map(record).filter(isRecord);
+    if (!Array.isArray(candidate.data)) continue;
+    const entries = candidate.data.map(record).filter(isRecord);
+    if (entries.length === 0) return [];
+
+    const resources = entries.flatMap((entry) => {
+      const resource = record(entry.resource);
+      if (!resource) return [];
+      const legacyRows = resource.total !== undefined && Array.isArray(resource.data)
+        ? resource.data.map(record).filter(isRecord)
+        : undefined;
+      return legacyRows ?? [resource];
+    });
+    if (resources.length > 0) return resources;
+
+    // Compatibility for older SDK fixtures that passed already-extracted rows.
+    return entries;
+  }
+
+  for (const candidate of listNestedRecords(value)) {
+    const legacyRows = record(candidate.resource)?.data;
+    if (Array.isArray(legacyRows)) return legacyRows.map(record).filter(isRecord);
   }
   return [];
 }
+
+/** @deprecated Use the transport-neutral `extractBundleSearchResources`. */
+export const extractGwSearchResources = extractBundleSearchResources;
 
 /** Combines employee directory and license search results into one typed view. */
 export function projectOrganizationEmployeeLifecycle(input: Readonly<{
   employeeResponse: unknown;
   licenseResponse: unknown;
 }>): OrganizationEmployeeLifecycleRecord[] {
-  const licenses = extractGwSearchResources(input.licenseResponse);
-  return extractGwSearchResources(input.employeeResponse).map((employee) => {
+  const licenses = extractBundleSearchResources(input.licenseResponse);
+  return extractBundleSearchResources(input.employeeResponse).map((employee) => {
     const claims = record(employee.claims) || record(record(employee.meta)?.claims) || {};
     const resourceId = text(employee.id);
     const employeeDid = text(claims[ClaimsPersonSchemaorg.identifier]);

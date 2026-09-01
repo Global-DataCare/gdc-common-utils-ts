@@ -131,6 +131,32 @@ instead of parsing raw GW payloads directly in the UI.
 Shared helpers already model part of the list/search domain, for example:
 
 - `buildLicenseSearchEntry(...)`
+- `projectOrganizationEmployeeLifecycle(...)`
+
+The response reader follows one simple rule: the DIDComm `body` is the primary
+FHIR-like Bundle and every successful match is one `body.data[].resource`.
+Application code consumes the projection and never parses transport arrays:
+
+```ts
+import {
+  EXAMPLE_EMPLOYEE_SEARCH_RESPONSE_BODY,
+  EXAMPLE_LICENSE_LIST_RESPONSE_BODY_WITH_DEVICES,
+  projectOrganizationEmployeeLifecycle,
+} from 'gdc-common-utils-ts';
+
+// These shared fixtures have the same primary-resource shape as a real GW
+// response. Product tests import them instead of inventing IDs or wire values.
+const inventory = projectOrganizationEmployeeLifecycle({
+  employeeResponse: EXAMPLE_EMPLOYEE_SEARCH_RESPONSE_BODY,
+  licenseResponse: EXAMPLE_LICENSE_LIST_RESPONSE_BODY_WITH_DEVICES,
+});
+
+renderEmployeeInventory(inventory);
+```
+
+Older GW versions nested matches below `resource.data`. Readers accept that
+shape only for a rolling upgrade; new producers, tests and snippets must not
+author it.
 
 The current shared model already treats these as high-level filters:
 

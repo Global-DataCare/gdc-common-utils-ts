@@ -26,6 +26,11 @@ Primary references in this repo:
 - controller authority is bare `RESPRSN` in `ServiceControllerCredential.credentialSubject.owner.additionalType`;
 - the controller VC may additionally carry an independently coded ISCO-08 occupation;
 - legacy representative-bound role tokens may be normalized for compatibility but must not become canonical examples.
+7. Shared response fixtures and readers preserve the primary-document boundary:
+- DIDComm `body` is the FHIR-like/JSON primary Bundle;
+- successful search matches live at `body.data[].resource` (or FHIR `entry[].resource`);
+- never author a nested `{ total, data }` list inside `BundleEntry.resource`;
+- shared examples own governed identifiers and wire values so consumers do not repeat literals.
 
 ## Communication + DocumentReference Rules
 1. Distinguish FHIR native model vs atomic conversion profile:
