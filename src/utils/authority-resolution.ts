@@ -13,7 +13,9 @@ function normalizeString(value: unknown): string {
 }
 
 function encodeDidWebAuthority(authority: string): string {
-  return authority.replace(/:/g, '%3A').toLowerCase();
+  // DNS hostnames are case-insensitive, while the canonical did:web spelling
+  // keeps URI percent escapes uppercase for exact DID-document comparisons.
+  return authority.toLowerCase().replace(/:/g, '%3A');
 }
 
 function normalizeAuthorityHost(value: string): string {

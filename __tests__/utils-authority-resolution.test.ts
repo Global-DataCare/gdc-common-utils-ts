@@ -1,3 +1,4 @@
+// Flow contract: one canonical did:web authority lowercases the DNS host while preserving uppercase percent-encoding for a local port.
 import {
   authorityResolutionToCatalogRecord,
   buildAuthorityDidWeb,
@@ -10,6 +11,11 @@ describe('authority resolution helpers', () => {
     expect(buildAuthorityDidWeb({
       authority: 'https://gw.example.org',
     })).toBe('did:web:gw.example.org');
+  });
+
+  test('preserves canonical uppercase percent-encoding for a local authority port', () => {
+    expect(buildAuthorityDidWeb({ authority: 'http://LOCALHOST:3300' }))
+      .toBe('did:web:localhost%3A3300');
   });
 
   test('normalizes base URL from one root authority did:web', () => {
