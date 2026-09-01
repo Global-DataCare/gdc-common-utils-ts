@@ -35,6 +35,18 @@ describe('organization employee lifecycle shared contract', () => {
       .toEqual(EXAMPLE_EMPLOYEE_SEARCH_RESPONSE_BODY.data.map(entry => entry.resource));
   });
 
+  it('returns no resources for an empty deprecated nested search-list envelope', () => {
+    const emptyLegacyBody = {
+      ...EXAMPLE_EMPLOYEE_SEARCH_RESPONSE_BODY_LEGACY,
+      data: EXAMPLE_EMPLOYEE_SEARCH_RESPONSE_BODY_LEGACY.data.map(entry => ({
+        ...entry,
+        resource: { ...entry.resource, total: 0, data: [] },
+      })),
+    };
+
+    expect(extractBundleSearchResources(emptyLegacyBody)).toEqual([]);
+  });
+
   it('publishes protocol tokens instead of requiring product-local strings', () => {
     expect(IdentityAuthActions.Issue).toBe('_issue');
     expect(IdentityAuthActions.RevokeResponse).toBe('_revoke-response');

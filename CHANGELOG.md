@@ -4,6 +4,9 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Return an empty result for the deprecated legacy search aggregate when its
+  `resource.data` array is empty, rather than misclassifying the response entry
+  itself as one primary resource.
 - Extract canonical search results from the primary DIDComm Bundle at
   `body.data[].resource`, retain the old nested aggregate as read-only rolling
   upgrade compatibility, and publish reusable Employee/License response

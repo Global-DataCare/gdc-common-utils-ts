@@ -48,15 +48,18 @@ export function extractBundleSearchResources(value: unknown): ReadonlyArray<Reco
     const entries = candidate.data.map(record).filter(isRecord);
     if (entries.length === 0) return [];
 
+    let recognizedSearchEnvelope = false;
     const resources = entries.flatMap((entry) => {
       const resource = record(entry.resource);
       if (!resource) return [];
       const legacyRows = resource.total !== undefined && Array.isArray(resource.data)
         ? resource.data.map(record).filter(isRecord)
         : undefined;
+      if (legacyRows) recognizedSearchEnvelope = true;
       return legacyRows ?? [resource];
     });
     if (resources.length > 0) return resources;
+    if (recognizedSearchEnvelope) return [];
 
     // Compatibility for older SDK fixtures that passed already-extracted rows.
     return entries;
