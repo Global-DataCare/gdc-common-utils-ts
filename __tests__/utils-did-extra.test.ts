@@ -1,3 +1,4 @@
+// Flow contract: did:web discovery uses HTTP only for explicit local loopback authorities and keeps every non-loopback authority on HTTPS.
 import {
   buildHostedProviderDidWeb,
   buildIndividualDidWeb,
@@ -61,6 +62,11 @@ describe('did utilities', () => {
   it('derives base URL from did:web', () => {
     const url = getBaseUrlFromDidWeb('did:web:localhost%3A3000:acme:cds-es:v1:health-care');
     expect(url).toBe('http://localhost:3000/acme/cds-ES/v1/health-care/');
+  });
+
+  it('derives an HTTP base URL for an encoded IPv4 loopback authority', () => {
+    const url = getBaseUrlFromDidWeb('did:web:127.0.0.1%3A3300:704457077:cds-CA-BC:v1:animal-care');
+    expect(url).toBe('http://127.0.0.1:3300/704457077/cds-CA-BC/v1/animal-care/');
   });
 
   it('extracts the hosted tenant id from a hosted did:web', () => {
