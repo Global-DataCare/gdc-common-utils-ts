@@ -1,3 +1,4 @@
+// Flow contract: reuse shared test fixtures and canonical types; do not introduce duplicated literals.
 import { describe, expect, it } from '@jest/globals';
 
 import { ResourceTypesFhirR4 } from '../src/constants/fhir-resource-types.js';
@@ -146,6 +147,33 @@ describe('bundle document builder', () => {
 
     const resource = convertClaimsToFhirResource(claims);
     expect(resource.resourceType).toBe(ResourceTypesFhirR4.MedicationStatement);
+  });
+
+  it('detects a claims-only Composition and converts it for strict FHIR containment', () => {
+    const claims = {
+      '@context': 'org.hl7.fhir.api',
+      [CompositionClaim.Identifier]: 'urn:uuid:composition-selection',
+      [CompositionClaim.Subject]: EXAMPLE_SUBJECT_DID,
+      [CompositionClaim.Section]: HealthcareBasicSections.HistoryOfMedicationUse.attributeValue,
+      [CompositionClaim.Type]: HealthcareBasicSections.PatientSummaryDocument.attributeValue,
+    };
+
+    expect(detectClaimsResourceType(claims)).toBe(ResourceTypesFhirR4.Composition);
+    expect(convertClaimsToFhirResource(claims)).toMatchObject({
+      resourceType: ResourceTypesFhirR4.Composition,
+      subject: { reference: EXAMPLE_SUBJECT_DID },
+    });
+  });
+
+  it('keeps Composition section membership as metadata when another resource owns the claims map', () => {
+    const claims = {
+      '@context': 'org.hl7.fhir.api',
+      'Immunization.identifier': 'urn:uuid:immunization-selection',
+      'Immunization.status': 'completed',
+      [CompositionClaim.Section]: HealthcareBasicSections.Immunizations.attributeValue,
+    };
+
+    expect(detectClaimsResourceType(claims)).toBe(ResourceTypesFhirR4.Immunization);
   });
 
   it('builds a valid Bundle document from claims and links sections to resource references', () => {

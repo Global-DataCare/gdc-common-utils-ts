@@ -266,17 +266,25 @@ export function readLicenseListRecords(body: unknown): LicenseListRecord[] {
   return data
     .filter((entry): entry is Record<string, unknown> => !!entry && typeof entry === 'object')
     .map((entry) => {
-      const claims = extractClaims(entry);
-      const meta = entry.meta && typeof entry.meta === 'object' ? entry.meta as Record<string, unknown> : {};
+      // Canonical search responses place one license row in `entry.resource`;
+      // deprecated aggregate responses placed rows in `resource.data[]`.
+      const primaryResource = entry.resource && typeof entry.resource === 'object' && !Array.isArray(entry.resource)
+        ? entry.resource as Record<string, unknown>
+        : undefined;
+      const row = primaryResource && !Array.isArray(primaryResource.data) && isLicenseListEntry(primaryResource)
+        ? primaryResource
+        : entry;
+      const claims = extractClaims(row);
+      const meta = row.meta && typeof row.meta === 'object' ? row.meta as Record<string, unknown> : {};
       return {
         id: normalizeText(
           claims[ClaimsIndividualProductSchemaorg.serialNumber]
           || claims[ClaimsOfferSchemaorg.serialNumber]
-          || (entry as Record<string, unknown>).id,
+          || row.id,
         ),
-        status: normalizeText(meta.status || entry.status),
-        subjectId: normalizeText(meta.subjectId || entry.subjectId),
-        ownerOrganizationId: normalizeText(meta.ownerOrganizationId || entry.ownerOrganizationId || claims['License.ownerOrganizationId']),
+        status: normalizeText(meta.status || row.status),
+        subjectId: normalizeText(meta.subjectId || row.subjectId),
+        ownerOrganizationId: normalizeText(meta.ownerOrganizationId || row.ownerOrganizationId || claims['License.ownerOrganizationId']),
         email: normalizeText(claims[ClaimsPersonSchemaorg.email]),
         telephone: normalizeText(claims[ClaimsPersonSchemaorg.telephone]),
         role: normalizeText(claims[ClaimsPersonSchemaorg.hasOccupationalRoleValue]),

@@ -59,6 +59,11 @@ It is intentionally not a full backend orchestration layer.
 - Only define custom names when no canonical FHIR SearchParameter exists.
 - `resource.meta.claims` is the canonical project-specific claims container and must be preserved across conversions/transports.
 - `resource.meta.claims` is not part of base FHIR; it is a claims-first extension carried by FHIR-like resources in GDC contracts.
+- Claims-first aggregates may intentionally mix related resource families. A
+  Digital Twin `ResearchSubject.meta.claims` contains both `ResearchSubject.*`
+  and `Composition.*`; strict FHIR R4/R5 translates the Composition into
+  `ResearchSubject.contained[]`. Producers never invent a
+  `ResearchSubject.composition` wire property.
 - Native FHIR resources received from EHR systems do not need that extension:
   normalize them with `normalizeClaimsFromFhirResource(...)` at the processing
   boundary before indexed storage. Existing `resource.meta.claims` take
