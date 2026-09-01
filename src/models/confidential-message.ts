@@ -54,8 +54,11 @@ export interface IDecodedDidcommPayload {
   // --- FAPI & JWT Core Claims ---
   
   /**
-   * (Issuer) The DID of the entity that issued the message.
-   * REQUIRED for FAPI. MUST match the signer of the enclosing JWS.
+   * (Issuer) DID of the entity that issued and signed the message.
+   * REQUIRED for FAPI. It MUST be bound to the signer of the enclosing JWS.
+   * The signing key is identified separately by `meta.jws.protected.kid`;
+   * `iss` is never the key id. For a DCR-bound client this is normally the
+   * client/device DID, while a SMART human actor remains in `body.sub`.
    */
   iss: string;
 
@@ -94,7 +97,13 @@ export interface IDecodedDidcommPayload {
   /** The DID of the intended recipient. Used for P2P messaging, informational in client-server requests. */
   to?: string[];
   
-  /** The DID of the sender. Used for P2P messaging, but `iss` is the authoritative value for FAPI. */
+  /**
+   * DIDComm sender DID. In a direct signed request this normally equals `iss`.
+   * It is never a raw email, telephone, card id or `urn:multibase` alias. When
+   * a DCR client acts for a human, `from`/`iss` identify the client and SMART
+   * `body.sub` identifies the human actor. `iss` remains authoritative for
+   * the FAPI signature boundary.
+   */
   from?: string;
 
   /**

@@ -16,6 +16,7 @@ import {
   convertClaimsToFhirResource,
   detectClaimsResourceType,
   extractBundleDocumentClaimsList,
+  extractFlatClaimValue,
   getBundleDocumentPatientFullName,
   getSimpleClaimAttributeName,
   normalizeFullNameForComparison,
@@ -23,6 +24,7 @@ import {
   resolveClaimsSectionList,
   validateBundleDocumentBasic,
 } from '../src/utils/bundle-document-builder.js';
+import { Format } from '../src/constants/Schemas.js';
 import { fhirResourceToFlatClaims, flatClaimsToFhirResource } from '../src/utils/clinical-resource-converters.js';
 import { BundleReader } from '../src/utils/bundle-reader.js';
 
@@ -39,6 +41,18 @@ import { BundleReader } from '../src/utils/bundle-reader.js';
  * portal; these tests protect only the reusable deterministic conversion.
  */
 describe('bundle document builder', () => {
+  it('reads canonical API claims and deprecated version-prefixed search rows through one accessor', () => {
+    const claim = 'DocumentReference.subject';
+    expect(extractFlatClaimValue({
+      '@context': Format.FHIR_API,
+      [`${Format.FHIR_API}.${claim}`]: EXAMPLE_SUBJECT_DID,
+    }, claim)).toBe(EXAMPLE_SUBJECT_DID);
+    expect(extractFlatClaimValue({
+      '@context': Format.FHIR_R4,
+      [`${Format.FHIR_R4}.${claim}`]: EXAMPLE_SUBJECT_DID,
+    }, claim)).toBe(EXAMPLE_SUBJECT_DID);
+  });
+
   it('prepares an imported document for one subject and records Composition section membership in meta.claims', () => {
     // Step 1. Model an external IPS whose Patient-local references cannot be
     // trusted as the destination subject in the receiving index.

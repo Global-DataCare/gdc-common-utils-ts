@@ -748,7 +748,9 @@ export function buildExampleCommunicationIngestionPayload({
             note: [{ text: EXAMPLE_IPS_BUNDLE_NOTE_TEXT }],
             meta: {
               claims: {
-                '@context': Format.FHIR_R4,
+                // The surrounding resource is native FHIR R4, while flat
+                // claims remain version-neutral and can later render as R4 or R5.
+                '@context': Format.FHIR_API,
                 [CommunicationClaim.Category]: CommunicationCategoryCodes.Notification.claim,
                 [CommunicationClaim.Subject]: subjectDid,
                 [CommunicationClaim.Sent]: sent,

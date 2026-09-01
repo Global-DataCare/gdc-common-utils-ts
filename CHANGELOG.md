@@ -4,6 +4,18 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.7.1] - 2026-09-01
+
+- Define the canonical DIDComm/FAPI identity boundary with reusable direct
+  actor and device-bound SMART fixtures: `from` and `iss` identify the signer,
+  `kid` identifies its registered key, and SMART `sub` identifies the actor.
+- Keep native FHIR `Communication` transport separate from DIDComm identity:
+  authentication remains in HTTP `Authorization`, while flat claims use the
+  version-neutral `org.hl7.fhir.api` context.
+- Read canonical API-prefixed claims and deprecated R4-prefixed search rows
+  through the same compatibility accessor without allowing new writers to
+  emit the legacy namespace.
+
 ## [2.7.0] - 2026-09-01
 
 - Detect and translate claims-only Composition resources so Digital Twin
