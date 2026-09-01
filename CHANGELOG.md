@@ -4,7 +4,7 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
-## [2.6.6] - 2026-09-01
+## [2.7.0] - 2026-09-01
 
 - Detect and translate claims-only Composition resources so Digital Twin
   aggregates can expose strict FHIR R4/R5 Composition data through
