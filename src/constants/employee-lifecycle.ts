@@ -21,6 +21,12 @@ export const EmployeeLifecycleQueryActions = Object.freeze({
   List: 'list',
 } as const);
 
+/** Stable response-entry types for the shared employee and seat directory. */
+export const OrganizationEmployeeSearchResponseEntryTypes = Object.freeze({
+  Employee: 'Employee-search-response-v1.0',
+  License: 'License-search-response-v1.0',
+} as const);
+
 export type EmployeeLifecycleAction =
   typeof EmployeeLifecycleActions[keyof typeof EmployeeLifecycleActions];
 

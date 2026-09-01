@@ -1,4 +1,10 @@
+import { OrganizationEmployeeSearchResponseEntryTypes } from '../constants/employee-lifecycle';
 import { ClaimsPersonSchemaorg } from '../constants/schemaorg';
+import {
+  EXAMPLE_BUNDLE_RESOURCE_TYPE,
+  EXAMPLE_BUNDLE_TYPE_BATCH_RESPONSE,
+  ExampleHttpStatusText,
+} from './shared';
 
 /**
  * Canonical employee directory fixture shared by docs and tests.
@@ -101,11 +107,32 @@ export function buildExampleEmployeeClaims(
  * to show employee directory flows without reauthoring `meta.claims` by hand.
  */
 export const EXAMPLE_EMPLOYEE_SEARCH_RESPONSE_BODY = Object.freeze({
+  resourceType: EXAMPLE_BUNDLE_RESOURCE_TYPE,
+  type: EXAMPLE_BUNDLE_TYPE_BATCH_RESPONSE,
+  total: EXAMPLE_EMPLOYEE_DIRECTORY_RECORDS.length,
   data: EXAMPLE_EMPLOYEE_DIRECTORY_RECORDS.map((record) => ({
-    id: record.resourceId,
-    meta: {
+    type: OrganizationEmployeeSearchResponseEntryTypes.Employee,
+    resource: {
+      id: record.resourceId,
       status: record.status,
       claims: buildExampleEmployeeClaims(record),
+      meta: {
+        status: record.status,
+        claims: buildExampleEmployeeClaims(record),
+      },
     },
+    response: { status: ExampleHttpStatusText.Ok },
   })),
+} as const);
+
+/** @deprecated Read-only fixture for GW versions that nested search rows. */
+export const EXAMPLE_EMPLOYEE_SEARCH_RESPONSE_BODY_LEGACY = Object.freeze({
+  data: [{
+    type: OrganizationEmployeeSearchResponseEntryTypes.Employee,
+    resource: {
+      total: EXAMPLE_EMPLOYEE_SEARCH_RESPONSE_BODY.total,
+      data: EXAMPLE_EMPLOYEE_SEARCH_RESPONSE_BODY.data.map(entry => entry.resource),
+    },
+    response: { status: ExampleHttpStatusText.Ok },
+  }],
 } as const);

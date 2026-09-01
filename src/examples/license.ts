@@ -1,4 +1,5 @@
 import { DeviceAppTypes, DeviceBindingStatuses, DeviceUserClasses } from '../constants/device';
+import { OrganizationEmployeeSearchResponseEntryTypes } from '../constants/employee-lifecycle';
 import {
   ClaimsOrderSchemaorg,
   ClaimsIndividualProductSchemaorg,
@@ -25,6 +26,8 @@ import {
   EXAMPLE_EMPLOYEE_DEVICE_INSTANCE_ID_PRIMARY,
   EXAMPLE_EMPLOYEE_DEVICE_INSTANCE_ID_SECONDARY,
   EXAMPLE_EMPLOYEE_DEVICE_MODEL_PRIMARY,
+  EXAMPLE_BUNDLE_RESOURCE_TYPE,
+  EXAMPLE_BUNDLE_TYPE_BATCH_RESPONSE,
   EXAMPLE_HEALTHCARE_ACTOR_ROLE_GENERALIST_MEDICAL_PRACTITIONER,
   EXAMPLE_LICENSE_INVOICE_ID,
   EXAMPLE_LICENSE_OFFER_ID,
@@ -40,6 +43,7 @@ import {
   EXAMPLE_LICENSE_SUBJECT_ID_ACTIVE,
   EXAMPLE_LICENSE_SUBJECT_ID_AVAILABLE,
   EXAMPLE_TENANT_IDENTIFIER,
+  ExampleHttpStatusText,
 } from './shared';
 import { DEFAULT_LICENSE_DEVICE_ALLOWANCE } from '../utils/license';
 import { EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE } from './employee';
@@ -174,8 +178,12 @@ export const EXAMPLE_LICENSE_ISSUE_RESPONSE_BODY = Object.freeze({
 /** Shared license search response containing the default two-installation state. */
 export const EXAMPLE_LICENSE_LIST_RESPONSE_BODY_WITH_DEVICES = Object.freeze({
   body: {
-    resource: {
-      data: [{
+    resourceType: EXAMPLE_BUNDLE_RESOURCE_TYPE,
+    type: EXAMPLE_BUNDLE_TYPE_BATCH_RESPONSE,
+    total: 1,
+    data: [{
+      type: OrganizationEmployeeSearchResponseEntryTypes.License,
+      resource: {
         id: EXAMPLE_LICENSE_ACTIVE_RECORD.id,
         meta: {
           status: EXAMPLE_LICENSE_ACTIVE_RECORD.status,
@@ -183,7 +191,17 @@ export const EXAMPLE_LICENSE_LIST_RESPONSE_BODY_WITH_DEVICES = Object.freeze({
           maxDevices: DEFAULT_LICENSE_DEVICE_ALLOWANCE,
           deviceBindings: EXAMPLE_EMPLOYEE_DEVICE_BINDINGS,
         },
-      }],
+      },
+      response: { status: ExampleHttpStatusText.Ok },
+    }],
+  },
+} as const);
+
+/** @deprecated Read-only fixture for GW versions that nested search rows. */
+export const EXAMPLE_LICENSE_LIST_RESPONSE_BODY_WITH_DEVICES_LEGACY = Object.freeze({
+  body: {
+    resource: {
+      data: EXAMPLE_LICENSE_LIST_RESPONSE_BODY_WITH_DEVICES.body.data.map(entry => entry.resource),
     },
   },
 } as const);

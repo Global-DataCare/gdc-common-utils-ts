@@ -1,3 +1,6 @@
+// Flow contract: controller inventory reads each Employee and License from
+// `DIDComm.body.data[].resource`; the deprecated nested search-list envelope
+// remains read-only compatibility during a rolling GW/SDK deployment.
 import {
   DeviceBindingStatuses,
   EmployeeDirectoryStatuses,
@@ -10,16 +13,28 @@ import {
   EXAMPLE_EMPLOYEE_ACTIVATION_CODE,
   EXAMPLE_EMPLOYEE_LIFECYCLE_RECORD,
   EXAMPLE_EMPLOYEE_SEARCH_RESPONSE_BODY,
+  EXAMPLE_EMPLOYEE_SEARCH_RESPONSE_BODY_LEGACY,
   EXAMPLE_LICENSE_LIST_RESPONSE_BODY_WITH_DEVICES,
   EXAMPLE_LICENSE_ISSUE_RESPONSE_BODY,
 } from '../src/examples';
 import {
   buildEmployeeDeviceRevocationBody,
+  extractBundleSearchResources,
   projectOrganizationEmployeeLifecycle,
   readEmployeeActivationCode,
 } from '../src/utils';
 
 describe('organization employee lifecycle shared contract', () => {
+  it('extracts primary resources from canonical DIDComm Bundle entries', () => {
+    expect(extractBundleSearchResources(EXAMPLE_EMPLOYEE_SEARCH_RESPONSE_BODY))
+      .toEqual(EXAMPLE_EMPLOYEE_SEARCH_RESPONSE_BODY.data.map(entry => entry.resource));
+  });
+
+  it('reads the deprecated nested search-list envelope during rolling upgrades', () => {
+    expect(extractBundleSearchResources(EXAMPLE_EMPLOYEE_SEARCH_RESPONSE_BODY_LEGACY))
+      .toEqual(EXAMPLE_EMPLOYEE_SEARCH_RESPONSE_BODY.data.map(entry => entry.resource));
+  });
+
   it('publishes protocol tokens instead of requiring product-local strings', () => {
     expect(IdentityAuthActions.Issue).toBe('_issue');
     expect(IdentityAuthActions.RevokeResponse).toBe('_revoke-response');
