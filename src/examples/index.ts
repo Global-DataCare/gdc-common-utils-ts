@@ -30,3 +30,4 @@ export * from './ips-bundle';
 export * from './vital-signs';
 export * from './wallet-mem';
 export * from './profile-manager-mem';
+export * from './didcomm-identity';

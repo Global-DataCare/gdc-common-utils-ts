@@ -1,4 +1,5 @@
 import { ResourceTypesFhirR4 } from '../constants/fhir-resource-types';
+import { Format } from '../constants/Schemas';
 import { AllergyIntoleranceClaim } from '../models/interoperable-claims/allergy-intolerance-claims';
 import { CompositionClaim } from '../models/interoperable-claims/composition-claims';
 import { ConditionClaim } from '../models/interoperable-claims/condition-claims';
@@ -59,7 +60,13 @@ export type PrepareBundleDocumentForSubjectOptions = Readonly<{
 }>;
 
 /** Version-independent FHIR SearchParameter claim context. */
-const FHIR_API_CLAIMS_CONTEXT = 'org.hl7.fhir.api';
+const FHIR_API_CLAIMS_CONTEXT = Format.FHIR_API;
+const READABLE_FHIR_CLAIMS_CONTEXTS = [
+  Format.FHIR_API,
+  // Deprecated response compatibility. New flat-claim writers use FHIR_API
+  // regardless of the selected native FHIR representation version.
+  Format.FHIR_R4,
+] as const;
 
 function asTrimmedString(value: unknown): string {
   if (value === undefined || value === null) return '';
@@ -76,9 +83,7 @@ function splitCsv(value: unknown): string[] {
 export function getSimpleClaimAttributeName(key: string): string {
   const value = asTrimmedString(key);
   if (!value) return '';
-  const knownPrefixes = [
-    `${FHIR_API_CLAIMS_CONTEXT}.`,
-  ];
+  const knownPrefixes = READABLE_FHIR_CLAIMS_CONTEXTS.map((context) => `${context}.`);
   for (const prefix of knownPrefixes) {
     if (value.startsWith(prefix)) {
       return value.slice(prefix.length);
@@ -92,12 +97,16 @@ export function extractFlatClaimValue(record: Record<string, any> | undefined, k
   if (!record || typeof record !== 'object') return '';
   const direct = record[normalizedKey];
   if (typeof direct === 'string' && direct.trim()) return direct.trim();
-  const contextualizedApi = record[`${FHIR_API_CLAIMS_CONTEXT}.${normalizedKey}`];
-  if (typeof contextualizedApi === 'string' && contextualizedApi.trim()) return contextualizedApi.trim();
+  for (const context of READABLE_FHIR_CLAIMS_CONTEXTS) {
+    const contextualized = record[`${context}.${normalizedKey}`];
+    if (typeof contextualized === 'string' && contextualized.trim()) return contextualized.trim();
+  }
   const nested = record?.meta?.claims?.[normalizedKey];
   if (typeof nested === 'string' && nested.trim()) return nested.trim();
-  const nestedApi = record?.meta?.claims?.[`${FHIR_API_CLAIMS_CONTEXT}.${normalizedKey}`];
-  if (typeof nestedApi === 'string' && nestedApi.trim()) return nestedApi.trim();
+  for (const context of READABLE_FHIR_CLAIMS_CONTEXTS) {
+    const nestedContextualized = record?.meta?.claims?.[`${context}.${normalizedKey}`];
+    if (typeof nestedContextualized === 'string' && nestedContextualized.trim()) return nestedContextualized.trim();
+  }
   return '';
 }
 

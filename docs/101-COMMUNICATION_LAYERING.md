@@ -269,6 +269,12 @@ Main fields:
 - `type`
 - `body`
 
+Identity rule: `from` and `iss` identify the direct sender/issuer DID, while
+`meta.jws.protected.kid` selects the proof key. A SMART human actor belongs in
+`body.sub`. See [101-DIDCOMM-IDENTITY-BOUNDARY.md](./101-DIDCOMM-IDENTITY-BOUNDARY.md)
+for the direct and DCR-client structures. Direct FHIR JSON has no DIDComm
+identity fields in its `Communication` resource.
+
 Important rule:
 
 - this `type` is the envelope/protocol type

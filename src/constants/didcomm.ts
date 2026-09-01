@@ -10,6 +10,7 @@ export const DidcommMessageTypes = Object.freeze({
   CommunicationAttachedBundle: 'Communication-attached-bundle-v1.0',
   CommunicationBundleSubmit: 'Communication-bundle-submit-v1.0',
   CommunicationResponse: 'Communication-response-v1.0',
+  SmartTokenRequest: 'Smart-token-request-v1.0',
 } as const);
 
 /**
