@@ -4,6 +4,12 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.6.5] - 2026-09-01
+
+- Preserve uppercase `%3A` port encoding when building a local root
+  `did:web` authority, while continuing to lowercase the DNS hostname. This
+  keeps portal expectations identical to the DID document published by GW.
+
 ## [2.6.4] - 2026-08-31
 
 - Return an empty result for the deprecated legacy search aggregate when its
