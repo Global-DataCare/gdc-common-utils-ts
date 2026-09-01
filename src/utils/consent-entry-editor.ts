@@ -3,7 +3,7 @@
  * - Read `ARCHITECTURE.md` and `CONTRIBUTING.md` before changing this module.
  * - This file owns only the typed editor for one staged Consent entry.
  */
-import { ClaimConsent, type ConsentDecision } from '../models/consent-rule';
+import { ClaimConsent, type ConsentDecision, type ConsentStatus } from '../models/consent-rule';
 import { BundleEditableResourceTypes } from '../models/bundle-editor-types';
 import { BundleEntryEditor } from './bundle-entry-editor';
 import { registerBundleEntryEditor } from './bundle-editor-registry';
@@ -48,6 +48,8 @@ export class ConsentEntryEditor extends BundleEntryEditor {
 
   public setSubject(value?: string | null): this { return this.setOptionalText(ClaimConsent.subject, value); }
   public getSubject(): string | undefined { return this.getOptionalText(ClaimConsent.subject); }
+  public setStatus(value?: ConsentStatus | null): this { return this.setOptionalText(ClaimConsent.status, value); }
+  public getStatus(): string | undefined { return this.getOptionalText(ClaimConsent.status); }
   public setDecision(value?: ConsentDecision | null): this { return this.setOptionalText(ClaimConsent.decision, value); }
   public getDecision(): string | undefined { return this.getOptionalText(ClaimConsent.decision); }
   public setActorIdentifierList(values: readonly string[]): this { return this.setList(ClaimConsent.actorIdentifier, values); }

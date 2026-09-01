@@ -436,6 +436,17 @@ Related person:
 
 Always evaluate the full set of active consent rules for the subject.
 
+## Requesting permission without granting it
+
+A professional request is not a new `AccessRequest` resource or claim
+namespace. Build the same Bundle of Consent entries used by the permission
+editor, set each entry to `Consent.status=draft`, and carry that Bundle inside
+one auditable Communication. A draft never grants access. The individual
+controller must review it and complete the normal Consent lifecycle before an
+active rule can authorize a SMART request. Historical rules without an
+explicit status remain readable during migration; every new writer should set
+the status explicitly.
+
 Shared helper:
 
 - [`groupActiveConsentsByTarget(...)`](../src/utils/consent.ts)

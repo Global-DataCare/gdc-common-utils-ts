@@ -54,6 +54,25 @@ export type ConsentDecision =
     typeof ConsentDecisions[keyof typeof ConsentDecisions];
 
 /**
+ * Canonical FHIR R5 Consent lifecycle states.
+ *
+ * `draft` is the only state used for a professional permission request. A
+ * draft is carried to the controller for review and must never participate in
+ * authorization evaluation. Only `active` consent rules can grant access.
+ */
+export const ConsentStatuses = Object.freeze({
+    Draft: 'draft',
+    Active: 'active',
+    Inactive: 'inactive',
+    NotDone: 'not-done',
+    EnteredInError: 'entered-in-error',
+    Unknown: 'unknown',
+} as const);
+
+export type ConsentStatus =
+    typeof ConsentStatuses[keyof typeof ConsentStatuses];
+
+/**
  * Defines the structured, query-optimized format for storing a single, atomic consent rule
  * in the vault (e.g., Firestore, CouchDB).
  *
@@ -73,6 +92,9 @@ export interface ConsentRule {
      * Value MUST be "org.hl7.fhir.api".
      */
     '@context': 'org.hl7.fhir.api';
+
+    /** FHIR Consent lifecycle state; authorization evaluators accept only `active`. */
+    'Consent.status'?: ConsentStatus;
 
     /**
      * The decision of the rule: permit or deny.
