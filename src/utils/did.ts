@@ -262,13 +262,26 @@ export function getBaseUrlFromDidWeb(did: string): string {
   const pathParts = didParts.slice(1);
   
   const decodedDomain = decodeURIComponent(domainPart);
-  const protocol = decodedDomain.startsWith('localhost') ? 'http' : 'https';
+  const protocol = isLoopbackDidWebAuthority(decodedDomain) ? 'http' : 'https';
   
   const path = pathParts.join('/').replace(/cds-(es|us|gb)/, (match, p1) => `cds-${p1.toUpperCase()}`);
 
   // Ensure a trailing slash for the base URL, without double slashes when no path is present.
   const normalizedPath = path ? `${path}/` : '';
   return `${protocol}://${decodedDomain}/${normalizedPath}`;
+}
+
+/** Keeps local did:web discovery usable without weakening non-loopback HTTPS. */
+function isLoopbackDidWebAuthority(authority: string): boolean {
+  try {
+    const hostname = new URL(`http://${authority}`).hostname.toLowerCase().replace(/^\[|\]$/g, '');
+    return hostname === 'localhost'
+      || hostname.endsWith('.localhost')
+      || hostname === '::1'
+      || /^127(?:\.\d{1,3}){3}$/.test(hostname);
+  } catch {
+    return false;
+  }
 }
 
 /**

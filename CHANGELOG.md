@@ -4,6 +4,10 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Resolve `did:web` authorities on explicit local loopback hosts (including
+  `127.0.0.1`) over HTTP so real local UI/BFF/GW tests can retrieve tenant DID
+  documents. Every non-loopback authority remains HTTPS-only.
+
 ## [2.6.5] - 2026-09-01
 
 - Preserve uppercase `%3A` port encoding when building a local root
