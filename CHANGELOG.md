@@ -2,6 +2,12 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [2.7.3] - 2026-09-02
+
+- Require lockfile-authoritative npm ci, effective internal dependency
+  verification with npm ls, and immediate E2E/Playwright termination after
+  the first failed project before expanding to sibling browsers or journeys.
+
 ## [2.7.2] - 2026-09-01
 
 - Add the canonical FHIR R5 `Consent.status` vocabulary and typed
