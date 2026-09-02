@@ -171,6 +171,8 @@ export type LicenseIssueInput = Readonly<{
   ownerOrganizationId?: string;
   /** Card/individual DID granted by the invitation after acceptance. */
   subjectDid?: string;
+  /** Technical resource id of the employee/member that consumes the seat. */
+  subjectId?: string;
   /** Existing RelatedPerson/contact selected before the invitation. */
   relatedPersonId?: string;
   /** Stable invitation workflow identifier; not the license id or code. */
@@ -277,6 +279,7 @@ export function buildLicenseIssueEntry(input: LicenseIssueInput): {
     claims: LicenseClaims;
     ownerOrganizationId?: string;
     subjectDid?: string;
+    subjectId?: string;
     relatedPersonId?: string;
     invitationId?: string;
   };
@@ -294,6 +297,9 @@ export function buildLicenseIssueEntry(input: LicenseIssueInput): {
         : {}),
       ...(String(input.subjectDid || '').trim()
         ? { subjectDid: String(input.subjectDid).trim() }
+        : {}),
+      ...(String(input.subjectId || '').trim()
+        ? { subjectId: String(input.subjectId).trim() }
         : {}),
       ...(String(input.relatedPersonId || '').trim()
         ? { relatedPersonId: String(input.relatedPersonId).trim() }

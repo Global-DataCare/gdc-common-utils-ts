@@ -26,6 +26,7 @@ import {
   EXAMPLE_EMAIL_CONTROLLER_ORG,
   EXAMPLE_HEALTHCARE_ACTOR_ROLE_GENERALIST_MEDICAL_PRACTITIONER,
   EXAMPLE_LICENSE_ACTIVE_RECORD,
+  EXAMPLE_LICENSE_SUBJECT_ID_ACTIVE,
   EXAMPLE_LICENSE_ISSUE_CLAIMS,
   EXAMPLE_LICENSE_ISSUE_INPUT,
   EXAMPLE_LICENSE_PURCHASE_CLAIMS,
@@ -85,6 +86,7 @@ describe('101: license examples', () => {
 
     expect(entry.type).toBe(LicenseEntryTypes.Issue);
     expect(entry.request.method).toBe('POST');
+    expect(entry.meta.subjectId).toBe(EXAMPLE_LICENSE_SUBJECT_ID_ACTIVE);
     expect(entry.meta.claims).toEqual({
       ...EXAMPLE_LICENSE_ISSUE_CLAIMS,
       '@type': LicenseEntryOperations.Issue,

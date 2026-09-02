@@ -4,6 +4,9 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [2.7.3] - 2026-09-02
 
+- Carry the technical employee `subjectId` beside the public `subjectDid` in
+  canonical `License/_issue` entries so an activated seat remains joinable to
+  its employee directory resource and device registrations.
 - Require lockfile-authoritative npm ci, effective internal dependency
   verification with npm ls, and immediate E2E/Playwright termination after
   the first failed project before expanding to sibling browsers or journeys.

@@ -88,6 +88,7 @@ export const EXAMPLE_LICENSE_ISSUE_INPUT = Object.freeze({
   role: EXAMPLE_HEALTHCARE_ACTOR_ROLE_GENERALIST_MEDICAL_PRACTITIONER,
   userClass: DeviceUserClasses.Employee,
   type: DeviceAppTypes.Mobile,
+  subjectId: EXAMPLE_LICENSE_SUBJECT_ID_ACTIVE,
 } as const);
 
 export const EXAMPLE_LICENSE_PURCHASE_INPUT = Object.freeze({
