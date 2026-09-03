@@ -5,6 +5,7 @@ import {
   CompositionRequestPaths,
   CompositionSearchParameterNames,
   CompositionSemanticTypes,
+  DidcommPayloadTypes,
   EXAMPLE_RESEARCHER_WORKING_SELECTION_AUTHOR_ID,
   EXAMPLE_RESEARCHER_WORKING_SELECTION_COMPOSITION_ID,
   EXAMPLE_RESEARCHER_WORKING_SELECTION_DATE,
@@ -57,5 +58,6 @@ describe('researcher working-selection Composition example', () => {
     expect(CompositionSearchParameterNames.MetaTag).toBeDefined();
     expect(CompositionSearchParameterNames.Section).toBeDefined();
     expect(ResearchSubjectClaim.Identifier).toBeDefined();
+    expect(DidcommPayloadTypes.ExtendedCommunicationMessage).toBeDefined();
   });
 });

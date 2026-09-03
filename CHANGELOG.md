@@ -26,8 +26,11 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
   non-FHIR resource family.
 - Complete shared asynchronous job actions with batch/search polling variants.
 - Add the FHIR R4 `ResearchSubject` resource used by Digital Twin search routes.
+- Add the FHIR R4 `Person` resource used by individual and employee responses.
 - Add shared Composition selection SearchParameter names and the projected
   ResearchSubject identifier claim.
+- Add shared GW request-entry and extended DIDComm payload discriminator
+  catalogs for runtime and test writers.
 
 ## [2.7.5] - 2026-09-02
 

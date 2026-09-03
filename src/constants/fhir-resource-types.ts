@@ -36,6 +36,7 @@ export const ResourceTypesFhirR4 = Object.freeze({
   Organization: 'Organization',
   Parameters: 'Parameters',
   Patient: 'Patient',
+  Person: 'Person',
   Practitioner: 'Practitioner',
   PractitionerRole: 'PractitionerRole',
   Procedure: 'Procedure',

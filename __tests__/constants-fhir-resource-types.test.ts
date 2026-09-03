@@ -11,6 +11,7 @@ import { JsonLdKeywords } from '../src/constants/jsonld.js';
 import {
   GatewayEnvelopeTypes,
   GatewayInternalResourceTypes,
+  GatewayRequestEntryTypes,
   GatewayResponseEntryTypes,
 } from '../src/constants/gateway-response.js';
 
@@ -18,6 +19,7 @@ describe('FHIR R4 resource type catalog', () => {
   it('includes infrastructure resources emitted by canonical Bundle writers', () => {
     expect(ResourceTypesFhirR4.OperationOutcome).toBeDefined();
     expect(ResourceTypesFhirR4.Parameters).toBeDefined();
+    expect(ResourceTypesFhirR4.Person).toBeDefined();
     expect(ResourceTypesFhirR4.ResearchSubject).toBeDefined();
   });
 
@@ -39,6 +41,7 @@ describe('FHIR R4 resource type catalog', () => {
     expect(GatewayEnvelopeTypes.BatchResponse).toBeDefined();
     expect(GatewayResponseEntryTypes.CompositionSearch).toBeDefined();
     expect(GatewayResponseEntryTypes.OrganizationOrder).toBeDefined();
+    expect(GatewayRequestEntryTypes.OrganizationOrder).toBeDefined();
     expect(GatewayResponseEntryTypes.LicenseGeneration).toBeDefined();
     expect(GatewayInternalResourceTypes.Document).toBeDefined();
     expect(FhirDataTypes.Annotation).toBeDefined();

@@ -5,6 +5,35 @@ import {
 } from './identity-auth';
 import { OrganizationEmployeeSearchResponseEntryTypes } from './employee-lifecycle';
 
+/** Shared request-entry discriminator values used by GW, SDK and test fixtures. */
+export const GatewayRequestEntryTypes = Object.freeze({
+  AllergyIntoleranceDelete: 'AllergyIntolerance-delete-request-v1.0',
+  AllergyIntoleranceEdit: 'AllergyIntolerance-edit-request-v1.0',
+  CommunicationSend: 'Communication-send-v1.0',
+  CompositionEntryAdd: 'Composition-entry-add-v1.0',
+  CustomerForm: 'Customer-form-v1.0',
+  EmployeeForm: 'Employee-form-v1.0',
+  EmployeePurge: 'Employee-purge-request-v1.0',
+  EmployeeRegistration: 'Employee-registration-request-v1.0',
+  FamilyPurge: 'Family-purge-request-v1.0',
+  FamilyRegistrationForm: 'Family-registration-form-v1.0',
+  FamilyRegistration: 'Family-registration-request-v1.0',
+  ImmunizationCreate: 'Immunization-create-request-v1.0',
+  ImmunizationDelete: 'Immunization-delete-request-v1.0',
+  MedicationStatementSearch: 'MedicationStatement-search-request-v1.0',
+  ObservationCreate: 'Observation-create-request-v1.0',
+  OfferSearch: 'Offer-search-request-v1.0',
+  OrderSearch: 'Order-search-request-v1.0',
+  OrganizationActivation: 'Organization-activation-request-v1.0',
+  OrganizationDisable: 'Organization-disable-request-v1.0',
+  OrganizationEnable: 'Organization-enable-request-v1.0',
+  OrganizationLifecycleStatus: 'Organization-lifecycle-status-request-v1.0',
+  OrganizationOrder: 'Organization-order-request-v1.0',
+  OrganizationRegistrationForm: 'Organization-registration-form-v1.0',
+  PersonDiscover: 'Person-discover-v1.0',
+  SubscriptionCreate: 'Subscription-create-v1.0',
+} as const);
+
 /** Shared asynchronous gateway response-entry discriminator values. */
 export const GatewayResponseEntryTypes = Object.freeze({
   BundleSearch: 'Bundle-search-response-v1.0',
@@ -23,6 +52,7 @@ export const GatewayResponseEntryTypes = Object.freeze({
   FamilyRegistrationOffer: 'Family-registration-offer-v1.0',
   FamilySearch: 'Family-search-result-v1.0',
   IcaEnroll: 'IcaEnrollResponse-v1.0',
+  IndividualLicenseOffer: 'Individual-license-offer-v1.0',
   LicenseGeneration: 'LicenseGenerationResult',
   LicenseIssued: IdentityAuthResponseEntryTypes.LicenseIssued,
   LicenseSearch: OrganizationEmployeeSearchResponseEntryTypes.License,
