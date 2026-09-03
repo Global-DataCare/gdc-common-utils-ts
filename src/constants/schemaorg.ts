@@ -3,6 +3,12 @@
 
 import { ParameterData } from "../models/params";
 
+/** Schema.org entity types used as JSON-API entry discriminators. */
+export const SchemaOrgTypes = Object.freeze({
+  Customer: 'Customer',
+  Order: 'Order',
+} as const);
+
 export enum ClaimsServiceSchemaorg {
     areaServed = "org.schema.Service.areaServed",
     additionalType = "org.schema.Service.additionalType",

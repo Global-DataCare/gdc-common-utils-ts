@@ -32,12 +32,16 @@ export const ResourceTypesFhirR4 = Object.freeze({
   MedicationRequest: 'MedicationRequest',
   MedicationStatement: 'MedicationStatement',
   Observation: 'Observation',
+  OperationOutcome: 'OperationOutcome',
   Organization: 'Organization',
+  Parameters: 'Parameters',
   Patient: 'Patient',
+  Person: 'Person',
   Practitioner: 'Practitioner',
   PractitionerRole: 'PractitionerRole',
   Procedure: 'Procedure',
   RelatedPerson: 'RelatedPerson',
+  ResearchSubject: 'ResearchSubject',
   Specimen: 'Specimen',
 } as const);
 
@@ -52,3 +56,15 @@ export type ResourceTypeFhirR4 =
  * without ambiguity.
  */
 export const FhirResourceTypes = ResourceTypesFhirR4;
+
+/** FHIR R5-only resources currently emitted by shared subscription contracts. */
+export const ResourceTypesFhirR5 = Object.freeze({
+  ...ResourceTypesFhirR4,
+  SubscriptionStatus: 'SubscriptionStatus',
+} as const);
+
+/** FHIR complex datatypes used as discriminators inside claims-first payloads. */
+export const FhirDataTypes = Object.freeze({
+  Annotation: 'Annotation',
+  Attachment: 'Attachment',
+} as const);

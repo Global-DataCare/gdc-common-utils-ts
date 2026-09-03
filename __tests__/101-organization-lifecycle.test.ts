@@ -55,6 +55,8 @@ describe('101: organization lifecycle editor', () => {
         }],
       },
     });
-    expect(editor.buildCurrentGwDataEntry().meta?.claims).toBeUndefined();
+    const legacyEntry = editor.buildCurrentGwDataEntry() as ReturnType<typeof editor.buildCurrentGwDataEntry>
+      & { meta?: { claims?: unknown } };
+    expect(legacyEntry.meta?.claims).toBeUndefined();
   });
 });

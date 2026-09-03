@@ -38,11 +38,13 @@ describe('101: license commercial search', () => {
 
     expect(offerEntry.type).toBe(LicenseCommercialSearchEntryType.Offer);
     expect(offerEntry.resource.meta.claims[ClaimsOfferSchemaorg.identifier]).toBe(EXAMPLE_LICENSE_OFFER_ID);
-    expect(offerEntry.meta.claims).toBeUndefined();
+    const offerLegacyMeta = offerEntry.meta as typeof offerEntry.meta & { claims?: unknown };
+    expect(offerLegacyMeta.claims).toBeUndefined();
     expect(orderEntry.type).toBe(LicenseCommercialSearchEntryType.Order);
     expect(orderEntry.resource.meta.claims[ClaimsOrderSchemaorg.acceptedOfferIdentifier]).toBe(EXAMPLE_LICENSE_OFFER_ID);
     expect(orderEntry.resource.meta.claims[ClaimsOrderSchemaorg.partOfInvoice]).toBe(EXAMPLE_LICENSE_INVOICE_ID);
-    expect(orderEntry.meta.claims).toBeUndefined();
+    const orderLegacyMeta = orderEntry.meta as typeof orderEntry.meta & { claims?: unknown };
+    expect(orderLegacyMeta.claims).toBeUndefined();
 
     const offerRecords = readLicenseOfferRecords(EXAMPLE_LICENSE_OFFER_LIST_RESPONSE_BODY);
     const orderRecords = readLicenseOrderRecords(EXAMPLE_LICENSE_ORDER_LIST_RESPONSE_BODY);

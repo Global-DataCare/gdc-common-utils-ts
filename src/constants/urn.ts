@@ -8,8 +8,10 @@
  * as a bare base64url thumbprint value.
  */
 export const UrnPrefixes = Object.freeze({
+  Email: 'urn:email:',
   JwkThumbprintSha256KeyId: 'urn:ietf:params:oauth:jwk-thumbprint:sha-256:',
   Multibase: 'urn:multibase:',
+  Uuid: 'urn:uuid:',
 } as const);
 
 export type UrnPrefix = typeof UrnPrefixes[keyof typeof UrnPrefixes];

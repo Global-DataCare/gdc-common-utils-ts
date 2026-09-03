@@ -4,6 +4,38 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.7.6] - 2026-09-02
+
+- Complete `ResourceTypesFhirR4` with the `OperationOutcome` and `Parameters`
+  infrastructure resources so GW and SDK writers never duplicate those FHIR
+  `resourceType` literals locally.
+- Complete `HttpStatusCodes` with successful asynchronous and no-content
+  statuses used by canonical Bundle response writers.
+- Add the shared Composition semantic-type catalog used to distinguish
+  researcher-owned working selections without duplicating profile literals.
+- Add shared JSON-LD claim-key constants for canonical claims writers and
+  readers.
+- Add a reusable researcher working-selection Composition Bundle builder and
+  complete the shared Bundle/URN catalogs it consumes.
+- Centralize gateway envelope, entry and non-FHIR resource discriminator types
+  so GW and SDK tests do not duplicate wire literals.
+- Complete the researcher working-selection fixture with shared authorization,
+  thread and tag data used by route-level tests.
+- Classify FHIR datatypes, schema.org entities, FHIR R5 resources and genuine
+  internal gateway DTOs separately instead of presenting them as one invented
+  non-FHIR resource family.
+- Complete shared asynchronous job actions with batch/search polling variants.
+- Add the FHIR R4 `ResearchSubject` resource used by Digital Twin search routes.
+- Add the FHIR R4 `Person` resource used by individual and employee responses.
+- Add shared Composition selection SearchParameter names and the projected
+  ResearchSubject identifier claim.
+- Add shared GW request-entry and extended DIDComm payload discriminator
+  catalogs for runtime and test writers.
+- Add shared GW route-section, route-format, JSON API, FHIR JSON and DIDComm
+  media-type catalogs so writers and fixtures do not duplicate wire literals.
+- Add shared email URN and host DID fixtures used by canonical gateway tests.
+- Classify `Order` under the shared schema.org entity-type catalog.
+
 ## [2.7.5] - 2026-09-02
 
 - Complete the Bundle entry claims migration for license search, purchase,

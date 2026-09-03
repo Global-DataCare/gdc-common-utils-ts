@@ -13,6 +13,11 @@ export const DidcommMessageTypes = Object.freeze({
   SmartTokenRequest: 'Smart-token-request-v1.0',
 } as const);
 
+/** Payload model discriminators used by the extended DIDComm transport. */
+export const DidcommPayloadTypes = Object.freeze({
+  ExtendedCommunicationMessage: 'CommMsgExtended',
+} as const);
+
 /**
  * Canonical low-level DIDComm acknowledgement body keys used in shared tests
  * and examples.

@@ -51,7 +51,9 @@ describe('101: individual organization lifecycle editor', () => {
       claims: EXAMPLE_INDIVIDUAL_DISABLE_MESSAGE.claims,
     });
     expect(disableEditor.buildCurrentGwDataEntry()).toEqual(EXAMPLE_INDIVIDUAL_ORGANIZATION_DISABLE_ENTRY);
-    expect(disableEditor.buildCurrentGwDataEntry().meta?.claims).toBeUndefined();
+    const legacyDisableEntry = disableEditor.buildCurrentGwDataEntry() as ReturnType<typeof disableEditor.buildCurrentGwDataEntry>
+      & { meta?: { claims?: unknown } };
+    expect(legacyDisableEntry.meta?.claims).toBeUndefined();
     expect(disableEditor.buildCurrentGwPayload()).toEqual(EXAMPLE_INDIVIDUAL_ORGANIZATION_DISABLE_PAYLOAD);
 
     const purgeEditor = new IndividualOrganizationLifecycleEditor()
@@ -65,7 +67,9 @@ describe('101: individual organization lifecycle editor', () => {
 
     expect(purgeEditor.getOperation()).toBe(IndividualOrganizationLifecycleOperations.Purge);
     expect(purgeEditor.buildCurrentGwDataEntry()).toEqual(EXAMPLE_INDIVIDUAL_ORGANIZATION_PURGE_ENTRY);
-    expect(purgeEditor.buildCurrentGwDataEntry().meta?.claims).toBeUndefined();
+    const legacyPurgeEntry = purgeEditor.buildCurrentGwDataEntry() as ReturnType<typeof purgeEditor.buildCurrentGwDataEntry>
+      & { meta?: { claims?: unknown } };
+    expect(legacyPurgeEntry.meta?.claims).toBeUndefined();
     expect(purgeEditor.buildCurrentGwPayload()).toEqual(EXAMPLE_INDIVIDUAL_ORGANIZATION_PURGE_PAYLOAD);
   });
 });
