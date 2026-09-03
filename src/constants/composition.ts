@@ -10,3 +10,9 @@ export const CompositionSemanticTypes = Object.freeze({
 export const CompositionRequestPaths = Object.freeze({
   ResearcherWorkingSelection: `digitaltwin/${Format.FHIR_R4}/${ResourceTypesFhirR4.Composition}`,
 } as const);
+
+/** Search parameter names supported by the shared Composition selection contract. */
+export const CompositionSearchParameterNames = Object.freeze({
+  MetaTag: 'Composition.meta-tag',
+  Section: 'section',
+} as const);

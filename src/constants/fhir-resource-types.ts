@@ -40,6 +40,7 @@ export const ResourceTypesFhirR4 = Object.freeze({
   PractitionerRole: 'PractitionerRole',
   Procedure: 'Procedure',
   RelatedPerson: 'RelatedPerson',
+  ResearchSubject: 'ResearchSubject',
   Specimen: 'Specimen',
 } as const);
 

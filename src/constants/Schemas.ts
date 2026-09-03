@@ -50,9 +50,11 @@ export type Resource = typeof Resource[keyof typeof Resource];
 
 export const JobAction = {
   BATCH: '_batch',
+  BATCH_RESPONSE: '_batch-response',
   CREATE: '_create',
   DISCOVERY: '_discovery',
   SEARCH: '_search',
+  SEARCH_RESPONSE: '_search-response',
 } as const;
 export type JobAction = typeof JobAction[keyof typeof JobAction];
 

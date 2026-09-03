@@ -18,6 +18,7 @@ describe('FHIR R4 resource type catalog', () => {
   it('includes infrastructure resources emitted by canonical Bundle writers', () => {
     expect(ResourceTypesFhirR4.OperationOutcome).toBeDefined();
     expect(ResourceTypesFhirR4.Parameters).toBeDefined();
+    expect(ResourceTypesFhirR4.ResearchSubject).toBeDefined();
   });
 
   it('includes every successful asynchronous response status used by Bundle writers', () => {

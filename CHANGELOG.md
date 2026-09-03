@@ -24,6 +24,10 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 - Classify FHIR datatypes, schema.org entities, FHIR R5 resources and genuine
   internal gateway DTOs separately instead of presenting them as one invented
   non-FHIR resource family.
+- Complete shared asynchronous job actions with batch/search polling variants.
+- Add the FHIR R4 `ResearchSubject` resource used by Digital Twin search routes.
+- Add shared Composition selection SearchParameter names and the projected
+  ResearchSubject identifier claim.
 
 ## [2.7.5] - 2026-09-02
 

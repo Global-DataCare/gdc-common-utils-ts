@@ -23,6 +23,7 @@ export * from './appointment-claims';
 export * from './appointment-response-claims';
 export * from './encounter-claims';
 export * from './related-person-claims';
+export * from './research-subject-claims';
 export * from './coverage-claims';
 export * from './clinical-impression-claims';
 export * from './task-claims';

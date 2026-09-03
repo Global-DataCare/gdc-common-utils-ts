@@ -3,6 +3,7 @@ import {
   BundleTypes,
   CompositionClaim,
   CompositionRequestPaths,
+  CompositionSearchParameterNames,
   CompositionSemanticTypes,
   EXAMPLE_RESEARCHER_WORKING_SELECTION_AUTHOR_ID,
   EXAMPLE_RESEARCHER_WORKING_SELECTION_COMPOSITION_ID,
@@ -15,9 +16,10 @@ import {
   HttpRequestMethods,
   JsonLdKeywords,
   ResourceTypesFhirR4,
+  ResearchSubjectClaim,
   buildResearcherWorkingSelectionBundle,
 } from '../src/index.js';
-import { Format } from '../src/constants/Schemas.js';
+import { Format, JobAction } from '../src/constants/Schemas.js';
 
 describe('researcher working-selection Composition example', () => {
   it('builds one canonical resource.meta.claims entry without legacy entry claims', () => {
@@ -51,5 +53,9 @@ describe('researcher working-selection Composition example', () => {
     expect(EXAMPLE_RESEARCHER_WORKING_SELECTION_THREAD_ID).toBeDefined();
     expect(EXAMPLE_RESEARCHER_WORKING_SELECTION_SEARCH_THREAD_ID).toBeDefined();
     expect(EXAMPLE_RESEARCHER_WORKING_SELECTION_TAG).toBeDefined();
+    expect(JobAction.BATCH_RESPONSE).toBeDefined();
+    expect(CompositionSearchParameterNames.MetaTag).toBeDefined();
+    expect(CompositionSearchParameterNames.Section).toBeDefined();
+    expect(ResearchSubjectClaim.Identifier).toBeDefined();
   });
 });
