@@ -36,5 +36,13 @@ export const HttpAuthorizationSchemes = Object.freeze({
 
 /** Media types shared by JSON route adapters. */
 export const HttpMediaTypes = Object.freeze({
+  ApiJson: 'application/api+json',
+  ApiJsonShort: 'api+json',
+  BundleApiJson: 'application/bundle-api+json',
+  DidcommEncryptedJson: 'application/didcomm-encrypted+json',
+  DidcommPlainJson: 'application/didcomm-plain+json',
+  DidcommSignedJson: 'application/didcomm-signed+json',
+  FhirJson: 'application/fhir+json',
   Json: 'application/json',
+  JsonApi: 'application/vnd.api+json',
 } as const);

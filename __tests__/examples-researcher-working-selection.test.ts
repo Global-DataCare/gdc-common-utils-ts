@@ -13,6 +13,7 @@ import {
   EXAMPLE_RESEARCHER_WORKING_SELECTION_SEARCH_THREAD_ID,
   EXAMPLE_RESEARCHER_WORKING_SELECTION_SUBJECT_ID,
   EXAMPLE_RESEARCHER_WORKING_SELECTION_TAG,
+  EXAMPLE_HOST_PUBLIC_DID,
   EXAMPLE_RESEARCHER_WORKING_SELECTION_THREAD_ID,
   HttpRequestMethods,
   JsonLdKeywords,
@@ -59,5 +60,6 @@ describe('researcher working-selection Composition example', () => {
     expect(CompositionSearchParameterNames.Section).toBeDefined();
     expect(ResearchSubjectClaim.Identifier).toBeDefined();
     expect(DidcommPayloadTypes.ExtendedCommunicationMessage).toBeDefined();
+    expect(EXAMPLE_HOST_PUBLIC_DID).toBeDefined();
   });
 });

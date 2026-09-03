@@ -31,6 +31,10 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
   ResearchSubject identifier claim.
 - Add shared GW request-entry and extended DIDComm payload discriminator
   catalogs for runtime and test writers.
+- Add shared GW route-section, route-format, JSON API, FHIR JSON and DIDComm
+  media-type catalogs so writers and fixtures do not duplicate wire literals.
+- Add shared email URN and host DID fixtures used by canonical gateway tests.
+- Classify `Order` under the shared schema.org entity-type catalog.
 
 ## [2.7.5] - 2026-09-02
 

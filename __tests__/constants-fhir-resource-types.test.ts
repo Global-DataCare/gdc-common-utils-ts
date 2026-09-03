@@ -4,15 +4,18 @@ import {
   ResourceTypesFhirR4,
   ResourceTypesFhirR5,
 } from '../src/constants/fhir-resource-types.js';
-import { HttpStatusCodes } from '../src/constants/http.js';
+import { HttpMediaTypes, HttpStatusCodes } from '../src/constants/http.js';
 import { SchemaOrgTypes } from '../src/constants/schemaorg.js';
 import { CompositionSemanticTypes } from '../src/constants/composition.js';
 import { JsonLdKeywords } from '../src/constants/jsonld.js';
+import { UrnPrefixes } from '../src/constants/urn.js';
 import {
   GatewayEnvelopeTypes,
   GatewayInternalResourceTypes,
   GatewayRequestEntryTypes,
   GatewayResponseEntryTypes,
+  GatewayRouteFormats,
+  GatewayRouteSections,
 } from '../src/constants/gateway-response.js';
 
 describe('FHIR R4 resource type catalog', () => {
@@ -47,5 +50,20 @@ describe('FHIR R4 resource type catalog', () => {
     expect(FhirDataTypes.Annotation).toBeDefined();
     expect(ResourceTypesFhirR5.SubscriptionStatus).toBeDefined();
     expect(SchemaOrgTypes.Customer).toBeDefined();
+    expect(SchemaOrgTypes.Order).toBeDefined();
+  });
+
+  it('provides shared transport and route vocabulary for GW writers and fixtures', () => {
+    expect(HttpMediaTypes.ApiJson).toBeDefined();
+    expect(HttpMediaTypes.ApiJsonShort).toBeDefined();
+    expect(HttpMediaTypes.BundleApiJson).toBeDefined();
+    expect(HttpMediaTypes.DidcommEncryptedJson).toBeDefined();
+    expect(HttpMediaTypes.DidcommPlainJson).toBeDefined();
+    expect(HttpMediaTypes.DidcommSignedJson).toBeDefined();
+    expect(HttpMediaTypes.FhirJson).toBeDefined();
+    expect(HttpMediaTypes.JsonApi).toBeDefined();
+    expect(GatewayRouteSections.Identity).toBeDefined();
+    expect(GatewayRouteFormats.OpenId).toBeDefined();
+    expect(UrnPrefixes.Email).toBeDefined();
   });
 });

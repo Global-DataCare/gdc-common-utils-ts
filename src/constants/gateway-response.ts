@@ -5,6 +5,24 @@ import {
 } from './identity-auth';
 import { OrganizationEmployeeSearchResponseEntryTypes } from './employee-lifecycle';
 
+/** URL sections accepted by GW request routing. */
+export const GatewayRouteSections = Object.freeze({
+  Entity: 'entity',
+  Identity: 'identity',
+  Individual: 'individual',
+  Network: 'network',
+  Registry: 'registry',
+} as const);
+
+/** URL formats accepted by GW request routing. */
+export const GatewayRouteFormats = Object.freeze({
+  Auth: 'auth',
+  Firebase: 'firebase',
+  FhirApi: 'org.hl7.fhir.api',
+  OpenId: 'openid',
+  SchemaOrg: 'org.schema',
+} as const);
+
 /** Shared request-entry discriminator values used by GW, SDK and test fixtures. */
 export const GatewayRequestEntryTypes = Object.freeze({
   AllergyIntoleranceDelete: 'AllergyIntolerance-delete-request-v1.0',
