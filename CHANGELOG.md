@@ -15,6 +15,8 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
   researcher-owned working selections without duplicating profile literals.
 - Add shared JSON-LD claim-key constants for canonical claims writers and
   readers.
+- Add a reusable researcher working-selection Composition Bundle builder and
+  complete the shared Bundle/URN catalogs it consumes.
 
 ## [2.7.5] - 2026-09-02
 

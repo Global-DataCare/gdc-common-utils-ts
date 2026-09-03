@@ -85,9 +85,12 @@ export type BuiltBundleEntry = {
 
 export const BundleTypes = Object.freeze({
   batch: 'batch',
+  batchResponse: 'batch-response',
   document: 'document',
   collection: 'collection',
+  searchset: 'searchset',
   transaction: 'transaction',
+  transactionResponse: 'transaction-response',
 } as const);
 
 export type BundleType = (typeof BundleTypes)[keyof typeof BundleTypes];

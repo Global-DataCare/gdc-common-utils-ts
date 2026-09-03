@@ -31,3 +31,4 @@ export * from './vital-signs';
 export * from './wallet-mem';
 export * from './profile-manager-mem';
 export * from './didcomm-identity';
+export * from './researcher-working-selection';
