@@ -17,6 +17,8 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
   readers.
 - Add a reusable researcher working-selection Composition Bundle builder and
   complete the shared Bundle/URN catalogs it consumes.
+- Centralize gateway envelope, entry and non-FHIR resource discriminator types
+  so GW and SDK tests do not duplicate wire literals.
 
 ## [2.7.5] - 2026-09-02
 

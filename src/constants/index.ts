@@ -19,6 +19,7 @@ export * from './eu-countries';
 export * from './fhir-code-systems';
 export * from './fhir-resource-types';
 export * from './fhir-versions';
+export * from './gateway-response';
 export * from './schemaorg';
 export * from './hl7-roles';
 export * from './healthcare';

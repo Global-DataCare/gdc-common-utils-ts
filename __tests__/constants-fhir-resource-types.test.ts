@@ -3,6 +3,11 @@ import { ResourceTypesFhirR4 } from '../src/constants/fhir-resource-types.js';
 import { HttpStatusCodes } from '../src/constants/http.js';
 import { CompositionSemanticTypes } from '../src/constants/composition.js';
 import { JsonLdKeywords } from '../src/constants/jsonld.js';
+import {
+  GatewayEnvelopeTypes,
+  GatewayResourceTypes,
+  GatewayResponseEntryTypes,
+} from '../src/constants/gateway-response.js';
 
 describe('FHIR R4 resource type catalog', () => {
   it('includes infrastructure resources emitted by canonical Bundle writers', () => {
@@ -22,5 +27,12 @@ describe('FHIR R4 resource type catalog', () => {
   it('provides shared JSON-LD claim keys for canonical claims writers', () => {
     expect(JsonLdKeywords.Context).toBeDefined();
     expect(JsonLdKeywords.Type).toBeDefined();
+  });
+
+  it('provides shared gateway envelope, entry and non-FHIR resource types', () => {
+    expect(GatewayEnvelopeTypes.BatchResponse).toBeDefined();
+    expect(GatewayResponseEntryTypes.CompositionSearch).toBeDefined();
+    expect(GatewayResponseEntryTypes.OrganizationOrder).toBeDefined();
+    expect(GatewayResourceTypes.LicenseGenerationResult).toBeDefined();
   });
 });
