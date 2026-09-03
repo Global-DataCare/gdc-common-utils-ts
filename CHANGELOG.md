@@ -11,6 +11,10 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
   `resourceType` literals locally.
 - Complete `HttpStatusCodes` with successful asynchronous and no-content
   statuses used by canonical Bundle response writers.
+- Add the shared Composition semantic-type catalog used to distinguish
+  researcher-owned working selections without duplicating profile literals.
+- Add shared JSON-LD claim-key constants for canonical claims writers and
+  readers.
 
 ## [2.7.5] - 2026-09-02
 

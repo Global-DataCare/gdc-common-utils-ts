@@ -1,5 +1,6 @@
 export * from './actor-session';
 export * from './communication';
+export * from './composition';
 export * from './clinical-statuses';
 export * from './cryptography';
 export * from './data-collections';
@@ -10,6 +11,7 @@ export * from './didcomm';
 export * from './device';
 export * from './employee-lifecycle';
 export * from './identity-auth';
+export * from './jsonld';
 export * from './http';
 export * from './organization-application';
 export * from './did-services';
