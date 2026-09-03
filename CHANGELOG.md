@@ -4,6 +4,13 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.7.7] - 2026-09-03
+
+- Share the identity/openid SMART post-DCR resource and action vocabulary:
+  canonical `token` submission, canonical `token-response` polling and the
+  temporary `_batch-response` compatibility alias. `_token` remains outside
+  the implemented contract.
+
 ## [2.7.6] - 2026-09-02
 
 - Complete `ResourceTypesFhirR4` with the `OperationOutcome` and `Parameters`
