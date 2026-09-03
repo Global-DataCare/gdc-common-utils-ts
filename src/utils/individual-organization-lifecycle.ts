@@ -41,7 +41,6 @@ export type IndividualOrganizationLifecyclePayloadInput = Readonly<{
 export type IndividualOrganizationLifecycleDataEntry = Readonly<{
   type: string;
   request: { method: typeof IndividualOrganizationLifecycleRequestMethods.Post };
-  meta: { claims: IndividualOrganizationLifecycleClaims };
   resource: { id?: string; meta: { claims: IndividualOrganizationLifecycleClaims } };
 }>;
 
@@ -108,7 +107,7 @@ function createLifecycleThreadId(operation: IndividualOrganizationLifecycleOpera
  * - `purge` still goes through the explicit `/_purge` route
  * - both current routes expect `request.method = POST`
  * - both use canonical flat `org.schema.Organization.*` claims in
- *   `meta.claims` and `resource.meta.claims`
+ *   `resource.meta.claims`
  */
 export function buildCurrentIndividualOrganizationLifecycleDataEntry(
   input: IndividualOrganizationLifecycleDataEntryInput,
@@ -119,7 +118,6 @@ export function buildCurrentIndividualOrganizationLifecycleDataEntry(
     request: {
       method: input.requestMethod || IndividualOrganizationLifecycleRequestMethods.Post,
     },
-    meta: { claims },
     resource: {
       ...(normalizeText(input.resourceId) ? { id: normalizeText(input.resourceId) } : {}),
       meta: { claims },

@@ -1,3 +1,4 @@
+// Flow contract: reuse shared test fixtures and canonical types; do not introduce duplicated literals.
 /**
  * Teaching goal
  *
@@ -87,10 +88,11 @@ describe('101: license examples', () => {
     expect(entry.type).toBe(LicenseEntryTypes.Issue);
     expect(entry.request.method).toBe('POST');
     expect(entry.meta.subjectId).toBe(EXAMPLE_LICENSE_SUBJECT_ID_ACTIVE);
-    expect(entry.meta.claims).toEqual({
+    expect(entry.resource.meta.claims).toEqual({
       ...EXAMPLE_LICENSE_ISSUE_CLAIMS,
       '@type': LicenseEntryOperations.Issue,
     });
+    expect((entry.meta as Record<string, unknown>).claims).toBeUndefined();
   });
 
   it('builds an individual-member invitation from an existing phone contact and keeps the owning organization explicit', () => {
@@ -110,7 +112,7 @@ describe('101: license examples', () => {
     // Step 2. GW receives public recipient data because the invitation code
     // and later blockchain permission rule cannot be resolved from an opaque
     // browser-only id.
-    expect(entry.meta.claims).toMatchObject({
+    expect(entry.resource.meta.claims).toMatchObject({
       [ClaimsPersonSchemaorg.telephone]: '+34600111222',
       [ClaimsPersonSchemaorg.hasOccupationalRoleValue]: 'v3-RoleCode|RESPRSN',
       [ClaimsIndividualProductSchemaorg.category]: LicenseCategories.Individual,
@@ -185,7 +187,7 @@ describe('101: license examples', () => {
 
     // Step 2. Zero remains present in the canonical claims so GW can
     // materialize the seat immediately without a payment-proof branch.
-    expect(entry.meta.claims).toMatchObject({
+    expect(entry.resource.meta.claims).toMatchObject({
       [ClaimsOfferSchemaorg.eligibleQuantityValue]: 1,
       [ClaimsOfferSchemaorg.price]: 0,
       [ClaimsOfferSchemaorg.priceCurrency]: 'EUR',
@@ -198,10 +200,11 @@ describe('101: license examples', () => {
     const entry = buildLicensePurchaseEntry(EXAMPLE_LICENSE_PURCHASE_INPUT);
 
     expect(entry.type).toBe(LicenseEntryTypes.Purchase);
-    expect(entry.meta.claims).toEqual({
+    expect(entry.resource.meta.claims).toEqual({
       ...EXAMPLE_LICENSE_PURCHASE_CLAIMS,
       '@type': LicenseEntryOperations.Purchase,
     });
+    expect((entry.meta as Record<string, unknown>).claims).toBeUndefined();
   });
 
   it('builds a search entry that keeps schema.org selectors in claims and storage lifecycle selectors beside them', () => {
@@ -219,7 +222,7 @@ describe('101: license examples', () => {
     });
 
     expect(entry.type).toBe(LicenseEntryTypes.Search);
-    expect(entry.meta.claims).toMatchObject({
+    expect(entry.resource.meta.claims).toMatchObject({
       '@context': 'org.schema',
       '@type': LicenseEntryOperations.Search,
       [ClaimsOfferSchemaorg.serialNumber]: EXAMPLE_LICENSE_ACTIVE_RECORD.id,
@@ -231,6 +234,7 @@ describe('101: license examples', () => {
     expect(entry.meta.status).toBe(LicenseStatuses.Active);
     expect(entry.meta.subjectId).toBe(EXAMPLE_LICENSE_ACTIVE_RECORD.subjectId);
     expect(entry.meta.ownerOrganizationId).toBe('organization-acme');
+    expect((entry.meta as Record<string, unknown>).claims).toBeUndefined();
   });
 
   it('ships a minimum valid DCR payload in the shared employee device activation example', () => {

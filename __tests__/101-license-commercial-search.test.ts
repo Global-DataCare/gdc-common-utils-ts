@@ -1,3 +1,4 @@
+// Flow contract: reuse shared test fixtures and canonical types; do not introduce duplicated literals.
 /**
  * 101 note:
  * - Teach the highest-level public `common-utils` helper available for this topic.
@@ -36,10 +37,12 @@ describe('101: license commercial search', () => {
       .buildSearchEntry();
 
     expect(offerEntry.type).toBe(LicenseCommercialSearchEntryType.Offer);
-    expect(offerEntry.meta.claims[ClaimsOfferSchemaorg.identifier]).toBe(EXAMPLE_LICENSE_OFFER_ID);
+    expect(offerEntry.resource.meta.claims[ClaimsOfferSchemaorg.identifier]).toBe(EXAMPLE_LICENSE_OFFER_ID);
+    expect(offerEntry.meta.claims).toBeUndefined();
     expect(orderEntry.type).toBe(LicenseCommercialSearchEntryType.Order);
-    expect(orderEntry.meta.claims[ClaimsOrderSchemaorg.acceptedOfferIdentifier]).toBe(EXAMPLE_LICENSE_OFFER_ID);
-    expect(orderEntry.meta.claims[ClaimsOrderSchemaorg.partOfInvoice]).toBe(EXAMPLE_LICENSE_INVOICE_ID);
+    expect(orderEntry.resource.meta.claims[ClaimsOrderSchemaorg.acceptedOfferIdentifier]).toBe(EXAMPLE_LICENSE_OFFER_ID);
+    expect(orderEntry.resource.meta.claims[ClaimsOrderSchemaorg.partOfInvoice]).toBe(EXAMPLE_LICENSE_INVOICE_ID);
+    expect(orderEntry.meta.claims).toBeUndefined();
 
     const offerRecords = readLicenseOfferRecords(EXAMPLE_LICENSE_OFFER_LIST_RESPONSE_BODY);
     const orderRecords = readLicenseOrderRecords(EXAMPLE_LICENSE_ORDER_LIST_RESPONSE_BODY);

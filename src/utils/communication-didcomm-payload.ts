@@ -53,9 +53,6 @@ export function buildDidcommPayloadFromCommunicationClaims(
         {
           id: String(claims[CommunicationClaim.Identifier] || input.jti || '').trim(),
           type: String(input.entryType || CommunicationDidcommEntryTypes.AttachedBundle).trim(),
-          meta: {
-            claims,
-          },
           resource: communicationResource,
         },
       ],

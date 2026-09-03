@@ -1,3 +1,4 @@
+// Flow contract: reuse shared test fixtures and canonical types; do not introduce duplicated literals.
 /**
  * 101 note:
  * - Teach the highest-level public `common-utils` helper available for this topic.
@@ -47,7 +48,6 @@ describe('101: organization lifecycle editor', () => {
         data: [{
           type: EXAMPLE_TENANT_DISABLE_REQUEST_TYPE,
           request: { method: 'POST' },
-          meta: { claims: EXAMPLE_TENANT_DISABLE_MESSAGE.claims },
           resource: {
             resourceType: 'Organization',
             meta: { claims: EXAMPLE_TENANT_DISABLE_MESSAGE.claims },
@@ -55,5 +55,6 @@ describe('101: organization lifecycle editor', () => {
         }],
       },
     });
+    expect(editor.buildCurrentGwDataEntry().meta?.claims).toBeUndefined();
   });
 });

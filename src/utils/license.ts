@@ -276,22 +276,22 @@ export function buildLicenseIssueEntry(input: LicenseIssueInput): {
   type: string;
   request: { method: 'POST' };
   meta: {
-    claims: LicenseClaims;
     ownerOrganizationId?: string;
     subjectDid?: string;
     subjectId?: string;
     relatedPersonId?: string;
     invitationId?: string;
   };
+  resource: { meta: { claims: LicenseClaims } };
 } {
+  const claims = {
+    ...buildLicenseIssueClaims(input),
+    '@type': LicenseEntryOperations.Issue,
+  };
   return {
     type: LicenseEntryTypes.Issue,
     request: { method: LicenseRequestMethods.Post },
     meta: {
-      claims: {
-        ...buildLicenseIssueClaims(input),
-        '@type': LicenseEntryOperations.Issue,
-      },
       ...(String(input.ownerOrganizationId || '').trim()
         ? { ownerOrganizationId: String(input.ownerOrganizationId).trim() }
         : {}),
@@ -308,6 +308,7 @@ export function buildLicenseIssueEntry(input: LicenseIssueInput): {
         ? { invitationId: String(input.invitationId).trim() }
         : {}),
     },
+    resource: { meta: { claims } },
   };
 }
 
@@ -351,20 +352,22 @@ export function buildLicensePurchaseClaims(input: LicensePurchaseInput): License
 export function buildLicensePurchaseEntry(input: LicensePurchaseInput): {
   type: string;
   request: { method: 'POST' };
-  meta: { claims: LicenseClaims; ownerOrganizationId?: string };
+  meta: { ownerOrganizationId?: string };
+  resource: { meta: { claims: LicenseClaims } };
 } {
+  const claims = {
+    ...buildLicensePurchaseClaims(input),
+    '@type': LicenseEntryOperations.Purchase,
+  };
   return {
     type: LicenseEntryTypes.Purchase,
     request: { method: LicenseRequestMethods.Post },
     meta: {
-      claims: {
-        ...buildLicensePurchaseClaims(input),
-        '@type': LicenseEntryOperations.Purchase,
-      },
       ...(String(input.ownerOrganizationId || '').trim()
         ? { ownerOrganizationId: String(input.ownerOrganizationId).trim() }
         : {}),
     },
+    resource: { meta: { claims } },
   };
 }
 
@@ -372,7 +375,7 @@ export function buildLicensePurchaseEntry(input: LicensePurchaseInput): {
  * Builds the canonical search envelope for license listing.
  *
  * Split of concerns:
- * - schema.org-compatible selectors stay in `meta.claims`
+ * - schema.org-compatible selectors stay in `resource.meta.claims`
  * - document lifecycle stays in `meta.status`, mirroring the current
  *   `ConfidentialStorageDoc.status` usage
  * - `subjectId` remains an explicit side-field until a canonical indexed claim
@@ -382,11 +385,11 @@ export function buildLicenseSearchEntry(input: LicenseSearchInput): {
   type: string;
   request: { method: 'POST' };
   meta: {
-    claims: LicenseClaims;
     status?: LicenseStatus;
     subjectId?: string;
     ownerOrganizationId?: string;
   };
+  resource: { meta: { claims: LicenseClaims } };
 } {
   const claims: LicenseClaims = {
     '@context': LicenseClaimContext.SchemaOrg,
@@ -413,10 +416,6 @@ export function buildLicenseSearchEntry(input: LicenseSearchInput): {
     type: LicenseEntryTypes.Search,
     request: { method: LicenseRequestMethods.Post },
     meta: {
-      claims: {
-        ...claims,
-        '@type': LicenseEntryOperations.Search,
-      },
       ...(input.status ? { status: input.status } : {}),
       ...(typeof input.subjectId === 'string' && input.subjectId.trim()
         ? { subjectId: input.subjectId.trim() }
@@ -424,6 +423,14 @@ export function buildLicenseSearchEntry(input: LicenseSearchInput): {
       ...(typeof input.ownerOrganizationId === 'string' && input.ownerOrganizationId.trim()
         ? { ownerOrganizationId: input.ownerOrganizationId.trim() }
         : {}),
+    },
+    resource: {
+      meta: {
+        claims: {
+          ...claims,
+          '@type': LicenseEntryOperations.Search,
+        },
+      },
     },
   };
 }

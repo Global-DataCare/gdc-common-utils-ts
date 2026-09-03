@@ -141,18 +141,18 @@ export const EXAMPLE_DEVICE_LICENSE_AVAILABLE = Object.freeze({
 export const EXAMPLE_LICENSE_LIST_RESPONSE_BODY = Object.freeze({
   data: [
     {
-      meta: {
+      resource: { meta: {
         status: EXAMPLE_LICENSE_ACTIVE_RECORD.status,
         subjectId: EXAMPLE_LICENSE_ACTIVE_RECORD.subjectId,
         claims: EXAMPLE_LICENSE_ACTIVE_RECORD.claims,
-      },
+      } },
     },
     {
-      meta: {
+      resource: { meta: {
         status: EXAMPLE_LICENSE_AVAILABLE_RECORD.status,
         subjectId: EXAMPLE_LICENSE_AVAILABLE_RECORD.subjectId,
         claims: EXAMPLE_LICENSE_AVAILABLE_RECORD.claims,
-      },
+      } },
     },
   ],
 } as const);
@@ -165,9 +165,11 @@ export const EXAMPLE_LICENSE_ISSUE_RESPONSE_BODY = Object.freeze({
         data: [{
           type: 'License:Issued',
           id: EXAMPLE_EMPLOYEE_ACTIVATION_CODE,
-          meta: {
-            claims: {
-              [ClaimsIndividualProductSchemaorg.serialNumber]: EXAMPLE_EMPLOYEE_ACTIVATION_CODE,
+          resource: {
+            meta: {
+              claims: {
+                [ClaimsIndividualProductSchemaorg.serialNumber]: EXAMPLE_EMPLOYEE_ACTIVATION_CODE,
+              },
             },
           },
         }],
@@ -291,8 +293,9 @@ export const EXAMPLE_LICENSE_RUNTIME_DEFAULTS = Object.freeze({
 
 export const EXAMPLE_LICENSE_OFFER_RESPONSE_BODY = Object.freeze({
   data: [{
-    meta: {
-      claims: {
+    resource: {
+      meta: {
+        claims: {
         [ClaimsOfferSchemaorg.identifier]: EXAMPLE_LICENSE_OFFER_ID,
         [ClaimsOfferSchemaorg.price]: EXAMPLE_LICENSE_AMOUNT,
         [ClaimsOfferSchemaorg.priceCurrency]: EXAMPLE_LICENSE_CURRENCY,
@@ -301,6 +304,7 @@ export const EXAMPLE_LICENSE_OFFER_RESPONSE_BODY = Object.freeze({
         [ClaimsOfferSchemaorg.itemOfferedSku]: EXAMPLE_LICENSE_SKU,
         [ClaimsOfferSchemaorg.acceptedPaymentMethod]: EXAMPLE_LICENSE_PAYMENT_METHOD_INVOICE,
         [ClaimsOfferSchemaorg.checkoutPageURLTemplate]: EXAMPLE_LICENSE_CHECKOUT_URL,
+        },
       },
     },
   }],
@@ -330,14 +334,11 @@ export const EXAMPLE_LICENSE_ORDER_RESPONSE_BODY = Object.freeze({
 export const EXAMPLE_LICENSE_OFFER_LIST_RESPONSE_BODY = Object.freeze({
   data: [{
     resource: {
-      total: 1,
-      data: [{
-        id: EXAMPLE_LICENSE_OFFER_ID,
-        meta: {
-          status: 'active',
-          claims: EXAMPLE_LICENSE_OFFER_RESPONSE_BODY.data[0].meta.claims,
-        },
-      }],
+      id: EXAMPLE_LICENSE_OFFER_ID,
+      meta: {
+        status: 'active',
+        claims: EXAMPLE_LICENSE_OFFER_RESPONSE_BODY.data[0].resource.meta.claims,
+      },
     },
   }],
 } as const);
@@ -345,14 +346,11 @@ export const EXAMPLE_LICENSE_OFFER_LIST_RESPONSE_BODY = Object.freeze({
 export const EXAMPLE_LICENSE_ORDER_LIST_RESPONSE_BODY = Object.freeze({
   data: [{
     resource: {
-      total: 1,
-      data: [{
-        id: EXAMPLE_LICENSE_ACCEPTED_OFFER_ID,
-        meta: {
-          status: 'active',
-          claims: EXAMPLE_LICENSE_ORDER_RESPONSE_BODY.body.data[0].resource.meta.claims,
-        },
-      }],
+      id: EXAMPLE_LICENSE_ACCEPTED_OFFER_ID,
+      meta: {
+        status: 'active',
+        claims: EXAMPLE_LICENSE_ORDER_RESPONSE_BODY.body.data[0].resource.meta.claims,
+      },
     },
   }],
 } as const);

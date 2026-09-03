@@ -23,7 +23,6 @@ export type OrganizationLifecycleEditorState = Readonly<{
 export type OrganizationLifecycleDataEntry = Readonly<{
   type: string;
   request: { method: 'POST' };
-  meta: { claims: OrganizationLifecycleClaims };
   resource: { resourceType: 'Organization'; meta: { claims: OrganizationLifecycleClaims } };
 }>;
 
@@ -209,7 +208,6 @@ export class OrganizationLifecycleEditor {
     return {
       type: requestType,
       request: { method: 'POST' },
-      meta: { claims },
       resource: {
         resourceType: 'Organization',
         meta: { claims },
