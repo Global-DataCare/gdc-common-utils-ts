@@ -2,6 +2,12 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [2.7.4] - 2026-09-02
+
+- Export `isStableActorIdentifier(...)` as the canonical validator that
+  distinguishes authenticated `urn:multibase:z...` actor identifiers from
+  unrelated source-provenance URNs.
+
 ## [2.7.3] - 2026-09-02
 
 - Carry the technical employee `subjectId` beside the public `subjectDid` in

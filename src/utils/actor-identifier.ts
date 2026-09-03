@@ -10,6 +10,15 @@ export type StableActorContactKind =
   typeof StableActorContactKinds[keyof typeof StableActorContactKinds];
 
 /**
+ * Returns whether a value is the canonical privacy-preserving identifier used
+ * for one authenticated actor. External source URNs and malformed multibase
+ * values are deliberately excluded.
+ */
+export function isStableActorIdentifier(value: unknown): value is string {
+  return /^urn:multibase:z[1-9A-HJ-NP-Za-km-z]+$/.test(String(value || '').trim());
+}
+
+/**
  * Builds the private, stable actor identifier shared by independent portals.
  *
  * Wire format: `urn:multibase:<multibase(multihash(SHA3-256, normalized-contact))>`.

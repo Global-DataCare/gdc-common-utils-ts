@@ -1,6 +1,8 @@
+// Flow contract: reuse shared test fixtures and canonical types; do not introduce duplicated literals.
 import {
   buildPortalActorDidWeb,
   buildStableActorIdentifier,
+  isStableActorIdentifier,
   stableActorIdentifierFromDidWeb,
 } from '../src/utils/actor-identifier';
 import { multibase58MultihashSha3_256 } from '../src/utils/same-as';
@@ -38,5 +40,17 @@ describe('buildStableActorIdentifier', () => {
     expect(() => buildStableActorIdentifier({
       contactKind: 'email', contact: '',
     })).toThrow('email is required');
+  });
+
+  it('recognizes only canonical stable actor identifiers', () => {
+    const identifier = buildStableActorIdentifier({
+      contactKind: 'email', contact: 'person@example.org',
+    });
+    expect(isStableActorIdentifier(identifier)).toBe(true);
+
+    // These values deliberately exercise non-actor and malformed URN boundaries.
+    expect(isStableActorIdentifier('urn:uuid:external-source')).toBe(false);
+    expect(isStableActorIdentifier('urn:multibase:not-base58btc')).toBe(false);
+    expect(isStableActorIdentifier('')).toBe(false);
   });
 });
