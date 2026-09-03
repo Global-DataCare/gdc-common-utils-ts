@@ -73,6 +73,7 @@ export const IdentityDcrMetadataFields = Object.freeze({
   ClientName: 'client_name',
   ActorDid: 'actor_did',
   ProfileDid: 'profile_did',
+  ClinicalCreatorBinding: 'clinical_creator_binding',
 } as const);
 
 /** Device metadata keys nested below `ext_device_info`. */

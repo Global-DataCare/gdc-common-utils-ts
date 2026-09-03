@@ -4,6 +4,9 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Add the canonical protected DCR metadata field used to carry a stable
+  clinical creator binding from a server profile to GW CORE.
+
 - Add the FHIR IPS creator-identity contract that preserves imported or
   generated `urn:uuid` actor identifiers, exports ONESELF as the existing
   Patient, individual members as RelatedPerson and professionals as
