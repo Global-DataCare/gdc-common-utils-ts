@@ -4,6 +4,12 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.7.8] - 2026-09-03
+
+- Add shared SMART `private_key_jwt` and individual OIDC4VP ACR
+  discriminators so gateway and SDK tests do not duplicate authentication
+  protocol literals.
+
 ## [2.7.7] - 2026-09-03
 
 - Share the identity/openid SMART post-DCR resource and action vocabulary:
