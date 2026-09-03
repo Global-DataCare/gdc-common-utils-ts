@@ -218,7 +218,7 @@ function extractClaims(entry: Record<string, unknown>): Record<string, unknown> 
   const resourceMeta = resource.meta && typeof resource.meta === 'object' ? resource.meta as Record<string, unknown> : {};
   const metaClaims = meta.claims && typeof meta.claims === 'object' ? meta.claims as Record<string, unknown> : undefined;
   const resourceClaims = resourceMeta.claims && typeof resourceMeta.claims === 'object' ? resourceMeta.claims as Record<string, unknown> : undefined;
-  return { ...(resourceClaims || {}), ...(metaClaims || {}) };
+  return { ...(metaClaims || {}), ...(resourceClaims || {}) };
 }
 
 function isLicenseListEntry(entry: Record<string, unknown>): boolean {

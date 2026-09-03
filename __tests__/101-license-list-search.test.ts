@@ -48,7 +48,8 @@ describe('101: license list and search', () => {
       periodEnd: '2026-12-31',
     }));
     expect(entry.type).toBe(LicenseEntryTypes.Search);
-    expect(entry.meta.claims['@type']).toBe(LicenseEntryOperations.Search);
+    expect(entry.resource.meta.claims['@type']).toBe(LicenseEntryOperations.Search);
+    expect((entry.meta as Record<string, unknown>).claims).toBeUndefined();
     expect(entry.meta.status).toBe(LicenseStatuses.Active);
   });
 

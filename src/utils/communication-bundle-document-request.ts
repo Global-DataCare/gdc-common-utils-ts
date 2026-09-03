@@ -47,9 +47,6 @@ export type BundleDocumentRequestCommunicationPayload = Readonly<{
   body: Readonly<{
     data: ReadonlyArray<{
       type: string;
-      meta: {
-        claims: Record<string, unknown>;
-      };
       resource: Record<string, unknown>;
     }>;
   }>;
@@ -227,7 +224,6 @@ export function buildBundleDocumentRequestCommunicationPayload(
       data: [
         {
           type: BundleDocumentRequestMessageTypes.CommunicationRequestSearchWithReferenceUrl,
-          meta: { claims },
           resource,
         },
       ],
@@ -337,7 +333,6 @@ export function createIpsSummarySearchDidcommMessage(
       data: [
         {
           type: BundleDocumentRequestMessageTypes.CommunicationRequestSearchWithReferenceUrl,
-          meta: { claims },
           resource,
         },
       ],

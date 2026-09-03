@@ -1,3 +1,4 @@
+// Flow contract: reuse shared test fixtures and canonical types; do not introduce duplicated literals.
 import {
   DocumentTypeLoincOntology,
   HealthcareActorRoles,
@@ -113,7 +114,8 @@ describe('utils/communication-bundle-document-request', () => {
     expect(payload.body.data[0]?.type).toBe(
       BundleDocumentRequestMessageTypes.CommunicationRequestSearchWithReferenceUrl,
     );
-    expect(payload.body.data[0]?.meta.claims[CommunicationClaim.Subject]).toBe(EXAMPLE_SUBJECT_DID);
+    expect((payload.body.data[0]?.resource as any).meta.claims[CommunicationClaim.Subject]).toBe(EXAMPLE_SUBJECT_DID);
+    expect((payload.body.data[0] as any)?.meta?.claims).toBeUndefined();
   });
 
   it('exposes the preferred developer-facing communication helpers', () => {
@@ -186,16 +188,17 @@ describe('utils/communication-bundle-document-request', () => {
       providerSectorDidWeb: EXAMPLE_INDEX_PROVIDER_SECTOR_DID_WEB,
     });
 
-    expect(payload.body.data[0]?.meta.claims[CommunicationClaim.Subject]).toBe(EXAMPLE_SUBJECT_DID);
-    expect(payload.body.data[0]?.meta.claims[CommunicationClaim.Sender]).toBe(
+    expect((payload.body.data[0]?.resource as any).meta.claims[CommunicationClaim.Subject]).toBe(EXAMPLE_SUBJECT_DID);
+    expect((payload.body.data[0]?.resource as any).meta.claims[CommunicationClaim.Sender]).toBe(
       'did:web:api.acme.org:employee:doctor.oncall@example.org:ISCO-08|2211',
     );
-    expect(payload.body.data[0]?.meta.claims[CommunicationClaim.ContentReference]).toBe(
+    expect((payload.body.data[0]?.resource as any).meta.claims[CommunicationClaim.ContentReference]).toBe(
       EXAMPLE_IPS_BUNDLE_REFERENCE_URL,
     );
     expect(payload.body.data[0]?.type).toBe(
       BundleDocumentRequestMessageTypes.CommunicationRequestSearchWithReferenceUrl,
     );
+    expect((payload.body.data[0] as any)?.meta?.claims).toBeUndefined();
   });
 
   it('creates IPS summary search claims without requiring a prebuilt reference path', () => {

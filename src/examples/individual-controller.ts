@@ -117,9 +117,11 @@ export const EXAMPLE_COMMUNICATION_INGESTION_PAYLOAD = {
   body: {
     data: [
       {
-        meta: {
-          claims: {
+        resource: {
+          meta: {
+            claims: {
             a: 1,
+            },
           },
         },
       },
@@ -157,17 +159,19 @@ export const EXAMPLE_FAMILY_ORGANIZATION_SEARCH_RESPONSE_BODY = {
   body: {
     data: [{
       type: 'Family-search-result-v1.0',
-      meta: {
-        claims: {
+      resource: {
+        id: 'org-uuid-001',
+        meta: {
+          claims: {
           'org.schema.FamilyRegistration.status': 'already_exists',
           'org.schema.Offer.identifier': 'offer-uuid-001',
           'org.schema.Organization.identifier.value': 'org-uuid-001',
           'org.schema.Organization.alternateName': EXAMPLE_FAMILY_ORGANIZATION_SEARCH_INPUT.usualname,
           'org.schema.Organization.owner.telephone': EXAMPLE_FAMILY_ORGANIZATION_SEARCH_INPUT.controllerPhone,
           'org.schema.Organization.foundingDate': EXAMPLE_FAMILY_ORGANIZATION_SEARCH_INPUT.birthDate,
+          },
         },
       },
-      resource: { id: 'org-uuid-001' },
     }],
   },
 } as const;

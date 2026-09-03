@@ -2,6 +2,18 @@
 
 All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
+## [Unreleased]
+
+## [2.7.5] - 2026-09-02
+
+- Complete the Bundle entry claims migration for license search, purchase,
+  issue, commercial Offer/Order, lifecycle, RelatedPerson and Communication
+  writers: new payloads now author claims only in `resource.meta.claims`.
+- Keep response readers compatible with legacy `entry.meta.claims`, while
+  preferring canonical resource-scoped claims when both shapes are present.
+- Add a source-level regression gate that rejects governed Bundle entry
+  writers which reintroduce `entry.meta.claims`.
+
 ## [2.7.4] - 2026-09-02
 
 - Export `isStableActorIdentifier(...)` as the canonical validator that

@@ -129,7 +129,7 @@ export class LicenseOfferSearchEditor {
   buildSearchEntry(): {
     type: string;
     request: { method: 'POST' };
-    meta: { claims: LicenseClaims; status?: string };
+    meta: { status?: string };
     resource: { meta: { claims: LicenseClaims } };
   } {
     const claims: LicenseClaims = {
@@ -141,13 +141,7 @@ export class LicenseOfferSearchEditor {
     return {
       type: LicenseCommercialSearchEntryType.Offer,
       request: { method: 'POST' },
-      meta: {
-        claims: {
-          ...claims,
-          '@type': LicenseCommercialSearchOperation.Offer,
-        },
-        ...(this.draft.status ? { status: this.draft.status } : {}),
-      },
+      meta: { ...(this.draft.status ? { status: this.draft.status } : {}) },
       resource: {
         meta: {
           claims: {
@@ -206,7 +200,7 @@ export class LicenseOrderSearchEditor {
   buildSearchEntry(): {
     type: string;
     request: { method: 'POST' };
-    meta: { claims: LicenseClaims; status?: string };
+    meta: { status?: string };
     resource: { meta: { claims: LicenseClaims } };
   } {
     const claims: LicenseClaims = {
@@ -218,13 +212,7 @@ export class LicenseOrderSearchEditor {
     return {
       type: LicenseCommercialSearchEntryType.Order,
       request: { method: 'POST' },
-      meta: {
-        claims: {
-          ...claims,
-          '@type': LicenseCommercialSearchOperation.Order,
-        },
-        ...(this.draft.status ? { status: this.draft.status } : {}),
-      },
+      meta: { ...(this.draft.status ? { status: this.draft.status } : {}) },
       resource: {
         meta: {
           claims: {
@@ -253,7 +241,7 @@ function extractClaims(entry: Record<string, unknown>): Record<string, unknown> 
   const resourceMeta = resource.meta && typeof resource.meta === 'object' ? resource.meta as Record<string, unknown> : {};
   const metaClaims = meta.claims && typeof meta.claims === 'object' ? meta.claims as Record<string, unknown> : undefined;
   const resourceClaims = resourceMeta.claims && typeof resourceMeta.claims === 'object' ? resourceMeta.claims as Record<string, unknown> : undefined;
-  return { ...(resourceClaims || {}), ...(metaClaims || {}) };
+  return { ...(metaClaims || {}), ...(resourceClaims || {}) };
 }
 
 /**
@@ -265,7 +253,7 @@ export function readLicenseOfferRecords(body: unknown): LicenseOfferRecord[] {
     return {
       id: normalizeText(entry.id) || normalizeText(claims[ClaimsOfferSchemaorg.identifier]),
       status: normalizeText((entry.meta as Record<string, unknown> | undefined)?.status),
-      offer: readLicenseOfferPreviewFromResponseBody({ data: [{ meta: { claims } }] }),
+      offer: readLicenseOfferPreviewFromResponseBody({ data: [{ resource: { meta: { claims } } }] }),
       claims,
     };
   });
@@ -281,7 +269,7 @@ export function readLicenseOrderRecords(body: unknown): LicenseOrderRecord[] {
     return {
       id: normalizeText(entry.id) || normalizeText(claims[ClaimsOrderSchemaorg.acceptedOfferIdentifier]),
       status: normalizeText((entry.meta as Record<string, unknown> | undefined)?.status),
-      order: readLicenseOrderSummaryFromResponseBody({ data: [{ meta: { claims } }] }),
+      order: readLicenseOrderSummaryFromResponseBody({ data: [{ resource: { meta: { claims } } }] }),
       claims,
     };
   });

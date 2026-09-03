@@ -162,7 +162,7 @@ export function extractPrimaryClaims(body: unknown): Record<string, unknown> {
   const firstMeta = asRecord(first.meta) || {};
   const resource = asRecord(first.resource) || {};
   const resourceMeta = asRecord(resource.meta) || {};
-  return asRecord(firstMeta.claims) || asRecord(resourceMeta.claims) || {};
+  return asRecord(resourceMeta.claims) || asRecord(firstMeta.claims) || {};
 }
 
 /**

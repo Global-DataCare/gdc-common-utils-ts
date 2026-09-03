@@ -87,7 +87,6 @@ export const EXAMPLE_RELATED_PERSON_DISABLE_LIFECYCLE_RESOURCE =
  */
 export const EXAMPLE_RELATED_PERSON_DISABLE_BUNDLE_ENTRY = {
   request: { method: InteroperableOperationMethods.Post },
-  meta: { claims: { ...EXAMPLE_RELATED_PERSON_DISABLE_INPUT.memberClaims } },
   resource: {
     ...EXAMPLE_RELATED_PERSON_DISABLE_LIFECYCLE_RESOURCE,
     id: EXAMPLE_RELATED_PERSON_DISABLE_INPUT.resourceId,
@@ -118,7 +117,6 @@ export const EXAMPLE_RELATED_PERSON_PURGE_LIFECYCLE_RESOURCE =
 export const EXAMPLE_RELATED_PERSON_PURGE_BUNDLE_ENTRY = {
   type: EXAMPLE_RELATED_PERSON_PURGE_REQUEST_TYPE,
   request: { method: InteroperableOperationMethods.Post },
-  meta: { claims: { ...EXAMPLE_RELATED_PERSON_DISABLE_INPUT.memberClaims } },
   resource: {
     ...EXAMPLE_RELATED_PERSON_PURGE_LIFECYCLE_RESOURCE,
     id: EXAMPLE_RELATED_PERSON_DISABLE_INPUT.resourceId,
