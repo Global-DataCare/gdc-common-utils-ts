@@ -21,6 +21,9 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
   so GW and SDK tests do not duplicate wire literals.
 - Complete the researcher working-selection fixture with shared authorization,
   thread and tag data used by route-level tests.
+- Classify FHIR datatypes, schema.org entities, FHIR R5 resources and genuine
+  internal gateway DTOs separately instead of presenting them as one invented
+  non-FHIR resource family.
 
 ## [2.7.5] - 2026-09-02
 

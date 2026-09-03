@@ -1,11 +1,16 @@
 // Flow contract: shared FHIR resource catalogs are the only source for resourceType values used by GW and SDK writers.
-import { ResourceTypesFhirR4 } from '../src/constants/fhir-resource-types.js';
+import {
+  FhirDataTypes,
+  ResourceTypesFhirR4,
+  ResourceTypesFhirR5,
+} from '../src/constants/fhir-resource-types.js';
 import { HttpStatusCodes } from '../src/constants/http.js';
+import { SchemaOrgTypes } from '../src/constants/schemaorg.js';
 import { CompositionSemanticTypes } from '../src/constants/composition.js';
 import { JsonLdKeywords } from '../src/constants/jsonld.js';
 import {
   GatewayEnvelopeTypes,
-  GatewayResourceTypes,
+  GatewayInternalResourceTypes,
   GatewayResponseEntryTypes,
 } from '../src/constants/gateway-response.js';
 
@@ -29,10 +34,14 @@ describe('FHIR R4 resource type catalog', () => {
     expect(JsonLdKeywords.Type).toBeDefined();
   });
 
-  it('provides shared gateway envelope, entry and non-FHIR resource types', () => {
+  it('keeps gateway wire types separated by their actual vocabulary', () => {
     expect(GatewayEnvelopeTypes.BatchResponse).toBeDefined();
     expect(GatewayResponseEntryTypes.CompositionSearch).toBeDefined();
     expect(GatewayResponseEntryTypes.OrganizationOrder).toBeDefined();
-    expect(GatewayResourceTypes.LicenseGenerationResult).toBeDefined();
+    expect(GatewayResponseEntryTypes.LicenseGeneration).toBeDefined();
+    expect(GatewayInternalResourceTypes.Document).toBeDefined();
+    expect(FhirDataTypes.Annotation).toBeDefined();
+    expect(ResourceTypesFhirR5.SubscriptionStatus).toBeDefined();
+    expect(SchemaOrgTypes.Customer).toBeDefined();
   });
 });

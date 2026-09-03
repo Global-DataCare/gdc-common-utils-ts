@@ -23,6 +23,7 @@ export const GatewayResponseEntryTypes = Object.freeze({
   FamilyRegistrationOffer: 'Family-registration-offer-v1.0',
   FamilySearch: 'Family-search-result-v1.0',
   IcaEnroll: 'IcaEnrollResponse-v1.0',
+  LicenseGeneration: 'LicenseGenerationResult',
   LicenseIssued: IdentityAuthResponseEntryTypes.LicenseIssued,
   LicenseSearch: OrganizationEmployeeSearchResponseEntryTypes.License,
   MedicationStatementSearch: 'MedicationStatement-search-response-v1.0',
@@ -53,13 +54,9 @@ export const GatewayEnvelopeTypes = Object.freeze({
 } as const);
 
 /** Non-FHIR resource discriminator values carried inside gateway entries. */
-export const GatewayResourceTypes = Object.freeze({
-  Annotation: 'Annotation',
-  Customer: 'Customer',
+export const GatewayInternalResourceTypes = Object.freeze({
   Document: 'Document',
   IcaEnrollmentResult: 'IcaEnrollmentResult',
-  LicenseGenerationResult: 'LicenseGenerationResult',
-  SubscriptionStatus: 'SubscriptionStatus',
 } as const);
 
 /** Verification states exposed by shared gateway response contracts. */
