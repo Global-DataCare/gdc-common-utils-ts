@@ -166,6 +166,56 @@ Start from:
 - resource-specific entry editors when available
 - `BundleEditor.setBundleType('document')` for individual clinical documents
 
+### Keep the write actor and exported FHIR author connected
+
+Direct clinical writes keep using the operational actor selected by the
+authenticated profile: `sender` and the locally authored
+`Composition.author` are that profile `actorDid`. Email, telephone, OIDC
+subjects, DCR client ids and key ids never replace it.
+
+When exporting the resulting document as FHIR IPS, resolve that operational
+DID through the actor's protected profile binding and use
+`buildFhirIpsCreatorAuthor(...)` to add the ordinary author resources:
+
+```ts
+import {
+  buildFhirIpsCreatorAuthor,
+  FhirIpsCreatorKinds,
+} from 'gdc-common-utils-ts';
+
+const creator = buildFhirIpsCreatorAuthor({
+  kind: FhirIpsCreatorKinds.Professional,
+  actorIdentifier: practitionerIdentifier,
+  authorIdentifier: practitionerRoleIdentifier,
+  organizationReference: providerDid,
+  role: professionalRole,
+});
+
+composition.author = [{ reference: creator.authorReference }];
+bundle.entry.push(...creator.entries);
+```
+
+The protected profile binding stores two imported or locally generated
+`urn:uuid` values: `actorIdentifier` for the person/member and
+`authorIdentifier` for the concrete role or relationship assignment. It also
+stores the assignment owner and its governed role. Verified email/telephone,
+DCR clients, keys and operational actor DIDs are aliases that resolve that
+binding; they are not FHIR identifiers.
+
+Use `buildClinicalCreatorPermissionActor(binding)` when a Consent permission
+must address that exact assignment. It returns the assignment `urn:uuid` and
+the governed role separately, so changing phone, email or device cannot change
+the permission identity.
+
+A professional export references the assignment as PractitionerRole and
+includes its Practitioner. An individual member references the relationship
+assignment as RelatedPerson while retaining the member UUID in
+`RelatedPerson.identifier`. ONESELF references the existing Patient/subject
+entry. A later contract or relationship receives another author UUID without
+changing the person's actor UUID. This export mapping does not change
+`updateClinicalSummary(...)`, clone imported documents or source-authored IPS
+provenance.
+
 ### Coded names and languages
 
 For every coded clinical resource, keep these values separate:

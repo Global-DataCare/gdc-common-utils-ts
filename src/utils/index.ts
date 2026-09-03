@@ -32,6 +32,7 @@ export * from './discovery-normalization';
 export * from './format-converter';
 export * from './fhir-cid';
 export * from './fhir-search';
+export * from './fhir-ips-creator-identity';
 export * from './family-organization-summary';
 export * from './gw-core-path';
 export * from './gw-core-commercial-contract';

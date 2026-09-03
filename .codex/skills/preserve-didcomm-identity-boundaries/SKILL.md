@@ -1,6 +1,6 @@
 ---
 name: preserve-didcomm-identity-boundaries
-description: Preserve and explain the canonical DIDComm, FAPI, DCR and SMART identity separation across shared utils, SDKs, gateways, tests, Swagger examples and portal snippets. Use for from, iss, kid, sub, Communication.sender, stable contact aliases, DCR keys, SMART scopes or transport-profile changes.
+description: Preserve and explain the canonical DIDComm, FAPI, DCR, SMART and FHIR IPS creator-identity separation across shared utils, SDKs, gateways, tests, Swagger examples and portal snippets. Use for from, iss, kid, sub, Communication.sender, Composition.author, stable creator UUIDs, stable contact aliases, DCR keys, SMART scopes, IPS export or transport-profile changes.
 ---
 
 # Preserve DIDComm Identity Boundaries
@@ -25,6 +25,21 @@ identity strings in consumers. Start with:
    Use shared stable-identifier and DID builders.
 5. FHIR JSON transport carries `Communication`/`Bundle` only. Authentication
    stays in HTTP Authorization. `Communication.sender` is not transport proof.
+6. Keep direct clinical writes unchanged: `sender = profile.actorDid`, the
+   transport projects that value to DIDComm `from`/`iss`, `recipient` is the
+   real provider tenant DID and locally authored `Composition.author` is the
+   same profile actor DID.
+7. Resolve that operational DID only at FHIR IPS export time. Preserve the
+   imported or generated actor `urn:uuid` plus a distinct assignment
+   `urn:uuid`, owner and governed role. Emit ONESELF as the existing Patient,
+   an individual member assignment as RelatedPerson, or a professional
+   assignment as PractitionerRole plus its Practitioner. A new contract gets
+   a new assignment UUID without changing the actor UUID. Email, telephone,
+   OIDC `sub`, DCR `client_id`, operational actor DIDs and `kid` remain private
+   channel aliases and never become the exported clinical author.
+8. Consent permissions for a bound clinical creator use the assignment UUID
+   plus its separate governed role. Do not calculate new permission identity
+   from a replaceable phone number, email address, DCR client or key.
 
 ## Change procedure
 
