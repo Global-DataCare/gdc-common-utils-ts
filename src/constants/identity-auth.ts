@@ -20,6 +20,24 @@ export const IdentityAuthRouteSegments = Object.freeze({
   Format: 'auth',
 } as const);
 
+/** Resource discriminators used by identity/auth routes after DCR. */
+export const IdentityAuthResourceTypes = Object.freeze({
+  Smart: 'smart',
+} as const);
+
+/**
+ * SMART post-DCR actions.
+ *
+ * `TokenResponse` is the canonical polling action. `LegacyBatchResponse` is
+ * accepted temporarily for installed clients; `_token` is intentionally not
+ * part of the contract.
+ */
+export const SmartPostDcrActions = Object.freeze({
+  Token: 'token',
+  TokenResponse: 'token-response',
+  LegacyBatchResponse: '_batch-response',
+} as const);
+
 /** Wire-level request keys used by identity/auth operations. */
 export const IdentityAuthRequestFields = Object.freeze({
   SubjectToken: 'subject_token',
