@@ -38,6 +38,16 @@ export const SmartPostDcrActions = Object.freeze({
   LegacyBatchResponse: '_batch-response',
 } as const);
 
+/** Client authentication methods accepted by the SMART token endpoint. */
+export const SmartClientAssertionTypes = Object.freeze({
+  PrivateKeyJwt: 'private_key_jwt',
+} as const);
+
+/** OIDC4VP ACR values used by SMART authorization profiles. */
+export const SmartOpenIdAcrValues = Object.freeze({
+  Individual: 'urn:antifraud:acr:openid4vp:individual',
+} as const);
+
 /** Wire-level request keys used by identity/auth operations. */
 export const IdentityAuthRequestFields = Object.freeze({
   SubjectToken: 'subject_token',

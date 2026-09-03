@@ -1,6 +1,8 @@
 // Flow contract: share canonical SMART post-DCR route vocabulary without introducing an unimplemented `_token` action.
 import {
   IdentityAuthResourceTypes,
+  SmartClientAssertionTypes,
+  SmartOpenIdAcrValues,
   SmartPostDcrActions,
 } from '../src/constants/identity-auth.js';
 import { GatewayRouteFormats, GatewayRouteSections } from '../src/constants/gateway-response.js';
@@ -14,5 +16,7 @@ describe('SMART post-DCR route vocabulary', () => {
     expect(SmartPostDcrActions.TokenResponse).toBeDefined();
     expect(SmartPostDcrActions.LegacyBatchResponse).toBeDefined();
     expect(Object.values(SmartPostDcrActions)).toHaveLength(3);
+    expect(SmartClientAssertionTypes.PrivateKeyJwt).toBeDefined();
+    expect(SmartOpenIdAcrValues.Individual).toBeDefined();
   });
 });
