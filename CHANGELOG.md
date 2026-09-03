@@ -19,6 +19,8 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
   complete the shared Bundle/URN catalogs it consumes.
 - Centralize gateway envelope, entry and non-FHIR resource discriminator types
   so GW and SDK tests do not duplicate wire literals.
+- Complete the researcher working-selection fixture with shared authorization,
+  thread and tag data used by route-level tests.
 
 ## [2.7.5] - 2026-09-02
 

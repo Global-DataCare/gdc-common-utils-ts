@@ -1,7 +1,7 @@
 import { Format } from '../constants/Schemas';
 import { CompositionRequestPaths, CompositionSemanticTypes } from '../constants/composition';
 import { HealthcareBasicSections } from '../constants/healthcare';
-import { HttpRequestMethods } from '../constants/http';
+import { HttpAuthorizationSchemes, HttpRequestMethods } from '../constants/http';
 import { JsonLdKeywords } from '../constants/jsonld';
 import { ResourceTypesFhirR4 } from '../constants/fhir-resource-types';
 import { UrnPrefixes } from '../constants/urn';
@@ -20,6 +20,18 @@ export const EXAMPLE_RESEARCHER_WORKING_SELECTION_SUBJECT_ID =
 export const EXAMPLE_RESEARCHER_WORKING_SELECTION_AUTHOR_ID = EXAMPLE_PROFESSIONAL_DID;
 export const EXAMPLE_RESEARCHER_WORKING_SELECTION_DATE =
   EXAMPLE_COMPOSITION_DATE_MEDICATION_DOCUMENT;
+export const EXAMPLE_RESEARCHER_WORKING_SELECTION_THREAD_ID =
+  'researcher-selection-composition-save-001' as const;
+export const EXAMPLE_RESEARCHER_WORKING_SELECTION_SEARCH_THREAD_ID =
+  'researcher-selection-composition-search-001' as const;
+export const EXAMPLE_RESEARCHER_WORKING_SELECTION_ACCESS_TOKEN = 'demo-token' as const;
+export const EXAMPLE_RESEARCHER_WORKING_SELECTION_AUTHORIZATION =
+  `${HttpAuthorizationSchemes.Bearer} ${EXAMPLE_RESEARCHER_WORKING_SELECTION_ACCESS_TOKEN}` as const;
+export const EXAMPLE_RESEARCHER_WORKING_SELECTION_TAG = Object.freeze({
+  id: 'Composition.meta.tag[0]',
+  system: 'urn:research:tag:score',
+  code: '10',
+});
 
 export type ResearcherWorkingSelectionInput = Readonly<{
   compositionId?: string;

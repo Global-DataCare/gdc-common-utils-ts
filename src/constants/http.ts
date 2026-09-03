@@ -29,6 +29,11 @@ export const HttpHeaderNames = Object.freeze({
   ContentType: 'content-type',
 } as const);
 
+/** Authorization schemes used by authenticated route examples and adapters. */
+export const HttpAuthorizationSchemes = Object.freeze({
+  Bearer: 'Bearer',
+} as const);
+
 /** Media types shared by JSON route adapters. */
 export const HttpMediaTypes = Object.freeze({
   Json: 'application/json',
