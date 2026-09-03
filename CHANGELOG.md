@@ -4,6 +4,14 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.7.6] - 2026-09-02
+
+- Complete `ResourceTypesFhirR4` with the `OperationOutcome` and `Parameters`
+  infrastructure resources so GW and SDK writers never duplicate those FHIR
+  `resourceType` literals locally.
+- Complete `HttpStatusCodes` with successful asynchronous and no-content
+  statuses used by canonical Bundle response writers.
+
 ## [2.7.5] - 2026-09-02
 
 - Complete the Bundle entry claims migration for license search, purchase,
