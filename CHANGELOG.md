@@ -4,6 +4,19 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Add the FHIR IPS creator-identity contract that preserves imported or
+  generated `urn:uuid` actor identifiers, exports ONESELF as the existing
+  Patient, individual members as RelatedPerson and professionals as
+  Practitioner plus PractitionerRole.
+- Resolve already-authenticated email, telephone, actor-DID and DCR/device
+  evidence to one stable clinical author without treating those channel
+  identifiers as `Composition.author`.
+- Define the durable binding as actor UUID plus distinct role/relationship
+  assignment UUID, owner and governed role; channel identifiers remain
+  resolution aliases only.
+- Add a permission projection that addresses the stable assignment UUID and
+  governed role instead of a replaceable email, telephone or device id.
+
 ## [2.7.8] - 2026-09-03
 
 - Add shared SMART `private_key_jwt` and individual OIDC4VP ACR
