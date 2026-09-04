@@ -59,6 +59,7 @@ export * from './related-person-list';
 export * from './clinical-resource-converters';
 export * from './clinical-bundle-summary';
 export * from './clinical-resource-view';
+export * from './clinical-resource-replacement';
 export * from './fhir-validator';
 export * from './family-registration-test-data';
 export * from './individual-form-pdf';

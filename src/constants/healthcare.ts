@@ -577,6 +577,7 @@ export const HealthcareActorRoles = Object.freeze({
   MidwiferyProfessional: 'ISCO-08|2222',
   Paramedic: 'ISCO-08|2240',
   Veterinarian: 'ISCO-08|2250',
+  VeterinaryTechnicianOrAssistant: 'ISCO-08|3240',
   /** Administrative health occupation; it does not imply clinical authority. */
   MedicalSecretary: 'ISCO-08|3344',
 } as const);
@@ -600,6 +601,7 @@ export const HealthcareActorRoleCodes = Object.freeze({
   MidwiferyProfessional: '2222',
   Paramedic: '2240',
   Veterinarian: '2250',
+  VeterinaryTechnicianOrAssistant: '3240',
   MedicalSecretary: '3344',
 } as const);
 
@@ -680,6 +682,17 @@ function buildProfessionalIscoRoles(): Readonly<Record<string, HealthcareActorRo
         claim: HealthcareActorRoles.Veterinarian,
         i18nKey: `${ISCO08_I18N_NAMESPACE}.${HealthcareActorRoleCodes.Veterinarian}`,
         titleEn: 'Veterinarian',
+      }),
+    ],
+    [
+      HealthcareActorRoleCodes.VeterinaryTechnicianOrAssistant,
+      Object.freeze({
+        family: HealthcareRoleFamilies.ProfessionalOccupationIsco08,
+        codingSystem: ISCO08_CODING_SYSTEM,
+        code: HealthcareActorRoleCodes.VeterinaryTechnicianOrAssistant,
+        claim: HealthcareActorRoles.VeterinaryTechnicianOrAssistant,
+        i18nKey: `${ISCO08_I18N_NAMESPACE}.${HealthcareActorRoleCodes.VeterinaryTechnicianOrAssistant}`,
+        titleEn: 'Veterinary technician or assistant',
       }),
     ],
     [
@@ -808,10 +821,12 @@ export const HealthcareProfessionalRoleCodesBySector = Object.freeze({
   [DataspaceSectors.AnimalCare]: Object.freeze([
     HealthcareActorRoleCodes.Controller,
     HealthcareActorRoleCodes.Veterinarian,
+    HealthcareActorRoleCodes.VeterinaryTechnicianOrAssistant,
   ]),
   [DataspaceSectors.AnimalResearch]: Object.freeze([
     HealthcareActorRoleCodes.Controller,
     HealthcareActorRoleCodes.Veterinarian,
+    HealthcareActorRoleCodes.VeterinaryTechnicianOrAssistant,
   ]),
   [DataspaceSectors.AnimalInsurance]: Object.freeze([HealthcareActorRoleCodes.Controller]),
   [DataspaceSectors.AnimalTech]: Object.freeze([HealthcareActorRoleCodes.Controller]),
@@ -821,6 +836,7 @@ export const HealthcareProfessionalRoleCodesBySector = Object.freeze({
     HealthcareActorRoleCodes.GeneralistMedicalPractitioner,
     HealthcareActorRoleCodes.SpecialistMedicalPractitioner,
     HealthcareActorRoleCodes.Veterinarian,
+    HealthcareActorRoleCodes.VeterinaryTechnicianOrAssistant,
     HealthcareActorRoleCodes.MedicalSecretary,
   ]),
   [DataspaceSectors.OneHealthTech]: Object.freeze([HealthcareActorRoleCodes.Controller]),
