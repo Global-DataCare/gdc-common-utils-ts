@@ -4,6 +4,12 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.8.3] - 2026-09-04
+
+- Require every repository skill to preserve three five-minute npm
+  authorization attempts and restrict immutable tarballs to provisional local
+  consumer tests until registry publication permits merge and deployment.
+
 ## [2.8.2] - 2026-09-04
 
 - Normalize FHIR LOINC `Composition.section` codings to the canonical shared
