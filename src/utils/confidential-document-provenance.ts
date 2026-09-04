@@ -23,6 +23,11 @@ export const CompositionCsvClaimKeys = Object.freeze([
 const CSV_CLAIMS = new Set<string>(CompositionCsvClaimKeys);
 const COMPOSITION_CLAIMS = new Set<string>(Object.values(CompositionClaim));
 
+function canonicalCompositionClaimName(name: string): string | undefined {
+  return [...COMPOSITION_CLAIMS].find((claimName) =>
+    name === claimName || name.endsWith(`.${claimName}`));
+}
+
 export type ConfidentialDocumentProvenanceAudit = Pick<
   AuditInfo,
   'creatorDid' | 'submitterDid' | 'signingKeyId'
@@ -68,15 +73,19 @@ export function buildConfidentialDocumentIndexedAttributes(
     }
     const value = String(rawValue).trim();
     if (!value) continue;
-    if (CSV_CLAIMS.has(name)) {
+    const canonicalCompositionName = canonicalCompositionClaimName(name);
+    const indexedName = canonicalCompositionName || name;
+    if (CSV_CLAIMS.has(indexedName)) {
       const values = value.split(',').map((item) => item.trim()).filter(Boolean);
-      values.forEach((item) => append(name, item));
-      if (includeDeprecatedAggregate && values.length > 1) append(name, value);
+      values.forEach((item) => append(indexedName, item));
+      if (includeDeprecatedAggregate && values.length > 1) append(indexedName, value);
+      if (name !== indexedName) append(name, value);
       continue;
     }
-    const isUniqueResourceIdentifier = !COMPOSITION_CLAIMS.has(name)
+    const isUniqueResourceIdentifier = !canonicalCompositionName
       && (name.endsWith('.identifier') || name.endsWith('.identifier.value'));
-    append(name, value, isUniqueResourceIdentifier);
+    append(indexedName, value, isUniqueResourceIdentifier);
+    if (name !== indexedName) append(name, value);
   }
   return attributes;
 }

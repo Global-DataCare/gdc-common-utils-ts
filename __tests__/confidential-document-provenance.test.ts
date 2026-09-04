@@ -114,4 +114,22 @@ describe('confidential clinical-document provenance', () => {
     ]));
     expect(attributes.filter(({ name }) => name === CompositionClaim.Attester)).toHaveLength(3);
   });
+
+  it('normalizes contextualized legacy Composition claim names without dropping their compatibility index', () => {
+    const contextualName = `org.hl7.fhir.api.${CompositionClaim.Author}`;
+    const attributes = buildConfidentialDocumentIndexedAttributes({
+      claims: {
+        [contextualName]: [EXAMPLE_HOSTED_PROVIDER_DID, EXAMPLE_SUBJECT_DID].join(','),
+      },
+    });
+
+    expect(attributes).toEqual(expect.arrayContaining([
+      { name: CompositionClaim.Author, value: EXAMPLE_HOSTED_PROVIDER_DID },
+      { name: CompositionClaim.Author, value: EXAMPLE_SUBJECT_DID },
+      {
+        name: contextualName,
+        value: [EXAMPLE_HOSTED_PROVIDER_DID, EXAMPLE_SUBJECT_DID].join(','),
+      },
+    ]));
+  });
 });
