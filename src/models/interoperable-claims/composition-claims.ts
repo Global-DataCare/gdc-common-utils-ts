@@ -5,6 +5,14 @@ export const CompositionClaim = {
   Subject: 'Composition.subject',
   Section: 'Composition.section',
   Author: 'Composition.author',
+  /** CSV of Composition.attester.party references, aligned with AttesterMode and AttesterTime. */
+  Attester: 'Composition.attester',
+  /** CSV of required R4 Composition.attester.mode values, one per attester. */
+  AttesterMode: 'Composition.attester-mode',
+  /** CSV of optional R4 Composition.attester.time values, positionally aligned with AttesterMode. */
+  AttesterTime: 'Composition.attester-time',
+  /** Composition.custodian Organization reference. */
+  Custodian: 'Composition.custodian',
   Date: 'Composition.date',
   Entry: 'Composition.entry',
   Type: 'Composition.type',

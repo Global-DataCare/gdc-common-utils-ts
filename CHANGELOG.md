@@ -4,6 +4,15 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.8.5] - 2026-09-04
+
+- Preserve FHIR R4 `Composition.custodian` and the aligned
+  `Composition.attester.party`, `mode`, and `time` values in the canonical flat
+  claims conversion instead of dropping document-maintenance and attestation
+  provenance.
+- Reject flat attester references without the required R4 attestation mode and
+  keep legacy Composition claims without attester data compatible.
+
 ## [2.8.4] - 2026-09-04
 
 - Add the deterministic clinical-resource successor policy: a replacement is
