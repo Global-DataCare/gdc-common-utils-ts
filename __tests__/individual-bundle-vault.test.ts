@@ -1,3 +1,4 @@
+// Flow contract: imported FHIR documents preserve canonical clinical-section routing and remain queryable through the individual vault.
 import { describe, expect, it } from '@jest/globals';
 
 import { ResourceTypesFhirR4 } from '../src/constants/fhir-resource-types.js';
@@ -82,7 +83,7 @@ describe('utils/individual-bundle-vault', () => {
     expect(reloaded.listSections()).toHaveLength(1);
   });
 
-  it.skip('imports an IPS bundle document and distributes resources by section', async () => {
+  it('imports an IPS bundle document and distributes resources by section', async () => {
     const repo = new VaultMemRepository();
     const vault = await new IndividualBundleVault({
       vaultRepository: repo,
@@ -101,7 +102,10 @@ describe('utils/individual-bundle-vault', () => {
             section: [
               {
                 code: {
-                  coding: [{ system: 'http://loinc.org', code: '8716-3' }],
+                  coding: [{
+                    system: IndividualClinicalSections.VitalSigns.system,
+                    code: IndividualClinicalSections.VitalSigns.code,
+                  }],
                 },
                 entry: [{ reference: `Observation/${EXAMPLE_OBSERVATION_IDENTIFIER_IPS}` }],
               },
@@ -114,10 +118,17 @@ describe('utils/individual-bundle-vault', () => {
             id: EXAMPLE_OBSERVATION_IDENTIFIER_IPS,
             status: 'final',
             subject: { reference: EXAMPLE_SUBJECT_DID_IPS },
-            category: [{ coding: [{ system: 'http://terminology.hl7.org/CodeSystem/observation-category', code: 'vital-signs' }] }],
-            code: { coding: [{ system: 'http://loinc.org', code: '8867-4' }] },
+            category: [{ coding: [{
+              system: ObservationCategoryCodes.VitalSigns.system,
+              code: ObservationCategoryCodes.VitalSigns.code,
+            }] }],
+            code: { coding: [{ system: VitalSignsCodes.HeartRate.system, code: VitalSignsCodes.HeartRate.code }] },
             effectiveDateTime: EXAMPLE_CLINICAL_EVENT_DATE_TIME,
-            valueQuantity: { value: 72, system: 'http://unitsofmeasure.org', code: '/min' },
+            valueQuantity: {
+              value: EXAMPLE_VITAL_SIGN_VALUE_HEART_RATE,
+              system: VitalSignsUnits.BeatsPerMinute.system,
+              code: VitalSignsUnits.BeatsPerMinute.code,
+            },
           },
         },
       ],

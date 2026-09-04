@@ -81,6 +81,18 @@ Implementation reference:
 - `src/utils/activation-policy.ts`
 
 ## Release Discipline
+- Branch closure is indivisible. One behavior, flow or release-discipline
+  branch owns one patch release. Do not open another fix/feature branch until
+  red-green TDD where behavior changes, all required no-skip gates, changelog,
+  package and lockfile patch, branch push, npm publication and clean-install
+  verification, explicit merge, pushed `main`, matching refs and a clean
+  worktree are complete.
+- Publish a dependency chain from the lowest changed package upward. A consumer
+  may pin only the exact registry version already verified for integrity and
+  exports; Git, file, workspace and vendored substitutes are forbidden.
+- Promote cumulatively through
+  `test -> local-network -> test-network -> network`; no later environment
+  substitutes for an earlier gate.
 - Update `CHANGELOG.md` under `Unreleased` with concrete bullets.
 - Keep SemVer discipline for public API behavior changes.
 - Publish only when `prepublishOnly` gates pass.
