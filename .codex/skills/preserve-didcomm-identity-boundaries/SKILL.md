@@ -43,6 +43,14 @@ identity strings in consumers. Start with:
 
 ## Change procedure
 
+Treat branch closure as indivisible. One behavior, flow or release-discipline
+branch owns one patch release; do not start another fix/feature branch until
+all required tests and no-skip live gates, changelog, package and lockfile
+patch, branch push, registry publication and clean-install verification,
+explicit merge, pushed `main`, matching refs and clean worktree are complete.
+Publish reusable dependencies from the lowest changed package upward and pin
+only exact registry versions already verified for integrity and exports.
+
 1. Add the smallest failing contract test before implementation.
 2. Reuse examples exported by `gdc-common-utils-ts/examples` in every SDK, GW
    and portal test; do not introduce copied literals.

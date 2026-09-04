@@ -6,6 +6,7 @@ import {
   type IndividualSectionDescriptor,
 } from '../constants/individual-sections';
 import { HealthcareDocumentTypes } from '../constants/healthcare';
+import { LOINC_SYSTEM_URL } from '../models/clinical-sections';
 import {
   ObservationCategoryCodes,
   VitalSignsCodes,
@@ -453,10 +454,13 @@ export class IndividualBundleVault {
     const sections = Array.isArray(compositionEntry?.resource?.section) ? compositionEntry.resource.section : [];
 
     for (const section of sections) {
-      const sectionCode = asTrimmedString(section?.code?.coding?.[0]?.system)
-        && asTrimmedString(section?.code?.coding?.[0]?.code)
-        ? `${section.code.coding[0].system}|${section.code.coding[0].code}`
-        : asTrimmedString(section?.code?.coding?.[0]?.code);
+      const sectionSystem = asTrimmedString(section?.code?.coding?.[0]?.system);
+      const sectionValue = asTrimmedString(section?.code?.coding?.[0]?.code);
+      const sectionCode = sectionSystem && sectionValue
+        ? sectionSystem === LOINC_SYSTEM_URL
+          ? `LOINC|${sectionValue}`
+          : `${sectionSystem}|${sectionValue}`
+        : sectionValue;
       if (!sectionCode) continue;
       const refs = Array.isArray(section?.entry) ? section.entry : [];
       for (const refEntry of refs) {

@@ -4,6 +4,16 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.8.2] - 2026-09-04
+
+- Normalize FHIR LOINC `Composition.section` codings to the canonical shared
+  section token when importing a document into an individual bundle vault, so
+  section-specific readers can retrieve the imported clinical resources.
+- Make branch closure, dependency-chain publication and cumulative environment
+  promotion explicit, indivisible release gates in repository instructions.
+
+## [2.8.1] - 2026-09-03
+
 - Add the canonical protected DCR metadata field used to carry a stable
   clinical creator binding from a server profile to GW CORE.
 
