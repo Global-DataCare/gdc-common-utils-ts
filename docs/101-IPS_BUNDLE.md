@@ -202,6 +202,32 @@ stores the assignment owner and its governed role. Verified email/telephone,
 DCR clients, keys and operational actor DIDs are aliases that resolve that
 binding; they are not FHIR identifiers.
 
+An imported IPS keeps its original FHIR graph. In the shared all-sections IPS,
+`Composition.author` and `Composition.custodian` both reference the authoring
+`Organization`, while `Composition.attester.party` references the
+`PractitionerRole` that attested the document. The canonical flat projection
+therefore keeps those roles distinct:
+
+```ts
+import {
+  CompositionClaim,
+  compositionFhirR4ToFlat,
+} from 'gdc-common-utils-ts';
+
+const claims = compositionFhirR4ToFlat(composition);
+
+claims[CompositionClaim.Author];       // CSV of author references
+claims[CompositionClaim.Custodian];    // one Organization reference
+claims[CompositionClaim.Attester];     // CSV of attester.party references
+claims[CompositionClaim.AttesterMode]; // positionally aligned R4 modes
+claims[CompositionClaim.AttesterTime]; // positionally aligned attestation times
+```
+
+The attester reference identifies the FHIR attesting party. When it targets a
+`PractitionerRole`, resolve that resource to its `Practitioner` and
+`Organization`; do not reinterpret the role reference itself as the employee
+or as the transport sender.
+
 Use `buildClinicalCreatorPermissionActor(binding)` when a Consent permission
 must address that exact assignment. It returns the assignment `urn:uuid` and
 the governed role separately, so changing phone, email or device cannot change
