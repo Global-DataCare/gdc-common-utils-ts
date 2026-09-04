@@ -4,6 +4,15 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.8.4] - 2026-09-04
+
+- Add the deterministic clinical-resource successor policy: a replacement is
+  eligible only when it keeps the same resource id and registered author
+  organization and carries a strictly later document date. This policy never
+  authorizes deletes or substitutes for gateway authentication.
+- Add the canonical ISCO-08 `3240` Veterinary Technicians and Assistants role
+  to the neutral healthcare occupation catalog and applicable animal sectors.
+
 ## [2.8.3] - 2026-09-04
 
 - Require every repository skill to preserve three five-minute npm
