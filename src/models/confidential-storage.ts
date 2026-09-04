@@ -56,6 +56,18 @@ export interface AuditInfo {
   txId?: string;
   /** Transaction timestamp (ISO 8601). */
   txTime?: string;
+  /** Stable semantic creator resolved from authenticated clinical identity. */
+  creatorDid?: string;
+  /** Authenticated transport actor when different from the source author. */
+  submitterDid?: string;
+  /** Verified DCR/JWS signing key used by the submitting channel. */
+  signingKeyId?: string;
+  /** Organization or subject that owns the source author's role/relationship. */
+  authorOwnerIdentifier?: string;
+  /** Source Composition.date used for strictly-later successor decisions. */
+  documentDate?: string;
+  /** Source record linked to a derived confidential projection. */
+  sourceRecordId?: string;
 }
 
 /**

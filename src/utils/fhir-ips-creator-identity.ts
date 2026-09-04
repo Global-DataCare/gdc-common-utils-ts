@@ -3,6 +3,10 @@
 import { getHealthcareRoleByClaim } from '../constants/healthcare.js';
 import { isStableActorIdentifier } from './actor-identifier.js';
 import { normalizeUuid } from './normalize-uuid.js';
+import {
+  CompositionAttesterModes,
+  type CompositionAttesterMode,
+} from '../models/interoperable-claims/composition-claims.js';
 
 export const FhirIpsCreatorKinds = Object.freeze({
   IndividualSubject: 'individual-subject',
@@ -46,6 +50,70 @@ export type FhirIpsCreatorAuthor = Readonly<{
   entries: readonly FhirIpsCreatorBundleEntry[];
 }>;
 
+export type FhirIpsCreatorProvenanceInput = FhirIpsCreatorAuthorInput & Readonly<{
+  /** Explicit source originator; defaults to organization, subject, or oneself by creator kind. */
+  compositionAuthorReference?: string;
+  /** Defaults to professional for employees and personal for individual members. */
+  attesterMode?: CompositionAttesterMode;
+  /** Optional FHIR instant copied to Composition.attester.time. */
+  attestedAt?: string;
+}>;
+
+export type FhirIpsCreatorProvenance = Readonly<{
+  authorReference: string;
+  attesters: readonly Readonly<{
+    mode: CompositionAttesterMode;
+    party: Readonly<{ reference: string }>;
+    time?: string;
+  }>[];
+  entries: readonly FhirIpsCreatorBundleEntry[];
+}>;
+
+/**
+ * Builds source authorship separately from the person or role that attests it.
+ *
+ * Defaults model the ordinary delegated flows: an organization's professional
+ * attests an organization-authored record, while a member/caregiver attests a
+ * subject-authored record. `compositionAuthorReference` remains explicit for
+ * imports and cases where the actual originator differs from those defaults.
+ */
+export function buildFhirIpsCreatorProvenance(
+  input: FhirIpsCreatorProvenanceInput,
+): FhirIpsCreatorProvenance {
+  if (input.kind === FhirIpsCreatorKinds.IndividualSubject) {
+    return {
+      authorReference: requireReference(
+        input.compositionAuthorReference || input.subjectReference,
+        'compositionAuthorReference',
+      ),
+      attesters: [],
+      entries: [],
+    };
+  }
+
+  const creator = buildFhirIpsCreatorAuthor(input);
+  const defaultAuthor = input.kind === FhirIpsCreatorKinds.Professional
+    ? input.organizationReference
+    : input.subjectReference;
+  const mode = input.attesterMode || (
+    input.kind === FhirIpsCreatorKinds.Professional
+      ? CompositionAttesterModes.Professional
+      : CompositionAttesterModes.Personal
+  );
+  return {
+    authorReference: requireReference(
+      input.compositionAuthorReference || defaultAuthor,
+      'compositionAuthorReference',
+    ),
+    attesters: [{
+      mode,
+      party: { reference: creator.authorReference },
+      ...(input.attestedAt ? { time: input.attestedAt } : {}),
+    }],
+    entries: creator.entries,
+  };
+}
+
 /**
  * Builds the ordinary FHIR R4 resources referenced by an IPS
  * `Composition.author`.
@@ -55,6 +123,10 @@ export type FhirIpsCreatorAuthor = Readonly<{
  * ONESELF references the existing Patient/subject entry. A professional
  * references PractitionerRole while retaining the underlying Practitioner.
  * An individual member references RelatedPerson.
+ *
+ * @deprecated Use `buildFhirIpsCreatorProvenance` so Composition.author and
+ * Composition.attester remain separate. This compatibility helper preserves
+ * its historical role-as-author result.
  */
 export function buildFhirIpsCreatorAuthor(
   input: FhirIpsCreatorAuthorInput,
@@ -72,7 +144,7 @@ export function buildFhirIpsCreatorAuthor(
 
   const role = requireRoleCoding(input.role);
   if (input.kind === FhirIpsCreatorKinds.IndividualMember) {
-    const subjectReference = requireUuidUrn(input.subjectReference, 'subjectReference');
+    const subjectReference = requireReference(input.subjectReference, 'subjectReference');
     return {
       authorReference: authorIdentifier,
       entries: [{

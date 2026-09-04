@@ -20,4 +20,15 @@ export const CompositionClaim = {
   Title: 'Composition.title',
 } as const;
 
+/** Canonical FHIR R4 Composition.attester.mode codes. */
+export const CompositionAttesterModes = Object.freeze({
+  Personal: 'personal',
+  Professional: 'professional',
+  Legal: 'legal',
+  Official: 'official',
+} as const);
+
+export type CompositionAttesterMode =
+  typeof CompositionAttesterModes[keyof typeof CompositionAttesterModes];
+
 export type CompositionClaimKey = typeof CompositionClaim[keyof typeof CompositionClaim];
