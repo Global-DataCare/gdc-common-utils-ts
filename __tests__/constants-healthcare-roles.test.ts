@@ -1,3 +1,4 @@
+// Flow contract: reuse shared test fixtures and canonical types; do not introduce duplicated literals.
 /**
  * Flow contract: consumers select one typed sector catalog, render its shared
  * i18n descriptors, and still authorize concrete actions independently. A role
@@ -63,6 +64,7 @@ describe('healthcare role catalogs', () => {
     expect(healthRoles['2212']?.claim).toBe(HealthcareActorRoles.SpecialistMedicalPractitioner);
     expect(healthRoles['2222']?.claim).toBe(HealthcareActorRoles.MidwiferyProfessional);
     expect(healthRoles['3344']?.claim).toBe(HealthcareActorRoles.MedicalSecretary);
+    expect(healthRoles['4226']?.claim).toBe(HealthcareActorRoles.Receptionist);
     expect(healthResearchRoles['3344']?.claim).toBe(HealthcareActorRoles.MedicalSecretary);
     expect(oneHealthResearchRoles['3344']?.claim).toBe(HealthcareActorRoles.MedicalSecretary);
     expect(
@@ -73,6 +75,7 @@ describe('healthcare role catalogs', () => {
     ).toBe('org.ilo.isco-08.2211');
     expect(Object.keys(animalRoles).length).toBeGreaterThan(0);
     expect(animalRoles['2250']?.claim).toBe(HealthcareActorRoles.Veterinarian);
+    expect(animalRoles['4226']?.claim).toBe(HealthcareActorRoles.Receptionist);
     expect(animalRoles['2211']).toBeUndefined();
     expect(animalRoles['3344']).toBeUndefined();
   });
@@ -113,6 +116,7 @@ describe('healthcare role catalogs', () => {
     expect(roleCodeI18nEn['org.ilo.isco-08.2212']).toBe('Specialist medical practitioner');
     expect(roleCodeI18nEn['org.ilo.isco-08.2222']).toBe('Midwifery professional');
     expect(roleCodeI18nEn['org.ilo.isco-08.3344']).toBe('Medical secretary');
+    expect(roleCodeI18nEn['org.ilo.isco-08.4226']).toBe('Receptionists (general)');
     expect(roleCodeI18nEn['org.ilo.isco-08.2250']).toBe('Veterinarian');
     expect(roleCodeI18nEn['org.ilo.isco-08.3212']).toBe('Medical and pathology laboratory technician');
     expect(roleCodeI18nEn['org.ilo.isco-08.3141']).toBe('Life science technician (excluding medical)');

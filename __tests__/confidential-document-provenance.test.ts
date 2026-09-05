@@ -1,4 +1,4 @@
-// Flow contract: project FHIR Composition provenance into searchable confidential-document metadata without conflating author, attester, or transport identity.
+// Flow contract: reuse shared test fixtures and canonical types; do not introduce duplicated literals.
 import {
   buildConfidentialDocumentIndexedAttributes,
   buildFhirIpsCreatorProvenance,
@@ -10,6 +10,7 @@ import {
 } from '../src';
 import {
   EXAMPLE_HEALTHCARE_ACTOR_ROLE_PHYSICIAN,
+  EXAMPLE_HEALTHCARE_ACTOR_ROLE_RECEPTIONIST,
   EXAMPLE_HOST_PUBLIC_HOSTNAME,
   EXAMPLE_HOSTED_PROVIDER_DID,
   EXAMPLE_KYC_CONTROLLER_USER_UUID,
@@ -32,7 +33,7 @@ describe('confidential clinical-document provenance', () => {
     );
   });
 
-  it('uses the organization DID as author and the professional role as attester', () => {
+  it('uses the organization DID as author and an administrative role as attester', () => {
     const practitionerIdentifier = `urn:uuid:${EXAMPLE_KYC_CONTROLLER_USER_UUID}`;
     const practitionerRoleIdentifier = `urn:uuid:${EXAMPLE_KYC_CONTROLLER_UUID}`;
 
@@ -41,7 +42,7 @@ describe('confidential clinical-document provenance', () => {
       actorIdentifier: practitionerIdentifier,
       authorIdentifier: practitionerRoleIdentifier,
       organizationReference: EXAMPLE_HOSTED_PROVIDER_DID,
-      role: EXAMPLE_HEALTHCARE_ACTOR_ROLE_PHYSICIAN,
+      role: EXAMPLE_HEALTHCARE_ACTOR_ROLE_RECEPTIONIST,
     });
 
     expect(provenance.authorReference).toBe(EXAMPLE_HOSTED_PROVIDER_DID);
@@ -50,6 +51,13 @@ describe('confidential clinical-document provenance', () => {
       party: { reference: practitionerRoleIdentifier },
     }]);
     expect(provenance.entries).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        fullUrl: EXAMPLE_HOSTED_PROVIDER_DID,
+        resource: expect.objectContaining({
+          resourceType: 'Organization',
+          identifier: [{ value: EXAMPLE_HOSTED_PROVIDER_DID }],
+        }),
+      }),
       expect.objectContaining({
         fullUrl: practitionerRoleIdentifier,
         resource: expect.objectContaining({
@@ -80,7 +88,7 @@ describe('confidential clinical-document provenance', () => {
     }]);
   });
 
-  it('uses the RelatedPerson as both author and attester when the member created the fact', () => {
+  it('keeps the individual as author and the RelatedPerson as attester when the member created the fact', () => {
     const memberIdentifier = `urn:uuid:${EXAMPLE_KYC_CONTROLLER_USER_UUID}`;
     const relationshipIdentifier = `urn:uuid:${EXAMPLE_KYC_CONTROLLER_UUID}`;
 
@@ -93,7 +101,7 @@ describe('confidential clinical-document provenance', () => {
       compositionAuthorReference: relationshipIdentifier,
     });
 
-    expect(provenance.authorReference).toBe(relationshipIdentifier);
+    expect(provenance.authorReference).toBe(EXAMPLE_SUBJECT_DID);
     expect(provenance.attesters).toEqual([{
       mode: CompositionAttesterModes.Personal,
       party: { reference: relationshipIdentifier },

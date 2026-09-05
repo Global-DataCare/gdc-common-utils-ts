@@ -80,14 +80,16 @@ not automatically select `Composition.author`.
 - If a member/caregiver records content created or dictated by the individual,
   the individual subject is author and the member's registered
   `RelatedPerson` assignment is personal attester.
-- If that member created the content, the `RelatedPerson` assignment may be
-  both author and attester.
-- The equivalent professional choice is organization-authored versus
-  `PractitionerRole`-authored content, with the registered PractitionerRole as
-  professional attester.
+- If that member created or validated the content, the individual remains the
+  document author and the registered `RelatedPerson` remains its attester.
+- The equivalent professional record keeps the organization, EHR or patient
+  portal that issued the document as author and the registered
+  `PractitionerRole` as professional attester. The occupation may be a neutral
+  administrative ISCO-08 role; attestation does not imply clinical authority.
 
 Resolve these references from the protected creator binding. Never accept an
 arbitrary author, attester, sender DID or signing `kid` from a browser field.
-`buildFhirIpsCreatorProvenance(...)` defaults to the owner as author and accepts
-an explicit registered assignment through `compositionAuthorReference` when
-the authenticated creator is the source author.
+`buildFhirIpsCreatorProvenance(...)` defaults to the owner as author. A former
+creator-as-author assignment passed through `compositionAuthorReference` is
+normalized to that owner for rolling compatibility; new code supplies only a
+trusted organization, EHR/portal or individual document-source reference.
