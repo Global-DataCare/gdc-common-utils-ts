@@ -4,6 +4,12 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Accept canonical HL7 `RelatedPerson` functional roles such as
+  `v3-RoleClass|CAREGIVER` when building IPS provenance without representing a
+  caregiver as a medical professional.
+
+## [2.9.1] - 2026-09-05
+
 - Keep the organization, EHR/portal or individual as the IPS document author
   while projecting authenticated professionals, controllers and caregivers as
   `Composition.attester` assignments rather than transport-derived authors.
