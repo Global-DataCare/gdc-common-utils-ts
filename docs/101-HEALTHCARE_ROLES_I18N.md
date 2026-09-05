@@ -51,9 +51,20 @@ Examples:
 
 - `health-care` includes roles such as Physician (`2211`)
 - `animal-care` includes roles such as Veterinarian (`2250`)
+- `health-lab` includes Medical and Pathology Laboratory Technicians (`3212`)
+- `animal-lab` includes Life Science Technicians excluding medical work (`3141`),
+  Veterinarians (`2250`) and Veterinary Technicians or Assistants (`3240`)
+- `onehealth-lab` is the cross-sector laboratory catalog and includes both
+  human and animal laboratory occupations
 - `health-research` and `animal-research` can have different role subsets
 
 Use `DataspaceSectors` values as input sectors.
+
+The occupation names and codes follow the official
+[ILO ISCO-08 structure](https://isco.ilo.org/en/isco-08/). Sector inclusion is
+an application catalog, not an authorization grant. In particular, selecting a
+laboratory sector does not make `Encounter` mandatory: document composition and
+resource requirements remain a UI/workflow decision based on document type.
 
 ## Claim and coding-system conventions
 
@@ -117,6 +128,17 @@ import {
 
 const allowed = getHealthcareProfessionalRolesBySector(DataspaceSectors.AnimalCare);
 const veterinarianClaim = allowed['2250']?.claim; // ISCO-08|2250
+```
+
+For a cross-sector laboratory role picker:
+
+```ts
+const laboratoryRoles = getHealthcareProfessionalRolesBySector(
+  DataspaceSectors.OneHealthLab,
+);
+
+const medicalLabTechnician = laboratoryRoles['3212'];
+const lifeScienceTechnician = laboratoryRoles['3141'];
 ```
 
 ### Frontend map by sector and claim
