@@ -80,6 +80,33 @@ describe('confidential clinical-document provenance', () => {
     }]);
   });
 
+  it('uses the RelatedPerson as both author and attester when the member created the fact', () => {
+    const memberIdentifier = `urn:uuid:${EXAMPLE_KYC_CONTROLLER_USER_UUID}`;
+    const relationshipIdentifier = `urn:uuid:${EXAMPLE_KYC_CONTROLLER_UUID}`;
+
+    const provenance = buildFhirIpsCreatorProvenance({
+      kind: FhirIpsCreatorKinds.IndividualMember,
+      actorIdentifier: memberIdentifier,
+      authorIdentifier: relationshipIdentifier,
+      subjectReference: EXAMPLE_SUBJECT_DID,
+      role: EXAMPLE_RELATED_PERSON_ROLE,
+      compositionAuthorReference: relationshipIdentifier,
+    });
+
+    expect(provenance.authorReference).toBe(relationshipIdentifier);
+    expect(provenance.attesters).toEqual([{
+      mode: CompositionAttesterModes.Personal,
+      party: { reference: relationshipIdentifier },
+    }]);
+    expect(provenance.entries[0]).toEqual(expect.objectContaining({
+      fullUrl: relationshipIdentifier,
+      resource: expect.objectContaining({
+        resourceType: 'RelatedPerson',
+        patient: { reference: EXAMPLE_SUBJECT_DID },
+      }),
+    }));
+  });
+
   it('emits one canonical index per CSV value and retains the deprecated aggregate during migration', () => {
     const authorReferences = [EXAMPLE_HOSTED_PROVIDER_DID, EXAMPLE_SUBJECT_DID];
     const attesterReferences = [

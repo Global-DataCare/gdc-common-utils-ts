@@ -4,6 +4,14 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.8.7] - 2026-09-04
+
+- Clarify and prove both personal provenance cases: an individual-created fact
+  keeps the subject as author, while a member-created fact may use the
+  registered RelatedPerson assignment as both author and personal attester.
+- Document the author, attester, DIDComm sender and signing-key boundary in the
+  shared identity skill, JSDoc, 101 guide and README entry point.
+
 ## [2.8.6] - 2026-09-04
 
 - Add canonical confidential-document provenance indexes for sector,
