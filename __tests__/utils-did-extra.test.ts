@@ -1,8 +1,11 @@
-// Flow contract: did:web discovery uses HTTP only for explicit local loopback authorities and keeps every non-loopback authority on HTTPS.
+// Flow contract: reuse shared test fixtures and canonical types; do not introduce duplicated literals.
 import {
+  buildSecureIdValueIndividual,
+  buildSecureIdValueMember,
   buildHostedProviderDidWeb,
   buildIndividualDidWeb,
   buildIndividualMemberDidWeb,
+  buildIndividualMemberDidWebFromPrivateIdentifiers,
   buildHostedDidDetails,
   buildOrganizationDidWeb,
   buildProfessionalDidWeb,
@@ -11,12 +14,37 @@ import {
   extractTenantIdFromHostedDidWeb,
   getBaseUrlFromDidWeb,
   normalizeDidWeb,
+  parseIndividualMemberDidWeb,
   toDidMemberRoleCode,
 } from '../src/utils/did.js';
+import { SecureIdTypesIndividual } from '../src/constants/identity-identifiers.js';
 import { HealthcareActorRoles } from '../src/constants/healthcare.js';
 import { normalizeSameAsHash } from '../src/utils/same-as.js';
 
 describe('did utilities', () => {
+  it('hashes private individual identifiers as SHA3-384 multihashes before DID construction', () => {
+    // Exact serialization vectors: these literals are the behavior under test.
+    expect(buildSecureIdValueIndividual({
+      secureIdTypeIndividual: SecureIdTypesIndividual.Uuid,
+      privateIdValueIndividual: 'a87e5b15-aea4-4475-9c7c-40aa88354b6f',
+    })).toBe('zG9H82pae9SCXvec3D4YKqhX8bj8F1mRgzxMEdwXXonT7BWsvsUiP2u52sWQTeESpoMee');
+    expect(buildSecureIdValueIndividual({
+      secureIdTypeIndividual: SecureIdTypesIndividual.Email,
+      privateIdValueIndividual: ' Controller@Example.ORG ',
+    })).toBe('zG9DrMLpQW8eoCc9Ay9AFxuMGiswgJePpbUMz9svJCZ8tKjUd4xoExgCPA5jmHc6hPATJ');
+    expect(buildSecureIdValueIndividual({
+      secureIdTypeIndividual: SecureIdTypesIndividual.Phone,
+      privateIdValueIndividual: 'tel:+34 600 123 456',
+    })).toBe('zG9HJcrDrWojdcjTntBWPeAvERP6sExFDEumqTu6jVMgVCg9oLD3d1kq6NpF4hYEqab6F');
+  });
+
+  it('rejects malformed UUIDs instead of hashing their text representation', () => {
+    expect(() => buildSecureIdValueIndividual({
+      secureIdTypeIndividual: SecureIdTypesIndividual.Uuid,
+      privateIdValueIndividual: 'not-a-uuid',
+    })).toThrow(/UUID/i);
+  });
+
   it('normalizes did:web values and role codes', () => {
     const input = 'did:web:Api.Acme.Org:employee:doctor1@acme.org:role:ISCO-08|2211';
     expect(normalizeDidWeb(input)).toBe('did:web:api.acme.org:employee:doctor1@acme.org:role:isco-08|2211');
@@ -122,21 +150,51 @@ describe('did utilities', () => {
     });
     expect(providerDomainDid).toBe('did:web:health-care.provider.example.org');
 
+    const secureIdValueIndividual = buildSecureIdValueIndividual({
+      secureIdTypeIndividual: SecureIdTypesIndividual.Uuid,
+      privateIdValueIndividual: 'a87e5b15-aea4-4475-9c7c-40aa88354b6f',
+    });
     const individualDid = buildIndividualDidWeb({
       providerDidWeb: hostedProviderDid,
-      individualId: 'z6MkhYExampleIndividualId',
+      secureIdTypeIndividual: SecureIdTypesIndividual.Uuid,
+      secureIdValueIndividual,
     });
     expect(individualDid).toBe(
-      'did:web:host.example.org:health-care:organization:taxid:VATES-B00112233:individual:multibase:z6MkhYExampleIndividualId',
+      `did:web:host.example.org:health-care:organization:taxid:VATES-B00112233:individual:UUID:${secureIdValueIndividual}`,
     );
 
     const memberDid = buildIndividualMemberDidWeb({
       individualDidWeb: individualDid,
-      role: 'v3-RoleCode|RESPRSN',
+      memberId: buildSecureIdValueMember({
+        secureIdTypeMember: SecureIdTypesIndividual.Email,
+        privateIdValueMember: 'controller@example.org',
+      }),
+      roleType: 'http://terminology.hl7.org/CodeSystem/v3-RoleCode',
+      roleValue: 'RESPRSN',
     });
     expect(memberDid).toBe(
-      'did:web:host.example.org:health-care:organization:taxid:VATES-B00112233:individual:multibase:z6MkhYExampleIndividualId:member:role:RESPRSN',
+      `did:web:host.example.org:health-care:organization:taxid:VATES-B00112233:individual:UUID:${secureIdValueIndividual}:member:zG9DrMLpQW8eoCc9Ay9AFxuMGiswgJePpbUMz9svJCZ8tKjUd4xoExgCPA5jmHc6hPATJ:RESPRSN`,
     );
+    expect(parseIndividualMemberDidWeb(memberDid)).toEqual({
+      individualDidWeb: individualDid,
+      memberId: 'zG9DrMLpQW8eoCc9Ay9AFxuMGiswgJePpbUMz9svJCZ8tKjUd4xoExgCPA5jmHc6hPATJ',
+      roleValue: 'RESPRSN',
+    });
+    expect(buildIndividualMemberDidWebFromPrivateIdentifiers({
+      providerDidWeb: hostedProviderDid,
+      secureIdTypeIndividual: SecureIdTypesIndividual.Uuid,
+      privateIdValueIndividual: 'a87e5b15-aea4-4475-9c7c-40aa88354b6f',
+      secureIdTypeMember: SecureIdTypesIndividual.Email,
+      privateIdValueMember: 'controller@example.org',
+      roleType: 'http://terminology.hl7.org/CodeSystem/v3-RoleCode',
+      roleValue: 'RESPRSN',
+    })).toBe(memberDid);
+  });
+
+  it('rejects the legacy family actor path as an individual member DID', () => {
+    expect(() => parseIndividualMemberDidWeb(
+      'did:web:host.example.org:individual:UUID:zSecure:family:zMember:RESPRSN',
+    )).toThrow(/member DID/i);
   });
 
   it('strips coding-system prefixes from member role suffixes', () => {

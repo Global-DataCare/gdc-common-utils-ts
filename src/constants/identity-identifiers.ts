@@ -36,6 +36,23 @@ export const HL7_V2_0203_IDENTIFIER_CODES = Object.freeze({
 export type Hl7V20203IdentifierCode =
   typeof HL7_V2_0203_IDENTIFIER_CODES[keyof typeof HL7_V2_0203_IDENTIFIER_CODES];
 
+/**
+ * Identifier type tokens accepted by the hosted individual DID builders.
+ *
+ * `DL`, `PPN`, `NN`, and the other clinical identifier codes retain their
+ * HL7 v2-0203 meaning. `UUID`, `EMAIL`, and `PHONE` are GDC index identifier
+ * types and must not be described as HL7 codes.
+ */
+export const SecureIdTypesIndividual = Object.freeze({
+  Uuid: 'UUID',
+  Email: 'EMAIL',
+  Phone: 'PHONE',
+  ...HL7_V2_0203_IDENTIFIER_CODES,
+} as const);
+
+export type SecureIdTypeIndividual =
+  typeof SecureIdTypesIndividual[keyof typeof SecureIdTypesIndividual];
+
 /** Product-neutral document kinds used by subject identifier forms. */
 export const INDIVIDUAL_IDENTIFIER_KINDS = Object.freeze({
   NationalPerson: 'national-person',

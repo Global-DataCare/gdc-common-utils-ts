@@ -456,7 +456,7 @@ The canonical API contract should live in JSDoc on exported code. The README act
   - do not teach its `entityId` as if it were the legal organization id
   - Derives the technical ML-DSA/ML-KEM communication identity for a device, portal, or app profile and returns JOSE header templates for `meta.jws.protected` and `meta.jwe.header`.
   - Uses explicit `seedMaterial` for deterministic derivation. Without `seedMaterial`, it defaults to random generation. `mode = deterministic` requires `seedMaterial`.
-- [`buildOrganizationDidWeb(...)`, `buildProfessionalDidWeb(...)`, `buildIndividualDidWeb(...)`](src/utils/did.ts)
+- [`buildOrganizationDidWeb(...)`, `buildProfessionalDidWeb(...)`, `buildIndividualDidWeb(...)`, `buildIndividualMemberDidWebFromPrivateIdentifiers(...)`](src/utils/did.ts)
   - Build canonical data-space `did:web` identifiers for hosted organizations, professionals, and individuals/family actors.
 - [`buildSmartCompositionReadScope(...)`](src/utils/smart-scope.ts)
   - Builds the current CORE GW pinned SMART root scope for `organization/Composition...` token requests.

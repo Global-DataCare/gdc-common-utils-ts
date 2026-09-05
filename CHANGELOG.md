@@ -4,6 +4,17 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.9.0] - 2026-09-05
+
+- Add the canonical hosted individual/member DID contract: explicit
+  `secureIdTypeIndividual`, SHA3-384 multihash `secureIdValueIndividual`,
+  contact-bound member identifiers, and role type/value inputs with only the
+  role value serialized in the DID.
+- Add one portal-facing builder that creates the complete member DID from the
+  provider DID, private individual identifier, logged-in member identifier and
+  protected role, plus exact UUID, email and phone examples without
+  placeholders. The legacy `:family:` actor path is rejected.
+
 - Add the product-neutral `health-lab`, `animal-lab`, and `onehealth-lab`
   sectors with canonical ISCO-08 medical/pathology (`3212`) and non-medical
   life-science (`3141`) laboratory occupations. Laboratory sector selection
