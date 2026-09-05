@@ -4,6 +4,13 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Keep the organization, EHR/portal or individual as the IPS document author
+  while projecting authenticated professionals, controllers and caregivers as
+  `Composition.attester` assignments rather than transport-derived authors.
+- Add the neutral ISCO-08 general receptionist role across human, animal and
+  one-health sectors and include the referenced `Organization` beside
+  `Practitioner` and `PractitionerRole` in exported IPS supporting resources.
+
 ## [2.9.0] - 2026-09-05
 
 - Add the canonical hosted individual/member DID contract: explicit

@@ -52,10 +52,11 @@ export type FhirIpsCreatorAuthor = Readonly<{
 
 export type FhirIpsCreatorProvenanceInput = FhirIpsCreatorAuthorInput & Readonly<{
   /**
-   * Explicit source originator. Defaults to the owning organization or
-   * individual. When the authenticated member/professional actually authored
-   * the content, pass its registered RelatedPerson/PractitionerRole assignment
-   * reference; that same assignment may also remain the attester.
+   * Explicit document/source author. Defaults to the owning organization or
+   * individual. A registered RelatedPerson/PractitionerRole is an attester,
+   * never a substitute for the organization, EHR/portal or individual that
+   * authors the document. Passing the assignment reference is normalized to
+   * the owner for compatibility with the former creator-as-author contract.
    */
   compositionAuthorReference?: string;
   /** Defaults to professional for employees and personal for individual members. */
@@ -77,13 +78,11 @@ export type FhirIpsCreatorProvenance = Readonly<{
 /**
  * Builds source authorship separately from the person or role that attests it.
  *
- * Defaults model delegated flows: an organization's professional attests an
- * organization-authored record, while a member/caregiver attests a
- * subject-authored record. For content actually created by that authenticated
- * member or professional, set `compositionAuthorReference` to its registered
- * RelatedPerson or PractitionerRole assignment. Author and attester may then
- * intentionally reference the same assignment; neither is the transport
- * sender or signing key.
+ * An organization's employee attests an organization/EHR-authored record,
+ * while a controller/member/caregiver attests an individual-authored record.
+ * Neither the attester nor the document author is the transport sender or
+ * signing key merely because the same authenticated person performed the
+ * submission.
  */
 export function buildFhirIpsCreatorProvenance(
   input: FhirIpsCreatorProvenanceInput,
@@ -103,6 +102,9 @@ export function buildFhirIpsCreatorProvenance(
   const defaultAuthor = input.kind === FhirIpsCreatorKinds.Professional
     ? input.organizationReference
     : input.subjectReference;
+  const requestedAuthor = input.compositionAuthorReference === creator.authorReference
+    ? defaultAuthor
+    : input.compositionAuthorReference;
   const mode = input.attesterMode || (
     input.kind === FhirIpsCreatorKinds.Professional
       ? CompositionAttesterModes.Professional
@@ -110,7 +112,7 @@ export function buildFhirIpsCreatorProvenance(
   );
   return {
     authorReference: requireReference(
-      input.compositionAuthorReference || defaultAuthor,
+      requestedAuthor || defaultAuthor,
       'compositionAuthorReference',
     ),
     attesters: [{
@@ -172,6 +174,13 @@ export function buildFhirIpsCreatorAuthor(
   return {
     authorReference: authorIdentifier,
     entries: [
+      {
+        fullUrl: organizationReference,
+        resource: {
+          resourceType: 'Organization',
+          identifier: [{ value: organizationReference }],
+        },
+      },
       {
         fullUrl: actorIdentifier,
         resource: {

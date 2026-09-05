@@ -21,10 +21,10 @@ describe('101: one stable clinical creator across channels and FHIR IPS export',
   /**
    * Teaching goal:
    * - an application imports or generates one UUID for the professional
-   * - verified portal, telephone and DCR sessions resolve the same role author
-   * - the exported IPS references ordinary FHIR Practitioner and PractitionerRole resources
+   * - verified portal, telephone and DCR sessions resolve the same role attester
+   * - the exported IPS references ordinary FHIR Organization, Practitioner and PractitionerRole resources
    */
-  it('keeps one professional author when portal, telephone and DCR channels change', () => {
+  it('keeps one professional attester when portal, telephone and DCR channels change', () => {
     // Step 1. Reuse the imported professional UUID and the role-assignment UUID.
     const practitionerIdentifier = `urn:uuid:${EXAMPLE_KYC_CONTROLLER_USER_UUID}`;
     const practitionerRoleIdentifier = `urn:uuid:${EXAMPLE_KYC_CONTROLLER_UUID}`;
@@ -39,6 +39,13 @@ describe('101: one stable clinical creator across channels and FHIR IPS export',
     // Step 2. Export an IPS-native author reference plus its resolvable resources.
     expect(author.authorReference).toBe(practitionerRoleIdentifier);
     expect(author.entries).toEqual([
+      expect.objectContaining({
+        fullUrl: EXAMPLE_PROVIDER_ORGANIZATION_DID,
+        resource: expect.objectContaining({
+          resourceType: 'Organization',
+          identifier: [{ value: EXAMPLE_PROVIDER_ORGANIZATION_DID }],
+        }),
+      }),
       expect.objectContaining({
         fullUrl: practitionerIdentifier,
         resource: expect.objectContaining({

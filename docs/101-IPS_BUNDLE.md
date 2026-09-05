@@ -166,24 +166,25 @@ Start from:
 - resource-specific entry editors when available
 - `BundleEditor.setBundleType('document')` for individual clinical documents
 
-### Keep the write actor and exported FHIR author connected
+### Keep sender, document author and attester separate
 
-Direct clinical writes keep using the operational actor selected by the
-authenticated profile: `sender` and the locally authored
-`Composition.author` are that profile `actorDid`. Email, telephone, OIDC
-subjects, DCR client ids and key ids never replace it.
+Direct clinical writes use the operational actor selected by the authenticated
+profile as sender/submitter. That transport identity is not copied into
+`Composition.author`. The author is the organization, EHR/patient portal or
+individual that issued the document; a registered professional, controller or
+caregiver is represented separately through `Composition.attester`.
 
 When exporting the resulting document as FHIR IPS, resolve that operational
 DID through the actor's protected profile binding and use
-`buildFhirIpsCreatorAuthor(...)` to add the ordinary author resources:
+`buildFhirIpsCreatorProvenance(...)` to add the ordinary supporting resources:
 
 ```ts
 import {
-  buildFhirIpsCreatorAuthor,
+  buildFhirIpsCreatorProvenance,
   FhirIpsCreatorKinds,
 } from 'gdc-common-utils-ts';
 
-const creator = buildFhirIpsCreatorAuthor({
+const provenance = buildFhirIpsCreatorProvenance({
   kind: FhirIpsCreatorKinds.Professional,
   actorIdentifier: practitionerIdentifier,
   authorIdentifier: practitionerRoleIdentifier,
@@ -191,13 +192,15 @@ const creator = buildFhirIpsCreatorAuthor({
   role: professionalRole,
 });
 
-composition.author = [{ reference: creator.authorReference }];
-bundle.entry.push(...creator.entries);
+composition.author = [{ reference: provenance.authorReference }];
+composition.attester = provenance.attesters;
+bundle.entry.push(...provenance.entries);
 ```
 
 The protected profile binding stores two imported or locally generated
 `urn:uuid` values: `actorIdentifier` for the person/member and
-`authorIdentifier` for the concrete role or relationship assignment. It also
+`authorIdentifier` for the historical concrete role or relationship assignment
+now used as the attester reference. It also
 stores the assignment owner and its governed role. Verified email/telephone,
 DCR clients, keys and operational actor DIDs are aliases that resolve that
 binding; they are not FHIR identifiers.

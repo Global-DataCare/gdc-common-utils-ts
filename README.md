@@ -530,9 +530,9 @@ The canonical API contract should live in JSDoc on exported code. The README act
 - [`buildFhirIpsCreatorProvenance(...)`](src/utils/fhir-ips-creator-identity.ts)
   and [`docs/101-DIDCOMM-IDENTITY-BOUNDARY.md`](docs/101-DIDCOMM-IDENTITY-BOUNDARY.md)
   - Keep `Composition.author`, `Composition.attester`, DIDComm sender and
-    signing key separate. A member-created fact may use the registered
-    RelatedPerson as both author and personal attester; a dictated
-    individual-created fact keeps the individual as author.
+    signing key separate. The organization, EHR/portal or individual remains
+    the document author; a registered PractitionerRole or RelatedPerson is the
+    attester, including for content entered by that authenticated person.
 - [`src/examples/frontend-session.ts`](src/examples/frontend-session.ts)
   - Frontend profile/session bootstrap examples.
 - [`src/examples/lifecycle.ts`](src/examples/lifecycle.ts)
