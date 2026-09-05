@@ -25,18 +25,21 @@ identity strings in consumers. Start with:
    Use shared stable-identifier and DID builders.
 5. FHIR JSON transport carries `Communication`/`Bundle` only. Authentication
    stays in HTTP Authorization. `Communication.sender` is not transport proof.
-6. Keep direct clinical writes unchanged: `sender = profile.actorDid`, the
-   transport projects that value to DIDComm `from`/`iss`, `recipient` is the
-   real provider tenant DID and locally authored `Composition.author` is the
-   same profile actor DID.
-7. Resolve that operational DID only at FHIR IPS export time. Preserve the
-   imported or generated actor `urn:uuid` plus a distinct assignment
-   `urn:uuid`, owner and governed role. Emit ONESELF as the existing Patient,
-   an individual member assignment as RelatedPerson, or a professional
-   assignment as PractitionerRole plus its Practitioner. A new contract gets
-   a new assignment UUID without changing the actor UUID. Email, telephone,
-   OIDC `sub`, DCR `client_id`, operational actor DIDs and `kid` remain private
-   channel aliases and never become the exported clinical author.
+6. Derive FHIR provenance from the source event, not from transport. For a
+   member/caregiver flow, use the individual subject as `Composition.author`
+   when the member records a fact dictated or created by that individual; use
+   the registered `RelatedPerson` assignment when the member created it. The
+   same RelatedPerson remains the personal `Composition.attester` in both
+   cases, so author and attester may intentionally coincide. Apply the
+   equivalent owner-versus-creator choice to organization/PractitionerRole
+   flows.
+7. Preserve the imported or generated actor `urn:uuid` plus a distinct
+   assignment `urn:uuid`, owner and governed role. Emit ONESELF as the existing
+   Patient, an individual member assignment as RelatedPerson, or a professional
+   assignment as PractitionerRole plus its Practitioner. A new assignment
+   gets a new UUID without changing the actor UUID. Email, telephone, OIDC
+   `sub`, DCR `client_id`, operational actor DIDs and `kid` remain private
+   channel aliases and never become the exported clinical author or attester.
 8. Consent permissions for a bound clinical creator use the assignment UUID
    plus its separate governed role. Do not calculate new permission identity
    from a replaceable phone number, email address, DCR client or key.
@@ -56,9 +59,12 @@ only exact registry versions already verified for integrity and exports.
    and portal test; do not introduce copied literals.
 3. Keep JSDoc, the high-level commented snippet, Swagger and README links in
    sync with the executable fixture.
-4. Run direct FHIR and DIDComm transport tests. A mock unit test does not
+4. Cross-link the Node BFF clinical-writes 101 and the GW authenticated-author
+   101; keep one concise Composition/Bundle summary discoverable from each
+   repository README.
+5. Run direct FHIR and DIDComm transport tests. A mock unit test does not
    replace a real local boundary test.
-5. Complete `test -> local-network -> test-network -> network` in that order.
+6. Complete `test -> local-network -> test-network -> network` in that order.
    Do not publish, build an image or deploy while a required live E2E is
    skipped or failing.
 

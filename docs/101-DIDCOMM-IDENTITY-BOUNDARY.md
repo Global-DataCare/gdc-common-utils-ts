@@ -71,3 +71,23 @@ participant and must not be treated as transport authentication.
 
 SDKs select the carrier. Applications author the Communication and use the
 high-level facade; they do not manually copy transport identity fields.
+
+## FHIR author and attester are source provenance
+
+The authenticated channel proves who submitted and signed the request; it does
+not automatically select `Composition.author`.
+
+- If a member/caregiver records content created or dictated by the individual,
+  the individual subject is author and the member's registered
+  `RelatedPerson` assignment is personal attester.
+- If that member created the content, the `RelatedPerson` assignment may be
+  both author and attester.
+- The equivalent professional choice is organization-authored versus
+  `PractitionerRole`-authored content, with the registered PractitionerRole as
+  professional attester.
+
+Resolve these references from the protected creator binding. Never accept an
+arbitrary author, attester, sender DID or signing `kid` from a browser field.
+`buildFhirIpsCreatorProvenance(...)` defaults to the owner as author and accepts
+an explicit registered assignment through `compositionAuthorReference` when
+the authenticated creator is the source author.

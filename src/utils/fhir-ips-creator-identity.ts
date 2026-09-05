@@ -51,7 +51,12 @@ export type FhirIpsCreatorAuthor = Readonly<{
 }>;
 
 export type FhirIpsCreatorProvenanceInput = FhirIpsCreatorAuthorInput & Readonly<{
-  /** Explicit source originator; defaults to organization, subject, or oneself by creator kind. */
+  /**
+   * Explicit source originator. Defaults to the owning organization or
+   * individual. When the authenticated member/professional actually authored
+   * the content, pass its registered RelatedPerson/PractitionerRole assignment
+   * reference; that same assignment may also remain the attester.
+   */
   compositionAuthorReference?: string;
   /** Defaults to professional for employees and personal for individual members. */
   attesterMode?: CompositionAttesterMode;
@@ -72,10 +77,13 @@ export type FhirIpsCreatorProvenance = Readonly<{
 /**
  * Builds source authorship separately from the person or role that attests it.
  *
- * Defaults model the ordinary delegated flows: an organization's professional
- * attests an organization-authored record, while a member/caregiver attests a
- * subject-authored record. `compositionAuthorReference` remains explicit for
- * imports and cases where the actual originator differs from those defaults.
+ * Defaults model delegated flows: an organization's professional attests an
+ * organization-authored record, while a member/caregiver attests a
+ * subject-authored record. For content actually created by that authenticated
+ * member or professional, set `compositionAuthorReference` to its registered
+ * RelatedPerson or PractitionerRole assignment. Author and attester may then
+ * intentionally reference the same assignment; neither is the transport
+ * sender or signing key.
  */
 export function buildFhirIpsCreatorProvenance(
   input: FhirIpsCreatorProvenanceInput,

@@ -522,6 +522,12 @@ The canonical API contract should live in JSDoc on exported code. The README act
   - The base token examples are read-only; richer scenario fixtures intentionally add `organization/Consent.cruds`.
 - [`src/examples/related-person.ts`](src/examples/related-person.ts)
   - RelatedPerson/family-member examples.
+- [`buildFhirIpsCreatorProvenance(...)`](src/utils/fhir-ips-creator-identity.ts)
+  and [`docs/101-DIDCOMM-IDENTITY-BOUNDARY.md`](docs/101-DIDCOMM-IDENTITY-BOUNDARY.md)
+  - Keep `Composition.author`, `Composition.attester`, DIDComm sender and
+    signing key separate. A member-created fact may use the registered
+    RelatedPerson as both author and personal attester; a dictated
+    individual-created fact keeps the individual as author.
 - [`src/examples/frontend-session.ts`](src/examples/frontend-session.ts)
   - Frontend profile/session bootstrap examples.
 - [`src/examples/lifecycle.ts`](src/examples/lifecycle.ts)
