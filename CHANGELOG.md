@@ -4,6 +4,20 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.8.6] - 2026-09-04
+
+- Add canonical confidential-document provenance indexes for sector,
+  Composition identifier, author, attester, custodian, date, type, section and
+  technical creator/submitter/signing-key evidence.
+- Emit one indexed attribute per governed CSV claim value while temporarily
+  retaining the deprecated whole-CSV value for exact legacy queries.
+- Add organization-authored Composition provenance builders: a professional's
+  `PractitionerRole` or an individual member's `RelatedPerson` is the attester,
+  not an accidental replacement for the source author.
+- Add a generic hosted organization DID builder using the official identifier
+  type and value governed by the selected data space; preserve the tax-ID
+  provider helper as a compatibility facade.
+
 ## [2.8.5] - 2026-09-04
 
 - Preserve FHIR R4 `Composition.custodian` and the aligned

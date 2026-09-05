@@ -167,6 +167,36 @@ export function extractTenantIdFromHostedDidWeb(did: string): string | undefined
 }
 
 /**
+ * Builds the canonical hosted organization DID from the official identifier
+ * vocabulary governed by the selected data space.
+ *
+ * The identifier type is a path token such as `taxID`, `VAT`, or `BN`; this
+ * helper normalizes only that token and never guesses a type by parsing the
+ * identifier value. The corresponding FHIR Organization must retain the same
+ * type and value in `Organization.identifier`.
+ */
+export function buildHostedOrganizationDidWeb(input: {
+  hostDomain: string;
+  sector: string;
+  officialIdentifierType: string;
+  officialIdentifierValue: string;
+}): string {
+  const hostDomain = String(input.hostDomain || '').trim().toLowerCase();
+  const sector = String(input.sector || '').trim().toLowerCase();
+  const identifierType = String(input.officialIdentifierType || '').trim().toLowerCase();
+  const identifierValue = String(input.officialIdentifierValue || '').trim();
+  if (!hostDomain) throw new Error('buildHostedOrganizationDidWeb requires hostDomain.');
+  if (!sector) throw new Error('buildHostedOrganizationDidWeb requires sector.');
+  if (!/^[a-z][a-z0-9._-]*$/.test(identifierType)) {
+    throw new Error('buildHostedOrganizationDidWeb requires a canonical officialIdentifierType path token.');
+  }
+  if (!identifierValue || /[:/\s]/.test(identifierValue)) {
+    throw new Error('buildHostedOrganizationDidWeb requires one DID-path-safe officialIdentifierValue.');
+  }
+  return `did:web:${hostDomain}:${sector}:organization:${identifierType}:${identifierValue}`;
+}
+
+/**
  * Builds the canonical hosted provider DID root used by hosted tenant services.
  *
  * Canonical form:
@@ -187,7 +217,12 @@ export function buildHostedProviderDidWeb(input: {
   if (!hostDomain) throw new Error('buildHostedProviderDidWeb requires hostDomain.');
   if (!sector) throw new Error('buildHostedProviderDidWeb requires sector.');
   if (!providerTaxId) throw new Error('buildHostedProviderDidWeb requires providerTaxId.');
-  return `did:web:${hostDomain}:${sector}:organization:taxid:${providerTaxId}`;
+  return buildHostedOrganizationDidWeb({
+    hostDomain,
+    sector,
+    officialIdentifierType: 'taxid',
+    officialIdentifierValue: providerTaxId,
+  });
 }
 
 /**
