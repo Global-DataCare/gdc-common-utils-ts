@@ -103,9 +103,7 @@ export function buildFhirIpsCreatorProvenance(
   const defaultAuthor = input.kind === FhirIpsCreatorKinds.Professional
     ? input.organizationReference
     : input.subjectReference;
-  const requestedAuthor = input.compositionAuthorReference === creator.authorReference
-    ? defaultAuthor
-    : input.compositionAuthorReference;
+  const requestedAuthor = input.compositionAuthorReference;
   const mode = input.attesterMode || (
     input.kind === FhirIpsCreatorKinds.Professional
       ? CompositionAttesterModes.Professional

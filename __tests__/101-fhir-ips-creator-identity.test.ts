@@ -146,6 +146,7 @@ describe('101: one stable clinical creator across channels and FHIR IPS export',
       role: `${caregiver.codingSystem}|${caregiver.code}`,
       compositionAuthorReference: relationshipIdentifier,
     });
+    expect(provenance.authorReference).toBe(relationshipIdentifier);
     expect(provenance.attesters[0].party.reference).toBe(relationshipIdentifier);
     expect(provenance.entries[0].resource).toEqual(expect.objectContaining({
       resourceType: 'RelatedPerson',
