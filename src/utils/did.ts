@@ -4,6 +4,12 @@
 import { ServiceEndpointSelector } from "../models/did";
 import { multibase58MultihashSha3_256 } from './same-as';
 import { HL7_CLAIMS_CODING_SYSTEM, HL7_DEFAULT_ROLE_HEALTH } from '../constants/hl7-roles';
+import {
+  SecureIdTypesIndividual,
+  type SecureIdTypeIndividual,
+} from '../constants/identity-identifiers';
+import { normalizePhone } from './consent';
+import { encodeMultibaseSha3 } from './multibasehash';
 
 /**
  * Canonical DID path markers for hosted/provider individual identities.
@@ -17,6 +23,79 @@ export const IndividualDidMarkers = {
   Member: 'member',
   Role: 'role',
 } as const;
+
+const UUID_VALUE_PATTERN = /^[0-9a-f]{8}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{12}$/i;
+const MULTIBASE_SHA3_384_PATTERN = /^z[1-9A-HJ-NP-Za-km-z]+$/;
+
+/**
+ * Builds the privacy-preserving value used by a hosted individual DID.
+ *
+ * Wire profile: `multibase(base58btc(multihash(SHA3-384, canonical-bytes)))`.
+ * The returned value is the bare `z...` path token, not an
+ * `urn:multibase:...` value and not a CID.
+ *
+ * Canonical inputs:
+ * - `UUID`: remove hyphens, interpret the 32 hexadecimal digits as the UUID's
+ *   canonical 16 bytes, then hash those bytes;
+ * - `EMAIL`: remove `mailto:`, whitespace and letter-case differences;
+ * - `PHONE`: remove `tel:` and normalize the number through the shared phone
+ *   normalizer (including its E.164 leading `+` when supplied);
+ * - HL7 v2-0203 and other governed private identifiers: NFKC-normalized,
+ *   trimmed, upper-case UTF-8 text. Their type and jurisdiction remain
+ *   separate governed fields and are never inferred from the value.
+ */
+function buildSecureIdValue(typeInput: SecureIdTypeIndividual | string, valueInput: string, context: string): string {
+  const type = String(typeInput || '').trim().toUpperCase();
+  const rawValue = String(valueInput || '').trim();
+  if (!type) throw new Error(`${context} requires a secure identifier type.`);
+  if (!rawValue) throw new Error(`${context} requires a private identifier value.`);
+  if (type === SecureIdTypesIndividual.Uuid) {
+    if (!UUID_VALUE_PATTERN.test(rawValue)) {
+      throw new Error(`${context} requires a hexadecimal UUID value.`);
+    }
+    const hex = rawValue.replace(/-/g, '').toLowerCase();
+    const bytes = new Uint8Array(16);
+    for (let index = 0; index < bytes.length; index += 1) {
+      bytes[index] = Number.parseInt(hex.slice(index * 2, index * 2 + 2), 16);
+    }
+    return encodeMultibaseSha3(bytes, 384);
+  }
+
+  const canonicalText = type === SecureIdTypesIndividual.Email
+    ? rawValue.replace(/^mailto:/i, '').replace(/\s+/g, '').toLowerCase()
+    : type === SecureIdTypesIndividual.Phone
+      ? normalizePhone(rawValue.replace(/^tel:/i, ''))
+      : rawValue.normalize('NFKC').toUpperCase();
+  if (!canonicalText) throw new Error(`${context} requires a valid ${type} value.`);
+  return encodeMultibaseSha3(canonicalText, 384);
+}
+
+export function buildSecureIdValueIndividual(input: {
+  secureIdTypeIndividual: SecureIdTypeIndividual | string;
+  privateIdValueIndividual: string;
+}): string {
+  return buildSecureIdValue(
+    input.secureIdTypeIndividual,
+    input.privateIdValueIndividual,
+    'buildSecureIdValueIndividual',
+  );
+}
+
+/**
+ * Builds the same SHA3-384 multihash path value for the private identifier of
+ * an individual member/controller. The member and represented individual
+ * remain distinct inputs even when both refer to the same natural person.
+ */
+export function buildSecureIdValueMember(input: {
+  secureIdTypeMember: SecureIdTypeIndividual | string;
+  privateIdValueMember: string;
+}): string {
+  return buildSecureIdValue(
+    input.secureIdTypeMember,
+    input.privateIdValueMember,
+    'buildSecureIdValueMember',
+  );
+}
 
 /**
  * Removes any coding-system prefix from a role claim when building a member DID.
@@ -390,30 +469,47 @@ export function buildProfessionalDidWeb(input: {
  * Builds the canonical individual DID under either a hosted-provider DID root
  * or an external provider-sector DID root.
  *
- * Canonical supported forms:
- * - hosted:
- *   `did:web:<host.domain>:<sector>:organization:taxid:<provider-tax-id>:individual:multibase:<individualId>`
- * - external/provider-domain:
- *   `did:web:<sector.provider.domain>:individual:multibase:<individualId>`
+ * Canonical hosted form:
+ * `did:web:<provider-path>:individual:<secureIdTypeIndividual>:<secureIdValueIndividual>`
  *
  * Important semantics:
- * - `individualId` must be the canonical stable identity of the individual
- * - `individualId` should already be serialized in multibase form, typically
- *   `zBase58(UUID-bytes)`
- * - role is not part of the canonical individual DID; roles are only appended
- *   in member DIDs via `:member:role:<role-code-no-coding-system>`
+ * - the type remains an explicit upper-case path token such as `UUID`, `DL`,
+ *   `PPN`, `EMAIL`, or `PHONE`;
+ * - the value is always the one-way SHA3-384 multihash built by
+ *   `buildSecureIdValueIndividual`, never the private identifier in plain text;
+ * - role is not part of the individual DID.
  *
  * Backward-compatibility:
  * - `subjectId` is accepted as a legacy alias for `individualId`
  */
 export function buildIndividualDidWeb(input: {
   providerDidWeb: string;
+  secureIdTypeIndividual?: SecureIdTypeIndividual | string;
+  secureIdValueIndividual?: string;
+  /** @deprecated Use `secureIdTypeIndividual` plus `secureIdValueIndividual`. */
   individualId?: string;
+  /** @deprecated Use `secureIdTypeIndividual` plus `secureIdValueIndividual`. */
   subjectId?: string;
 }): string {
   const providerDidWeb = String(input.providerDidWeb || '').trim();
+  const secureIdTypeIndividual = String(input.secureIdTypeIndividual || '').trim().toUpperCase();
+  const secureIdValueIndividual = String(input.secureIdValueIndividual || '').trim();
   const individualId = String(input.individualId || input.subjectId || '').trim();
   if (!providerDidWeb) throw new Error('buildIndividualDidWeb requires providerDidWeb.');
+  if (secureIdTypeIndividual || secureIdValueIndividual) {
+    if (!secureIdTypeIndividual || !secureIdValueIndividual) {
+      throw new Error('buildIndividualDidWeb requires both secure individual id type and value.');
+    }
+    if (!MULTIBASE_SHA3_384_PATTERN.test(secureIdValueIndividual)) {
+      throw new Error('buildIndividualDidWeb requires secureIdValueIndividual as bare multibase base58btc.');
+    }
+    return [
+      providerDidWeb,
+      IndividualDidMarkers.Individual,
+      secureIdTypeIndividual,
+      secureIdValueIndividual,
+    ].join(':');
+  }
   if (!individualId) throw new Error('buildIndividualDidWeb requires individualId.');
   return [
     providerDidWeb,
@@ -427,22 +523,103 @@ export function buildIndividualDidWeb(input: {
  * Builds the canonical member DID under an individual DID.
  *
  * Canonical form:
- * `did:web:...:individual:multibase:<individualId>:member:role:<role-code-no-coding-system>`
+ * `did:web:...:individual:<type>:<secure-value>:member:<secure-member-value>:<role-value>`
  *
- * The DID suffix intentionally strips coding-system prefixes because the DID is
- * a compact routing/identity string, while the full coded role still belongs in
- * the claims layer.
+ * `roleType` is mandatory input so callers cannot accidentally lose the coded
+ * role semantics. Only `roleValue` is serialized in the DID because the full
+ * FHIR token (`system|value`) remains in the protected claims/licence layer.
  */
 export function buildIndividualMemberDidWeb(input: {
   individualDidWeb: string;
-  role: string;
+  memberId?: string;
+  roleType?: string;
+  roleValue?: string;
+  /** @deprecated Use `roleType` plus `roleValue`. */
+  role?: string;
 }): string {
   const individualDidWeb = String(input.individualDidWeb || '').trim();
   if (!individualDidWeb) throw new Error('buildIndividualMemberDidWeb requires individualDidWeb.');
+  const memberId = String(input.memberId || '').trim();
+  const roleType = String(input.roleType || '').trim();
+  const roleValue = String(input.roleValue || '').trim();
+  if (memberId || roleType || roleValue) {
+    if (!MULTIBASE_SHA3_384_PATTERN.test(memberId)) {
+      throw new Error('buildIndividualMemberDidWeb requires memberId as bare multibase base58btc.');
+    }
+    if (!roleType || !roleValue) {
+      throw new Error('buildIndividualMemberDidWeb requires both roleType and roleValue.');
+    }
+    return [individualDidWeb, IndividualDidMarkers.Member, memberId, roleValue].join(':');
+  }
   return [
     individualDidWeb,
     IndividualDidMarkers.Member,
     IndividualDidMarkers.Role,
-    toDidMemberRoleCode(input.role),
+    toDidMemberRoleCode(String(input.role || '')),
   ].join(':');
+}
+
+/**
+ * Builds a complete hosted individual-member DID directly from the private
+ * identifiers already held by an authorized BFF.
+ *
+ * This is the integration helper for portals: the provider DID returned by GW,
+ * the individual's private UUID or other governed identifier, the logged-in
+ * member's email/phone/private identifier, and the protected role type/value
+ * are sufficient. Neither private identifier is serialized in the result.
+ */
+export function buildIndividualMemberDidWebFromPrivateIdentifiers(input: {
+  providerDidWeb: string;
+  secureIdTypeIndividual: SecureIdTypeIndividual | string;
+  privateIdValueIndividual: string;
+  secureIdTypeMember: SecureIdTypeIndividual | string;
+  privateIdValueMember: string;
+  roleType: string;
+  roleValue: string;
+}): string {
+  const individualDidWeb = buildIndividualDidWeb({
+    providerDidWeb: input.providerDidWeb,
+    secureIdTypeIndividual: input.secureIdTypeIndividual,
+    secureIdValueIndividual: buildSecureIdValueIndividual({
+      secureIdTypeIndividual: input.secureIdTypeIndividual,
+      privateIdValueIndividual: input.privateIdValueIndividual,
+    }),
+  });
+  return buildIndividualMemberDidWeb({
+    individualDidWeb,
+    memberId: buildSecureIdValueMember({
+      secureIdTypeMember: input.secureIdTypeMember,
+      privateIdValueMember: input.privateIdValueMember,
+    }),
+    roleType: input.roleType,
+    roleValue: input.roleValue,
+  });
+}
+
+/**
+ * Parses one hosted individual-member DID without interpreting its role value
+ * as authorization. The complete role system and value must still be checked
+ * against the protected licence or credential by the consuming gateway.
+ */
+export function parseIndividualMemberDidWeb(didWeb: string): {
+  individualDidWeb: string;
+  memberId: string;
+  roleValue: string;
+} {
+  const candidate = String(didWeb || '').trim();
+  const marker = `:${IndividualDidMarkers.Member}:`;
+  const markerOffset = candidate.lastIndexOf(marker);
+  if (!candidate.startsWith('did:web:') || markerOffset < 0) {
+    throw new Error('Invalid hosted individual member DID.');
+  }
+  const individualDidWeb = candidate.slice(0, markerOffset);
+  const suffix = candidate.slice(markerOffset + marker.length).split(':');
+  const [memberId, roleValue, ...unexpected] = suffix;
+  if (!individualDidWeb.includes(`:${IndividualDidMarkers.Individual}:`)
+    || unexpected.length > 0
+    || !MULTIBASE_SHA3_384_PATTERN.test(String(memberId || ''))
+    || !String(roleValue || '').trim()) {
+    throw new Error('Invalid hosted individual member DID.');
+  }
+  return { individualDidWeb, memberId, roleValue };
 }

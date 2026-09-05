@@ -7,7 +7,8 @@ import { FhirCodeSystems } from '../constants/fhir-code-systems';
 import { Format } from '../constants/Schemas';
 import { ResourceTypesFhirR4 } from '../constants/fhir-resource-types';
 import { BirthSex, GenderIdentity } from '../constants/identity-gender';
-import { IdKind } from '../constants/identity-identifiers';
+import { IdKind, SecureIdTypesIndividual } from '../constants/identity-identifiers';
+import { HL7_CODING_SYSTEM_V3_ROLE_CODE } from '../constants/hl7-roles';
 import {
   HealthcareActorRoles,
   HealthcareBasicSections,
@@ -21,6 +22,8 @@ import {
   buildHostedProviderDidWeb,
   buildIndividualDidWeb,
   buildIndividualMemberDidWeb,
+  buildSecureIdValueIndividual,
+  buildSecureIdValueMember,
   buildProfessionalDidWeb,
   buildProviderSectorDidWeb,
 } from '../utils/did';
@@ -194,6 +197,8 @@ export const EXAMPLE_PROVIDER_DOMAIN = 'health-care.provider.example.org' as con
 export const EXAMPLE_PUBLIC_PORTAL_DOMAIN = 'portal.example.org' as const;
 export const EXAMPLE_INDIVIDUAL_MULTIBASE_ID =
   encodeHexToMultibase58btc('a87e5b15aea444759c7c40aa88354b6f');
+/** Synthetic private UUID used to prove one-way hosted individual DID construction. */
+export const EXAMPLE_PRIVATE_INDIVIDUAL_UUID = 'a87e5b15-aea4-4475-9c7c-40aa88354b6f' as const;
 export const EXAMPLE_INDIVIDUAL_MULTIBASE_ID_SECONDARY =
   encodeHexToMultibase58btc('b98f6c24bfb545849d8d51bb99465c7e');
 export const EXAMPLE_INDIVIDUAL_MULTIBASE_ID_TERTIARY =
@@ -285,7 +290,28 @@ export const EXAMPLE_HEALTHCARE_ACTOR_ROLE_GENERALIST_MEDICAL_PRACTITIONER =
   HealthcareActorRoles.GeneralistMedicalPractitioner;
 export const EXAMPLE_HEALTHCARE_ACTOR_ROLE_RECEPTIONIST = 'ISCO-08|4226' as const;
 export const EXAMPLE_HEALTHCARE_ROLE_PHYSICIAN_TEXT = 'physician' as const;
+export const EXAMPLE_INDIVIDUAL_CONTROLLER_ROLE_TYPE = HL7_CODING_SYSTEM_V3_ROLE_CODE;
+export const EXAMPLE_INDIVIDUAL_CONTROLLER_ROLE_VALUE = EXAMPLE_ORGANIZATION_CONTROLLER_ROLE;
 export const EXAMPLE_RELATED_PERSON_ROLE = 'v3-RoleCode|RESPRSN' as const;
+export const EXAMPLE_SECURE_ID_VALUE_INDIVIDUAL = buildSecureIdValueIndividual({
+  secureIdTypeIndividual: SecureIdTypesIndividual.Uuid,
+  privateIdValueIndividual: EXAMPLE_PRIVATE_INDIVIDUAL_UUID,
+});
+export const EXAMPLE_SECURE_ID_VALUE_INDIVIDUAL_CONTROLLER = buildSecureIdValueMember({
+  secureIdTypeMember: SecureIdTypesIndividual.Email,
+  privateIdValueMember: EXAMPLE_EMAIL_CONTROLLER_INDIVIDUAL,
+});
+export const EXAMPLE_HOSTED_INDIVIDUAL_DID = buildIndividualDidWeb({
+  providerDidWeb: EXAMPLE_HOSTED_PROVIDER_DID,
+  secureIdTypeIndividual: SecureIdTypesIndividual.Uuid,
+  secureIdValueIndividual: EXAMPLE_SECURE_ID_VALUE_INDIVIDUAL,
+});
+export const EXAMPLE_HOSTED_INDIVIDUAL_CONTROLLER_DID = buildIndividualMemberDidWeb({
+  individualDidWeb: EXAMPLE_HOSTED_INDIVIDUAL_DID,
+  memberId: EXAMPLE_SECURE_ID_VALUE_INDIVIDUAL_CONTROLLER,
+  roleType: EXAMPLE_INDIVIDUAL_CONTROLLER_ROLE_TYPE,
+  roleValue: EXAMPLE_INDIVIDUAL_CONTROLLER_ROLE_VALUE,
+});
 export const EXAMPLE_RELATED_PERSON_MEMBER_DID = buildIndividualMemberDidWeb({
   individualDidWeb: EXAMPLE_SUBJECT_DID,
   role: EXAMPLE_RELATED_PERSON_ROLE,

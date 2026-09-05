@@ -17,6 +17,7 @@ import {
 } from '../src/constants/healthcare.js';
 import { DataspaceSectors } from '../src/constants/sectors.js';
 import { roleCodeI18nEn } from '../src/i18n/role-codes.i18n.js';
+import { HL7_CODING_SYSTEM_V3_ROLE_CODE } from '../src/constants/hl7-roles.js';
 
 describe('healthcare role catalogs', () => {
   it('exposes role families for ISCO-08 and HL7 relationship/legal sets', () => {
@@ -32,6 +33,9 @@ describe('healthcare role catalogs', () => {
   it('resolves role descriptors by claim with i18n keys and labels', () => {
     const generalistDoctor = getHealthcareRoleByClaim(HealthcareActorRoles.GeneralistMedicalPractitioner);
     const responsibleParty = getHealthcareRoleByClaim('v3-RoleCode|RESPRSN');
+    const responsiblePartyFhirToken = getHealthcareRoleByClaim(
+      `${HL7_CODING_SYSTEM_V3_ROLE_CODE}|RESPRSN`,
+    );
     const oneSelf = getHealthcareRoleByClaim('v3-RoleCode|ONESELF');
 
     expect(generalistDoctor).toBeDefined();
@@ -39,6 +43,7 @@ describe('healthcare role catalogs', () => {
     expect(generalistDoctor?.i18nKey).toBe('org.ilo.isco-08.2211');
 
     expect(responsibleParty).toBeDefined();
+    expect(responsiblePartyFhirToken).toEqual(responsibleParty);
     expect(responsibleParty?.i18nKey).toBe('org.hl7.terminology.CodeSystem.v3-RoleCode.RESPRSN');
 
     expect(oneSelf).toBeDefined();
