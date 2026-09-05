@@ -4,6 +4,8 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.9.2] - 2026-09-05
+
 - Add jurisdiction-mandatory, versioned CDS organization/member authorization
   URN builders. Legal organizations now have the host-independent shape
   `urn:cds-<jurisdiction>:v1:organization:<type>:<value>`; member paths append
