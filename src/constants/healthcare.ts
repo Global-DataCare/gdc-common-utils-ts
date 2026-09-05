@@ -577,6 +577,10 @@ export const HealthcareActorRoles = Object.freeze({
   MidwiferyProfessional: 'ISCO-08|2222',
   Paramedic: 'ISCO-08|2240',
   Veterinarian: 'ISCO-08|2250',
+  /** ISCO-08 laboratory occupation for non-medical life-science work. */
+  LifeScienceTechnician: 'ISCO-08|3141',
+  /** ISCO-08 laboratory occupation for human medical/pathology work. */
+  MedicalAndPathologyLaboratoryTechnician: 'ISCO-08|3212',
   VeterinaryTechnicianOrAssistant: 'ISCO-08|3240',
   /** Administrative health occupation; it does not imply clinical authority. */
   MedicalSecretary: 'ISCO-08|3344',
@@ -601,6 +605,8 @@ export const HealthcareActorRoleCodes = Object.freeze({
   MidwiferyProfessional: '2222',
   Paramedic: '2240',
   Veterinarian: '2250',
+  LifeScienceTechnician: '3141',
+  MedicalAndPathologyLaboratoryTechnician: '3212',
   VeterinaryTechnicianOrAssistant: '3240',
   MedicalSecretary: '3344',
 } as const);
@@ -682,6 +688,28 @@ function buildProfessionalIscoRoles(): Readonly<Record<string, HealthcareActorRo
         claim: HealthcareActorRoles.Veterinarian,
         i18nKey: `${ISCO08_I18N_NAMESPACE}.${HealthcareActorRoleCodes.Veterinarian}`,
         titleEn: 'Veterinarian',
+      }),
+    ],
+    [
+      HealthcareActorRoleCodes.LifeScienceTechnician,
+      Object.freeze({
+        family: HealthcareRoleFamilies.ProfessionalOccupationIsco08,
+        codingSystem: ISCO08_CODING_SYSTEM,
+        code: HealthcareActorRoleCodes.LifeScienceTechnician,
+        claim: HealthcareActorRoles.LifeScienceTechnician,
+        i18nKey: `${ISCO08_I18N_NAMESPACE}.${HealthcareActorRoleCodes.LifeScienceTechnician}`,
+        titleEn: 'Life science technician (excluding medical)',
+      }),
+    ],
+    [
+      HealthcareActorRoleCodes.MedicalAndPathologyLaboratoryTechnician,
+      Object.freeze({
+        family: HealthcareRoleFamilies.ProfessionalOccupationIsco08,
+        codingSystem: ISCO08_CODING_SYSTEM,
+        code: HealthcareActorRoleCodes.MedicalAndPathologyLaboratoryTechnician,
+        claim: HealthcareActorRoles.MedicalAndPathologyLaboratoryTechnician,
+        i18nKey: `${ISCO08_I18N_NAMESPACE}.${HealthcareActorRoleCodes.MedicalAndPathologyLaboratoryTechnician}`,
+        titleEn: 'Medical and pathology laboratory technician',
       }),
     ],
     [
@@ -816,6 +844,13 @@ export const HealthcareProfessionalRoleCodesBySector = Object.freeze({
     HealthcareActorRoleCodes.SpecialistMedicalPractitioner,
     HealthcareActorRoleCodes.MedicalSecretary,
   ]),
+  [DataspaceSectors.HealthLab]: Object.freeze([
+    HealthcareActorRoleCodes.Controller,
+    HealthcareActorRoleCodes.MedicalDoctors,
+    HealthcareActorRoleCodes.SpecialistMedicalPractitioner,
+    HealthcareActorRoleCodes.MedicalAndPathologyLaboratoryTechnician,
+    HealthcareActorRoleCodes.MedicalSecretary,
+  ]),
   [DataspaceSectors.HealthTech]: Object.freeze([HealthcareActorRoleCodes.Controller]),
   [DataspaceSectors.HealthInsurance]: Object.freeze([HealthcareActorRoleCodes.Controller]),
   [DataspaceSectors.AnimalCare]: Object.freeze([
@@ -828,6 +863,12 @@ export const HealthcareProfessionalRoleCodesBySector = Object.freeze({
     HealthcareActorRoleCodes.Veterinarian,
     HealthcareActorRoleCodes.VeterinaryTechnicianOrAssistant,
   ]),
+  [DataspaceSectors.AnimalLab]: Object.freeze([
+    HealthcareActorRoleCodes.Controller,
+    HealthcareActorRoleCodes.Veterinarian,
+    HealthcareActorRoleCodes.LifeScienceTechnician,
+    HealthcareActorRoleCodes.VeterinaryTechnicianOrAssistant,
+  ]),
   [DataspaceSectors.AnimalInsurance]: Object.freeze([HealthcareActorRoleCodes.Controller]),
   [DataspaceSectors.AnimalTech]: Object.freeze([HealthcareActorRoleCodes.Controller]),
   [DataspaceSectors.OneHealthResearch]: Object.freeze([
@@ -836,6 +877,16 @@ export const HealthcareProfessionalRoleCodesBySector = Object.freeze({
     HealthcareActorRoleCodes.GeneralistMedicalPractitioner,
     HealthcareActorRoleCodes.SpecialistMedicalPractitioner,
     HealthcareActorRoleCodes.Veterinarian,
+    HealthcareActorRoleCodes.VeterinaryTechnicianOrAssistant,
+    HealthcareActorRoleCodes.MedicalSecretary,
+  ]),
+  [DataspaceSectors.OneHealthLab]: Object.freeze([
+    HealthcareActorRoleCodes.Controller,
+    HealthcareActorRoleCodes.MedicalDoctors,
+    HealthcareActorRoleCodes.SpecialistMedicalPractitioner,
+    HealthcareActorRoleCodes.Veterinarian,
+    HealthcareActorRoleCodes.LifeScienceTechnician,
+    HealthcareActorRoleCodes.MedicalAndPathologyLaboratoryTechnician,
     HealthcareActorRoleCodes.VeterinaryTechnicianOrAssistant,
     HealthcareActorRoleCodes.MedicalSecretary,
   ]),
@@ -850,6 +901,10 @@ export const HealthcareProfessionalRolesBySector = Object.freeze({
   [DataspaceSectors.HealthResearch]: pickRoleCatalogByCodes(
     HealthcareProfessionalAndControllerRoles,
     HealthcareProfessionalRoleCodesBySector[DataspaceSectors.HealthResearch],
+  ),
+  [DataspaceSectors.HealthLab]: pickRoleCatalogByCodes(
+    HealthcareProfessionalAndControllerRoles,
+    HealthcareProfessionalRoleCodesBySector[DataspaceSectors.HealthLab],
   ),
   [DataspaceSectors.HealthTech]: pickRoleCatalogByCodes(
     HealthcareProfessionalAndControllerRoles,
@@ -867,6 +922,10 @@ export const HealthcareProfessionalRolesBySector = Object.freeze({
     HealthcareProfessionalAndControllerRoles,
     HealthcareProfessionalRoleCodesBySector[DataspaceSectors.AnimalResearch],
   ),
+  [DataspaceSectors.AnimalLab]: pickRoleCatalogByCodes(
+    HealthcareProfessionalAndControllerRoles,
+    HealthcareProfessionalRoleCodesBySector[DataspaceSectors.AnimalLab],
+  ),
   [DataspaceSectors.AnimalInsurance]: pickRoleCatalogByCodes(
     HealthcareProfessionalAndControllerRoles,
     HealthcareProfessionalRoleCodesBySector[DataspaceSectors.AnimalInsurance],
@@ -878,6 +937,10 @@ export const HealthcareProfessionalRolesBySector = Object.freeze({
   [DataspaceSectors.OneHealthResearch]: pickRoleCatalogByCodes(
     HealthcareProfessionalAndControllerRoles,
     HealthcareProfessionalRoleCodesBySector[DataspaceSectors.OneHealthResearch],
+  ),
+  [DataspaceSectors.OneHealthLab]: pickRoleCatalogByCodes(
+    HealthcareProfessionalAndControllerRoles,
+    HealthcareProfessionalRoleCodesBySector[DataspaceSectors.OneHealthLab],
   ),
   [DataspaceSectors.OneHealthTech]: pickRoleCatalogByCodes(
     HealthcareProfessionalAndControllerRoles,

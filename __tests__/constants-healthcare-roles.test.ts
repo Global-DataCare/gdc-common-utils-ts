@@ -72,6 +72,20 @@ describe('healthcare role catalogs', () => {
     expect(animalRoles['3344']).toBeUndefined();
   });
 
+  it('exposes laboratory sectors with human, animal, and one-health occupations', () => {
+    const healthLab = getHealthcareProfessionalRolesBySector(DataspaceSectors.HealthLab);
+    const animalLab = getHealthcareProfessionalRolesBySector(DataspaceSectors.AnimalLab);
+    const oneHealthLab = getHealthcareProfessionalRolesBySector(DataspaceSectors.OneHealthLab);
+
+    expect(healthLab['3212']?.claim).toBe(HealthcareActorRoles.MedicalAndPathologyLaboratoryTechnician);
+    expect(healthLab['3141']).toBeUndefined();
+    expect(animalLab['3141']?.claim).toBe(HealthcareActorRoles.LifeScienceTechnician);
+    expect(animalLab['3212']).toBeUndefined();
+    expect(oneHealthLab['3212']?.claim).toBe(HealthcareActorRoles.MedicalAndPathologyLaboratoryTechnician);
+    expect(oneHealthLab['3141']?.claim).toBe(HealthcareActorRoles.LifeScienceTechnician);
+    expect(oneHealthLab['2250']?.claim).toBe(HealthcareActorRoles.Veterinarian);
+  });
+
   it('exposes per-sector family catalogs for professional and personal roles', () => {
     const healthProfessional = getHealthcareRolesBySector(
       DataspaceSectors.HealthResearch,
@@ -95,6 +109,8 @@ describe('healthcare role catalogs', () => {
     expect(roleCodeI18nEn['org.ilo.isco-08.2222']).toBe('Midwifery professional');
     expect(roleCodeI18nEn['org.ilo.isco-08.3344']).toBe('Medical secretary');
     expect(roleCodeI18nEn['org.ilo.isco-08.2250']).toBe('Veterinarian');
+    expect(roleCodeI18nEn['org.ilo.isco-08.3212']).toBe('Medical and pathology laboratory technician');
+    expect(roleCodeI18nEn['org.ilo.isco-08.3141']).toBe('Life science technician (excluding medical)');
     expect(roleCodeI18nEn['org.hl7.terminology.CodeSystem.v3-RoleCode.ONESELF']).toBeDefined();
     expect(roleCodeI18nEn['org.hl7.terminology.CodeSystem.v3-RoleCode.RESPRSN']).toBeDefined();
   });

@@ -427,7 +427,9 @@ The canonical API contract should live in JSDoc on exported code. The README act
     sections after six extensions, and the complete 82-section/classification
     catalog. The IPS document type lives separately in `HealthcareDocumentTypes`.
 - [`HealthcareConsentPurposes`, `HealthcareConsentActions`, `HealthcareActorRoles`, `HealthcareActorRoleCodes`](src/constants/healthcare.ts)
-  - Shared healthcare authorization and role constants.
+  - Shared healthcare authorization and role constants, including the
+    `health-lab`, `animal-lab`, and `onehealth-lab` sector catalogs. See
+    [Healthcare Roles and i18n 101](docs/101-HEALTHCARE_ROLES_I18N.md).
 - [`EXAMPLE_PROFESSIONAL_ACCESS_SCENARIOS`](src/examples/professional.ts)
   - Reusable professional role/permission examples tying actor role, consent action, SMART scope, and expected FHIR resource types together.
 - [`DeviceUserClasses`, `DeviceAppTypes`](src/constants/device.ts)

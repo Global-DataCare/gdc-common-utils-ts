@@ -4,6 +4,11 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Add the product-neutral `health-lab`, `animal-lab`, and `onehealth-lab`
+  sectors with canonical ISCO-08 medical/pathology (`3212`) and non-medical
+  life-science (`3141`) laboratory occupations. Laboratory sector selection
+  remains separate from UI document-type and Encounter policy.
+
 - Constrain Communication categories to the four FHIR R4 codes, add the HL7
   v3 ActReason `BTG` topic, and document the IHE nested normal/restricted
   Consent example while preserving flat-claims round trips.
