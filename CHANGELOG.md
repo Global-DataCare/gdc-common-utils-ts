@@ -4,6 +4,13 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.9.3] - 2026-09-05
+
+- Honor an explicitly selected `RelatedPerson` as `Composition.author` for
+  controller/caregiver-created content while retaining that same registered
+  assignment as the personal attester. Individual-authored content can still
+  select the subject explicitly.
+
 ## [2.9.2] - 2026-09-05
 
 - Add jurisdiction-mandatory, versioned CDS organization/member authorization

@@ -88,7 +88,7 @@ describe('confidential clinical-document provenance', () => {
     }]);
   });
 
-  it('keeps the individual as author and the RelatedPerson as attester when the member created the fact', () => {
+  it('uses the RelatedPerson as both author and attester when the member created the fact', () => {
     const memberIdentifier = `urn:uuid:${EXAMPLE_KYC_CONTROLLER_USER_UUID}`;
     const relationshipIdentifier = `urn:uuid:${EXAMPLE_KYC_CONTROLLER_UUID}`;
 
@@ -101,7 +101,7 @@ describe('confidential clinical-document provenance', () => {
       compositionAuthorReference: relationshipIdentifier,
     });
 
-    expect(provenance.authorReference).toBe(EXAMPLE_SUBJECT_DID);
+    expect(provenance.authorReference).toBe(relationshipIdentifier);
     expect(provenance.attesters).toEqual([{
       mode: CompositionAttesterModes.Personal,
       party: { reference: relationshipIdentifier },
