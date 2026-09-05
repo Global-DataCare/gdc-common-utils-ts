@@ -417,6 +417,9 @@ The canonical API contract should live in JSDoc on exported code. The README act
   - Use instead of inline resource type strings.
 - [`CommunicationCategoryCodes`](src/constants/communication.ts)
   - Canonical `Communication.category` coding descriptors and `<system>|<code>` claims.
+  - Exactly the four FHIR R4 categories; use `CommunicationTopicCodes.BreakTheGlass`
+    for the HL7 v3 ActReason `BTG` topic and LOINC catalogs for clinical
+    section/document topics. See [Communication Layering 101](docs/101-COMMUNICATION_LAYERING.md).
 - [`ObservationCategoryCodes`, `VitalSignsCodes`, `VitalSignsUnits`](src/constants/vital-signs.ts)
   - Canonical Vital Signs category, code, and UCUM unit descriptors for `Observation`.
 - [`HealthcareSummarySections`, `HealthcareCoreSections`, `HealthcareAllSections`](src/constants/healthcare.ts)

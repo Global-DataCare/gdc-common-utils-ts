@@ -28,6 +28,40 @@ This document is the source of truth for:
 - `gdc-sdk-front-ts`
 - `gwtemplate-node-ts`
 
+## Category and topic are standards, not product labels
+
+Canonical business data remains flat claims. `Communication.category` uses
+only the four codes defined by the FHIR R4 value set: `alert`, `notification`,
+`reminder`, and `instruction`. See the
+[FHIR Communication category value set](https://www.hl7.org/fhir/valueset-communication-category.html).
+Store the full `<system>|<code>` token and translate only its display label in
+the consuming UI.
+
+`Communication.topic` identifies the clinical section or document type with a
+LOINC token such as `LOINC|60591-5`. Break-glass is the governed exception: an
+emergency alert uses the HL7 v3 ActReason
+[`BTG`](http://terminology.hl7.org/CodeSystem/v3-ActReason#v3-ActReason-BTG)
+topic. The IHE PCF
+[advanced Consent example](https://profiles.ihe.net/ITI/PCF/Consent-ex-consent-advanced-normal-break-glass-restricted.json.html)
+places normal access in the outer provision and nests a narrower exception for
+restricted data whose purpose is `BTG`. It is one compound authorization
+policy: the nested provision adds the restricted-data emergency exception; it
+does not collapse normal treatment access and break-glass audit events into one
+runtime operation.
+
+```ts
+const breakGlassClaims = {
+  [CommunicationClaim.Category]: CommunicationCategoryCodes.Alert.attributeValue,
+  [CommunicationClaim.Topic]: CommunicationTopicCodes.BreakTheGlass.attributeValue,
+}
+```
+
+Claims are the canonical source. R4 and R5 resources are projections and must
+round-trip back to the same normalized claims. Search inputs use supported
+FHIR search-parameter names, normalized into the corresponding canonical
+`Communication.*` claim keys; arbitrary camelCase or product-local parameter
+names are not accepted.
+
 ## What This 101 Teaches
 
 This `101` teaches the highest-level public communication layering concepts

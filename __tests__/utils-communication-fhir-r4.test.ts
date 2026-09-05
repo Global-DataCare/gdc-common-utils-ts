@@ -1,5 +1,5 @@
-// Always create JSDoc, do not use strings inline in keys nor values, use types instead, and reuse the data test examples.
-import { CommunicationCategoryCodes } from '../src/constants/communication';
+// Flow contract: reuse shared test fixtures and canonical types; do not introduce duplicated literals.
+import { CommunicationCategoryCodes, CommunicationTopicCodes } from '../src/constants/communication';
 import { HealthcareBasicSections } from '../src/constants/healthcare';
 import { CommunicationClaim } from '../src/models/interoperable-claims/communication-claims';
 import {
@@ -8,6 +8,11 @@ import {
 } from '../src/utils/communication-fhir-r4';
 
 describe('utils/communication-fhir-r4', () => {
+  // Standards contract:
+  // - category codes: https://www.hl7.org/fhir/valueset-communication-category.html
+  // - break-glass purpose: http://terminology.hl7.org/CodeSystem/v3-ActReason#v3-ActReason-BTG
+  // - IHE nested normal/restricted example:
+  //   https://profiles.ihe.net/ITI/PCF/Consent-ex-consent-advanced-normal-break-glass-restricted.json.html
   // Good practice note:
   // reusable `Communication.*` claim keys must be imported from
   // `CommunicationClaim`, not re-hardcoded in tests.
@@ -125,6 +130,25 @@ describe('utils/communication-fhir-r4', () => {
     expect(claims[CommunicationClaim.Topic]).toBe(HealthcareBasicSections.VitalSigns.attributeValue);
     expect(claims[CommunicationClaim.Text]).toBe('Reminder text');
     expect(claims[CommunicationClaim.NoteText]).toBe('Reminder text');
+  });
+
+  it('round-trips alert plus the HL7 BTG topic without treating the topic as LOINC', () => {
+    const claims = {
+      [CommunicationClaim.Category]: CommunicationCategoryCodes.Alert.attributeValue,
+      [CommunicationClaim.Topic]: CommunicationTopicCodes.BreakTheGlass.attributeValue,
+    };
+    const resource = transformCommunicationClaimsToResourceFhirR4([claims]).resources[0];
+
+    expect((resource as any).category[0].coding[0]).toEqual({
+      system: CommunicationCategoryCodes.Alert.system,
+      code: CommunicationCategoryCodes.Alert.code,
+    });
+    expect((resource as any).topic.coding[0]).toEqual({
+      system: CommunicationTopicCodes.BreakTheGlass.system,
+      code: CommunicationTopicCodes.BreakTheGlass.code,
+    });
+    expect(extractCommunicationClaimsFromResourceFhirR4(resource, { preferMetaClaims: false }))
+      .toMatchObject(claims);
   });
 
   it('returns existing meta.claims as canonical source by default', () => {

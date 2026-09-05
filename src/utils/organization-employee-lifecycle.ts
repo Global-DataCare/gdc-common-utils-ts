@@ -85,20 +85,31 @@ export function projectOrganizationEmployeeLifecycle(input: Readonly<{
     const claims = record(employee.claims) || record(record(employee.meta)?.claims) || {};
     const resourceId = text(employee.id);
     const employeeDid = text(claims[ClaimsPersonSchemaorg.identifier]);
+    const employeeEmail = text(claims[ClaimsPersonSchemaorg.email]);
+    const employeeRole = text(claims[ClaimsPersonSchemaorg.hasOccupationalRoleValue]);
     const license = licenses.find((candidate) => {
       const meta = record(candidate.meta) || {};
       const subjectId = text(meta.subjectId);
-      return subjectId === resourceId || subjectId === employeeDid;
+      if (subjectId === resourceId || subjectId === employeeDid) return true;
+      const licenseClaims = record(meta.claims) || record(candidate.claims) || {};
+      return Boolean(employeeEmail && employeeRole
+        && text(licenseClaims[ClaimsPersonSchemaorg.email]).toLowerCase() === employeeEmail.toLowerCase()
+        && text(licenseClaims[ClaimsPersonSchemaorg.hasOccupationalRoleValue]) === employeeRole);
     });
     const status = normalizeEmployeeDirectoryStatus(text(employee.status) || text(record(employee.meta)?.status));
     if (!license) return {
       resourceId,
-      email: text(claims[ClaimsPersonSchemaorg.email]),
-      roleCode: text(claims[ClaimsPersonSchemaorg.hasOccupationalRoleValue]),
+      email: employeeEmail,
+      roleCode: employeeRole,
       employeeDid,
       status,
     };
     const meta = record(license.meta) || {};
+    const licenseClaims = record(meta.claims) || record(license.claims) || {};
+    const licensedEmail = text(licenseClaims[ClaimsPersonSchemaorg.email]) || employeeEmail;
+    const licensedPhone = text(licenseClaims[ClaimsPersonSchemaorg.telephone]);
+    const ownerContact = licensedEmail || licensedPhone;
+    const ownerContactKind = licensedEmail ? 'email' as const : licensedPhone ? 'phone' as const : undefined;
     const bindings = Array.isArray(meta.deviceBindings) ? meta.deviceBindings.map(record).filter(isRecord) : [];
     const devices = bindings.map((binding) => {
       const info = record(binding.deviceInfo) || {};
@@ -109,12 +120,15 @@ export function projectOrganizationEmployeeLifecycle(input: Readonly<{
         status: binding.status === DeviceBindingStatuses.Revoked
           ? DeviceBindingStatuses.Revoked
           : DeviceBindingStatuses.Active,
+        ...(ownerContact ? { ownerContact } : {}),
+        ...(ownerContactKind ? { ownerContactKind } : {}),
+        ...(positiveNumber(binding.activatedAt) ? { activatedAt: positiveNumber(binding.activatedAt) } : {}),
       } as const;
     }).filter((device) => Boolean(device.clientId));
     return {
       resourceId,
-      email: text(claims[ClaimsPersonSchemaorg.email]),
-      roleCode: text(claims[ClaimsPersonSchemaorg.hasOccupationalRoleValue]),
+      email: employeeEmail,
+      roleCode: employeeRole,
       employeeDid,
       status,
       license: {
@@ -170,4 +184,9 @@ function text(value: unknown): string {
 function positiveInteger(value: unknown): number | undefined {
   const parsed = Number(value);
   return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined;
+}
+
+function positiveNumber(value: unknown): number | undefined {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
 }

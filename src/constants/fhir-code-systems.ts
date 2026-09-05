@@ -9,6 +9,7 @@ export const FhirCodeSystems = Object.freeze({
   SnomedCt: 'http://snomed.info/sct',
   Ucum: 'http://unitsofmeasure.org',
   CommunicationCategory: 'http://terminology.hl7.org/CodeSystem/communication-category',
+  ActReason: 'http://terminology.hl7.org/CodeSystem/v3-ActReason',
   ObservationCategory: 'http://terminology.hl7.org/CodeSystem/observation-category',
   EventTiming: 'http://hl7.org/fhir/event-timing',
 } as const);

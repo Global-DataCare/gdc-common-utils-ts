@@ -1,4 +1,5 @@
-// Flow contract: controller inventory reads each Employee and License from
+// Flow contract: reuse shared test fixtures and canonical types; do not introduce duplicated literals.
+// Controller inventory reads each Employee and License from
 // `DIDComm.body.data[].resource`; the deprecated nested search-list envelope
 // remains read-only compatibility during a rolling GW/SDK deployment.
 import {
@@ -73,5 +74,44 @@ describe('organization employee lifecycle shared contract', () => {
       employeeResponse: EXAMPLE_EMPLOYEE_SEARCH_RESPONSE_BODY,
       licenseResponse: EXAMPLE_LICENSE_LIST_RESPONSE_BODY_WITH_DEVICES,
     })[0]).toEqual(EXAMPLE_EMPLOYEE_LIFECYCLE_RECORD);
+  });
+
+  it('preserves device activation time and the verified licensed contact', () => {
+    const projected = projectOrganizationEmployeeLifecycle({
+      employeeResponse: EXAMPLE_EMPLOYEE_SEARCH_RESPONSE_BODY,
+      licenseResponse: EXAMPLE_LICENSE_LIST_RESPONSE_BODY_WITH_DEVICES,
+    })[0];
+
+    expect(projected.license?.devices[0]).toMatchObject({
+      activatedAt: EXAMPLE_EMPLOYEE_DEVICE_BINDINGS[0].activatedAt,
+      ownerContact: projected.email,
+      ownerContactKind: 'email', // The literal is the discriminated-union behavior under test.
+    });
+  });
+
+  it('matches a representative seat by its verified email and role when legacy subjectId is absent', () => {
+    const employee = EXAMPLE_EMPLOYEE_SEARCH_RESPONSE_BODY.data[0].resource;
+    const license = EXAMPLE_LICENSE_LIST_RESPONSE_BODY_WITH_DEVICES.body.data[0].resource;
+    const projected = projectOrganizationEmployeeLifecycle({
+      employeeResponse: EXAMPLE_EMPLOYEE_SEARCH_RESPONSE_BODY,
+      licenseResponse: {
+        body: {
+          ...EXAMPLE_LICENSE_LIST_RESPONSE_BODY_WITH_DEVICES.body,
+          data: [{
+            ...EXAMPLE_LICENSE_LIST_RESPONSE_BODY_WITH_DEVICES.body.data[0],
+            resource: {
+              ...license,
+              meta: {
+                ...license.meta,
+                subjectId: undefined,
+                claims: employee.claims,
+              },
+            },
+          }],
+        },
+      },
+    })[0];
+
+    expect(projected.license?.id).toBe(license.id);
   });
 });
