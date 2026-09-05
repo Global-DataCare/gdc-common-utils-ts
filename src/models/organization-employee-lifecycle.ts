@@ -6,6 +6,12 @@ export type OrganizationEmployeeDeviceRecord = Readonly<{
   clientId: string;
   name: string;
   status: DeviceBindingStatus;
+  /** Verified licensed contact that owns this installation. */
+  ownerContact?: string;
+  /** Contact channel represented by `ownerContact`. */
+  ownerContactKind?: 'email' | 'phone';
+  /** DCR activation time as Unix epoch seconds. */
+  activatedAt?: number;
 }>;
 
 /** License state attached to one employee directory entry. */

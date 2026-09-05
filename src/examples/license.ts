@@ -229,6 +229,9 @@ export const EXAMPLE_EMPLOYEE_LIFECYCLE_RECORD = Object.freeze({
         || binding.deviceInfo.clientInstanceId
         || binding.clientId,
       status: binding.status,
+      ownerContact: EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE.email,
+      ownerContactKind: 'email' as const,
+      activatedAt: binding.activatedAt,
     }))),
   }),
 } as const);

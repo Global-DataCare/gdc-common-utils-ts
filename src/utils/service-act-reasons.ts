@@ -1,6 +1,8 @@
 // Copyright 2026 Antifraud Services Inc. under the Apache License, Version 2.0.
 
-export const HL7_ACT_REASON_CODE_SYSTEM = 'http://terminology.hl7.org/CodeSystem/v3-ActReason';
+import { FhirCodeSystems } from '../constants/fhir-code-systems';
+
+export const HL7_ACT_REASON_CODE_SYSTEM = FhirCodeSystems.ActReason;
 
 export type ServiceActReasonCoding = Readonly<{
   system: string;

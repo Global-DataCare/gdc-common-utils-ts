@@ -4,6 +4,13 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Constrain Communication categories to the four FHIR R4 codes, add the HL7
+  v3 ActReason `BTG` topic, and document the IHE nested normal/restricted
+  Consent example while preserving flat-claims round trips.
+- Preserve verified owner contact and device activation time in the shared
+  organization employee lifecycle projection, including representative-seat
+  matching by scoped email and role for legacy records without `subjectId`.
+
 ## [2.8.7] - 2026-09-04
 
 - Clarify and prove both personal provenance cases: an individual-created fact
