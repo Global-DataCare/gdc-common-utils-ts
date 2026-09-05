@@ -4,6 +4,12 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Add jurisdiction-mandatory, versioned CDS organization/member authorization
+  URN builders. Legal organizations now have the host-independent shape
+  `urn:cds-<jurisdiction>:v1:organization:<type>:<value>`; member paths append
+  `:member:<multibase-id>:<role-value>` while requiring the protected role type
+  as builder input. Keep `urn:org:*` readers/builders only for migration.
+
 - Accept canonical HL7 `RelatedPerson` functional roles such as
   `v3-RoleClass|CAREGIVER` when building IPS provenance without representing a
   caregiver as a medical professional.

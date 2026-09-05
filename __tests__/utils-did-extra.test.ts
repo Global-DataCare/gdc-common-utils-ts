@@ -141,9 +141,9 @@ describe('did utilities', () => {
     const hostedProviderDid = buildHostedProviderDidWeb({
       hostDomain: 'host.example.org',
       sector: 'health-care',
-      providerTaxId: 'VATES-B00112233',
+      providerTaxId: 'ES-B00112233',
     });
-    expect(hostedProviderDid).toBe('did:web:host.example.org:health-care:organization:taxid:VATES-B00112233');
+    expect(hostedProviderDid).toBe('did:web:host.example.org:health-care:organization:taxid:ES-B00112233');
 
     const providerDomainDid = buildProviderSectorDidWeb({
       providerSectorDomain: 'health-care.provider.example.org',
@@ -160,7 +160,7 @@ describe('did utilities', () => {
       secureIdValueIndividual,
     });
     expect(individualDid).toBe(
-      `did:web:host.example.org:health-care:organization:taxid:VATES-B00112233:individual:UUID:${secureIdValueIndividual}`,
+      `did:web:host.example.org:health-care:organization:taxid:ES-B00112233:individual:UUID:${secureIdValueIndividual}`,
     );
 
     const memberDid = buildIndividualMemberDidWeb({
@@ -173,7 +173,7 @@ describe('did utilities', () => {
       roleValue: 'RESPRSN',
     });
     expect(memberDid).toBe(
-      `did:web:host.example.org:health-care:organization:taxid:VATES-B00112233:individual:UUID:${secureIdValueIndividual}:member:zG9DrMLpQW8eoCc9Ay9AFxuMGiswgJePpbUMz9svJCZ8tKjUd4xoExgCPA5jmHc6hPATJ:RESPRSN`,
+      `did:web:host.example.org:health-care:organization:taxid:ES-B00112233:individual:UUID:${secureIdValueIndividual}:member:zG9DrMLpQW8eoCc9Ay9AFxuMGiswgJePpbUMz9svJCZ8tKjUd4xoExgCPA5jmHc6hPATJ:RESPRSN`,
     );
     expect(parseIndividualMemberDidWeb(memberDid)).toEqual({
       individualDidWeb: individualDid,

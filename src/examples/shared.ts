@@ -14,6 +14,7 @@ import {
   HealthcareBasicSections,
   HealthcareConsentPurposes,
   HealthcareDocumentTypes,
+  ISCO08_CODING_SYSTEM,
 } from '../constants/healthcare';
 import { CommunicationCategoryCodes } from '../constants/communication';
 import { LOINC_SYSTEM_URL } from '../models/clinical-sections';
@@ -28,6 +29,10 @@ import {
   buildProviderSectorDidWeb,
 } from '../utils/did';
 import { encodeHexToMultibase58btc } from '../utils/multibase58';
+import {
+  buildOrganizationAuthorizationUrnCds,
+  buildOrganizationMemberAuthorizationUrnCds,
+} from '../utils/organization-authorization-urn';
 import {
   MedicationStatementClaim,
   MedicationStatementClaimsFhirApiExtended,
@@ -191,7 +196,16 @@ export const EXAMPLE_HOST_PUBLIC_HOSTNAME = 'host.example.com' as const;
 export const EXAMPLE_HOST_PUBLIC_DID = `did:web:${EXAMPLE_HOST_PUBLIC_HOSTNAME}` as const;
 export const EXAMPLE_PERSON_CARD_URI = 'urn:example:card:person:subject-001' as const;
 export const EXAMPLE_ANIMAL_CARD_URI = 'urn:example:card:animal:subject-002' as const;
-export const EXAMPLE_PROVIDER_TAX_ID = 'VATES-B00112233' as const;
+export const EXAMPLE_PROVIDER_TAX_ID = 'ES-B00112233' as const;
+/** Jurisdiction-scoped synthetic legal identifier used by stable CDS URNs. */
+export const EXAMPLE_PROVIDER_LEGAL_IDENTIFIER_VALUE_CDS = 'ES-B00112233' as const;
+export const EXAMPLE_PROVIDER_ORGANIZATION_AUTHORIZATION_URN_CDS =
+  buildOrganizationAuthorizationUrnCds({
+    jurisdiction: EXAMPLE_JURISDICTION,
+    version: EXAMPLE_ROUTE_VERSION,
+    identifierType: 'TAX',
+    identifierValue: EXAMPLE_PROVIDER_LEGAL_IDENTIFIER_VALUE_CDS,
+  });
 export const EXAMPLE_PROVIDER_DOMAIN = 'health-care.provider.example.org' as const;
 /** Synthetic public portal domain used to derive organization path DIDs. */
 export const EXAMPLE_PUBLIC_PORTAL_DOMAIN = 'portal.example.org' as const;
@@ -292,6 +306,16 @@ export const EXAMPLE_HEALTHCARE_ACTOR_ROLE_RECEPTIONIST = 'ISCO-08|4226' as cons
 export const EXAMPLE_HEALTHCARE_ROLE_PHYSICIAN_TEXT = 'physician' as const;
 export const EXAMPLE_INDIVIDUAL_CONTROLLER_ROLE_TYPE = HL7_CODING_SYSTEM_V3_ROLE_CODE;
 export const EXAMPLE_INDIVIDUAL_CONTROLLER_ROLE_VALUE = EXAMPLE_ORGANIZATION_CONTROLLER_ROLE;
+export const EXAMPLE_PROFESSIONAL_AUTHORIZATION_URN_CDS =
+  buildOrganizationMemberAuthorizationUrnCds({
+    organizationUrn: EXAMPLE_PROVIDER_ORGANIZATION_AUTHORIZATION_URN_CDS,
+    memberId: buildSecureIdValueMember({
+      secureIdTypeMember: SecureIdTypesIndividual.Email,
+      privateIdValueMember: EXAMPLE_EMAIL_PROFESSIONAL,
+    }),
+    roleType: ISCO08_CODING_SYSTEM,
+    roleValue: HealthcareActorRoles.GeneralistMedicalPractitioner,
+  });
 export const EXAMPLE_RELATED_PERSON_ROLE = 'v3-RoleCode|RESPRSN' as const;
 export const EXAMPLE_SECURE_ID_VALUE_INDIVIDUAL = buildSecureIdValueIndividual({
   secureIdTypeIndividual: SecureIdTypesIndividual.Uuid,
