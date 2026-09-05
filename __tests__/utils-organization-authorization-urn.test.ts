@@ -48,6 +48,14 @@ describe('organization authorization URN utilities', () => {
     })).toBe(expected);
   });
 
+  it('rejects a CDS organization identity without a governed jurisdiction', () => {
+    expect(() => buildOrganizationAuthorizationUrnCds({
+      jurisdiction: '',
+      identifierType: 'EIN',
+      identifierValue: '12-3456789',
+    })).toThrow(/jurisdiction/i);
+  });
+
   it('builds the canonical organization authorization URN from identifier claims', () => {
     expect(buildOrganizationAuthorizationUrn({
       identifierType: 'TAX',
