@@ -2,9 +2,11 @@
 import {
   buildClinicalCreatorPermissionActor,
   buildFhirIpsCreatorAuthor,
+  buildFhirIpsCreatorProvenance,
   FhirIpsCreatorKinds,
   resolveClinicalCreatorBinding,
 } from '../src/utils/fhir-ips-creator-identity';
+import { HL7_RELATED_PERSON_FUNCTIONAL_ROLES } from '../src/constants/hl7-roles';
 import { buildStableActorIdentifier, StableActorContactKinds } from '../src/utils/actor-identifier';
 import {
   EXAMPLE_CLIENT_INSTANCE_UUID,
@@ -129,6 +131,26 @@ describe('101: one stable clinical creator across channels and FHIR IPS export',
       subjectReference: individualIdentifier,
     });
     expect(oneself).toEqual({ authorReference: individualIdentifier, entries: [] });
+  });
+
+  it('exports the canonical cross-sector CAREGIVER function as a RelatedPerson attester', () => {
+    // Journey: a residence caregiver records a neutral body-weight Observation.
+    // The caregiver function is HL7, not a medical profession or product role.
+    const caregiver = HL7_RELATED_PERSON_FUNCTIONAL_ROLES.find(({ code }) => code === 'CAREGIVER')!;
+    const relationshipIdentifier = `urn:uuid:${EXAMPLE_CLIENT_INSTANCE_UUID}`;
+    const provenance = buildFhirIpsCreatorProvenance({
+      kind: FhirIpsCreatorKinds.IndividualMember,
+      actorIdentifier: `urn:uuid:${EXAMPLE_KYC_CONTROLLER_USER_UUID}`,
+      authorIdentifier: relationshipIdentifier,
+      subjectReference: `urn:uuid:${EXAMPLE_KYC_CONTROLLER_UUID}`,
+      role: `${caregiver.codingSystem}|${caregiver.code}`,
+      compositionAuthorReference: relationshipIdentifier,
+    });
+    expect(provenance.attesters[0].party.reference).toBe(relationshipIdentifier);
+    expect(provenance.entries[0].resource).toEqual(expect.objectContaining({
+      resourceType: 'RelatedPerson',
+      relationship: [{ coding: [expect.objectContaining({ code: caregiver.code })] }],
+    }));
   });
 
   it('rejects an unregistered login or device channel', () => {

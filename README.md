@@ -458,6 +458,13 @@ The canonical API contract should live in JSDoc on exported code. The README act
   - Uses explicit `seedMaterial` for deterministic derivation. Without `seedMaterial`, it defaults to random generation. `mode = deterministic` requires `seedMaterial`.
 - [`buildOrganizationDidWeb(...)`, `buildProfessionalDidWeb(...)`, `buildIndividualDidWeb(...)`, `buildIndividualMemberDidWebFromPrivateIdentifiers(...)`](src/utils/did.ts)
   - Build canonical data-space `did:web` identifiers for hosted organizations, professionals, and individuals/family actors.
+- [`buildOrganizationAuthorizationUrnCds(...)`, `buildOrganizationMemberAuthorizationUrnCds(...)`](src/utils/organization-authorization-urn.ts)
+  - Build host-independent legal organization/member identities such as
+    `urn:cds-es:v1:organization:tax:ES-B00112233` and its
+    `:member:<multibase-id>:<role-value>` child.
+  - Jurisdiction is mandatory so `BN`, `EIN`, `TAX` and subnational identifier
+    schemes cannot collide; `roleType` remains protected while only the compact
+    `roleValue` is serialized.
 - [`buildSmartCompositionReadScope(...)`](src/utils/smart-scope.ts)
   - Builds the current CORE GW pinned SMART root scope for `organization/Composition...` token requests.
   - This is the preferred first scope to teach when the backend only needs subject-scoped read access.

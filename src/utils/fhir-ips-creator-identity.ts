@@ -3,6 +3,7 @@
 import { getHealthcareRoleByClaim } from '../constants/healthcare.js';
 import { isStableActorIdentifier } from './actor-identifier.js';
 import { normalizeUuid } from './normalize-uuid.js';
+import { HL7_RELATED_PERSON_FUNCTIONAL_ROLES } from '../constants/hl7-roles.js';
 import {
   CompositionAttesterModes,
   type CompositionAttesterMode,
@@ -309,11 +310,23 @@ function requireReference(value: string, label: string): string {
 }
 
 function requireRoleCoding(roleClaim: string): Readonly<{ system: string; code: string; display?: string }> {
-  const descriptor = getHealthcareRoleByClaim(String(roleClaim || '').trim());
-  if (!descriptor) throw new TypeError('role must be a canonical governed healthcare role.');
+  const normalizedRole = String(roleClaim || '').trim();
+  const descriptor = getHealthcareRoleByClaim(normalizedRole);
+  if (descriptor) {
+    return {
+      system: descriptor.codingSystem,
+      code: descriptor.code,
+      ...(descriptor.titleEn ? { display: descriptor.titleEn } : {}),
+    };
+  }
+  const functionalRole = HL7_RELATED_PERSON_FUNCTIONAL_ROLES.find((candidate) =>
+    normalizedRole === `${candidate.codingSystem}|${candidate.code}`);
+  if (!functionalRole) {
+    throw new TypeError('role must be a canonical governed healthcare or RelatedPerson functional role.');
+  }
   return {
-    system: descriptor.codingSystem,
-    code: descriptor.code,
-    ...(descriptor.titleEn ? { display: descriptor.titleEn } : {}),
+    system: functionalRole.codingSystem,
+    code: functionalRole.code,
+    display: functionalRole.display,
   };
 }
