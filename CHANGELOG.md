@@ -4,6 +4,10 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Emit canonical `Consent.status=active` from the direct consent-approval
+  builder. Draft permission requests continue to use their separate Bundle
+  builder and cannot be materialized as authorization rules.
+
 ## [2.9.3] - 2026-09-05
 
 - Honor an explicitly selected `RelatedPerson` as `Composition.author` for
