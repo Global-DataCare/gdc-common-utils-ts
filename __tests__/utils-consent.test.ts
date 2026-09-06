@@ -1,3 +1,4 @@
+// Flow contract: reuse shared test fixtures and canonical types; do not introduce duplicated literals.
 import {
   buildConsentClaimsSimple,
   buildConsentClaimsSimpleWithCid,
@@ -19,7 +20,7 @@ import {
   EXAMPLE_CONSENT_ACCESS_RULES,
   EXAMPLE_CONSENT_ACCESS_SUBJECT,
 } from '../src/examples/consent-access';
-import { ClaimConsent } from '../src/models/consent-rule';
+import { ClaimConsent, ConsentStatuses } from '../src/models/consent-rule';
 import {
   HealthcareActorRoles,
   HealthcareBasicSections,
@@ -90,6 +91,7 @@ describe('consent utilities', () => {
     expect(built.actorIdentifier).toBe('hospital@example.com,ES');
     expect(built.subjectIdentifier).toBe('urn:person:phone:+34600111222:given:ana-maria');
     expect(built.consentClaims[ClaimConsent.identifier]).toBe('urn:uuid:consent-123');
+    expect(built.consentClaims[ClaimConsent.status]).toBe(ConsentStatuses.Active);
     expect(built.consentClaims[ClaimConsent.action]).toBe('organization/Composition.rs,organization/Appointment.cruds');
     expect(built.consentClaims[ClaimConsent.actorIdentifier]).toBe('hospital@example.com,ES');
   });

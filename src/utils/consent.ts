@@ -297,7 +297,8 @@ export function resolveSubjectIdentifier(
 }
 
 /**
- * Builds a minimal consent claims object from simple business inputs.
+ * Builds an active consent-approval claims object from simple business
+ * inputs. Draft permission requests use the separate draft Bundle builder.
  *
  * @param input Consent actor/subject/business data.
  * @param options.errorPrefix Optional error prefix.
@@ -325,6 +326,7 @@ export function buildConsentClaimsSimple(
     subjectIdentifier,
     consentClaims: {
       '@context': 'org.hl7.fhir.api',
+      [ClaimConsent.status]: ConsentStatuses.Active,
       [ClaimConsent.decision]: input.decision || 'permit',
       [ClaimConsent.subject]: subjectIdentifier,
       [ClaimConsent.identifier]: consentIdentifier,
@@ -347,7 +349,9 @@ export function buildConsentClaimsSimple(
 }
 
 /**
- * Builds minimal consent claims and assigns a deterministic CID into the claims id.
+ * Builds active consent-approval claims and assigns a deterministic CID into
+ * the claims id. Permission requests use the separate draft Bundle builder;
+ * callers must not use this helper to represent an unapproved request.
  *
  * @param input Consent actor/subject/business data.
  * @param options.errorPrefix Optional error prefix.
