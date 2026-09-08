@@ -283,13 +283,23 @@ blockchain asset.
 
 ### Convert
 
-The `convert` export exposes resource-specific FHIR R4 conversion helpers such as:
+The `convert` export exposes resource-specific FHIR conversion helpers such as:
 
 - `medicationStatementFlatToFhirR4`
 - `medicationStatementFhirR4ToFlat`
 - `observationFromFlatToFhirR4`
 - `documentReferenceFlatToFhirR4`
 - `compositionFlatToFhirR4`
+- `consentFlatToFhirR4` / `consentFhirR4ToFlat`
+- `consentFlatToFhirR5` / `consentFhirR5ToFlat`
+
+Consent claims are version-neutral. Consent validity, data validity, grantor,
+grantee, manager, enforcer, actor role, action, purpose, resource/content codes
+and an optional source attachment stay in `resource.meta.claims`. Explicit R4
+or R5 export maps only concepts supported by that version. For example, R5
+exports `Consent.controller`, while R4 does not invent an equivalent field.
+Computable policy content such as ODRL remains in `sourceAttachment`; its
+profile must validate semantic parity before projection.
 
 Example:
 
@@ -677,6 +687,9 @@ when the active runtime variable is really the subject identifier.
 - [`__tests__/utils-consent-claim-helpers.test.ts`](__tests__/utils-consent-claim-helpers.test.ts)
 
 These helpers are the shared base for consent claim construction across GW and SDKs.
+The canonical claim catalogue also distinguishes `Consent.period-*` (the
+Consent's effective period) from `Consent.data-period-*` (the period of the
+governed data).
 
 ### Public module surfaces
 
