@@ -554,8 +554,12 @@ The canonical API contract should live in JSDoc on exported code. The README act
     the document author; a registered PractitionerRole or RelatedPerson is the
     attester, including for content entered by that authenticated person.
 - [`normalizeClinicalCreatorBinding(...)`](src/utils/fhir-ips-creator-identity.ts)
-  - Accept stable UUIDs and governed bare role codes at the BFF boundary, then
-    add canonical UUID URNs and HL7/ISCO coding systems before transport.
+  - Accept stable person, assignment and owner UUIDs plus governed bare role
+    codes at the BFF boundary, then add canonical UUID URNs and HL7/ISCO coding
+    systems before transport. Use `assignmentIdentifier` for the registered
+    `RelatedPerson`/`PractitionerRole`; the deprecated wire property
+    `authorIdentifier` names that assignment and does not decide
+    `Composition.author`.
 - [`src/examples/frontend-session.ts`](src/examples/frontend-session.ts)
   - Frontend profile/session bootstrap examples.
 - [`src/examples/lifecycle.ts`](src/examples/lifecycle.ts)
