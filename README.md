@@ -553,6 +553,9 @@ The canonical API contract should live in JSDoc on exported code. The README act
     signing key separate. The organization, EHR/portal or individual remains
     the document author; a registered PractitionerRole or RelatedPerson is the
     attester, including for content entered by that authenticated person.
+- [`normalizeClinicalCreatorBinding(...)`](src/utils/fhir-ips-creator-identity.ts)
+  - Accept stable UUIDs and governed bare role codes at the BFF boundary, then
+    add canonical UUID URNs and HL7/ISCO coding systems before transport.
 - [`src/examples/frontend-session.ts`](src/examples/frontend-session.ts)
   - Frontend profile/session bootstrap examples.
 - [`src/examples/lifecycle.ts`](src/examples/lifecycle.ts)

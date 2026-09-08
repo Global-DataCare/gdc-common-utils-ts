@@ -4,6 +4,7 @@ import { getHealthcareRoleByClaim } from '../constants/healthcare.js';
 import { isStableActorIdentifier } from './actor-identifier.js';
 import { normalizeUuid } from './normalize-uuid.js';
 import { HL7_RELATED_PERSON_FUNCTIONAL_ROLES } from '../constants/hl7-roles.js';
+import { UrnPrefixes } from '../constants/urn.js';
 import {
   CompositionAttesterModes,
   type CompositionAttesterMode,
@@ -230,6 +231,48 @@ export type ClinicalCreatorBinding = ClinicalCreatorChannelAliases & Readonly<{
   role: string;
 }>;
 
+/**
+ * High-level creator input accepted from SDK/BFF code.
+ *
+ * Stable person, assignment and individual-owner identifiers may be either a
+ * UUID or an already canonical `urn:uuid`. The role may be a governed bare
+ * code or its governed coding-system claim. Callers never concatenate wire
+ * prefixes themselves.
+ */
+export type ClinicalCreatorBindingInput = ClinicalCreatorChannelAliases & Readonly<{
+  kind: FhirIpsCreatorKind;
+  actorIdentifier: string;
+  authorIdentifier: string;
+  ownerIdentifier: string;
+  role: string;
+}>;
+
+/**
+ * Normalizes high-level creator identity before persistence or transport.
+ *
+ * Personal owners are canonical UUID URNs. Professional owners remain their
+ * legal Organization DID/URN. Bare personal and professional role codes are
+ * resolved through the governed HL7/ISCO catalog and emitted with their
+ * canonical coding system.
+ */
+export function normalizeClinicalCreatorBinding(
+  input: ClinicalCreatorBindingInput,
+): ClinicalCreatorBinding {
+  const actorIdentifier = canonicalUuidUrn(input.actorIdentifier, 'actorIdentifier');
+  const authorIdentifier = canonicalUuidUrn(input.authorIdentifier, 'authorIdentifier');
+  const ownerIdentifier = input.kind === FhirIpsCreatorKinds.Professional
+    ? requireReference(input.ownerIdentifier, 'ownerIdentifier')
+    : canonicalUuidUrn(input.ownerIdentifier, 'ownerIdentifier');
+  const role = canonicalRoleClaim(input.role);
+  return {
+    ...input,
+    actorIdentifier,
+    authorIdentifier,
+    ownerIdentifier,
+    role,
+  };
+}
+
 export type AuthenticatedClinicalCreatorEvidence = Readonly<{
   actorDid?: string;
   verifiedContactIdentifiers?: readonly string[];
@@ -297,6 +340,28 @@ function requireUuidUrn(value: string, label: string): string {
   return normalized;
 }
 
+function canonicalUuidUrn(value: string, label: string): string {
+  const normalized = String(value || '').trim().toLowerCase();
+  const uuidValueInput = normalized.startsWith(UrnPrefixes.Uuid)
+    ? normalized.slice(UrnPrefixes.Uuid.length)
+    : normalized;
+  if (!/^(?:[0-9a-f]{32}|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/.test(uuidValueInput)) {
+    throw new TypeError(`${label} must be a UUID or urn:uuid identifier.`);
+  }
+  const hexadecimal = normalizeUuid(uuidValueInput);
+  if (!hexadecimal) {
+    throw new TypeError(`${label} must be a UUID or urn:uuid identifier.`);
+  }
+  const uuid = [
+    hexadecimal.slice(0, 8),
+    hexadecimal.slice(8, 12),
+    hexadecimal.slice(12, 16),
+    hexadecimal.slice(16, 20),
+    hexadecimal.slice(20),
+  ].join('-');
+  return `${UrnPrefixes.Uuid}${uuid}`;
+}
+
 function uuidValue(identifier: string): string {
   return identifier.slice('urn:uuid:'.length);
 }
@@ -327,4 +392,9 @@ function requireRoleCoding(roleClaim: string): Readonly<{ system: string; code: 
     code: functionalRole.code,
     display: functionalRole.display,
   };
+}
+
+function canonicalRoleClaim(roleClaim: string): string {
+  const descriptor = requireRoleCoding(roleClaim);
+  return `${descriptor.system}|${descriptor.code}`;
 }
