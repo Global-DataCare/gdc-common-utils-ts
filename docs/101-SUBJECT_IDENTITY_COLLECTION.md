@@ -46,17 +46,19 @@ The public lookup key is:
 urn:multibase:<SHA3-384-multihash(type|jurisdiction-or-empty|value)>
 ```
 
-Fabric may return the stable card identifier and the provider/index service.
-Possession of that exact identifier enables discovery; it never grants access
-to the card's protected contents. Consent, authentication and purpose checks
-remain separate.
+Fabric returns only the index provider's resolvable `did:web`. The payload
+under the opaque key is exactly `{ indexProviderDid }`: it contains no card,
+raw identifier, provider code or duplicated URL. Resolve that DID to discover
+the provider service, then send the same opaque asset id to the protected
+provider lookup. That second call may return the stable subject/card and scoped
+index only after authentication and policy checks.
 
 ## Privacy and audit invariants
 
 - Never place the raw code value, email, telephone, DIDComm token or tenant
   secret in a ledger payload or event.
 - Treat `sameAs` as the stable public card link, not as the private identifier
-  hash.
+  hash. It stays in encrypted provider data and is not returned by Fabric.
 - Reuse the existing human `type|jurisdiction|value` canonicalization. For a
   globally readable microchip, keep the empty jurisdiction explicitly as
   `urn:iso:std:iso:11784-11785||981020000123456`.
@@ -64,8 +66,8 @@ remain separate.
 - Index only through the configured protected-index adapter.
 - A ledger deletion removes current resolution; immutable transaction history
   remains an audit fact and must not contain the raw identifier.
-- A successful lookup identifies where a card can be found, not who may read
-  it.
+- A successful Fabric lookup identifies the provider, not the card and not who
+  may read it.
 
 Executable coverage lives in
 [`__tests__/subject-identity.test.ts`](../__tests__/subject-identity.test.ts).

@@ -9,7 +9,9 @@ description: Preserve the active Node.js 24 workspace runtime for installs, buil
 
 - Preserve the two-step public contract in every test and release: first
   resolve the individual's index provider from the opaque canonical identifier
-  asset id; then ask any available trusted tenant to issue the token.
+  asset id; Fabric returns only its `did:web`. Resolve that DID and reuse the
+  same opaque asset id for the provider's protected card/index lookup before
+  asking any available trusted tenant to issue the token.
 - The issuing tenant does not need to host an index: it owns JWT `iss`, while
   `aud` is always the resolved index provider. Never turn receiving EHRs into
   an audience list or silently replace that audience during fallback.

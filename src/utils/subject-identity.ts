@@ -6,9 +6,11 @@ import type {
   SubjectIdentityResourceType,
   SubjectKind,
 } from '../models/subject-identity';
+import type { SubjectIdentifierLedgerPayload } from '../models/subject-identifier-ledger';
 import { UrnPrefixes } from '../constants/urn';
 import { encodeMultibaseSha3 } from './multibasehash';
 import { normalizeIndividualIdentifierType } from './individual-identifier';
+import { normalizeDidWeb } from './did';
 
 const SUBJECT_RESOURCE_BY_KIND: Readonly<Record<SubjectKind, SubjectIdentityResourceType>> = {
   person: 'Person',
@@ -24,6 +26,7 @@ const SUBJECT_KIND_BY_RESOURCE: Readonly<Record<SubjectIdentityResourceType, Sub
 
 const STABLE_CARD_ID_PATTERN = /^(?:did|urn|https):\S+$/i;
 const ISO_3166_JURISDICTION_PATTERN = /^[A-Z]{2}(?:-[A-Z0-9]{1,3})?$/;
+const DID_WEB_PATTERN = /^did:web:[^\s#?]+$/;
 
 /**
  * Builds the exact UTF-8 token used by the distributed Subject lookup.
@@ -54,6 +57,35 @@ export function buildSubjectIdentifierAssetId(
   input: Pick<SubjectIdentityInput, 'codingSystem' | 'jurisdiction' | 'codeValue'>,
 ): string {
   return `${UrnPrefixes.Multibase}${encodeMultibaseSha3(buildSubjectIdentifierToken(input), 384)}`;
+}
+
+/**
+ * Builds the complete public value stored under an opaque subject identifier.
+ *
+ * The provider DID is deliberately the only payload field. DID resolution
+ * discovers its service endpoint; the protected provider lookup then uses the
+ * same opaque asset id to resolve the subject/card and authorized index.
+ */
+export function buildSubjectIdentifierLedgerPayload(
+  indexProviderDid: string,
+): SubjectIdentifierLedgerPayload {
+  const normalized = normalizeDidWeb(String(indexProviderDid || '').trim());
+  if (!DID_WEB_PATTERN.test(normalized)) {
+    throw new TypeError('indexProviderDid must be a did:web identifier');
+  }
+  return { indexProviderDid: normalized };
+}
+
+/** Reads the strict provider-only subject-identifier ledger payload. */
+export function readSubjectIdentifierLedgerPayload(payload: unknown): string {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    throw new TypeError('subject_identifier_payload_must_contain_only_index_provider_did');
+  }
+  const record = payload as Record<string, unknown>;
+  if (Object.keys(record).length !== 1 || !Object.hasOwn(record, 'indexProviderDid')) {
+    throw new TypeError('subject_identifier_payload_must_contain_only_index_provider_did');
+  }
+  return buildSubjectIdentifierLedgerPayload(String(record.indexProviderDid || '')).indexProviderDid;
 }
 
 /**

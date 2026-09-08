@@ -11,9 +11,10 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
   provider remains the sole audience; receiving EHRs never become an audience
   list.
 - Document and test the two-step subject flow from a canonical private
-  identifier through its opaque `urn:multibase` ledger key to the returned
-  stable card URI and index-provider pointer. Shared code consumes domain-owned
-  card URIs instead of guessing `card`, `Person` or private `individual` forms.
+  identifier through its opaque `urn:multibase` ledger key to a provider-only
+  `{ indexProviderDid }` payload. Fabric exposes no card, provider code or
+  duplicate URL; the provider resolves the protected card/index later using
+  the same opaque key.
 - Add RFC 9396 read-only emergency authorization-detail construction with a
   caller-supplied governed profile URI, plus VC Data Model 2.0 direct JWT-VP
   parsing and an explicitly reported legacy `payload.vp` compatibility reader.

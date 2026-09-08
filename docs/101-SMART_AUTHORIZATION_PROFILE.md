@@ -59,25 +59,23 @@ payload shape are three separate layers.
 ## Step 3 — Resolve the individual index provider
 
 The professional does not need to know the index provider. The BFF first
-normalizes one known card, telephone, email or legal identifier under its
-governed identifier coding system and jurisdiction. It calls
+normalizes one governed identifier under its coding system and jurisdiction. It calls
 `buildSubjectIdentifierAssetId(...)` to derive the opaque
 `urn:multibase:<SHA3-384-multihash>` lookup key. The raw identifier is never
 written to Fabric.
 
-The distributed lookup returns the stable individual card pointer and its
-associated `indexProvider`. The lookup key is the hash of the canonical
-identifier token, not a hash of an individual URN that is still unknown at
-that point. Discovery identifies where the index belongs; it grants no access.
+Fabric returns only `indexProviderDid`, the provider's resolvable `did:web`.
+DID resolution supplies the provider service endpoint. The BFF then sends the
+same opaque lookup asset id to that protected provider endpoint. Only after
+authentication and policy evaluation may the provider return the stable
+subject/card identity and the scoped distributed index. Discovery identifies
+where the index belongs; it grants no access and exposes no card in Fabric.
 
-The resolved card value is a stable URI owned by the applicable domain
-profile. A profile may define a public form such as
-`urn:cds:v1:card:<namespace>:<subject-kind>:<public-card-id>`, but shared code
-must consume the returned `card.identifier.value`; it must not guess or rebuild
-that URI. `Person` is the encrypted semantic identity resource and
-`:individual:<type>:<multihash>` is a hosted private identity path. Neither is
-an interchangeable spelling of the public card URI or of the ledger lookup
-asset id.
+The protected identity entry keeps its private identifier and points through
+`sameAs` to the stable subject/card identity returned by the provider. `sameAs`
+does not contain a telephone, email, legal identifier or opaque Fabric lookup
+key. `Person`/`Animal`, the stable card URI, a hosted private individual DID and
+the ledger asset id remain distinct identifiers with distinct purposes.
 
 ```ts
 const subjectLookupAssetId = buildSubjectIdentifierAssetId({
@@ -85,15 +83,22 @@ const subjectLookupAssetId = buildSubjectIdentifierAssetId({
   jurisdiction: identifier.jurisdiction,
   codeValue: identifier.value,
 });
-
-const { card, provider: indexProvider } =
-  await tenant.resolveSubjectIndexProvider({ subjectLookupAssetId });
 ```
 
-This lookup and token issuance are two explicit application steps in the
-initial high-level profile. An SDK facade may execute them consecutively, but
-must still expose both results and must not silently substitute another token
-audience.
+The ledger lookup, protected provider lookup and token issuance are explicit
+application steps. A future high-level SDK facade may compose them, but it must
+preserve the intermediate `indexProviderDid`, use it as `aud`, and never infer
+the provider from the issuing tenant.
+
+### Current availability
+
+Common Utils currently provides the canonical opaque-key and provider-only
+payload builders/readers. The GW read endpoint and high-level SDK orchestration
+are not yet available, so this guide deliberately does not show a fictional SDK
+method. Governed card and legal identifiers have a global lookup profile;
+email and telephone are not yet global Fabric lookup profiles. Their
+normalization and resistance to low-entropy enumeration require a separately
+tested privacy profile before they can be enabled.
 
 ## Step 4 — Ask an available tenant to issue the token
 

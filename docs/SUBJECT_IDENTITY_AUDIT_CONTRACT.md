@@ -13,8 +13,9 @@ stable public unified card. Supported identity resources are `Person` and
 | Complete Person/Animal claims | Encrypted tenant Subject collection | No |
 | Protected database search attributes | Configured protected index | No |
 | SHA3-384 multihash of `type|jurisdiction-or-empty|value` | Fabric lookup key | Yes |
-| Stable unified card identifier | Fabric provider pointer | Yes |
-| Provider code and discovery domain | Fabric provider pointer | Yes |
+| Index provider `did:web` | Fabric payload | Yes |
+| Stable unified card identifier | Encrypted provider index | No |
+| Provider code or duplicated discovery domain | Not stored | No |
 | Raw identifier value | Never in Fabric payload/event | No |
 
 ## Required evidence
@@ -24,9 +25,10 @@ An implementation is conformant only when tests prove:
 1. Person and Animal entries keep their semantic resource types.
 2. `sameAs` equals the stable public card identifier.
 3. Asset derivation is deterministic over the exact documented token.
-4. Ledger payloads contain no raw code value.
+4. Ledger payloads contain only `indexProviderDid` and no card or raw code value.
 5. Current-state deletion prevents subsequent lookup.
-6. Card discovery does not bypass authentication or Consent checks.
+6. Provider discovery does not bypass authentication or Consent checks on the
+   subsequent protected subject/card and index lookup.
 7. Logs, errors and events redact private identifier values.
 
 ## Compatibility finding

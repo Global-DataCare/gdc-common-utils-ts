@@ -244,6 +244,8 @@ The high-level [federated SMART authorization profile](docs/101-SMART_AUTHORIZAT
 defines the two-step emergency flow: resolve the individual's index provider
 from an opaque subject-identifier ledger key, then ask any available trusted
 tenant to issue one token whose `aud` remains that resolved index provider.
+The ledger value is only `{ indexProviderDid: 'did:web:...' }`; the same opaque
+key is presented later to that provider to retrieve the protected card/index.
 
 Example:
 

@@ -7,6 +7,7 @@ import {
 } from '../src/utils/smart-authorization-profile';
 import { buildSubjectIdentifierAssetId } from '../src/utils/subject-identity';
 import { EXAMPLE_PERSON_CARD_URI } from '../src/examples/shared';
+import { IdKind } from '../src/constants/identity-identifiers';
 import { readFileSync } from 'node:fs';
 
 describe('standards-aligned SMART authorization profile', () => {
@@ -77,7 +78,7 @@ describe('standards-aligned SMART authorization profile', () => {
 
   it('derives the opaque lookup key used to resolve the subject index provider before token issuance', () => {
     const lookupAssetId = buildSubjectIdentifierAssetId({
-      codingSystem: 'NN',
+      codingSystem: IdKind.PersonalNationalNumber,
       jurisdiction: 'ES',
       codeValue: '12345678Z',
     });
@@ -102,7 +103,12 @@ describe('standards-aligned SMART authorization profile', () => {
     expect(guide).toContain('The available issuing tenant does not need to host an index');
     expect(guide).toContain('Step 3 — Resolve the individual index provider');
     expect(guide).toContain('Step 4 — Ask an available tenant to issue the token');
-    expect(guide).toMatch(/shared code\s+must consume the returned `card.identifier.value`/);
+    expect(guide).toContain('Fabric returns only `indexProviderDid`');
+    expect(guide).toContain('same opaque lookup asset id');
+    expect(guide).toContain('Current availability');
+    expect(guide).toContain('email and telephone are not yet global Fabric lookup profiles');
+    expect(guide).not.toContain('tenant.resolveSubjectIndexProvider');
+    expect(guide).not.toMatch(/Fabric returns[^.]*card/i);
     expect(guide).toMatch(/The receiving EHR\s+is deliberately not the token audience/);
     expect(guide).toContain('not an RFC 9068 `at+jwt`');
     expect(guide).toContain('`authorization_details`');

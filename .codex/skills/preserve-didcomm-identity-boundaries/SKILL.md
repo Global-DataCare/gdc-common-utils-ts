@@ -8,8 +8,10 @@ description: Preserve and explain the canonical DIDComm, FAPI, DCR, SMART and FH
 ## SMART, OpenID4VP and introspection red lines
 
 - Resolve the individual's index provider first with the canonical opaque
-  subject-identifier asset id. Never put the raw card, telephone, email or
-  legal identifier on the ledger.
+  subject-identifier asset id. The ledger returns only `indexProviderDid`; DID
+  resolution locates the provider and the same opaque asset id is used in its
+  protected card/index lookup. Never put the card, raw telephone, email, legal
+  identifier, provider code or duplicate URL on the ledger.
 - Any available trusted data-space tenant may issue the federated SMART token;
   it does not need to host an index. JWT `iss` is that issuing tenant, while
   `aud` is always the resolved individual index provider. EHR custodians are
