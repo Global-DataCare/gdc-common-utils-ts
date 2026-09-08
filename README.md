@@ -1,5 +1,8 @@
 # gdc-common-utils-ts
 
+Development and releases follow the mandatory
+[`local-first TDD and release contract`](docs/LOCAL_FIRST_RELEASE_CONTRACT.md).
+
 See [ARCHITECTURE.md](./ARCHITECTURE.md) and
 [CONTRIBUTING.md](./CONTRIBUTING.md) before adding new shared helpers,
 fixtures, or high-level tests.
