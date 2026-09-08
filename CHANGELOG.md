@@ -4,9 +4,14 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.9.5] - 2026-09-07
+
 - Emit canonical `Consent.status=active` from the direct consent-approval
   builder. Draft permission requests continue to use their separate Bundle
   builder and cannot be materialized as authorization rules.
+- Make branch closure and the local-first release sequence executable policy:
+  local tarballs may unblock tests temporarily, but registry dependencies must
+  be restored and verified before publication, merge or deployment.
 
 ## [2.9.3] - 2026-09-05
 
