@@ -1015,9 +1015,12 @@ export function getHealthcareRoleByClaim(claim: string): HealthcareActorRoleDesc
   const direct = HealthcareAllRolesByClaim[normalized];
   if (direct) return direct;
   const fullHl7Prefix = `${HL7_CODING_SYSTEM_V3_ROLE_CODE}|`;
-  return normalized.startsWith(fullHl7Prefix)
-    ? HealthcareAllRolesByClaim[`v3-RoleCode|${normalized.slice(fullHl7Prefix.length)}`]
-    : undefined;
+  if (normalized.startsWith(fullHl7Prefix)) {
+    return HealthcareAllRolesByClaim[`v3-RoleCode|${normalized.slice(fullHl7Prefix.length)}`];
+  }
+  return Object.values(HealthcareAllRolesByClaim).find(
+    (descriptor) => normalized === `${descriptor.codingSystem}|${descriptor.code}`,
+  );
 }
 
 export function getHealthcareProfessionalRolesBySector(
