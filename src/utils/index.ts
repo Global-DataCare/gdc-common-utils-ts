@@ -107,6 +107,7 @@ export * from './object-sanitize';
 export * from './unified-health-id';
 export * from './permission-templates';
 export * from './smart-scope';
+export * from './smart-authorization-profile';
 export * from './service-act-reasons';
 export * from './same-as';
 export * from './subject-identity';

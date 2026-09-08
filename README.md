@@ -240,6 +240,11 @@ The `utils` export exposes reusable helpers for DID and message handling, such a
 
 These helpers support DIDComm-style message construction and related transport/data-shaping workflows.
 
+The high-level [federated SMART authorization profile](docs/101-SMART_AUTHORIZATION_PROFILE.md)
+defines the two-step emergency flow: resolve the individual's index provider
+from an opaque subject-identifier ledger key, then ask any available trusted
+tenant to issue one token whose `aud` remains that resolved index provider.
+
 Example:
 
 ```ts

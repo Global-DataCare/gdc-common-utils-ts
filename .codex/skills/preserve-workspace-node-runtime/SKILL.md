@@ -5,6 +5,21 @@ description: Preserve the active Node.js 24 workspace runtime for installs, buil
 
 # Preserve Workspace Node Runtime
 
+## SMART, OpenID4VP and introspection red lines
+
+- Preserve the two-step public contract in every test and release: first
+  resolve the individual's index provider from the opaque canonical identifier
+  asset id; then ask any available trusted tenant to issue the token.
+- The issuing tenant does not need to host an index: it owns JWT `iss`, while
+  `aud` is always the resolved index provider. Never turn receiving EHRs into
+  an audience list or silently replace that audience during fallback.
+- Keep OpenID4VP `vp_token`, OAuth `client_assertion`, the federated SMART token
+  and signed RFC 9701 introspection structurally distinct. New VC 2.0 JWTs use
+  a direct VP payload; `payload.vp` is compatibility-only.
+- Do not label the provider-audience token as RFC 9068 `at+jwt`, and never emit
+  private emergency JWT claims. Use RFC 9396 `authorization_details` plus FHIR
+  Consent/AuditEvent and protected `jti`-correlated evidence.
+
 ## Keep Node 24 active
 
 1. Run `node --version` before the first install, build, test, service, E2E,

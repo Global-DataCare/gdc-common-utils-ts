@@ -4,6 +4,22 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.9.6] - 2026-09-07
+
+- Add the neutral federated SMART authorization profile: an available trusted
+  tenant is the token issuer while the individual's separately resolved index
+  provider remains the sole audience; receiving EHRs never become an audience
+  list.
+- Document and test the two-step subject flow from a canonical private
+  identifier through its opaque `urn:multibase` ledger key to the returned
+  stable card URI and index-provider pointer. Shared code consumes domain-owned
+  card URIs instead of guessing `card`, `Person` or private `individual` forms.
+- Add RFC 9396 read-only emergency authorization-detail construction with a
+  caller-supplied governed profile URI, plus VC Data Model 2.0 direct JWT-VP
+  parsing and an explicitly reported legacy `payload.vp` compatibility reader.
+- Reserve `vp_token` for presentation transport/introspection evidence and
+  reject private emergency JWT claims as the canonical bearer contract.
+
 ## [2.9.5] - 2026-09-07
 
 - Emit canonical `Consent.status=active` from the direct consent-approval
