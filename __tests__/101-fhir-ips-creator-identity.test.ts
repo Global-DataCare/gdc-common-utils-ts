@@ -52,15 +52,20 @@ describe('101: one stable clinical creator across channels and FHIR IPS export',
     });
 
     // Step 2. A professional role code resolves to its governed ISCO claim.
-    expect(normalizeClinicalCreatorBinding({
+    const professionalBinding = normalizeClinicalCreatorBinding({
       kind: FhirIpsCreatorKinds.Professional,
       actorIdentifier: EXAMPLE_KYC_CONTROLLER_USER_UUID,
       authorIdentifier: EXAMPLE_KYC_CONTROLLER_UUID,
       ownerIdentifier: EXAMPLE_PROVIDER_ORGANIZATION_DID,
       role: HealthcareActorRoleCodes.GeneralistMedicalPractitioner,
-    }).role).toBe(
+    });
+    expect(professionalBinding.role).toBe(
       `${ISCO08_CODING_SYSTEM}|${HealthcareActorRoleCodes.GeneralistMedicalPractitioner}`,
     );
+    expect(buildClinicalCreatorPermissionActor(professionalBinding)).toEqual({
+      actorIdentifier: professionalBinding.authorIdentifier,
+      actorRole: professionalBinding.role,
+    });
 
     // Step 3. Invalid UUIDs and ungoverned roles fail locally.
     expect(() => normalizeClinicalCreatorBinding({
