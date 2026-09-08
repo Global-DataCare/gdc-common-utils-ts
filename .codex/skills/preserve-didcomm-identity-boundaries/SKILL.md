@@ -5,6 +5,28 @@ description: Preserve and explain the canonical DIDComm, FAPI, DCR, SMART and FH
 
 # Preserve DIDComm Identity Boundaries
 
+## SMART, OpenID4VP and introspection red lines
+
+- Resolve the individual's index provider first with the canonical opaque
+  subject-identifier asset id. The ledger returns only `indexProviderDid`; DID
+  resolution locates the provider and the same opaque asset id is used in its
+  protected card/index lookup. Never put the card, raw telephone, email, legal
+  identifier, provider code or duplicate URL on the ledger.
+- Any available trusted data-space tenant may issue the federated SMART token;
+  it does not need to host an index. JWT `iss` is that issuing tenant, while
+  `aud` is always the resolved individual index provider. EHR custodians are
+  never expanded into an audience list.
+- Keep `vp_token`, OAuth `client_assertion`, the federated SMART token and the
+  signed RFC 9701 introspection response distinct. A VC Data Model 2.0 JWT
+  carries the VP directly; accept historical `payload.vp` only as measured
+  compatibility.
+- The provider-audience bearer is an explicit federation profile, not an RFC
+  9068 `at+jwt`. An EHR asks any available trusted Clearing House to verify the
+  unchanged token before releasing only its SMART scope.
+- Never create private emergency JWT claims. Use RFC 9396
+  `authorization_details`, governed FHIR Consent and AuditEvent evidence, and
+  correlate protected server-side records with token `jti`.
+
 ## Source of truth
 
 Use `gdc-common-utils-ts` models, builders and examples. Do not duplicate

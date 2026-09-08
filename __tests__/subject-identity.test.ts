@@ -8,8 +8,10 @@
  */
 import {
   buildSubjectIdentifierAssetId,
+  buildSubjectIdentifierLedgerPayload,
   buildSubjectIdentifierToken,
   buildSubjectIdentityBundleEntry,
+  readSubjectIdentifierLedgerPayload,
   readSubjectIdentityBundleEntry,
 } from '../src/utils/subject-identity';
 import { buildIndividualIdentifierLedgerAssetId } from '../src/utils/individual-identifier';
@@ -80,6 +82,24 @@ describe('Subject identity collection', () => {
     expect(assetId).toMatch(/^urn:multibase:z/);
     expect(assetId).not.toContain(input.codeValue);
     expect(buildSubjectIdentifierAssetId(input)).toBe(assetId);
+  });
+
+  it('stores and resolves only the index provider DID for an opaque identifier', () => {
+    const indexProviderDid = 'did:web:index-provider.example.org';
+    const payload = buildSubjectIdentifierLedgerPayload(indexProviderDid);
+
+    expect(payload).toEqual({ indexProviderDid });
+    expect(readSubjectIdentifierLedgerPayload(payload)).toBe(indexProviderDid);
+    expect(JSON.stringify(payload)).not.toMatch(/card|url|telephone|email|identifier\.value/);
+  });
+
+  it('rejects non-web providers and obsolete expanded ledger payloads', () => {
+    expect(() => buildSubjectIdentifierLedgerPayload('did:key:zExample'))
+      .toThrow('indexProviderDid must be a did:web identifier');
+    expect(() => readSubjectIdentifierLedgerPayload({
+      indexProviderDid: 'did:web:index-provider.example.org',
+      card: { identifier: { value: EXAMPLE_PERSON_CARD_URI } },
+    })).toThrow('subject_identifier_payload_must_contain_only_index_provider_did');
   });
 
   it('rejects ambiguous tokens and a card id that is not a stable URI', () => {
