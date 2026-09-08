@@ -95,6 +95,13 @@ describe('standards-aligned SMART authorization profile', () => {
       '.codex/skills/preserve-didcomm-identity-boundaries/SKILL.md',
       '.codex/skills/preserve-workspace-node-runtime/SKILL.md',
     ].map((path) => readFileSync(path, 'utf8'));
+    const currentContractDocuments = [
+      guide,
+      readme,
+      readFileSync('docs/101-SUBJECT_IDENTITY_COLLECTION.md', 'utf8'),
+      readFileSync('docs/SUBJECT_IDENTITY_AUDIT_CONTRACT.md', 'utf8'),
+      ...skills,
+    ];
 
     expect(guide).toContain('`vp_token` is the OpenID4VP transport parameter');
     expect(guide).toMatch(/MUST NOT contain a wrapper claim named\s+`vp`/);
@@ -104,10 +111,13 @@ describe('standards-aligned SMART authorization profile', () => {
     expect(guide).toContain('Step 3 — Resolve the individual index provider');
     expect(guide).toContain('Step 4 — Ask an available tenant to issue the token');
     expect(guide).toContain('Fabric returns only `indexProviderDid`');
-    expect(guide).toContain('same opaque lookup asset id');
+    expect(guide).toContain('PDQm `POST Patient/$match`');
+    expect(guide).toMatch(/The opaque hash stops at\s+the Fabric lookup/);
     expect(guide).toContain('Current availability');
     expect(guide).toContain('email and telephone are not yet global Fabric lookup profiles');
     expect(guide).not.toContain('tenant.resolveSubjectIndexProvider');
+    expect(guide).not.toMatch(/same opaque (?:lookup )?(?:asset )?(?:id|key).*(?:provider|endpoint)/i);
+    expect(guide).not.toMatch(/PIXm|\$ihe-pix/);
     expect(guide).not.toMatch(/Fabric returns[^.]*card/i);
     expect(guide).toMatch(/The receiving EHR\s+is deliberately not the token audience/);
     expect(guide).toContain('not an RFC 9068 `at+jwt`');
@@ -117,6 +127,11 @@ describe('standards-aligned SMART authorization profile', () => {
     for (const skill of skills) {
       expect(skill).toContain('SMART, OpenID4VP and introspection red lines');
       expect(skill).toContain('private emergency JWT claims');
+    }
+    for (const document of currentContractDocuments) {
+      expect(document).toContain('PDQm');
+      expect(document).not.toMatch(/same opaque (?:lookup )?(?:asset )?(?:id|key).*(?:provider|endpoint)/i);
+      expect(document).not.toMatch(/PIXm|\$ihe-pix/);
     }
   });
 });

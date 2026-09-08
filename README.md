@@ -245,7 +245,10 @@ defines the two-step emergency flow: resolve the individual's index provider
 from an opaque subject-identifier ledger key, then ask any available trusted
 tenant to issue one token whose `aud` remains that resolved index provider.
 The ledger value is only `{ indexProviderDid: 'did:web:...' }`; the same opaque
-key is presented later to that provider to retrieve the protected card/index.
+hash stops at Fabric. After DID resolution, the authenticated human-facing
+request uses IHE PDQm `POST Patient/$match` with one FHIR `Parameters` body;
+the provider returns a FHIR search `Bundle` and projects private `sameAs`
+associations as governed `Patient.identifier` values.
 
 Example:
 

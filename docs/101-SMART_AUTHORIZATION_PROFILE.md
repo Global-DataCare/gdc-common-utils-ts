@@ -65,11 +65,18 @@ normalizes one governed identifier under its coding system and jurisdiction. It 
 written to Fabric.
 
 Fabric returns only `indexProviderDid`, the provider's resolvable `did:web`.
-DID resolution supplies the provider service endpoint. The BFF then sends the
-same opaque lookup asset id to that protected provider endpoint. Only after
-authentication and policy evaluation may the provider return the stable
-subject/card identity and the scoped distributed index. Discovery identifies
-where the index belongs; it grants no access and exposes no card in Fabric.
+DID resolution supplies the provider service endpoint. The opaque hash stops at
+the Fabric lookup: it is not the patient-match request and is not sent to the
+provider. The BFF calls the provider's IHE PDQm `POST Patient/$match` facade with
+one FHIR `Parameters` resource whose repeated `parameter[]` contains the input
+`Patient`. Only after authentication and policy evaluation may the provider
+return a FHIR search `Bundle` of matching patients. Discovery identifies where
+the index belongs; it grants no access and exposes no card in Fabric.
+
+The provider may internally derive a separate opaque storage key from the
+governed `Patient.identifier`, but that is private implementation detail. Its
+internal schema.org `sameAs` association is projected into the governed
+`Patient.identifier` response; `sameAs` is not a FHIR Patient field.
 
 The protected identity entry keeps its private identifier and points through
 `sameAs` to the stable subject/card identity returned by the provider. `sameAs`
@@ -85,17 +92,26 @@ const subjectLookupAssetId = buildSubjectIdentifierAssetId({
 });
 ```
 
-The ledger lookup, protected provider lookup and token issuance are explicit
-application steps. A future high-level SDK facade may compose them, but it must
-preserve the intermediate `indexProviderDid`, use it as `aud`, and never infer
-the provider from the issuing tenant.
+The ledger lookup, PDQm patient match and token issuance are explicit application
+steps. A high-level SDK facade may compose them, but it must preserve the
+intermediate `indexProviderDid`, use it as `aud`, and never infer the provider
+from the issuing tenant.
+
+The legacy FHIR request body is that single `Parameters` resource. With
+`application/didcomm-plain+json`, the DIDComm plaintext `body` is a GW `Bundle`
+whose `data[]` has exactly one entry: its `resource` is the same `Parameters` and
+its request metadata is `POST Patient/$match`. Strict transport sends that same
+DIDComm message signed and encrypted as a compact JWE in
+`application/x-www-form-urlencoded` field `request`; its response field is
+`response`. This is JAR/JARM-inspired framing, not a claim that the DIDComm JWE
+is itself a native OAuth JAR or JARM object. Decryption yields the same FHIR
+search `Bundle` as the legacy and plaintext modes.
 
 ### Current availability
 
 Common Utils currently provides the canonical opaque-key and provider-only
-payload builders/readers. The GW read endpoint and high-level SDK orchestration
-are not yet available, so this guide deliberately does not show a fictional SDK
-method. Governed card and legal identifiers have a global lookup profile;
+payload builders/readers. Transport and PDQm request builders belong to the SDK
+and GW layers. Governed card and legal identifiers have a global lookup profile;
 email and telephone are not yet global Fabric lookup profiles. Their
 normalization and resistance to low-entropy enumeration require a separately
 tested privacy profile before they can be enabled.

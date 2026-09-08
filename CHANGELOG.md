@@ -4,6 +4,17 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.9.7] - 2026-09-07
+
+- Correct the subject-index resolution documentation: the opaque identifier
+  hash stops at Fabric and only resolves `{ indexProviderDid }`; it is never
+  forwarded as the provider lookup request.
+- Define the human interoperability boundary as authenticated IHE PDQm
+  `POST Patient/$match`: one FHIR `Parameters` request and one FHIR search
+  `Bundle` response, carried directly or through DIDComm plain/strict framing.
+- Clarify that private schema.org `sameAs` associations are projected as
+  governed `Patient.identifier` values and are not FHIR Patient fields.
+
 ## [2.9.6] - 2026-09-07
 
 - Add the neutral federated SMART authorization profile: an available trusted

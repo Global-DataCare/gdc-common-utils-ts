@@ -17,6 +17,7 @@ stable public unified card. Supported identity resources are `Person` and
 | Stable unified card identifier | Encrypted provider index | No |
 | Provider code or duplicated discovery domain | Not stored | No |
 | Raw identifier value | Never in Fabric payload/event | No |
+| PDQm input `Patient` | Authenticated provider request | No |
 
 ## Required evidence
 
@@ -28,8 +29,11 @@ An implementation is conformant only when tests prove:
 4. Ledger payloads contain only `indexProviderDid` and no card or raw code value.
 5. Current-state deletion prevents subsequent lookup.
 6. Provider discovery does not bypass authentication or Consent checks on the
-   subsequent protected subject/card and index lookup.
+   subsequent PDQm `POST Patient/$match` request.
 7. Logs, errors and events redact private identifier values.
+8. The Fabric opaque key is not forwarded to the provider; the authenticated
+   request contains one FHIR `Parameters` resource and the response is a FHIR
+   search `Bundle`.
 
 ## Compatibility finding
 

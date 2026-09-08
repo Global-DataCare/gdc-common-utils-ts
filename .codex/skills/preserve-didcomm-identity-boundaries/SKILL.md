@@ -9,9 +9,17 @@ description: Preserve and explain the canonical DIDComm, FAPI, DCR, SMART and FH
 
 - Resolve the individual's index provider first with the canonical opaque
   subject-identifier asset id. The ledger returns only `indexProviderDid`; DID
-  resolution locates the provider and the same opaque asset id is used in its
-  protected card/index lookup. Never put the card, raw telephone, email, legal
-  identifier, provider code or duplicate URL on the ledger.
+  resolution locates the provider. The opaque hash stops at Fabric: never send
+  it as the provider patient-match request. For humans use authenticated IHE
+  PDQm `POST Patient/$match` with one FHIR `Parameters` body containing the
+  input `Patient`, and expect a FHIR search `Bundle`. Never put the card, raw
+  telephone, email, legal identifier, provider code or duplicate URL on the
+  ledger.
+- In DIDComm plain mode, carry exactly one such `Parameters` resource in the
+  GW Bundle `body.data[]`. In strict mode, sign and encrypt that same message as
+  the compact JWE in form field `request`; decrypt and verify form field
+  `response`. Treat the form framing as JAR/JARM-inspired, not as a native OAuth
+  JAR/JARM object.
 - Any available trusted data-space tenant may issue the federated SMART token;
   it does not need to host an index. JWT `iss` is that issuing tenant, while
   `aud` is always the resolved individual index provider. EHR custodians are
