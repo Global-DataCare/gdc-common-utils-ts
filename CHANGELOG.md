@@ -4,6 +4,12 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.9.8] - 2026-09-08
+
+- Add `normalizeClinicalCreatorBinding(...)` so BFFs pass UUIDs and governed
+  role codes without manually authoring `urn:uuid`, HL7 or ISCO coding-system
+  prefixes; reject invalid UUIDs and unknown roles before transport.
+
 ## [2.9.7] - 2026-09-07
 
 - Correct the subject-index resolution documentation: the opaque identifier

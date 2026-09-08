@@ -4,9 +4,18 @@ import {
   buildFhirIpsCreatorAuthor,
   buildFhirIpsCreatorProvenance,
   FhirIpsCreatorKinds,
+  normalizeClinicalCreatorBinding,
   resolveClinicalCreatorBinding,
 } from '../src/utils/fhir-ips-creator-identity';
-import { HL7_RELATED_PERSON_FUNCTIONAL_ROLES } from '../src/constants/hl7-roles';
+import {
+  HL7_CODING_SYSTEM_V3_ROLE_CODE,
+  HL7_RELATED_PERSON_FUNCTIONAL_ROLES,
+} from '../src/constants/hl7-roles';
+import { UrnPrefixes } from '../src/constants/urn';
+import {
+  HealthcareActorRoleCodes,
+  ISCO08_CODING_SYSTEM,
+} from '../src/constants/healthcare';
 import { buildStableActorIdentifier, StableActorContactKinds } from '../src/utils/actor-identifier';
 import {
   EXAMPLE_CLIENT_INSTANCE_UUID,
@@ -20,6 +29,56 @@ import {
 } from '../src/examples/shared';
 
 describe('101: one stable clinical creator across channels and FHIR IPS export', () => {
+  /**
+   * Teaching goal:
+   * - BFF code supplies stable UUIDs and one governed role code
+   * - the shared SDK boundary owns URI and coding-system canonicalization
+   * - invalid identifiers and unknown role codes fail before transport
+   */
+  it('normalizes high-level creator UUIDs and role codes without caller-authored prefixes', () => {
+    // Step 1. A personal controller sends only its domain UUIDs and role code.
+    expect(normalizeClinicalCreatorBinding({
+      kind: FhirIpsCreatorKinds.IndividualMember,
+      actorIdentifier: EXAMPLE_KYC_CONTROLLER_USER_UUID,
+      authorIdentifier: EXAMPLE_KYC_CONTROLLER_UUID,
+      ownerIdentifier: EXAMPLE_CLIENT_INSTANCE_UUID,
+      role: HealthcareActorRoleCodes.Controller,
+    })).toEqual({
+      kind: FhirIpsCreatorKinds.IndividualMember,
+      actorIdentifier: `${UrnPrefixes.Uuid}${EXAMPLE_KYC_CONTROLLER_USER_UUID}`,
+      authorIdentifier: `${UrnPrefixes.Uuid}${EXAMPLE_KYC_CONTROLLER_UUID}`,
+      ownerIdentifier: `${UrnPrefixes.Uuid}${EXAMPLE_CLIENT_INSTANCE_UUID}`,
+      role: `${HL7_CODING_SYSTEM_V3_ROLE_CODE}|${HealthcareActorRoleCodes.Controller}`,
+    });
+
+    // Step 2. A professional role code resolves to its governed ISCO claim.
+    expect(normalizeClinicalCreatorBinding({
+      kind: FhirIpsCreatorKinds.Professional,
+      actorIdentifier: EXAMPLE_KYC_CONTROLLER_USER_UUID,
+      authorIdentifier: EXAMPLE_KYC_CONTROLLER_UUID,
+      ownerIdentifier: EXAMPLE_PROVIDER_ORGANIZATION_DID,
+      role: HealthcareActorRoleCodes.GeneralistMedicalPractitioner,
+    }).role).toBe(
+      `${ISCO08_CODING_SYSTEM}|${HealthcareActorRoleCodes.GeneralistMedicalPractitioner}`,
+    );
+
+    // Step 3. Invalid UUIDs and ungoverned roles fail locally.
+    expect(() => normalizeClinicalCreatorBinding({
+      kind: FhirIpsCreatorKinds.IndividualMember,
+      actorIdentifier: EXAMPLE_EMAIL_PROFESSIONAL,
+      authorIdentifier: EXAMPLE_KYC_CONTROLLER_UUID,
+      ownerIdentifier: EXAMPLE_CLIENT_INSTANCE_UUID,
+      role: HealthcareActorRoleCodes.Controller,
+    })).toThrow('actorIdentifier must be a UUID or urn:uuid identifier.');
+    expect(() => normalizeClinicalCreatorBinding({
+      kind: FhirIpsCreatorKinds.Professional,
+      actorIdentifier: EXAMPLE_KYC_CONTROLLER_USER_UUID,
+      authorIdentifier: EXAMPLE_KYC_CONTROLLER_UUID,
+      ownerIdentifier: EXAMPLE_PROVIDER_ORGANIZATION_DID,
+      role: EXAMPLE_EMAIL_PROFESSIONAL,
+    })).toThrow('role must be a canonical governed healthcare or RelatedPerson functional role.');
+  });
+
   /**
    * Teaching goal:
    * - an application imports or generates one UUID for the professional
