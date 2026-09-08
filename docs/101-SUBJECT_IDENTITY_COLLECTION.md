@@ -49,9 +49,12 @@ urn:multibase:<SHA3-384-multihash(type|jurisdiction-or-empty|value)>
 Fabric returns only the index provider's resolvable `did:web`. The payload
 under the opaque key is exactly `{ indexProviderDid }`: it contains no card,
 raw identifier, provider code or duplicated URL. Resolve that DID to discover
-the provider service, then send the same opaque asset id to the protected
-provider lookup. That second call may return the stable subject/card and scoped
-index only after authentication and policy checks.
+the provider service. The opaque hash stops at Fabric and is not sent to the
+provider. For human interoperability, call the provider's IHE PDQm
+`POST Patient/$match` facade with one FHIR `Parameters` body containing the
+input `Patient`; the result is a FHIR search `Bundle`. The provider maps its
+private `sameAs` association to governed `Patient.identifier` values rather
+than exposing `sameAs` as a FHIR field.
 
 ## Privacy and audit invariants
 
