@@ -73,6 +73,17 @@ identity strings in consumers. Start with:
 8. Consent permissions for a bound clinical creator use the assignment UUID
    plus its separate governed role. Do not calculate new permission identity
    from a replaceable phone number, email address, DCR client or key.
+9. High-level callers name that role/relationship UUID
+   `assignmentIdentifier`. `authorIdentifier` is only the deprecated persisted
+   DCR/profile wire name for the same assignment; it must never be explained as
+   the value that selects `Composition.author`.
+10. A telephone assistant who only transcribes an identified individual's
+    request remains the submitter, not an implicit author or attester. Keep the
+    section Bundle in the existing pending/draft workflow until a controller or
+    authorized member explicitly attests it. Do not invent
+    `Communication.status=draft`; use the selected FHIR version's governed
+    Communication status and keep application draft state in its owning
+    outbox/workflow model.
 
 ## Change procedure
 

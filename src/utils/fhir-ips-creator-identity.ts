@@ -27,7 +27,11 @@ export type FhirIpsCreatorBundleEntry = Readonly<{
 type FhirIpsCreatorBase = Readonly<{
   /** Stable imported or locally generated actor identifier. */
   actorIdentifier: string;
-  /** Stable identifier referenced by Composition.author for this role/relationship. */
+  /**
+   * Historical API name for the stable role/relationship assignment identifier.
+   * Provenance uses this assignment as `Composition.attester.party`; it is not
+   * automatically the `Composition.author`.
+   */
   authorIdentifier: string;
 }>;
 
@@ -217,8 +221,11 @@ type ClinicalCreatorChannelAliases = Readonly<{
 
 /**
  * Durable clinical-creator identity stored behind the authenticated profile.
- * `actorIdentifier` identifies the person/member. `authorIdentifier` identifies
- * the concrete role or relationship assignment used as the FHIR author.
+ * `actorIdentifier` identifies the person/member. The historical wire property
+ * `authorIdentifier` identifies the concrete PractitionerRole/RelatedPerson
+ * assignment used as `Composition.attester.party`; it does not decide
+ * `Composition.author`. `ownerIdentifier` identifies the legal organization or
+ * individual organization/subject that owns that assignment.
  * Contacts, DCR clients, keys and operational DIDs are aliases only.
  */
 export type ClinicalCreatorBinding = ClinicalCreatorChannelAliases & Readonly<{
@@ -242,7 +249,10 @@ export type ClinicalCreatorBinding = ClinicalCreatorChannelAliases & Readonly<{
 export type ClinicalCreatorBindingInput = ClinicalCreatorChannelAliases & Readonly<{
   kind: FhirIpsCreatorKind;
   actorIdentifier: string;
-  authorIdentifier: string;
+  /** Preferred high-level name for the PractitionerRole/RelatedPerson UUID. */
+  assignmentIdentifier?: string;
+  /** @deprecated Historical DCR/profile wire name; use `assignmentIdentifier`. */
+  authorIdentifier?: string;
   ownerIdentifier: string;
   role: string;
 }>;
@@ -259,13 +269,28 @@ export function normalizeClinicalCreatorBinding(
   input: ClinicalCreatorBindingInput,
 ): ClinicalCreatorBinding {
   const actorIdentifier = canonicalUuidUrn(input.actorIdentifier, 'actorIdentifier');
-  const authorIdentifier = canonicalUuidUrn(input.authorIdentifier, 'authorIdentifier');
+  const preferredAssignment = input.assignmentIdentifier
+    ? canonicalUuidUrn(input.assignmentIdentifier, 'assignmentIdentifier')
+    : undefined;
+  const legacyAssignment = input.authorIdentifier
+    ? canonicalUuidUrn(input.authorIdentifier, 'authorIdentifier')
+    : undefined;
+  if (preferredAssignment && legacyAssignment && preferredAssignment !== legacyAssignment) {
+    throw new TypeError(
+      'assignmentIdentifier and deprecated authorIdentifier must identify the same assignment.',
+    );
+  }
+  const authorIdentifier = preferredAssignment || legacyAssignment;
+  if (!authorIdentifier) {
+    throw new TypeError('assignmentIdentifier is required.');
+  }
   const ownerIdentifier = input.kind === FhirIpsCreatorKinds.Professional
     ? requireReference(input.ownerIdentifier, 'ownerIdentifier')
     : canonicalUuidUrn(input.ownerIdentifier, 'ownerIdentifier');
   const role = canonicalRoleClaim(input.role);
+  const { assignmentIdentifier: _assignmentIdentifier, ...wireInput } = input;
   return {
-    ...input,
+    ...wireInput,
     actorIdentifier,
     authorIdentifier,
     ownerIdentifier,

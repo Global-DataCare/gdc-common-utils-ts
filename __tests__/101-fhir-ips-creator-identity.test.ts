@@ -40,7 +40,7 @@ describe('101: one stable clinical creator across channels and FHIR IPS export',
     expect(normalizeClinicalCreatorBinding({
       kind: FhirIpsCreatorKinds.IndividualMember,
       actorIdentifier: EXAMPLE_KYC_CONTROLLER_USER_UUID,
-      authorIdentifier: EXAMPLE_KYC_CONTROLLER_UUID,
+      assignmentIdentifier: EXAMPLE_KYC_CONTROLLER_UUID,
       ownerIdentifier: EXAMPLE_CLIENT_INSTANCE_UUID,
       role: HealthcareActorRoleCodes.Controller,
     })).toEqual({
@@ -50,6 +50,24 @@ describe('101: one stable clinical creator across channels and FHIR IPS export',
       ownerIdentifier: `${UrnPrefixes.Uuid}${EXAMPLE_CLIENT_INSTANCE_UUID}`,
       role: `${HL7_CODING_SYSTEM_V3_ROLE_CODE}|${HealthcareActorRoleCodes.Controller}`,
     });
+
+    // Step 1b. The old wire-shaped name remains input-compatible, but two
+    // different assignment values are rejected instead of choosing silently.
+    expect(normalizeClinicalCreatorBinding({
+      kind: FhirIpsCreatorKinds.IndividualMember,
+      actorIdentifier: EXAMPLE_KYC_CONTROLLER_USER_UUID,
+      authorIdentifier: EXAMPLE_KYC_CONTROLLER_UUID,
+      ownerIdentifier: EXAMPLE_CLIENT_INSTANCE_UUID,
+      role: HealthcareActorRoleCodes.Controller,
+    }).authorIdentifier).toBe(`${UrnPrefixes.Uuid}${EXAMPLE_KYC_CONTROLLER_UUID}`);
+    expect(() => normalizeClinicalCreatorBinding({
+      kind: FhirIpsCreatorKinds.IndividualMember,
+      actorIdentifier: EXAMPLE_KYC_CONTROLLER_USER_UUID,
+      assignmentIdentifier: EXAMPLE_KYC_CONTROLLER_UUID,
+      authorIdentifier: EXAMPLE_CLIENT_INSTANCE_UUID,
+      ownerIdentifier: EXAMPLE_CLIENT_INSTANCE_UUID,
+      role: HealthcareActorRoleCodes.Controller,
+    })).toThrow('assignmentIdentifier and deprecated authorIdentifier must identify the same assignment.');
 
     // Step 2. A professional role code resolves to its governed ISCO claim.
     const professionalBinding = normalizeClinicalCreatorBinding({

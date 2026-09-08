@@ -4,6 +4,14 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.9.10] - 2026-09-08
+
+- Add `assignmentIdentifier` as the preferred high-level name for a registered
+  `RelatedPerson`/`PractitionerRole` UUID while retaining `authorIdentifier` as
+  its deprecated DCR/profile wire alias.
+- Clarify that sender, content author and explicit attester are separate, and
+  that telephone-transcribed section drafts are not automatically attested.
+
 ## [2.9.9] - 2026-09-08
 
 - Make normalized HL7/ISCO coding-system claims round-trip through clinical
