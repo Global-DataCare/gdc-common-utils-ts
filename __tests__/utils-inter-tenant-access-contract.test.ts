@@ -1,3 +1,4 @@
+// Flow contract: inter-tenant research examples preserve stable actor identity without exposing contact data.
 import { describe, expect, it } from '@jest/globals';
 import {
   EXAMPLE_INTER_TENANT_EMPLOYEE_CONTRACT_AUTHORIZATION_CONSENT,
@@ -8,6 +9,8 @@ import {
   EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_AGREEMENT_PDF_URL,
   EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONSUMER_MEMBER_URN,
   EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONSUMER_ORGANIZATION_URN,
+  EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONSUMER_PROFESSIONAL_EMAIL,
+  EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONSUMER_PROFESSIONAL_DID,
   EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_PROVIDER_ORGANIZATION_URN,
 } from '../src/examples/inter-tenant-access-contract.js';
 import {
@@ -25,6 +28,11 @@ import { ClaimInterTenantAccessContract } from '../src/models/inter-tenant-acces
 import { buildConsentRulePrimaryDocument } from '../src/utils/permission-templates.js';
 import { ClaimConsent } from '../src/models/consent-rule.js';
 import { HealthcareConsentPurposes } from '../src/constants/healthcare.js';
+import { buildProfessionalDidWeb } from '../src/utils/did.js';
+import {
+  EXAMPLE_HEALTHCARE_ACTOR_ROLE_PHYSICIAN,
+  EXAMPLE_RESEARCH_API_ORGANIZATION_DID,
+} from '../src/examples/shared.js';
 
 /**
  * Flow contract:
@@ -35,6 +43,18 @@ import { HealthcareConsentPurposes } from '../src/constants/healthcare.js';
  * 4. historical controller role labels remain readable but are never emitted.
  */
 describe('inter-tenant access contract utils', () => {
+  it('derives the research professional DID without embedding the email address', () => {
+    expect(EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONSUMER_PROFESSIONAL_DID).toBe(
+      buildProfessionalDidWeb({
+        organizationDidWeb: EXAMPLE_RESEARCH_API_ORGANIZATION_DID,
+        email: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONSUMER_PROFESSIONAL_EMAIL,
+        role: EXAMPLE_HEALTHCARE_ACTOR_ROLE_PHYSICIAN,
+      }),
+    );
+    expect(EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONSUMER_PROFESSIONAL_DID)
+      .not.toContain(EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONSUMER_PROFESSIONAL_EMAIL);
+  });
+
   it('uses the canonical HL7 healthcare-research purpose', () => {
     expect(EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONTEXT.purpose).toBe(
       HealthcareConsentPurposes.Research,

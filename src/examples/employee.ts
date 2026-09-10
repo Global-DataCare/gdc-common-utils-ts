@@ -1,6 +1,8 @@
 import { OrganizationEmployeeSearchResponseEntryTypes } from '../constants/employee-lifecycle';
 import { ClaimsPersonSchemaorg } from '../constants/schemaorg';
+import { buildProfessionalDidWeb } from '../utils/did';
 import {
+  EXAMPLE_API_ORGANIZATION_DID,
   EXAMPLE_BUNDLE_RESOURCE_TYPE,
   EXAMPLE_BUNDLE_TYPE_BATCH_RESPONSE,
   ExampleHttpStatusText,
@@ -43,9 +45,21 @@ export const ExampleEmployeeRoles = Object.freeze({
   Doctor: 'ISCO-08|2211',
 } as const);
 
+const EXAMPLE_EMPLOYEE_CONTROLLER_DID = buildProfessionalDidWeb({
+  organizationDidWeb: EXAMPLE_API_ORGANIZATION_DID,
+  email: ExampleEmployeeEmails.SharedProfessional,
+  role: ExampleEmployeeRoles.Controller,
+});
+
+const EXAMPLE_EMPLOYEE_DOCTOR_DID = buildProfessionalDidWeb({
+  organizationDidWeb: EXAMPLE_API_ORGANIZATION_DID,
+  email: ExampleEmployeeEmails.SharedProfessional,
+  role: ExampleEmployeeRoles.Doctor,
+});
+
 export const EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE: ExampleEmployeeRecord = Object.freeze({
   resourceId: 'urn:uuid:11111111-1111-4111-8111-111111111111',
-  identifier: 'did:web:api.example.org:employee:shared.professional@example.org:RESPRSN',
+  identifier: EXAMPLE_EMPLOYEE_CONTROLLER_DID,
   email: ExampleEmployeeEmails.SharedProfessional,
   role: ExampleEmployeeRoles.Controller,
   status: 'active',
@@ -53,7 +67,7 @@ export const EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE: ExampleEmployeeRecord = Object.
 
 export const EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE: ExampleEmployeeRecord = Object.freeze({
   resourceId: 'urn:uuid:22222222-2222-4222-8222-222222222222',
-  identifier: 'did:web:api.example.org:employee:shared.professional@example.org:ISCO-08|2211',
+  identifier: EXAMPLE_EMPLOYEE_DOCTOR_DID,
   email: ExampleEmployeeEmails.SharedProfessional,
   role: ExampleEmployeeRoles.Doctor,
   status: 'active',
@@ -61,7 +75,7 @@ export const EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE: ExampleEmployeeRecord = Object.free
 
 export const EXAMPLE_EMPLOYEE_DOCTOR_PURGED_HISTORICAL: ExampleEmployeeRecord = Object.freeze({
   resourceId: 'urn:uuid:33333333-3333-4333-8333-333333333333',
-  identifier: 'did:web:api.example.org:employee:shared.professional@example.org:ISCO-08|2211:historical:000',
+  identifier: `${EXAMPLE_EMPLOYEE_DOCTOR_DID}:historical:000`,
   email: ExampleEmployeeEmails.SharedProfessional,
   role: ExampleEmployeeRoles.Doctor,
   status: 'purged',
