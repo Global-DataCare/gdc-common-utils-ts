@@ -4,6 +4,8 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.9.12] - 2026-09-10
+
 - Derive shared employee and inter-tenant research actor examples through
   `buildProfessionalDidWeb(...)`, keeping raw email addresses out of DID paths.
 - Use jurisdiction-scoped `urn:cds-*` organization/member authorization
