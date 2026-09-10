@@ -15,7 +15,12 @@ export enum ClaimConsent {
     'date' = 'Consent.date',
     'periodStart' = 'Consent.period-start',
     'periodEnd' = 'Consent.period-end',
+    'dataPeriodStart' = 'Consent.data-period-start',
+    'dataPeriodEnd' = 'Consent.data-period-end',
+    'grantor' = 'Consent.grantor',
     'grantee' = 'Consent.grantee',
+    'manager' = 'Consent.manager',
+    'controller' = 'Consent.controller',
     'verifiedBy' = 'Consent.verified-by',
     'verifiedDate' = 'Consent.verified-date',
     'purpose' = 'Consent.purpose',
@@ -27,6 +32,8 @@ export enum ClaimConsent {
     'policyRule' = 'Consent.policy-rule',
     'provisionCode' = 'Consent.provision-code',
     'provisionCodeDisplay' = 'Consent.provision-code-display',
+    'securityLabel' = 'Consent.security-label',
+    'documentType' = 'Consent.document-type',
     'containedReferenceList' = 'Consent.contained-reference-list',
     /**
      * @deprecated Use `containedReferenceList`.
@@ -157,6 +164,16 @@ export interface ConsentRule {
      */
     'Consent.period-end'?: string;
 
+    /** Timeframe of the governed data; distinct from Consent validity. */
+    'Consent.data-period-start'?: string;
+    'Consent.data-period-end'?: string;
+
+    /** R5 grantor, grantee, workflow manager and enforcement controller references. */
+    'Consent.grantor'?: string;
+    'Consent.grantee'?: string;
+    'Consent.manager'?: string;
+    'Consent.controller'?: string;
+
     /**
      * The party to whom the consent is granted.
      * Use both 'Consent.actor-identifier' and 'Consent.actor-role' instead.
@@ -189,6 +206,12 @@ export interface ConsentRule {
      * Derived from the `org.hl7.fhir.api.Consent.identifier` claim.
      */
     'Consent.identifier': string;
+
+    /** Governed FHIR resource types and security/content classifications. */
+    'Consent.resource-type'?: string;
+    'Consent.security-label'?: string;
+    'Consent.document-type'?: string;
+    'Consent.provision-code'?: string;
 
     'Consent.contained-reference-list'?: string;
     'Consent.contained-resource-list'?: string;

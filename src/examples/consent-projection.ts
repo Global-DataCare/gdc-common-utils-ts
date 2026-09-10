@@ -1,0 +1,30 @@
+// Copyright 2026 Conéctate Soluciones y Aplicaciones SL under the Apache License, Version 2.0.
+
+/** Reusable, non-production identifiers for Consent R4/R5 projection tests. */
+export const CONSENT_PROJECTION_TEST_DATA = Object.freeze({
+  identifier: 'urn:uuid:9f4105a1-fca1-4b92-a38f-cd40f37da36e',
+  subject: 'Patient/consent-subject-test',
+  grantor: 'RelatedPerson/consent-grantor-test',
+  grantee: 'Organization/consent-grantee-test',
+  manager: 'Organization/consent-manager-test',
+  controller: 'Organization/consent-enforcer-test',
+  createdAt: '2026-09-08',
+  consentPeriodStart: '2026-09-08T10:00:00Z',
+  consentPeriodEnd: '2026-10-08T10:00:00Z',
+  dataPeriodStart: '2025-09-08T00:00:00Z',
+  dataPeriodEnd: '2026-09-08T00:00:00Z',
+  actorRole: 'http://terminology.hl7.org/CodeSystem/v3-RoleCode|PAYOR',
+  action: 'http://terminology.hl7.org/CodeSystem/consentaction|access',
+  purpose: 'http://terminology.hl7.org/CodeSystem/v3-ActReason|HPAYMT',
+  scope: 'http://terminology.hl7.org/CodeSystem/consentscope|patient-privacy',
+  category: 'http://loinc.org|59284-0',
+  resourceType: 'http://hl7.org/fhir/fhir-types|Observation',
+  provisionCode: 'http://loinc.org|85353-1',
+  secondProvisionCode: 'http://loinc.org|8310-5',
+  provisionCodeList: 'http://loinc.org|85353-1,http://loinc.org|8310-5',
+  securityLabel: 'http://terminology.hl7.org/CodeSystem/v3-Confidentiality|R',
+  attachmentContentType: 'application/odrl+json',
+  attachmentData: 'eyJAdHlwZSI6IkFncmVlbWVudCJ9',
+  odrlOnlyConstraintName: 'odrl.profile.max-query-count',
+  odrlOnlyConstraintValue: '1',
+});

@@ -23,6 +23,7 @@ describe('FHIR R4 resource type catalog', () => {
     expect(ResourceTypesFhirR4.OperationOutcome).toBeDefined();
     expect(ResourceTypesFhirR4.Parameters).toBeDefined();
     expect(ResourceTypesFhirR4.Person).toBeDefined();
+    expect(ResourceTypesFhirR4.ResearchStudy).toBeDefined();
     expect(ResourceTypesFhirR4.ResearchSubject).toBeDefined();
   });
 

@@ -1,4 +1,5 @@
 export * from './shared';
+export * from './consent-projection';
 export * from './ica-activation-proof';
 export * from './ica-verify-response';
 export * from './dataspace-discovery';
