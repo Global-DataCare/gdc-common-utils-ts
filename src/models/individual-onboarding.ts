@@ -284,6 +284,14 @@ export type IndividualOnboardingDraftInput = Readonly<{
 
 export type IndividualOnboardingDraftResult = Readonly<{
   formFields: IndividualFormTemplateFields;
+  /**
+   * Original provider KYC payload retained for the gateway audit boundary.
+   *
+   * Normalized Schema.org claims do not prove when or by whom KYC was
+   * verified. Consumers must keep this payload separate from those claims and
+   * must not describe it as equivalent to certificate-signed PDF evidence.
+   */
+  kyc?: IndividualOrganizationKycPayload;
   claims?: Record<string, unknown>;
   template?: IndividualOnboardingPdfTemplateInput;
   documentReference?: IndividualOnboardingPdfDocumentReferenceEntry;
