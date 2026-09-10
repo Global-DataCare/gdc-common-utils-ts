@@ -1,3 +1,4 @@
+// Flow contract: shared employee examples must use the canonical privacy-preserving actor DID builder.
 /**
  * 101 note:
  * - Teach the highest-level public `common-utils` helper available for this topic.
@@ -17,7 +18,9 @@ import {
   buildEmployeePurgeBundle,
   buildExampleEmployeeClaims,
   buildEmployeeSearchBundle,
+  buildProfessionalDidWeb,
   ClaimsPersonSchemaorg,
+  EXAMPLE_API_ORGANIZATION_DID,
   EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE,
   EXAMPLE_EMPLOYEE_DIRECTORY_RECORDS,
   EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE,
@@ -28,6 +31,34 @@ import {
 } from '../src';
 
 describe('101: employee examples', () => {
+  it('keeps raw contact data out of every canonical employee actor DID', () => {
+    // Teaching goal:
+    // - email remains a private lookup/contact claim
+    // - the actor DID carries only the stable multibase contact alias
+
+    // Step 1.
+    // Rebuild the two active actor identities through the canonical helper.
+    const expectedControllerDid = buildProfessionalDidWeb({
+      organizationDidWeb: EXAMPLE_API_ORGANIZATION_DID,
+      email: ExampleEmployeeEmails.SharedProfessional,
+      role: EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE.role,
+    });
+    const expectedDoctorDid = buildProfessionalDidWeb({
+      organizationDidWeb: EXAMPLE_API_ORGANIZATION_DID,
+      email: ExampleEmployeeEmails.SharedProfessional,
+      role: EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE.role,
+    });
+
+    // Step 2.
+    // The exported fixtures must be builder-owned and must never disclose the
+    // contact value in the DID path.
+    expect(EXAMPLE_EMPLOYEE_CONTROLLER_ACTIVE.identifier).toBe(expectedControllerDid);
+    expect(EXAMPLE_EMPLOYEE_DOCTOR_ACTIVE.identifier).toBe(expectedDoctorDid);
+    for (const record of EXAMPLE_EMPLOYEE_DIRECTORY_RECORDS) {
+      expect(record.identifier).not.toContain(record.email.toLowerCase());
+    }
+  });
+
   it('documents that one email can map to more than one active employee role', () => {
     // Teaching goal:
     // - the app may search employees by shared professional email

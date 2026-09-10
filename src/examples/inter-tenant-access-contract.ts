@@ -1,7 +1,8 @@
 // Copyright 2026 Antifraud Services Inc. under the Apache License, Version 2.0.
 
 import { ServiceCapability } from '../constants/service-capabilities';
-import { HealthcareConsentPurposes } from '../constants/healthcare';
+import { HealthcareConsentPurposes, ISCO08_CODING_SYSTEM } from '../constants/healthcare';
+import { SecureIdTypesIndividual } from '../constants/identity-identifiers';
 import { DataspaceSectors } from '../constants/sectors';
 import { ClaimConsent } from '../models/consent-rule';
 import { ClaimInterTenantAccessContract } from '../models/inter-tenant-access-contract';
@@ -12,9 +13,10 @@ import {
   getInterTenantAccessContractBlockchainReference,
 } from '../utils/inter-tenant-access-contract';
 import {
-  buildMemberAuthorizationUrn,
-  buildOrganizationAuthorizationUrn,
+  buildOrganizationAuthorizationUrnCds,
+  buildOrganizationMemberAuthorizationUrnCds,
 } from '../utils/organization-authorization-urn';
+import { buildProfessionalDidWeb, buildSecureIdValueMember } from '../utils/did';
 import {
   EXAMPLE_API_ORGANIZATION_DID,
   EXAMPLE_CONTROLLER_DID,
@@ -65,8 +67,14 @@ export const EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_SECTION =
   'LOINC|48765-2' as const;
 export const EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_AGREEMENT_PDF_URL =
   'https://portal.example.org/files/contracts/inter-tenant-contract-acme-lab-001.pdf' as const;
+export const EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONSUMER_PROFESSIONAL_EMAIL =
+  'researcher1@lab.org' as const;
 export const EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONSUMER_PROFESSIONAL_DID =
-  `${EXAMPLE_RESEARCH_API_ORGANIZATION_DID}:employee:researcher1@lab.org:${EXAMPLE_HEALTHCARE_ACTOR_ROLE_PHYSICIAN}` as const;
+  buildProfessionalDidWeb({
+    organizationDidWeb: EXAMPLE_RESEARCH_API_ORGANIZATION_DID,
+    email: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONSUMER_PROFESSIONAL_EMAIL,
+    role: EXAMPLE_HEALTHCARE_ACTOR_ROLE_PHYSICIAN,
+  });
 export const EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_PROVIDER_AUTHORIZED_SIGNATORY_DID =
   'did:web:provider-signatory.example.org' as const;
 export const EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONSUMER_AUTHORIZED_SIGNATORY_DID =
@@ -138,21 +146,28 @@ export const EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONTEXT = Object.freeze({
 } as const);
 
 export const EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_PROVIDER_ORGANIZATION_URN =
-  buildOrganizationAuthorizationUrn({
+  buildOrganizationAuthorizationUrnCds({
+    jurisdiction: EXAMPLE_JURISDICTION,
     identifierType: 'TAX',
     identifierValue: EXAMPLE_TENANT_IDENTIFIER,
   });
 
 export const EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONSUMER_ORGANIZATION_URN =
-  buildOrganizationAuthorizationUrn({
+  buildOrganizationAuthorizationUrnCds({
+    jurisdiction: EXAMPLE_JURISDICTION,
     identifierType: 'TAX',
     identifierValue: EXAMPLE_RESEARCH_TENANT_IDENTIFIER,
   });
 
 export const EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONSUMER_MEMBER_URN =
-  buildMemberAuthorizationUrn({
+  buildOrganizationMemberAuthorizationUrnCds({
     organizationUrn: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONSUMER_ORGANIZATION_URN,
-    memberId: 'researcher-001',
+    memberId: buildSecureIdValueMember({
+      secureIdTypeMember: SecureIdTypesIndividual.Email,
+      privateIdValueMember: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONSUMER_PROFESSIONAL_EMAIL,
+    }),
+    roleType: ISCO08_CODING_SYSTEM,
+    roleValue: EXAMPLE_HEALTHCARE_ACTOR_ROLE_PHYSICIAN,
   });
 
 export const EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONTEXT_WITH_URNS = Object.freeze({

@@ -4,13 +4,18 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Derive shared employee and inter-tenant research actor examples through
+  `buildProfessionalDidWeb(...)`, keeping raw email addresses out of DID paths.
+- Use jurisdiction-scoped `urn:cds-*` organization/member authorization
+  examples instead of emitting the compatibility-only `urn:org:*` grammar.
+
 ## [2.9.11] - 2026-09-08
 
 - Add version-neutral Consent claims for grantor, grantee, manager, controller,
   data period, security label and document type.
 - Add explicit native FHIR R5 Consent import/export and complete the R4
   projection for actors, governed data and source attachments. Policy-profile
-  validators remain responsible for checking attached ODRL parity first.
+validators remain responsible for checking attached ODRL parity first.
 
 ## [2.9.10] - 2026-09-08
 
