@@ -84,6 +84,22 @@ const EXAMPLE_KYC_PAYLOAD: IndividualOrganizationKycPayload = Object.freeze({
 } as const);
 
 describe('101: individual onboarding claims', () => {
+  it('preserves the original KYC payload in the built draft for the gateway audit boundary', () => {
+    // Teaching goal:
+    // - KYC-derived claims are convenient normalized values;
+    // - the original provider payload must also reach the gateway so it can
+    //   distinguish audited KYC fallback from ordinary caller-authored claims.
+
+    // Step 1. The portal gives the high-level editor the provider KYC payload.
+    const draft = createIndividualOnboardingEditor()
+      .setKyc(EXAMPLE_KYC_PAYLOAD, { self: true })
+      .buildDraft();
+
+    // Step 2. The draft retains that evidence separately from normalized claims.
+    expect(draft.kyc).toEqual(EXAMPLE_KYC_PAYLOAD);
+    expect(draft.claims).toBeDefined();
+  });
+
   it('builds the final resource.meta.claims step by step after KYC as a controller assistant would do', () => {
     // Step 1.
     // After KYC, the assistant already knows the legal representative identity

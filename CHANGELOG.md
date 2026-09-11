@@ -4,6 +4,12 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.9.13] - 2026-09-10
+
+- Preserve the original provider KYC payload in an individual-onboarding
+  editor draft, separately from normalized Schema.org claims, so SDKs can pass
+  the fallback evidence to the gateway audit boundary.
+
 ## [2.9.12] - 2026-09-10
 
 - Derive shared employee and inter-tenant research actor examples through
