@@ -9,6 +9,10 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
   well as runtime JavaScript. This makes `HealthcareSummarySections`,
   `SecureIdTypesIndividual` and the individual-member DID builders compile
   from the package root.
+- Resolve both legacy `:individual:multibase:` DIDs and current
+  `:individual:<secure-id-type>:` DIDs to the same provider boundary, and
+  classify current hashed member/controller suffixes without falling through
+  to host onboarding.
 
 ## [2.9.13] - 2026-09-10
 

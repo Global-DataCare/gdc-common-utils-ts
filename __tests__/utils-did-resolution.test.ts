@@ -1,3 +1,4 @@
+// Flow contract: reuse shared test fixtures and canonical types; do not introduce duplicated literals.
 import {
   getActorKindFromDid,
   getDidDocumentEndpoint,
@@ -32,8 +33,10 @@ describe('did-resolution utilities', () => {
 
   it('derives organization/provider did from member did shapes', () => {
     const familyDid = 'did:web:host.example.org:health-care:organization:taxid:VATES-B00112233:individual:multibase:z6MkhYExampleIndividualId';
+    const currentControllerDid = 'did:web:host.example.org:health-care:organization:taxid:VATES-B00112233:individual:UUID:z6MkhYExampleIndividualId:member:z6MkhYExampleControllerId:RESPRSN';
     const employeeDid = 'did:web:host.example.org:acme:cds-es:v1:health-care:employee:member-001:RESPRSN';
     expect(getOrganizationDidFromIndividualDid(familyDid)).toBe('did:web:host.example.org:health-care:organization:taxid:VATES-B00112233');
+    expect(getOrganizationDidFromIndividualDid(currentControllerDid)).toBe('did:web:host.example.org:health-care:organization:taxid:VATES-B00112233');
     expect(getProviderDidFromSubjectDid(employeeDid)).toBe('did:web:host.example.org:acme:cds-es:v1:health-care');
   });
 
@@ -41,5 +44,7 @@ describe('did-resolution utilities', () => {
     expect(getActorKindFromDid('did:web:host.example.org:acme:cds-es:v1:health-care:employee:member-001:RESPRSN')).toBe('organization_controller');
     expect(getActorKindFromDid('did:web:host.example.org:health-care:organization:taxid:VATES-B00112233:individual:multibase:z6MkhYExampleIndividualId:member:role:ONESELF')).toBe('individual_controller');
     expect(getActorKindFromDid('did:web:host.example.org:health-care:organization:taxid:VATES-B00112233:individual:multibase:z6MkhYExampleIndividualId:member:role:NMTH')).toBe('individual_member');
+    expect(getActorKindFromDid('did:web:host.example.org:health-care:organization:taxid:VATES-B00112233:individual:UUID:z6MkhYExampleIndividualId:member:z6MkhYExampleControllerId:RESPRSN')).toBe('individual_controller');
+    expect(getActorKindFromDid('did:web:host.example.org:health-care:organization:taxid:VATES-B00112233:individual:UUID:z6MkhYExampleIndividualId:member:z6MkhYExampleCaregiverId:NMTH')).toBe('individual_member');
   });
 });
