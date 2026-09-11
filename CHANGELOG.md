@@ -4,6 +4,12 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Preserve the root barrel's named TypeScript exports under `NodeNext` module
+  resolution by adding explicit `.js` extensions to emitted declarations as
+  well as runtime JavaScript. This makes `HealthcareSummarySections`,
+  `SecureIdTypesIndividual` and the individual-member DID builders compile
+  from the package root.
+
 ## [2.9.13] - 2026-09-10
 
 - Preserve the original provider KYC payload in an individual-onboarding
