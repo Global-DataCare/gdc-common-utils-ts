@@ -4,6 +4,19 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Surface canonical FHIR `OperationOutcome.issue.details.text` through
+  `BundleReader` response diagnostics when `issue.diagnostics` is absent, so
+  consumers retain the actual terminal failure reason.
+- Preserve the root barrel's named TypeScript exports under `NodeNext` module
+  resolution by adding explicit `.js` extensions to emitted declarations as
+  well as runtime JavaScript. This makes `HealthcareSummarySections`,
+  `SecureIdTypesIndividual` and the individual-member DID builders compile
+  from the package root.
+- Resolve both legacy `:individual:multibase:` DIDs and current
+  `:individual:<secure-id-type>:` DIDs to the same provider boundary, and
+  classify current hashed member/controller suffixes without falling through
+  to host onboarding.
+
 ## [2.9.13] - 2026-09-10
 
 - Preserve the original provider KYC payload in an individual-onboarding

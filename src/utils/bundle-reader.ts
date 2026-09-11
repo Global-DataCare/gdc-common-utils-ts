@@ -546,7 +546,13 @@ export class BundleReader {
       .map((issue) => issue.severity)
       .filter(isIssueSeverityCode);
     const issueDiagnostics = issues
-      .map((issue) => issue.diagnostics)
+      .map((issue) => {
+        const diagnostics = issue.diagnostics;
+        if (typeof diagnostics === 'string' && diagnostics.trim().length > 0) {
+          return diagnostics;
+        }
+        return asRecord(issue.details).text;
+      })
       .filter((diagnostics): diagnostics is string =>
         typeof diagnostics === 'string' && diagnostics.trim().length > 0);
     const is2xxResponse = typeof responseStatus === 'string' && /^2\d\d$/.test(responseStatus);

@@ -69,7 +69,10 @@ if (!fs.existsSync(BUILD_DIR)) {
   process.exit(1);
 }
 
-const files = collectFiles(BUILD_DIR, ['.js']);
+// NodeNext follows declaration re-exports with the same ESM resolution rules
+// as runtime JavaScript. Patch both artifacts so the public barrel remains
+// traversable instead of appearing to have no named exports.
+const files = collectFiles(BUILD_DIR, ['.js', '.ts']);
 let changedCount = 0;
 
 for (const file of files) {
