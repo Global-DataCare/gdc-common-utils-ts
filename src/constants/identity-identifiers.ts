@@ -37,7 +37,9 @@ export type Hl7V20203IdentifierCode =
   typeof HL7_V2_0203_IDENTIFIER_CODES[keyof typeof HL7_V2_0203_IDENTIFIER_CODES];
 
 /**
- * Identifier type tokens accepted by the hosted individual DID builders.
+ * Private identifier types accepted when deriving an opaque hosted-individual
+ * multihash. These values govern normalization only and are never serialized
+ * in the public DID path.
  *
  * `DL`, `PPN`, `NN`, and the other clinical identifier codes retain their
  * HL7 v2-0203 meaning. `UUID`, `EMAIL`, and `PHONE` are GDC index identifier
