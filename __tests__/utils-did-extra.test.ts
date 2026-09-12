@@ -160,7 +160,7 @@ describe('did utilities', () => {
       secureIdValueIndividual,
     });
     expect(individualDid).toBe(
-      `did:web:host.example.org:health-care:organization:taxid:ES-B00112233:individual:UUID:${secureIdValueIndividual}`,
+      `did:web:host.example.org:health-care:organization:taxid:ES-B00112233:individual:multibase:${secureIdValueIndividual}`,
     );
 
     const memberDid = buildIndividualMemberDidWeb({
@@ -173,7 +173,7 @@ describe('did utilities', () => {
       roleValue: 'RESPRSN',
     });
     expect(memberDid).toBe(
-      `did:web:host.example.org:health-care:organization:taxid:ES-B00112233:individual:UUID:${secureIdValueIndividual}:member:zG9DrMLpQW8eoCc9Ay9AFxuMGiswgJePpbUMz9svJCZ8tKjUd4xoExgCPA5jmHc6hPATJ:RESPRSN`,
+      `did:web:host.example.org:health-care:organization:taxid:ES-B00112233:individual:multibase:${secureIdValueIndividual}:member:zG9DrMLpQW8eoCc9Ay9AFxuMGiswgJePpbUMz9svJCZ8tKjUd4xoExgCPA5jmHc6hPATJ:RESPRSN`,
     );
     expect(parseIndividualMemberDidWeb(memberDid)).toEqual({
       individualDidWeb: individualDid,
@@ -195,6 +195,16 @@ describe('did utilities', () => {
     expect(() => parseIndividualMemberDidWeb(
       'did:web:host.example.org:individual:UUID:zSecure:family:zMember:RESPRSN',
     )).toThrow(/member DID/i);
+  });
+
+  it('reads the previously emitted typed individual path without making it canonical', () => {
+    // Exact compatibility serialization: this literal represents the previously emitted wire form.
+    const typedDid = 'did:web:host.example.org:individual:UUID:zSecure:member:zMember:RESPRSN';
+    expect(parseIndividualMemberDidWeb(typedDid)).toEqual({
+      individualDidWeb: 'did:web:host.example.org:individual:UUID:zSecure',
+      memberId: 'zMember',
+      roleValue: 'RESPRSN',
+    });
   });
 
   it('strips coding-system prefixes from member role suffixes', () => {

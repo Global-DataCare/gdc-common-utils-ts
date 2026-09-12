@@ -4,6 +4,12 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Keep private identifier types out of hosted individual DIDs: builders now
+  emit only `:individual:multibase:<multihash>`, while existing typed DID paths
+  remain readable for compatibility.
+- Build the distributable declarations before the pre-publication test suite,
+  so NodeNext barrel checks always inspect the current source instead of a
+  stale local `dist` directory.
 - Surface canonical FHIR `OperationOutcome.issue.details.text` through
   `BundleReader` response diagnostics when `issue.diagnostics` is absent, so
   consumers retain the actual terminal failure reason.

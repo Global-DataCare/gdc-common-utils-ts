@@ -470,11 +470,11 @@ export function buildProfessionalDidWeb(input: {
  * or an external provider-sector DID root.
  *
  * Canonical hosted form:
- * `did:web:<provider-path>:individual:<secureIdTypeIndividual>:<secureIdValueIndividual>`
+ * `did:web:<provider-path>:individual:multibase:<secureIdValueIndividual>`
  *
  * Important semantics:
- * - the type remains an explicit upper-case path token such as `UUID`, `DL`,
- *   `PPN`, `EMAIL`, or `PHONE`;
+ * - the private identifier type is an input-normalization concern and is never
+ *   serialized in the public DID;
  * - the value is always the one-way SHA3-384 multihash built by
  *   `buildSecureIdValueIndividual`, never the private identifier in plain text;
  * - role is not part of the individual DID.
@@ -506,7 +506,7 @@ export function buildIndividualDidWeb(input: {
     return [
       providerDidWeb,
       IndividualDidMarkers.Individual,
-      secureIdTypeIndividual,
+      IndividualDidMarkers.Multibase,
       secureIdValueIndividual,
     ].join(':');
   }
