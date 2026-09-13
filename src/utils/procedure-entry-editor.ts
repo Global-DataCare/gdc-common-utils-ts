@@ -51,10 +51,16 @@ export class ProcedureEntryEditor extends ClinicalResourceEntryEditor {
   public setDate(date?: string | null): this { return this.setScalarClaim(ProcedureClaim.Date, date); }
   /** Reads the procedure date. */
   public getDate(): string | undefined { return this.getScalarClaim(ProcedureClaim.Date); }
-  /** Writes the procedure code. */
-  public setCode(code?: string | null): this { return this.setScalarClaim(ProcedureClaim.Code, code); }
-  /** Reads the procedure code. */
-  public getCode(): string | undefined { return this.getScalarClaim(ProcedureClaim.Code); }
+  /** Writes the procedure code from `code`, `system|code`, or separate `system, code` arguments. */
+  public setCode(code?: string | null): this;
+  public setCode(codeSystem: string, codeValue: string): this;
+  public setCode(codeOrSystem?: string | null, codeValue?: string): this { return this.setCodingTokenCode(ProcedureClaim.Code, codeOrSystem, codeValue); }
+  /** Reads only the procedure code value. */
+  public getCode(): string | undefined { return this.getCodingTokenCode(ProcedureClaim.Code); }
+  public setCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(ProcedureClaim.Code, system); }
+  public getCodeSystem(): string | undefined { return this.getCodingTokenSystem(ProcedureClaim.Code); }
+  public setSystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(ProcedureClaim.Code, system, code); }
+  public getSystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(ProcedureClaim.Code); }
   /** Writes the local code text. */
   public setCodeTextLocal(text?: string | null): this { return this.setScalarClaim(ProcedureClaim.CodeText, text); }
   /** Reads the local code text. */
@@ -71,10 +77,25 @@ export class ProcedureEntryEditor extends ClinicalResourceEntryEditor {
   public setLocation(reference?: string | null): this { return this.setScalarClaim(ProcedureClaim.Location, reference); }
   /** Reads the location reference. */
   public getLocation(): string | undefined { return this.getScalarClaim(ProcedureClaim.Location); }
-  /** Writes the reason code. */
-  public setReasonCode(code?: string | null): this { return this.setScalarClaim(ProcedureClaim.ReasonCode, code); }
-  /** Reads the reason code. */
-  public getReasonCode(): string | undefined { return this.getScalarClaim(ProcedureClaim.ReasonCode); }
+  /** Writes the reason code from `code`, `system|code`, or separate `system, code` arguments. */
+  public setReasonCode(code?: string | null): this;
+  public setReasonCode(codeSystem: string, codeValue: string): this;
+  public setReasonCode(codeOrSystem?: string | null, codeValue?: string): this { return this.setCodingTokenCode(ProcedureClaim.ReasonCode, codeOrSystem, codeValue); }
+  /** Reads only the reason code value. */
+  public getReasonCode(): string | undefined { return this.getCodingTokenCode(ProcedureClaim.ReasonCode); }
+  public setReasonCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(ProcedureClaim.ReasonCode, system); }
+  public getReasonCodeSystem(): string | undefined { return this.getCodingTokenSystem(ProcedureClaim.ReasonCode); }
+  public setReasonSystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(ProcedureClaim.ReasonCode, system, code); }
+  public getReasonSystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(ProcedureClaim.ReasonCode); }
+  public setBodySite(code?: string | null): this;
+  public setBodySite(codeSystem: string, codeValue: string): this;
+  public setBodySite(codeOrSystem?: string | null, codeValue?: string): this { return this.setCodingTokenCode(ProcedureClaim.BodySite, codeOrSystem, codeValue); }
+  public getBodySite(): string | undefined { return this.getCodingTokenSystemAndCode(ProcedureClaim.BodySite); }
+  public getBodySiteCode(): string | undefined { return this.getCodingTokenCode(ProcedureClaim.BodySite); }
+  public setBodySiteCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(ProcedureClaim.BodySite, system); }
+  public getBodySiteCodeSystem(): string | undefined { return this.getCodingTokenSystem(ProcedureClaim.BodySite); }
+  public setBodySiteSystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(ProcedureClaim.BodySite, system, code); }
+  public getBodySiteSystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(ProcedureClaim.BodySite); }
   /** Writes the note text. */
   public setNote(note?: string | null): this { return this.setScalarClaim(ProcedureClaim.Note, note); }
   /** Reads the note text. */

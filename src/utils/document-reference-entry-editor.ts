@@ -28,13 +28,27 @@ export class DocumentReferenceEntryEditor extends ClinicalResourceEntryEditor {
   /** Returns the subject reference for the attached document. */
   public getSubject(): string | undefined { return this.getScalarClaim(DocumentReferenceClaim.Subject); }
   /** Sets the coded document type. */
-  public setType(value?: string | null): this { return this.setScalarClaim(DocumentReferenceClaim.Type, value); }
+  public setType(value?: string | null): this;
+  public setType(codeSystem: string, codeValue: string): this;
+  public setType(valueOrSystem?: string | null, codeValue?: string): this { return this.setCodingTokenCode(DocumentReferenceClaim.Type, valueOrSystem, codeValue); }
   /** Returns the coded document type. */
-  public getType(): string | undefined { return this.getScalarClaim(DocumentReferenceClaim.Type); }
+  public getType(): string | undefined { return this.getCodingTokenSystemAndCode(DocumentReferenceClaim.Type); }
+  public getTypeCode(): string | undefined { return this.getCodingTokenCode(DocumentReferenceClaim.Type); }
+  public setTypeCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(DocumentReferenceClaim.Type, system); }
+  public getTypeCodeSystem(): string | undefined { return this.getCodingTokenSystem(DocumentReferenceClaim.Type); }
+  public setTypeSystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(DocumentReferenceClaim.Type, system, code); }
+  public getTypeSystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(DocumentReferenceClaim.Type); }
   /** Sets the document category. */
-  public setCategory(value?: string | null): this { return this.setScalarClaim(DocumentReferenceClaim.Category, value); }
+  public setCategory(value?: string | null): this;
+  public setCategory(codeSystem: string, codeValue: string): this;
+  public setCategory(valueOrSystem?: string | null, codeValue?: string): this { return this.setCodingTokenCode(DocumentReferenceClaim.Category, valueOrSystem, codeValue); }
   /** Returns the document category. */
-  public getCategory(): string | undefined { return this.getScalarClaim(DocumentReferenceClaim.Category); }
+  public getCategory(): string | undefined { return this.getCodingTokenSystemAndCode(DocumentReferenceClaim.Category); }
+  public getCategoryCode(): string | undefined { return this.getCodingTokenCode(DocumentReferenceClaim.Category); }
+  public setCategoryCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(DocumentReferenceClaim.Category, system); }
+  public getCategoryCodeSystem(): string | undefined { return this.getCodingTokenSystem(DocumentReferenceClaim.Category); }
+  public setCategorySystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(DocumentReferenceClaim.Category, system, code); }
+  public getCategorySystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(DocumentReferenceClaim.Category); }
   /** Sets the MIME type of the attached payload, such as PDF or image content. */
   public setContentType(value?: string | null): this { return this.setScalarClaim(DocumentReferenceClaim.ContentType, value); }
   /** Returns the MIME type of the attached payload. */

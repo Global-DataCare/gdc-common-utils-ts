@@ -35,10 +35,16 @@ export class MedicationStatementEntryEditor extends ClinicalResourceEntryEditor 
   public setEffective(value?: string | null): this { return this.setScalarClaim(MedicationStatementClaim.Effective, value); }
   /** Returns the effective date or period token. */
   public getEffective(): string | undefined { return this.getScalarClaim(MedicationStatementClaim.Effective); }
-  /** Sets the official `code` token SearchParameter value for `medication.concept`. */
-  public setCode(code?: string | null): this { return this.setScalarClaim(MedicationStatementClaim.Code, code); }
-  /** Returns the official `code` token SearchParameter value. */
-  public getCode(): string | undefined { return this.getScalarClaim(MedicationStatementClaim.Code); }
+  /** Sets the medication code from `code`, `system|code`, or separate `system, code` arguments. */
+  public setCode(code?: string | null): this;
+  public setCode(codeSystem: string, codeValue: string): this;
+  public setCode(codeOrSystem?: string | null, codeValue?: string): this { return this.setCodingTokenCode(MedicationStatementClaim.Code, codeOrSystem, codeValue); }
+  /** Returns only the medication code value. */
+  public getCode(): string | undefined { return this.getCodingTokenCode(MedicationStatementClaim.Code); }
+  public setCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(MedicationStatementClaim.Code, system); }
+  public getCodeSystem(): string | undefined { return this.getCodingTokenSystem(MedicationStatementClaim.Code); }
+  public setSystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(MedicationStatementClaim.Code, system, code); }
+  public getSystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(MedicationStatementClaim.Code); }
   /** Sets the official `medication` reference SearchParameter value for `medication.reference`. */
   public setMedication(reference?: string | null): this { return this.setScalarClaim(MedicationStatementClaim.Medication, reference); }
   /** Returns the official `medication` reference SearchParameter value. */
@@ -62,10 +68,15 @@ export class MedicationStatementEntryEditor extends ClinicalResourceEntryEditor 
   public setAdherence(value?: string | null): this { return this.setScalarClaim(MedicationStatementClaim.Adherence, value); }
   /** Returns the official R5 `adherence` token SearchParameter value. */
   public getAdherence(): string | undefined { return this.getScalarClaim(MedicationStatementClaim.Adherence); }
-  /** Convenience alias that emits the official R5 `adherence` SearchParameter claim. */
-  public setAdherenceCode(value?: string | null): this { return this.setAdherence(value); }
-  /** Convenience alias that reads the official R5 `adherence` SearchParameter claim. */
-  public getAdherenceCode(): string | undefined { return this.getAdherence(); }
+  /** Convenience accessor for the R5 adherence coding. */
+  public setAdherenceCode(value?: string | null): this;
+  public setAdherenceCode(codeSystem: string, codeValue: string): this;
+  public setAdherenceCode(valueOrSystem?: string | null, codeValue?: string): this { return this.setCodingTokenCode(MedicationStatementClaim.Adherence, valueOrSystem, codeValue); }
+  public getAdherenceCode(): string | undefined { return this.getCodingTokenCode(MedicationStatementClaim.Adherence); }
+  public setAdherenceCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(MedicationStatementClaim.Adherence, system); }
+  public getAdherenceCodeSystem(): string | undefined { return this.getCodingTokenSystem(MedicationStatementClaim.Adherence); }
+  public setAdherenceSystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(MedicationStatementClaim.Adherence, system, code); }
+  public getAdherenceSystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(MedicationStatementClaim.Adherence); }
   /** Sets local/manual text for the R5 adherence CodeableConcept. */
   public setAdherenceCodeTextLocal(value?: string | null): this { return this.setScalarClaim(MedicationStatementClaim.AdherenceText, value); }
   /** Returns local/manual text for the R5 adherence CodeableConcept. */
@@ -90,10 +101,26 @@ export class MedicationStatementEntryEditor extends ClinicalResourceEntryEditor 
   public setDoseQuantityValue(value?: number | null): this { return this.setNumberClaim(MedicationStatementClaim.DoseQuantityValue, value); }
   /** Returns the numeric dose quantity value. */
   public getDoseQuantityValue(): number | undefined { return this.getNumberClaim(MedicationStatementClaim.DoseQuantityValue); }
-  /** Sets the dose quantity unit token. */
-  public setDoseQuantityUnit(value?: string | null): this { return this.setScalarClaim(MedicationStatementClaim.DoseQuantityUnit, value); }
-  /** Returns the dose quantity unit token. */
-  public getDoseQuantityUnit(): string | undefined { return this.getScalarClaim(MedicationStatementClaim.DoseQuantityUnit); }
+  /** Sets the dose quantity unit from `code`, `system|code`, or separate `system, code` arguments. */
+  public setDoseQuantityUnit(value?: string | null): this;
+  public setDoseQuantityUnit(codeSystem: string, codeValue: string): this;
+  public setDoseQuantityUnit(valueOrSystem?: string | null, codeValue?: string): this { return this.setCodingTokenCode(MedicationStatementClaim.DoseQuantityUnit, valueOrSystem, codeValue); }
+  /** Returns the compact dose quantity unit token. */
+  public getDoseQuantityUnit(): string | undefined { return this.getCodingTokenSystemAndCode(MedicationStatementClaim.DoseQuantityUnit); }
+  public getDoseQuantityUnitCode(): string | undefined { return this.getCodingTokenCode(MedicationStatementClaim.DoseQuantityUnit); }
+  public setDoseQuantityUnitCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(MedicationStatementClaim.DoseQuantityUnit, system); }
+  public getDoseQuantityUnitCodeSystem(): string | undefined { return this.getCodingTokenSystem(MedicationStatementClaim.DoseQuantityUnit); }
+  public setDoseQuantityUnitSystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(MedicationStatementClaim.DoseQuantityUnit, system, code); }
+  public getDoseQuantityUnitSystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(MedicationStatementClaim.DoseQuantityUnit); }
+  public setDosageRoute(value?: string | null): this;
+  public setDosageRoute(codeSystem: string, codeValue: string): this;
+  public setDosageRoute(valueOrSystem?: string | null, codeValue?: string): this { return this.setCodingTokenCode(MedicationStatementClaim.DosageRoute, valueOrSystem, codeValue); }
+  public getDosageRoute(): string | undefined { return this.getCodingTokenSystemAndCode(MedicationStatementClaim.DosageRoute); }
+  public getDosageRouteCode(): string | undefined { return this.getCodingTokenCode(MedicationStatementClaim.DosageRoute); }
+  public setDosageRouteCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(MedicationStatementClaim.DosageRoute, system); }
+  public getDosageRouteCodeSystem(): string | undefined { return this.getCodingTokenSystem(MedicationStatementClaim.DosageRoute); }
+  public setDosageRouteSystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(MedicationStatementClaim.DosageRoute, system, code); }
+  public getDosageRouteSystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(MedicationStatementClaim.DosageRoute); }
   /** Sets the timing frequency for structured dosage authoring. */
   public setTimingFrequency(value?: number | null): this { return this.setNumberClaim(MedicationStatementClaim.TimingFrequency, value); }
   /** Returns the timing frequency. */

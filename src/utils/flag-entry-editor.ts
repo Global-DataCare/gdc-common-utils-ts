@@ -48,13 +48,26 @@ export class FlagEntryEditor extends ClinicalResourceEntryEditor {
   /** Reads the flag status. */
   public getStatus(): string | undefined { return this.getScalarClaim(FlagClaim.Status); }
   /** Writes the flag category. */
-  public setCategory(value?: string | null): this { return this.setScalarClaim(FlagClaim.Category, value); }
+  public setCategory(value?: string | null): this;
+  public setCategory(codeSystem: string, codeValue: string): this;
+  public setCategory(valueOrSystem?: string | null, codeValue?: string): this { return this.setCodingTokenCode(FlagClaim.Category, valueOrSystem, codeValue); }
   /** Reads the flag category. */
-  public getCategory(): string | undefined { return this.getScalarClaim(FlagClaim.Category); }
-  /** Writes the flag code. */
-  public setCode(value?: string | null): this { return this.setScalarClaim(FlagClaim.Code, value); }
-  /** Reads the flag code. */
-  public getCode(): string | undefined { return this.getScalarClaim(FlagClaim.Code); }
+  public getCategory(): string | undefined { return this.getCodingTokenSystemAndCode(FlagClaim.Category); }
+  public getCategoryCode(): string | undefined { return this.getCodingTokenCode(FlagClaim.Category); }
+  public setCategoryCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(FlagClaim.Category, system); }
+  public getCategoryCodeSystem(): string | undefined { return this.getCodingTokenSystem(FlagClaim.Category); }
+  public setCategorySystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(FlagClaim.Category, system, code); }
+  public getCategorySystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(FlagClaim.Category); }
+  /** Writes the flag code from `code`, `system|code`, or separate `system, code` arguments. */
+  public setCode(value?: string | null): this;
+  public setCode(codeSystem: string, codeValue: string): this;
+  public setCode(valueOrSystem?: string | null, codeValue?: string): this { return this.setCodingTokenCode(FlagClaim.Code, valueOrSystem, codeValue); }
+  /** Reads only the flag code value. */
+  public getCode(): string | undefined { return this.getCodingTokenCode(FlagClaim.Code); }
+  public setCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(FlagClaim.Code, system); }
+  public getCodeSystem(): string | undefined { return this.getCodingTokenSystem(FlagClaim.Code); }
+  public setSystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(FlagClaim.Code, system, code); }
+  public getSystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(FlagClaim.Code); }
   /** Writes the local-language alert name projected to FHIR `code.text`. */
   public setCodeTextLocal(value?: string | null): this { return this.setScalarClaim(FlagClaim.CodeText, value); }
   /** Reads the local-language alert name. */

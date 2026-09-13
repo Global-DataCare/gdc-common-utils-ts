@@ -72,8 +72,15 @@ export class RelatedPersonEntryEditor extends BundleEntryEditor {
 
   public setSubject(value?: string | null): this { return this.setOptionalText(RelatedPersonClaim.Patient, value); }
   public getSubject(): string | undefined { return this.getOptionalText(RelatedPersonClaim.Patient); }
-  public setRelationship(value?: string | null): this { return this.setOptionalText(RelatedPersonClaim.Relationship, value); }
-  public getRelationship(): string | undefined { return this.getOptionalText(RelatedPersonClaim.Relationship); }
+  public setRelationship(value?: string | null): this;
+  public setRelationship(codeSystem: string, codeValue: string): this;
+  public setRelationship(valueOrSystem?: string | null, codeValue?: string): this { return this.setCodingTokenCode(RelatedPersonClaim.Relationship, valueOrSystem, codeValue); }
+  public getRelationship(): string | undefined { return this.getCodingTokenSystemAndCode(RelatedPersonClaim.Relationship); }
+  public getRelationshipCode(): string | undefined { return this.getCodingTokenCode(RelatedPersonClaim.Relationship); }
+  public setRelationshipCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(RelatedPersonClaim.Relationship, system); }
+  public getRelationshipCodeSystem(): string | undefined { return this.getCodingTokenSystem(RelatedPersonClaim.Relationship); }
+  public setRelationshipSystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(RelatedPersonClaim.Relationship, system, code); }
+  public getRelationshipSystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(RelatedPersonClaim.Relationship); }
   public setRoleList(values: readonly string[]): this { return this.setList(RelatedPersonClaim.Role, values); }
   public getRoleList(): string[] { return this.getList(RelatedPersonClaim.Role); }
   public setName(value?: string | null): this { return this.setOptionalText(RelatedPersonClaim.Name, value); }

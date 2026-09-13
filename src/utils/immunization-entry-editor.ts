@@ -78,14 +78,36 @@ export class ImmunizationEntryEditor extends ClinicalResourceEntryEditor {
     return this.getScalarClaim(ImmunizationClaim.Date);
   }
 
-  /** Writes the vaccine code. */
-  public setVaccineCode(code?: string | null): this {
-    return this.setScalarClaim(ImmunizationClaim.VaccineCode, code);
+  /** Writes the vaccine code from `code`, `system|code`, or separate `system, code` arguments. */
+  public setVaccineCode(code?: string | null): this;
+  public setVaccineCode(codeSystem: string, codeValue: string): this;
+  public setVaccineCode(codeOrSystem?: string | null, codeValue?: string): this {
+    return this.setCodingTokenCode(ImmunizationClaim.VaccineCode, codeOrSystem, codeValue);
   }
 
   /** Reads the vaccine code. */
   public getVaccineCode(): string | undefined {
-    return this.getScalarClaim(ImmunizationClaim.VaccineCode);
+    return this.getCodingTokenCode(ImmunizationClaim.VaccineCode);
+  }
+
+  /** Replaces only the vaccine coding system. */
+  public setVaccineCodeSystem(system?: string | null): this {
+    return this.setCodingTokenSystem(ImmunizationClaim.VaccineCode, system);
+  }
+
+  /** Reads only the vaccine coding system. */
+  public getVaccineCodeSystem(): string | undefined {
+    return this.getCodingTokenSystem(ImmunizationClaim.VaccineCode);
+  }
+
+  /** Writes the vaccine coding system and code value together. */
+  public setVaccineSystemAndCode(system?: string | null, code?: string | null): this {
+    return this.setCodingTokenSystemAndCode(ImmunizationClaim.VaccineCode, system, code);
+  }
+
+  /** Reads the vaccine coding system and code as one compact token. */
+  public getVaccineSystemAndCode(): string | undefined {
+    return this.getCodingTokenSystemAndCode(ImmunizationClaim.VaccineCode);
   }
 
   /** Writes the local vaccine code text. */
@@ -148,35 +170,80 @@ export class ImmunizationEntryEditor extends ClinicalResourceEntryEditor {
     return this.getCsvClaimList(ImmunizationClaim.Performer);
   }
 
-  /** Writes the reason code. */
-  public setReasonCode(code?: string | null): this {
-    return this.setScalarClaim(ImmunizationClaim.ReasonCode, code);
+  /** Writes the reason code from `code`, `system|code`, or separate `system, code` arguments. */
+  public setReasonCode(code?: string | null): this;
+  public setReasonCode(codeSystem: string, codeValue: string): this;
+  public setReasonCode(codeOrSystem?: string | null, codeValue?: string): this {
+    return this.setCodingTokenCode(ImmunizationClaim.ReasonCode, codeOrSystem, codeValue);
   }
 
   /** Reads the reason code. */
   public getReasonCode(): string | undefined {
-    return this.getScalarClaim(ImmunizationClaim.ReasonCode);
+    return this.getCodingTokenCode(ImmunizationClaim.ReasonCode);
   }
 
+  public setReasonCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(ImmunizationClaim.ReasonCode, system); }
+  public getReasonCodeSystem(): string | undefined { return this.getCodingTokenSystem(ImmunizationClaim.ReasonCode); }
+  public setReasonSystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(ImmunizationClaim.ReasonCode, system, code); }
+  public getReasonSystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(ImmunizationClaim.ReasonCode); }
+
   /** Writes the status reason. */
-  public setStatusReason(reason?: string | null): this {
-    return this.setScalarClaim(ImmunizationClaim.StatusReason, reason);
+  public setStatusReason(reason?: string | null): this;
+  public setStatusReason(codeSystem: string, codeValue: string): this;
+  public setStatusReason(reasonOrSystem?: string | null, codeValue?: string): this {
+    return this.setCodingTokenCode(ImmunizationClaim.StatusReason, reasonOrSystem, codeValue);
   }
 
   /** Reads the status reason. */
   public getStatusReason(): string | undefined {
-    return this.getScalarClaim(ImmunizationClaim.StatusReason);
+    return this.getCodingTokenSystemAndCode(ImmunizationClaim.StatusReason);
   }
 
+  public getStatusReasonCode(): string | undefined { return this.getCodingTokenCode(ImmunizationClaim.StatusReason); }
+
+  public setStatusReasonCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(ImmunizationClaim.StatusReason, system); }
+  public getStatusReasonCodeSystem(): string | undefined { return this.getCodingTokenSystem(ImmunizationClaim.StatusReason); }
+  public setStatusReasonSystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(ImmunizationClaim.StatusReason, system, code); }
+  public getStatusReasonSystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(ImmunizationClaim.StatusReason); }
+
   /** Writes the target disease. */
-  public setTargetDisease(code?: string | null): this {
-    return this.setScalarClaim(ImmunizationClaim.TargetDisease, code);
+  public setTargetDisease(code?: string | null): this;
+  public setTargetDisease(codeSystem: string, codeValue: string): this;
+  public setTargetDisease(codeOrSystem?: string | null, codeValue?: string): this {
+    return this.setCodingTokenCode(ImmunizationClaim.TargetDisease, codeOrSystem, codeValue);
   }
 
   /** Reads the target disease. */
   public getTargetDisease(): string | undefined {
-    return this.getScalarClaim(ImmunizationClaim.TargetDisease);
+    return this.getCodingTokenSystemAndCode(ImmunizationClaim.TargetDisease);
   }
+
+  public getTargetDiseaseCode(): string | undefined { return this.getCodingTokenCode(ImmunizationClaim.TargetDisease); }
+
+  public setTargetDiseaseCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(ImmunizationClaim.TargetDisease, system); }
+  public getTargetDiseaseCodeSystem(): string | undefined { return this.getCodingTokenSystem(ImmunizationClaim.TargetDisease); }
+  public setTargetDiseaseSystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(ImmunizationClaim.TargetDisease, system, code); }
+  public getTargetDiseaseSystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(ImmunizationClaim.TargetDisease); }
+
+  public setRoute(code?: string | null): this;
+  public setRoute(codeSystem: string, codeValue: string): this;
+  public setRoute(codeOrSystem?: string | null, codeValue?: string): this { return this.setCodingTokenCode(ImmunizationClaim.Route, codeOrSystem, codeValue); }
+  public getRoute(): string | undefined { return this.getCodingTokenSystemAndCode(ImmunizationClaim.Route); }
+  public getRouteCode(): string | undefined { return this.getCodingTokenCode(ImmunizationClaim.Route); }
+  public setRouteCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(ImmunizationClaim.Route, system); }
+  public getRouteCodeSystem(): string | undefined { return this.getCodingTokenSystem(ImmunizationClaim.Route); }
+  public setRouteSystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(ImmunizationClaim.Route, system, code); }
+  public getRouteSystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(ImmunizationClaim.Route); }
+
+  public setSite(code?: string | null): this;
+  public setSite(codeSystem: string, codeValue: string): this;
+  public setSite(codeOrSystem?: string | null, codeValue?: string): this { return this.setCodingTokenCode(ImmunizationClaim.Site, codeOrSystem, codeValue); }
+  public getSite(): string | undefined { return this.getCodingTokenSystemAndCode(ImmunizationClaim.Site); }
+  public getSiteCode(): string | undefined { return this.getCodingTokenCode(ImmunizationClaim.Site); }
+  public setSiteCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(ImmunizationClaim.Site, system); }
+  public getSiteCodeSystem(): string | undefined { return this.getCodingTokenSystem(ImmunizationClaim.Site); }
+  public setSiteSystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(ImmunizationClaim.Site, system, code); }
+  public getSiteSystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(ImmunizationClaim.Site); }
 
   /** Writes the dose sequence. */
   public setDoseSequence(sequence?: string | null): this {

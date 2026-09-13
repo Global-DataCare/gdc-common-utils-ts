@@ -43,10 +43,16 @@ export class AllergyIntoleranceEntryEditor extends ClinicalResourceEntryEditor {
   public setSubject(subject?: string | null): this { return this.setSubjectClaims(AllergyIntoleranceClaim.Subject, AllergyIntoleranceClaim.Patient, subject); }
   /** Reads the subject/patient reference for the allergy entry. */
   public getSubject(): string | undefined { return this.getSubjectClaims(AllergyIntoleranceClaim.Subject, AllergyIntoleranceClaim.Patient); }
-  /** Writes the coded allergy substance. */
-  public setCode(code?: string | null): this { return this.setScalarClaim(AllergyIntoleranceClaim.Code, code); }
-  /** Reads the coded allergy substance. */
-  public getCode(): string | undefined { return this.getScalarClaim(AllergyIntoleranceClaim.Code); }
+  /** Writes the allergy code from `code`, `system|code`, or separate `system, code` arguments. */
+  public setCode(code?: string | null): this;
+  public setCode(codeSystem: string, codeValue: string): this;
+  public setCode(codeOrSystem?: string | null, codeValue?: string): this { return this.setCodingTokenCode(AllergyIntoleranceClaim.Code, codeOrSystem, codeValue); }
+  /** Reads only the allergy code value. */
+  public getCode(): string | undefined { return this.getCodingTokenCode(AllergyIntoleranceClaim.Code); }
+  public setCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(AllergyIntoleranceClaim.Code, system); }
+  public getCodeSystem(): string | undefined { return this.getCodingTokenSystem(AllergyIntoleranceClaim.Code); }
+  public setSystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(AllergyIntoleranceClaim.Code, system, code); }
+  public getSystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(AllergyIntoleranceClaim.Code); }
   /** Writes the local-language allergy name projected to FHIR `code.text`. */
   public setCodeTextLocal(text?: string | null): this { return this.setScalarClaim(AllergyIntoleranceClaim.CodeText, text); }
   /** Reads the local-language allergy name. */

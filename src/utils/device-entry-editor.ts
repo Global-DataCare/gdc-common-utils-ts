@@ -48,9 +48,16 @@ export class DeviceEntryEditor extends ClinicalResourceEntryEditor {
   /** Reads the device status. */
   public getStatus(): string | undefined { return this.getScalarClaim(DeviceClaim.Status); }
   /** Writes the device type. */
-  public setType(value?: string | null): this { return this.setScalarClaim(DeviceClaim.Type, value); }
+  public setType(value?: string | null): this;
+  public setType(codeSystem: string, codeValue: string): this;
+  public setType(valueOrSystem?: string | null, codeValue?: string): this { return this.setCodingTokenCode(DeviceClaim.Type, valueOrSystem, codeValue); }
   /** Reads the device type. */
-  public getType(): string | undefined { return this.getScalarClaim(DeviceClaim.Type); }
+  public getType(): string | undefined { return this.getCodingTokenSystemAndCode(DeviceClaim.Type); }
+  public getTypeCode(): string | undefined { return this.getCodingTokenCode(DeviceClaim.Type); }
+  public setTypeCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(DeviceClaim.Type, system); }
+  public getTypeCodeSystem(): string | undefined { return this.getCodingTokenSystem(DeviceClaim.Type); }
+  public setTypeSystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(DeviceClaim.Type, system, code); }
+  public getTypeSystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(DeviceClaim.Type); }
   /** Writes the manufacturer reference. */
   public setManufacturer(value?: string | null): this { return this.setScalarClaim(DeviceClaim.Manufacturer, value); }
   /** Reads the manufacturer reference. */

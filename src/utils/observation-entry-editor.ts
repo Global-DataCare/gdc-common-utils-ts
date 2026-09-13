@@ -19,6 +19,15 @@ import { registerBundleEntryEditor } from './bundle-editor-registry';
  * accessors in a bundle authoring flow.
  */
 export class ObservationEntryEditor extends VitalSignEntryEditor {
+  public setMethod(value?: string | null): this;
+  public setMethod(codeSystem: string, codeValue: string): this;
+  public setMethod(valueOrSystem?: string | null, codeValue?: string): this { return this.setCodingTokenCode(ObservationClaim.Method, valueOrSystem, codeValue); }
+  public getMethod(): string | undefined { return this.getCodingTokenSystemAndCode(ObservationClaim.Method); }
+  public getMethodCode(): string | undefined { return this.getCodingTokenCode(ObservationClaim.Method); }
+  public setMethodCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(ObservationClaim.Method, system); }
+  public getMethodCodeSystem(): string | undefined { return this.getCodingTokenSystem(ObservationClaim.Method); }
+  public setMethodSystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(ObservationClaim.Method, system, code); }
+  public getMethodSystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(ObservationClaim.Method); }
   /** Writes the based-on reference. */
   public setBasedOn(reference: string): this {
     return this.setClaim(ObservationClaim.BasedOn, String(reference).trim());
