@@ -90,6 +90,34 @@ This repo only owns the shared lower layer of that story:
 - employee transport roundtrip through one profile:
   [__tests__/101-employee-profile-wallet-e2e.test.ts](../__tests__/101-employee-profile-wallet-e2e.test.ts)
 
+## Coding Tokens Without Manual Concatenation
+
+FHIR token values may contain only a code or the pair `system|code`. Typed
+clinical editors accept both the existing compact value and separate arguments:
+
+```ts
+entryEditor.setVaccineCode(
+  EXAMPLE_IMMUNIZATION_VACCINE_CODE_SYSTEM,
+  EXAMPLE_IMMUNIZATION_VACCINE_CODE_VALUE,
+);
+
+entryEditor.getVaccineCode();          // "207"
+entryEditor.getVaccineCodeSystem();    // "http://hl7.org/fhir/sid/cvx"
+entryEditor.getVaccineSystemAndCode(); // "http://hl7.org/fhir/sid/cvx|207"
+
+// Existing callers remain valid.
+entryEditor.setVaccineCode(EXAMPLE_IMMUNIZATION_VACCINE_CODE);
+```
+
+`setVaccineCode(newCode)` preserves a system already present, and
+`setVaccineCodeSystem(newSystem)` preserves the code. The same naming pattern
+applies to coded fields on the other typed clinical entry editors.
+
+Search is a separate boundary. No GW change or new wire format is required:
+generic searches continue to accept the existing FHIR token, while
+`buildFhirParametersResourceFromParameterData(...)` already accepts a token as
+separate `system` and `value` properties when a caller needs that form.
+
 The higher-level authenticated-user entrypoint lives upstream in `sdk-node`:
 
 - login/load/unlock one protected profile:

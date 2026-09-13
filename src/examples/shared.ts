@@ -580,7 +580,10 @@ export const EXAMPLE_MEDICATION_PARACETAMOL_NOTE = 'Take every 8 hours as needed
 export const EXAMPLE_IMMUNIZATION_IDENTIFIER = 'urn:uuid:immunization-example-001' as const;
 export const EXAMPLE_IMMUNIZATION_STATUS_COMPLETED = 'completed' as const;
 export const EXAMPLE_IMMUNIZATION_DATE = '2026-06-10T09:30:00Z' as const;
-export const EXAMPLE_IMMUNIZATION_VACCINE_CODE = 'http://hl7.org/fhir/sid/cvx|207' as const;
+export const EXAMPLE_IMMUNIZATION_VACCINE_CODE_SYSTEM = 'http://hl7.org/fhir/sid/cvx' as const;
+export const EXAMPLE_IMMUNIZATION_VACCINE_CODE_VALUE = '207' as const;
+export const EXAMPLE_IMMUNIZATION_VACCINE_CODE =
+  `${EXAMPLE_IMMUNIZATION_VACCINE_CODE_SYSTEM}|${EXAMPLE_IMMUNIZATION_VACCINE_CODE_VALUE}` as const;
 export const EXAMPLE_IMMUNIZATION_LOCATION_REFERENCE = 'Location/location-example-001' as const;
 export const EXAMPLE_IMMUNIZATION_MANUFACTURER_REFERENCE = 'Organization/manufacturer-example-001' as const;
 export const EXAMPLE_IMMUNIZATION_LOT_NUMBER = 'LOT-2026-001' as const;

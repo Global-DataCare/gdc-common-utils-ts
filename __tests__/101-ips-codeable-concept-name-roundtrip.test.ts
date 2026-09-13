@@ -1,3 +1,4 @@
+// Flow contract: reuse shared test fixtures and canonical types; do not introduce duplicated literals.
 /**
  * Teaching goal:
  * - every coded IPS form keeps the local name independently from system|code
@@ -82,7 +83,8 @@ describe('101: IPS coded clinical names survive authoring, FHIR and rendering', 
         .setCodeTextLocal(localText)
         .setCodeDisplay(display);
 
-      expect(entryEditor.getCode()).toBe(code);
+      expect(entryEditor.getCode()).toBe(code.split('|').at(-1));
+      expect(entryEditor.getSystemAndCode()).toBe(code);
       expect(entryEditor.getCodeTextLocal()).toBe(localText);
       expect(entryEditor.getCodeDisplay()).toBe(display);
 
@@ -148,7 +150,8 @@ describe('101: IPS coded clinical names survive authoring, FHIR and rendering', 
         } as any);
       const reopened = reopenedBundle.openEntry(entryEditor.getIdentifier()!).asResourceType(resourceType) as any;
       expect(reopened.getCodeTextLocal()).toBe(localText);
-      expect(reopened.getCode()).toBe(code);
+      expect(reopened.getCode()).toBe(code.split('|').at(-1));
+      expect(reopened.getSystemAndCode()).toBe(code);
       const secondSaveClaims = (reopened.doneEntry().build().entry?.[0]?.resource as any)?.meta?.claims || {};
       expect(secondSaveClaims[codeTextClaim]).toBe(localText);
       expect(secondSaveClaims[codeTextClaim]).not.toBe(code);

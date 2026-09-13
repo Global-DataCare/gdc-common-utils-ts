@@ -79,15 +79,25 @@ export class VitalSignEntryEditor extends ObservationComponentEntryEditor {
   }
 
   /** Sets the observation category, usually one of the shared vital-sign category descriptors. */
-  public setCategory(category: CodingDescriptor | string): this {
-    const normalized = typeof category === 'string' ? category.trim() : category.claim;
-    return this.setClaim(ObservationClaim.Category, normalized);
+  public setCategory(category: CodingDescriptor | string): this;
+  public setCategory(codeSystem: string, codeValue: string): this;
+  public setCategory(categoryOrSystem: CodingDescriptor | string, codeValue?: string): this {
+    return typeof categoryOrSystem === 'string'
+      ? this.setCodingTokenCode(ObservationClaim.Category, categoryOrSystem, codeValue)
+      : this.setCodingTokenSystemAndCode(ObservationClaim.Category, categoryOrSystem.system, categoryOrSystem.code);
   }
 
   /** Returns the observation category token. */
   public getCategory(): string | undefined {
-    return normalizeOptionalIdentifier(this.getClaim(ObservationClaim.Category));
+    return this.getCodingTokenSystemAndCode(ObservationClaim.Category);
   }
+
+  public getCategoryCode(): string | undefined { return this.getCodingTokenCode(ObservationClaim.Category); }
+
+  public setCategoryCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(ObservationClaim.Category, system); }
+  public getCategoryCodeSystem(): string | undefined { return this.getCodingTokenSystem(ObservationClaim.Category); }
+  public setCategorySystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(ObservationClaim.Category, system, code); }
+  public getCategorySystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(ObservationClaim.Category); }
 
   /** Sets the observation date/effective time. */
   public setDate(date: string): this {

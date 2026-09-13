@@ -4,6 +4,13 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.9.15] - 2026-09-13
+
+- Add uniform coding-token accessors to typed clinical entry editors. Existing
+  `set...Code("system|code")` calls remain valid, while frontends may pass
+  `set...Code(system, code)` or edit the system separately; `get...Code()` now
+  returns only the code value and `get...SystemAndCode()` returns the compact
+  token.
 - Keep private identifier types out of hosted individual DIDs: builders now
   emit only `:individual:multibase:<multihash>`, while existing typed DID paths
   remain readable for compatibility.

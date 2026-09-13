@@ -53,6 +53,78 @@ export class BundleEntryEditor {
     protected readonly entryIndex: number,
   ) {}
 
+  /** Writes `code`, `system|code`, or separate `system, code` into one canonical token claim. */
+  protected setCodingTokenCode(
+    claimKey: string,
+    codeOrSystem?: string | null,
+    codeValue?: string | null,
+  ): this {
+    if (codeOrSystem === undefined || codeOrSystem === null) {
+      this.removeClaim(claimKey);
+      return this;
+    }
+    if (codeValue !== undefined && codeValue !== null) {
+      return this.setCodingTokenSystemAndCode(claimKey, codeOrSystem, codeValue);
+    }
+    const incoming = String(codeOrSystem).trim();
+    if (!incoming) {
+      this.removeClaim(claimKey);
+      return this;
+    }
+    const separator = incoming.indexOf('|');
+    if (separator >= 0) {
+      return this.setCodingTokenSystemAndCode(
+        claimKey,
+        incoming.slice(0, separator),
+        incoming.slice(separator + 1),
+      );
+    }
+    return this.setClaim(claimKey, `${this.getCodingTokenSystem(claimKey) || ''}|${incoming}`);
+  }
+
+  /** Returns only the code portion of one FHIR token claim. */
+  protected getCodingTokenCode(claimKey: string): string | undefined {
+    const token = normalizeOptionalIdentifier(this.getClaim(claimKey));
+    if (!token) return undefined;
+    const separator = token.indexOf('|');
+    return normalizeOptionalIdentifier(separator < 0 ? token : token.slice(separator + 1));
+  }
+
+  /** Replaces only the system portion, preserving the current code value. */
+  protected setCodingTokenSystem(claimKey: string, system?: string | null): this {
+    const normalizedSystem = normalizeOptionalIdentifier(system) || '';
+    return this.setClaim(claimKey, `${normalizedSystem}|${this.getCodingTokenCode(claimKey) || ''}`);
+  }
+
+  /** Returns only the system portion of one FHIR token claim. */
+  protected getCodingTokenSystem(claimKey: string): string | undefined {
+    const token = normalizeOptionalIdentifier(this.getClaim(claimKey));
+    if (!token) return undefined;
+    const separator = token.indexOf('|');
+    return separator < 0 ? undefined : normalizeOptionalIdentifier(token.slice(0, separator));
+  }
+
+  /** Writes separate system and code values as one canonical `system|code` token. */
+  protected setCodingTokenSystemAndCode(
+    claimKey: string,
+    system?: string | null,
+    code?: string | null,
+  ): this {
+    const normalizedSystem = normalizeOptionalIdentifier(system) || '';
+    const normalizedCode = normalizeOptionalIdentifier(code) || '';
+    return this.setClaim(claimKey, `${normalizedSystem}|${normalizedCode}`);
+  }
+
+  /** Returns one canonical `system|code` token, including the separator for legacy bare codes. */
+  protected getCodingTokenSystemAndCode(claimKey: string): string | undefined {
+    const token = normalizeOptionalIdentifier(this.getClaim(claimKey));
+    if (!token) return undefined;
+    const separator = token.indexOf('|');
+    return separator < 0
+      ? `|${token}`
+      : `${token.slice(0, separator).trim()}|${token.slice(separator + 1).trim()}`;
+  }
+
   /** Stages a FHIR create request for only this batch entry. */
   public create(): this {
     const entry = this.getMutableEntry();

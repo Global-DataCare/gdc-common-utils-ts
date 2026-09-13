@@ -52,9 +52,16 @@ export class CarePlanEntryEditor extends ClinicalResourceEntryEditor {
   /** Reads the care-plan intent. */
   public getIntent(): string | undefined { return this.getScalarClaim(CarePlanClaim.Intent); }
   /** Writes the care-plan category. */
-  public setCategory(value?: string | null): this { return this.setScalarClaim(CarePlanClaim.Category, value); }
+  public setCategory(value?: string | null): this;
+  public setCategory(codeSystem: string, codeValue: string): this;
+  public setCategory(valueOrSystem?: string | null, codeValue?: string): this { return this.setCodingTokenCode(CarePlanClaim.Category, valueOrSystem, codeValue); }
   /** Reads the care-plan category. */
-  public getCategory(): string | undefined { return this.getScalarClaim(CarePlanClaim.Category); }
+  public getCategory(): string | undefined { return this.getCodingTokenSystemAndCode(CarePlanClaim.Category); }
+  public getCategoryCode(): string | undefined { return this.getCodingTokenCode(CarePlanClaim.Category); }
+  public setCategoryCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(CarePlanClaim.Category, system); }
+  public getCategoryCodeSystem(): string | undefined { return this.getCodingTokenSystem(CarePlanClaim.Category); }
+  public setCategorySystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(CarePlanClaim.Category, system, code); }
+  public getCategorySystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(CarePlanClaim.Category); }
   /** Writes the linked encounter reference. */
   public setEncounter(value?: string | null): this { return this.setScalarClaim(CarePlanClaim.Encounter, value); }
   /** Reads the linked encounter reference. */
@@ -67,6 +74,23 @@ export class CarePlanEntryEditor extends ClinicalResourceEntryEditor {
   public setNote(value?: string | null): this { return this.setScalarClaim(CarePlanClaim.Note, value); }
   /** Reads the note text. */
   public getNote(): string | undefined { return this.getScalarClaim(CarePlanClaim.Note); }
+  public setActivityCode(value?: string | null): this;
+  public setActivityCode(codeSystem: string, codeValue: string): this;
+  public setActivityCode(valueOrSystem?: string | null, codeValue?: string): this { return this.setCodingTokenCode(CarePlanClaim.ActivityCode, valueOrSystem, codeValue); }
+  public getActivityCode(): string | undefined { return this.getCodingTokenCode(CarePlanClaim.ActivityCode); }
+  public setActivityCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(CarePlanClaim.ActivityCode, system); }
+  public getActivityCodeSystem(): string | undefined { return this.getCodingTokenSystem(CarePlanClaim.ActivityCode); }
+  public setActivitySystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(CarePlanClaim.ActivityCode, system, code); }
+  public getActivitySystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(CarePlanClaim.ActivityCode); }
+  public setActivityOutcome(value?: string | null): this;
+  public setActivityOutcome(codeSystem: string, codeValue: string): this;
+  public setActivityOutcome(valueOrSystem?: string | null, codeValue?: string): this { return this.setCodingTokenCode(CarePlanClaim.ActivityOutcome, valueOrSystem, codeValue); }
+  public getActivityOutcome(): string | undefined { return this.getCodingTokenSystemAndCode(CarePlanClaim.ActivityOutcome); }
+  public getActivityOutcomeCode(): string | undefined { return this.getCodingTokenCode(CarePlanClaim.ActivityOutcome); }
+  public setActivityOutcomeCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(CarePlanClaim.ActivityOutcome, system); }
+  public getActivityOutcomeCodeSystem(): string | undefined { return this.getCodingTokenSystem(CarePlanClaim.ActivityOutcome); }
+  public setActivityOutcomeSystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(CarePlanClaim.ActivityOutcome, system, code); }
+  public getActivityOutcomeSystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(CarePlanClaim.ActivityOutcome); }
 }
 
 

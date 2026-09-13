@@ -38,8 +38,18 @@ export class ConditionEntryEditor extends ClinicalResourceEntryEditor {
   public ensureIdentifier(): string { return this.ensureIdentifierValue(ConditionClaim.Identifier); }
   public setSubject(subject?: string | null): this { return this.setSubjectClaims(ConditionClaim.Subject, ConditionClaim.Subject, subject); }
   public getSubject(): string | undefined { return this.getSubjectClaims(ConditionClaim.Subject, ConditionClaim.Subject); }
-  public setCode(code?: string | null): this { return this.setScalarClaim(ConditionClaim.Code, code); }
-  public getCode(): string | undefined { return this.getScalarClaim(ConditionClaim.Code); }
+  public setCode(code?: string | null): this;
+  public setCode(codeSystem: string, codeValue: string): this;
+  public setCode(codeOrSystem?: string | null, codeValue?: string): this {
+    return this.setCodingTokenCode(ConditionClaim.Code, codeOrSystem, codeValue);
+  }
+  public getCode(): string | undefined { return this.getCodingTokenCode(ConditionClaim.Code); }
+  public setCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(ConditionClaim.Code, system); }
+  public getCodeSystem(): string | undefined { return this.getCodingTokenSystem(ConditionClaim.Code); }
+  public setSystemAndCode(system?: string | null, code?: string | null): this {
+    return this.setCodingTokenSystemAndCode(ConditionClaim.Code, system, code);
+  }
+  public getSystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(ConditionClaim.Code); }
   /** Writes the local-language condition name projected to FHIR `code.text`. */
   public setCodeTextLocal(text?: string | null): this { return this.setScalarClaim(ConditionClaim.CodeText, text); }
   /** Reads the local-language condition name. */
@@ -52,10 +62,24 @@ export class ConditionEntryEditor extends ClinicalResourceEntryEditor {
   public getClinicalStatus(): string | undefined { return this.getScalarClaim(ConditionClaim.ClinicalStatus); }
   public setVerificationStatus(status?: string | null): this { return this.setScalarClaim(ConditionClaim.VerificationStatus, status); }
   public getVerificationStatus(): string | undefined { return this.getScalarClaim(ConditionClaim.VerificationStatus); }
-  public setCategory(category?: string | null): this { return this.setScalarClaim(ConditionClaim.Category, category); }
-  public getCategory(): string | undefined { return this.getScalarClaim(ConditionClaim.Category); }
-  public setSeverity(severity?: string | null): this { return this.setScalarClaim(ConditionClaim.Severity, severity); }
-  public getSeverity(): string | undefined { return this.getScalarClaim(ConditionClaim.Severity); }
+  public setCategory(category?: string | null): this;
+  public setCategory(codeSystem: string, codeValue: string): this;
+  public setCategory(categoryOrSystem?: string | null, codeValue?: string): this { return this.setCodingTokenCode(ConditionClaim.Category, categoryOrSystem, codeValue); }
+  public getCategory(): string | undefined { return this.getCodingTokenSystemAndCode(ConditionClaim.Category); }
+  public getCategoryCode(): string | undefined { return this.getCodingTokenCode(ConditionClaim.Category); }
+  public setCategoryCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(ConditionClaim.Category, system); }
+  public getCategoryCodeSystem(): string | undefined { return this.getCodingTokenSystem(ConditionClaim.Category); }
+  public setCategorySystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(ConditionClaim.Category, system, code); }
+  public getCategorySystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(ConditionClaim.Category); }
+  public setSeverity(severity?: string | null): this;
+  public setSeverity(codeSystem: string, codeValue: string): this;
+  public setSeverity(severityOrSystem?: string | null, codeValue?: string): this { return this.setCodingTokenCode(ConditionClaim.Severity, severityOrSystem, codeValue); }
+  public getSeverity(): string | undefined { return this.getCodingTokenSystemAndCode(ConditionClaim.Severity); }
+  public getSeverityCode(): string | undefined { return this.getCodingTokenCode(ConditionClaim.Severity); }
+  public setSeverityCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(ConditionClaim.Severity, system); }
+  public getSeverityCodeSystem(): string | undefined { return this.getCodingTokenSystem(ConditionClaim.Severity); }
+  public setSeveritySystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(ConditionClaim.Severity, system, code); }
+  public getSeveritySystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(ConditionClaim.Severity); }
   public setOnsetDateTime(value?: string | null): this { return this.setScalarClaim(ConditionClaim.OnsetDateTime, value); }
   public getOnsetDateTime(): string | undefined { return this.getScalarClaim(ConditionClaim.OnsetDateTime); }
   public setRecorder(reference?: string | null): this { return this.setScalarClaim(ConditionClaim.Recorder, reference); }

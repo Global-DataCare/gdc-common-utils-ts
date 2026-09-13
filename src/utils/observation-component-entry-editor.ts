@@ -17,24 +17,29 @@ import { ClinicalResourceEntryEditor } from './clinical-resource-entry-editor';
  * resource at a time without exposing bundle-internal plumbing.
  */
 export class ObservationComponentEntryEditor extends ClinicalResourceEntryEditor {
-  public setCode(code: CodingDescriptor | string): this {
-    const token = typeof code === 'string' ? code.trim() : code.claim;
-    this.setClaim(ObservationClaim.Code, token);
-    if (typeof code !== 'string') {
-      this.setClaim(ObservationClaim.CodeSystem, code.system);
-      this.setClaim(ObservationClaim.CodeValue, code.code);
-      if (code.display) {
-        this.setClaim(ObservationClaim.CodeDisplay, code.display);
-      }
+  public setCode(code: CodingDescriptor | string): this;
+  public setCode(codeSystem: string, codeValue: string): this;
+  public setCode(codeOrSystem: CodingDescriptor | string, codeValue?: string): this {
+    if (typeof codeOrSystem !== 'string') {
+      this.setCodingTokenSystemAndCode(ObservationClaim.Code, codeOrSystem.system, codeOrSystem.code);
+      this.setClaim(ObservationClaim.CodeSystem, codeOrSystem.system);
+      this.setClaim(ObservationClaim.CodeValue, codeOrSystem.code);
+      if (codeOrSystem.display) this.setClaim(ObservationClaim.CodeDisplay, codeOrSystem.display);
+      return this;
     }
+    this.setCodingTokenCode(ObservationClaim.Code, codeOrSystem, codeValue);
+    this.setClaim(ObservationClaim.CodeSystem, this.getCodingTokenSystem(ObservationClaim.Code) || '');
+    this.setClaim(ObservationClaim.CodeValue, this.getCodingTokenCode(ObservationClaim.Code) || '');
     return this;
   }
 
   public getCode(): string | undefined {
-    return normalizeOptionalIdentifier(this.getClaim(ObservationClaim.Code));
+    return normalizeOptionalIdentifier(this.getClaim(ObservationClaim.CodeValue))
+      || this.getCodingTokenCode(ObservationClaim.Code);
   }
 
   public setCodeSystem(system: string): this {
+    this.setCodingTokenSystem(ObservationClaim.Code, system);
     return this.setClaim(ObservationClaim.CodeSystem, String(system).trim());
   }
 
@@ -43,11 +48,23 @@ export class ObservationComponentEntryEditor extends ClinicalResourceEntryEditor
   }
 
   public setCodeValue(value: string): this {
+    this.setCodingTokenCode(ObservationClaim.Code, value);
     return this.setClaim(ObservationClaim.CodeValue, String(value).trim());
   }
 
   public getCodeValue(): string | undefined {
-    return normalizeOptionalIdentifier(this.getClaim(ObservationClaim.CodeValue));
+    return this.getCode();
+  }
+
+  public setSystemAndCode(system?: string | null, code?: string | null): this {
+    this.setCodingTokenSystemAndCode(ObservationClaim.Code, system, code);
+    this.setClaim(ObservationClaim.CodeSystem, String(system || '').trim());
+    this.setClaim(ObservationClaim.CodeValue, String(code || '').trim());
+    return this;
+  }
+
+  public getSystemAndCode(): string | undefined {
+    return this.getCodingTokenSystemAndCode(ObservationClaim.Code);
   }
 
   public setCodeDisplay(display: string): this {
@@ -78,6 +95,16 @@ export class ObservationComponentEntryEditor extends ClinicalResourceEntryEditor
     return normalizeOptionalIdentifier(this.getClaim(ObservationClaim.CodeText));
   }
 
+  public setValueConcept(value?: string | null): this;
+  public setValueConcept(codeSystem: string, codeValue: string): this;
+  public setValueConcept(valueOrSystem?: string | null, codeValue?: string): this { return this.setCodingTokenCode(ObservationClaim.ValueConcept, valueOrSystem, codeValue); }
+  public getValueConcept(): string | undefined { return this.getCodingTokenSystemAndCode(ObservationClaim.ValueConcept); }
+  public getValueConceptCode(): string | undefined { return this.getCodingTokenCode(ObservationClaim.ValueConcept); }
+  public setValueConceptCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(ObservationClaim.ValueConcept, system); }
+  public getValueConceptCodeSystem(): string | undefined { return this.getCodingTokenSystem(ObservationClaim.ValueConcept); }
+  public setValueConceptSystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(ObservationClaim.ValueConcept, system, code); }
+  public getValueConceptSystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(ObservationClaim.ValueConcept); }
+
   /** Compatibility alias for older examples/tests. Prefer `setCodeTextLocal(...)`. */
   public setLocalText(text: string): this {
     return this.setCodeTextLocal(text);
@@ -99,14 +126,23 @@ export class ObservationComponentEntryEditor extends ClinicalResourceEntryEditor
     return Number.isFinite(numeric) ? numeric : undefined;
   }
 
-  public setValueQuantityUnit(unit: CodingDescriptor | string): this {
-    const normalized = typeof unit === 'string' ? unit.trim() : unit.claim;
-    return this.setClaim(ObservationClaim.ValueQuantityUnit, normalized);
+  public setValueQuantityUnit(unit: CodingDescriptor | string): this;
+  public setValueQuantityUnit(codeSystem: string, codeValue: string): this;
+  public setValueQuantityUnit(unitOrSystem: CodingDescriptor | string, codeValue?: string): this {
+    return typeof unitOrSystem === 'string'
+      ? this.setCodingTokenCode(ObservationClaim.ValueQuantityUnit, unitOrSystem, codeValue)
+      : this.setCodingTokenSystemAndCode(ObservationClaim.ValueQuantityUnit, unitOrSystem.system, unitOrSystem.code);
   }
 
   public getValueQuantityUnit(): string | undefined {
-    return normalizeOptionalIdentifier(this.getClaim(ObservationClaim.ValueQuantityUnit));
+    return this.getCodingTokenSystemAndCode(ObservationClaim.ValueQuantityUnit);
   }
+
+  public getValueQuantityUnitCode(): string | undefined { return this.getCodingTokenCode(ObservationClaim.ValueQuantityUnit); }
+  public setValueQuantityUnitCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(ObservationClaim.ValueQuantityUnit, system); }
+  public getValueQuantityUnitCodeSystem(): string | undefined { return this.getCodingTokenSystem(ObservationClaim.ValueQuantityUnit); }
+  public setValueQuantityUnitSystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(ObservationClaim.ValueQuantityUnit, system, code); }
+  public getValueQuantityUnitSystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(ObservationClaim.ValueQuantityUnit); }
 
   public setValueString(value: string): this {
     return this.setClaim(ObservationClaim.ValueString, String(value).trim());

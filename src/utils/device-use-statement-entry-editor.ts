@@ -60,9 +60,15 @@ export class DeviceUseStatementEntryEditor extends ClinicalResourceEntryEditor {
   /** Reads the timing date/time. */
   public getTimingDateTime(): string | undefined { return this.getScalarClaim(DeviceUseStatementClaim.TimingDateTime); }
   /** Writes the reason code. */
-  public setReasonCode(value?: string | null): this { return this.setScalarClaim(DeviceUseStatementClaim.ReasonCode, value); }
+  public setReasonCode(value?: string | null): this;
+  public setReasonCode(codeSystem: string, codeValue: string): this;
+  public setReasonCode(valueOrSystem?: string | null, codeValue?: string): this { return this.setCodingTokenCode(DeviceUseStatementClaim.ReasonCode, valueOrSystem, codeValue); }
   /** Reads the reason code. */
-  public getReasonCode(): string | undefined { return this.getScalarClaim(DeviceUseStatementClaim.ReasonCode); }
+  public getReasonCode(): string | undefined { return this.getCodingTokenCode(DeviceUseStatementClaim.ReasonCode); }
+  public setReasonCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(DeviceUseStatementClaim.ReasonCode, system); }
+  public getReasonCodeSystem(): string | undefined { return this.getCodingTokenSystem(DeviceUseStatementClaim.ReasonCode); }
+  public setReasonSystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(DeviceUseStatementClaim.ReasonCode, system, code); }
+  public getReasonSystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(DeviceUseStatementClaim.ReasonCode); }
   /** Writes the source reference. */
   public setSource(value?: string | null): this { return this.setScalarClaim(DeviceUseStatementClaim.Source, value); }
   /** Reads the source reference. */

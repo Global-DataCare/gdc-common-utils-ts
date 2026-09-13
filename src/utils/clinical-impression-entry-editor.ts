@@ -67,6 +67,14 @@ export class ClinicalImpressionEntryEditor extends ClinicalResourceEntryEditor {
   public setSummary(value?: string | null): this { return this.setScalarClaim(ClinicalImpressionClaim.Summary, value); }
   /** Reads the summary text. */
   public getSummary(): string | undefined { return this.getScalarClaim(ClinicalImpressionClaim.Summary); }
+  public setPrognosisCode(value?: string | null): this;
+  public setPrognosisCode(codeSystem: string, codeValue: string): this;
+  public setPrognosisCode(valueOrSystem?: string | null, codeValue?: string): this { return this.setCodingTokenCode(ClinicalImpressionClaim.PrognosisCode, valueOrSystem, codeValue); }
+  public getPrognosisCode(): string | undefined { return this.getCodingTokenCode(ClinicalImpressionClaim.PrognosisCode); }
+  public setPrognosisCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(ClinicalImpressionClaim.PrognosisCode, system); }
+  public getPrognosisCodeSystem(): string | undefined { return this.getCodingTokenSystem(ClinicalImpressionClaim.PrognosisCode); }
+  public setPrognosisSystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(ClinicalImpressionClaim.PrognosisCode, system, code); }
+  public getPrognosisSystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(ClinicalImpressionClaim.PrognosisCode); }
 }
 
 registerBundleEntryEditor(BundleEditableResourceTypes.clinicalImpression, ClinicalImpressionEntryEditor);

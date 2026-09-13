@@ -44,9 +44,16 @@ export class CoverageEntryEditor extends ClinicalResourceEntryEditor {
   /** Reads the coverage status. */
   public getStatus(): string | undefined { return this.getScalarClaim(CoverageClaim.Status); }
   /** Writes the coverage type. */
-  public setType(value?: string | null): this { return this.setScalarClaim(CoverageClaim.Type, value); }
+  public setType(value?: string | null): this;
+  public setType(codeSystem: string, codeValue: string): this;
+  public setType(valueOrSystem?: string | null, codeValue?: string): this { return this.setCodingTokenCode(CoverageClaim.Type, valueOrSystem, codeValue); }
   /** Reads the coverage type. */
-  public getType(): string | undefined { return this.getScalarClaim(CoverageClaim.Type); }
+  public getType(): string | undefined { return this.getCodingTokenSystemAndCode(CoverageClaim.Type); }
+  public getTypeCode(): string | undefined { return this.getCodingTokenCode(CoverageClaim.Type); }
+  public setTypeCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(CoverageClaim.Type, system); }
+  public getTypeCodeSystem(): string | undefined { return this.getCodingTokenSystem(CoverageClaim.Type); }
+  public setTypeSystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(CoverageClaim.Type, system, code); }
+  public getTypeSystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(CoverageClaim.Type); }
   /** Writes the policy-holder reference. */
   public setPolicyHolder(value?: string | null): this { return this.setScalarClaim(CoverageClaim.PolicyHolder, value); }
   /** Reads the policy-holder reference. */
@@ -60,9 +67,16 @@ export class CoverageEntryEditor extends ClinicalResourceEntryEditor {
   /** Reads the beneficiary reference. */
   public getBeneficiary(): string | undefined { return this.getScalarClaim(CoverageClaim.Beneficiary); }
   /** Writes the subscriber relationship. */
-  public setRelationship(value?: string | null): this { return this.setScalarClaim(CoverageClaim.Relationship, value); }
+  public setRelationship(value?: string | null): this;
+  public setRelationship(codeSystem: string, codeValue: string): this;
+  public setRelationship(valueOrSystem?: string | null, codeValue?: string): this { return this.setCodingTokenCode(CoverageClaim.Relationship, valueOrSystem, codeValue); }
   /** Reads the subscriber relationship. */
-  public getRelationship(): string | undefined { return this.getScalarClaim(CoverageClaim.Relationship); }
+  public getRelationship(): string | undefined { return this.getCodingTokenSystemAndCode(CoverageClaim.Relationship); }
+  public getRelationshipCode(): string | undefined { return this.getCodingTokenCode(CoverageClaim.Relationship); }
+  public setRelationshipCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(CoverageClaim.Relationship, system); }
+  public getRelationshipCodeSystem(): string | undefined { return this.getCodingTokenSystem(CoverageClaim.Relationship); }
+  public setRelationshipSystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(CoverageClaim.Relationship, system, code); }
+  public getRelationshipSystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(CoverageClaim.Relationship); }
   /** Writes the coverage period start. */
   public setPeriodStart(value?: string | null): this { return this.setScalarClaim(CoverageClaim.PeriodStart, value); }
   /** Reads the coverage period start. */

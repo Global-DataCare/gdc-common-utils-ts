@@ -1,3 +1,4 @@
+// Flow contract: reuse shared test fixtures and canonical types; do not introduce duplicated literals.
 /**
  * 101 note:
  * - Teach the highest-level public `common-utils` helper available for this topic.
@@ -128,6 +129,8 @@ import {
   EXAMPLE_IMMUNIZATION_STATUS_REASON,
   EXAMPLE_IMMUNIZATION_TARGET_DISEASE,
   EXAMPLE_IMMUNIZATION_VACCINE_CODE,
+  EXAMPLE_IMMUNIZATION_VACCINE_CODE_SYSTEM,
+  EXAMPLE_IMMUNIZATION_VACCINE_CODE_VALUE,
   EXAMPLE_LAB_PANEL_CODE_COMPLETE_BLOOD_COUNT,
   EXAMPLE_LAB_PANEL_DISPLAY_COMPLETE_BLOOD_COUNT,
   EXAMPLE_LAB_PANEL_IDENTIFIER,
@@ -256,7 +259,10 @@ describe('101: IPS family entry editors', () => {
       .setSubject(EXAMPLE_SUBJECT_DID)
       .setStatus(EXAMPLE_IMMUNIZATION_STATUS_COMPLETED)
       .setDate(EXAMPLE_IMMUNIZATION_DATE)
-      .setVaccineCode(EXAMPLE_IMMUNIZATION_VACCINE_CODE)
+      .setVaccineCode(
+        EXAMPLE_IMMUNIZATION_VACCINE_CODE_SYSTEM,
+        EXAMPLE_IMMUNIZATION_VACCINE_CODE_VALUE,
+      )
       .setVaccineCodeTextLocal('Vacuna COVID-19')
       .setVaccineCodeDisplay('COVID-19 vaccine')
       .setLocation(EXAMPLE_IMMUNIZATION_LOCATION_REFERENCE)
@@ -277,6 +283,9 @@ describe('101: IPS family entry editors', () => {
     expect(entryEditor.getSubject()).toBe(EXAMPLE_SUBJECT_DID);
     expect(entryEditor.getStatus()).toBe(EXAMPLE_IMMUNIZATION_STATUS_COMPLETED);
     expect(entryEditor.getDate()).toBe(EXAMPLE_IMMUNIZATION_DATE);
+    expect(entryEditor.getVaccineCode()).toBe(EXAMPLE_IMMUNIZATION_VACCINE_CODE_VALUE);
+    expect(entryEditor.getVaccineCodeSystem()).toBe(EXAMPLE_IMMUNIZATION_VACCINE_CODE_SYSTEM);
+    expect(entryEditor.getVaccineSystemAndCode()).toBe(EXAMPLE_IMMUNIZATION_VACCINE_CODE);
     expect(entryEditor.getVaccineCodeTextLocal()).toBe('Vacuna COVID-19');
     expect(entryEditor.getVaccineCodeDisplay()).toBe('COVID-19 vaccine');
     expect(entryEditor.getPerformerList()).toEqual([EXAMPLE_IMMUNIZATION_PERFORMER_REFERENCE]);
@@ -332,7 +341,8 @@ describe('101: IPS family entry editors', () => {
       .setClinicalNote(EXAMPLE_PROCEDURE_NOTE);
 
     // Step 2.
-    expect(entryEditor.getCode()).toBe(EXAMPLE_PROCEDURE_CODE);
+    expect(entryEditor.getCode()).toBe(EXAMPLE_PROCEDURE_CODE.split('|').at(-1));
+    expect(entryEditor.getSystemAndCode()).toBe(EXAMPLE_PROCEDURE_CODE);
     expect(entryEditor.getCodeTextLocal()).toBe('Apendicectomia');
     expect(entryEditor.getCodeDisplay()).toBe('Appendectomy');
     expect(entryEditor.getEncounter()).toBe(EXAMPLE_PROCEDURE_ENCOUNTER_REFERENCE);
@@ -392,7 +402,8 @@ describe('101: IPS family entry editors', () => {
 
     // Step 2.
     expect(entryEditor.getCategory()).toBe(EXAMPLE_DIAGNOSTIC_REPORT_CATEGORY);
-    expect(entryEditor.getCode()).toBe(EXAMPLE_DIAGNOSTIC_REPORT_CODE);
+    expect(entryEditor.getCode()).toBe(EXAMPLE_DIAGNOSTIC_REPORT_CODE.split('|').at(-1));
+    expect(entryEditor.getSystemAndCode()).toBe(EXAMPLE_DIAGNOSTIC_REPORT_CODE);
     expect(entryEditor.getCodeTextLocal()).toBe('Hemograma completo');
     expect(entryEditor.getCodeDisplay()).toBe('Complete blood count panel');
     expect(entryEditor.getPerformerList()).toEqual([EXAMPLE_DIAGNOSTIC_REPORT_PERFORMER_REFERENCE]);

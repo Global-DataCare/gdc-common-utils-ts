@@ -63,24 +63,40 @@ export class DiagnosticReportEntryEditor extends ClinicalResourceEntryEditor {
   }
 
   /** Sets the report category. */
-  public setCategory(category?: string | null): this {
-    return this.setScalarClaim(DiagnosticReportClaim.Category, category);
+  public setCategory(category?: string | null): this;
+  public setCategory(codeSystem: string, codeValue: string): this;
+  public setCategory(categoryOrSystem?: string | null, codeValue?: string): this {
+    return this.setCodingTokenCode(DiagnosticReportClaim.Category, categoryOrSystem, codeValue);
   }
 
   /** Returns the report category. */
   public getCategory(): string | undefined {
-    return this.getScalarClaim(DiagnosticReportClaim.Category);
+    return this.getCodingTokenSystemAndCode(DiagnosticReportClaim.Category);
   }
 
+  public getCategoryCode(): string | undefined { return this.getCodingTokenCode(DiagnosticReportClaim.Category); }
+
+  public setCategoryCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(DiagnosticReportClaim.Category, system); }
+  public getCategoryCodeSystem(): string | undefined { return this.getCodingTokenSystem(DiagnosticReportClaim.Category); }
+  public setCategorySystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(DiagnosticReportClaim.Category, system, code); }
+  public getCategorySystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(DiagnosticReportClaim.Category); }
+
   /** Sets the main report code. */
-  public setCode(code?: string | null): this {
-    return this.setScalarClaim(DiagnosticReportClaim.Code, code);
+  public setCode(code?: string | null): this;
+  public setCode(codeSystem: string, codeValue: string): this;
+  public setCode(codeOrSystem?: string | null, codeValue?: string): this {
+    return this.setCodingTokenCode(DiagnosticReportClaim.Code, codeOrSystem, codeValue);
   }
 
   /** Returns the main report code. */
   public getCode(): string | undefined {
-    return this.getScalarClaim(DiagnosticReportClaim.Code);
+    return this.getCodingTokenCode(DiagnosticReportClaim.Code);
   }
+
+  public setCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(DiagnosticReportClaim.Code, system); }
+  public getCodeSystem(): string | undefined { return this.getCodingTokenSystem(DiagnosticReportClaim.Code); }
+  public setSystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(DiagnosticReportClaim.Code, system, code); }
+  public getSystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(DiagnosticReportClaim.Code); }
 
   /** Sets the local-language report name projected to FHIR `code.text`. */
   public setCodeTextLocal(text?: string | null): this {

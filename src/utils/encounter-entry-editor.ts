@@ -48,13 +48,27 @@ export class EncounterEntryEditor extends ClinicalResourceEntryEditor {
   /** Reads the encounter status. */
   public getStatus(): string | undefined { return this.getScalarClaim(EncounterClaim.Status); }
   /** Writes the encounter class. */
-  public setClass(value?: string | null): this { return this.setScalarClaim(EncounterClaim.Class, value); }
+  public setClass(value?: string | null): this;
+  public setClass(codeSystem: string, codeValue: string): this;
+  public setClass(valueOrSystem?: string | null, codeValue?: string): this { return this.setCodingTokenCode(EncounterClaim.Class, valueOrSystem, codeValue); }
   /** Reads the encounter class. */
-  public getClass(): string | undefined { return this.getScalarClaim(EncounterClaim.Class); }
+  public getClass(): string | undefined { return this.getCodingTokenSystemAndCode(EncounterClaim.Class); }
+  public getClassCode(): string | undefined { return this.getCodingTokenCode(EncounterClaim.Class); }
+  public setClassCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(EncounterClaim.Class, system); }
+  public getClassCodeSystem(): string | undefined { return this.getCodingTokenSystem(EncounterClaim.Class); }
+  public setClassSystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(EncounterClaim.Class, system, code); }
+  public getClassSystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(EncounterClaim.Class); }
   /** Writes the encounter type. */
-  public setType(value?: string | null): this { return this.setScalarClaim(EncounterClaim.Type, value); }
+  public setType(value?: string | null): this;
+  public setType(codeSystem: string, codeValue: string): this;
+  public setType(valueOrSystem?: string | null, codeValue?: string): this { return this.setCodingTokenCode(EncounterClaim.Type, valueOrSystem, codeValue); }
   /** Reads the encounter type. */
-  public getType(): string | undefined { return this.getScalarClaim(EncounterClaim.Type); }
+  public getType(): string | undefined { return this.getCodingTokenSystemAndCode(EncounterClaim.Type); }
+  public getTypeCode(): string | undefined { return this.getCodingTokenCode(EncounterClaim.Type); }
+  public setTypeCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(EncounterClaim.Type, system); }
+  public getTypeCodeSystem(): string | undefined { return this.getCodingTokenSystem(EncounterClaim.Type); }
+  public setTypeSystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(EncounterClaim.Type, system, code); }
+  public getTypeSystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(EncounterClaim.Type); }
   /** Writes the participant list. */
   public setParticipantList(values: readonly string[]): this { return this.setCsvClaimList(EncounterClaim.Participant, values); }
   /** Reads the participant list. */
@@ -72,9 +86,15 @@ export class EncounterEntryEditor extends ClinicalResourceEntryEditor {
   /** Reads the encounter end date/time. */
   public getPeriodEnd(): string | undefined { return this.getScalarClaim(EncounterClaim.PeriodEnd); }
   /** Writes the reason code. */
-  public setReasonCode(value?: string | null): this { return this.setScalarClaim(EncounterClaim.ReasonCode, value); }
+  public setReasonCode(value?: string | null): this;
+  public setReasonCode(codeSystem: string, codeValue: string): this;
+  public setReasonCode(valueOrSystem?: string | null, codeValue?: string): this { return this.setCodingTokenCode(EncounterClaim.ReasonCode, valueOrSystem, codeValue); }
   /** Reads the reason code. */
-  public getReasonCode(): string | undefined { return this.getScalarClaim(EncounterClaim.ReasonCode); }
+  public getReasonCode(): string | undefined { return this.getCodingTokenCode(EncounterClaim.ReasonCode); }
+  public setReasonCodeSystem(system?: string | null): this { return this.setCodingTokenSystem(EncounterClaim.ReasonCode, system); }
+  public getReasonCodeSystem(): string | undefined { return this.getCodingTokenSystem(EncounterClaim.ReasonCode); }
+  public setReasonSystemAndCode(system?: string | null, code?: string | null): this { return this.setCodingTokenSystemAndCode(EncounterClaim.ReasonCode, system, code); }
+  public getReasonSystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(EncounterClaim.ReasonCode); }
 }
 
 

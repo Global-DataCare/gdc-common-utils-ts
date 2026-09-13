@@ -1,3 +1,4 @@
+// Flow contract: reuse shared test fixtures and canonical types; do not introduce duplicated literals.
 /**
  * 101 note:
  * - Teach the highest-level public `common-utils` helper available for this topic.
@@ -51,7 +52,8 @@ describe('101: vital sign entry editor', () => {
     expect(vitalEntry.getIdentifier()).toBe(EXAMPLE_OBSERVATION_IDENTIFIER);
     expect(vitalEntry.getSubject()).toBe(EXAMPLE_SUBJECT_DID);
     expect(vitalEntry.getDate()).toBe(EXAMPLE_VITAL_SIGNS_EFFECTIVE_DATE_TIME);
-    expect(vitalEntry.getCode()).toBe(VitalSignsCodes.HeartRate.claim);
+    expect(vitalEntry.getCode()).toBe(VitalSignsCodes.HeartRate.code);
+    expect(vitalEntry.getSystemAndCode()).toBe(VitalSignsCodes.HeartRate.claim);
     expect(vitalEntry.getCodeValue()).toBe(VitalSignsCodes.HeartRate.code);
     expect(vitalEntry.getCategory()).toBe(ObservationCategoryCodes.VitalSigns.claim);
     expect(vitalEntry.getCodeTextLocal()).toBe(VitalSignsCodes.HeartRate.display);

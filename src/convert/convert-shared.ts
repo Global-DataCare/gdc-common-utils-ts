@@ -12,7 +12,7 @@ export function codingFromValue(value?: string): Array<{ system?: string; code: 
   if (!value) return undefined;
   const [system, code] = value.split('|');
   if (!code) return [{ code: system }];
-  return [{ system, code }];
+  return system ? [{ system, code }] : [{ code }];
 }
 
 export function codingToValue(coding?: { system?: string; code?: string }): string | undefined {
