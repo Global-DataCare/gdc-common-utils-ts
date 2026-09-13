@@ -16,6 +16,8 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
   lifecycle and reject unknown status strings instead of projecting them as
   valid summaries. A private draft may therefore be resumed without an Offer
   or public subject name.
+- Read a human private-draft birth date from canonical `Person.birthDate`,
+  while preserving `Organization.foundingDate` as a compatibility fallback.
 
 ## [2.9.15] - 2026-09-13
 

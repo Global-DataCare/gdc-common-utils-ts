@@ -95,7 +95,10 @@ export function readFamilyOrganizationSummaryFromResponseBody(
       identifierType: normalizeText(claims['org.schema.Organization.identifier.additionalType']),
       identifierValue: normalizeText(claims['org.schema.Organization.identifier.value']),
       alternateName: normalizeText(claims['org.schema.Organization.alternateName']),
-      birthDate: normalizeText(claims['org.schema.Organization.foundingDate']),
+      birthDate: normalizeText(
+        claims['org.schema.Person.birthDate']
+        ?? claims['org.schema.Organization.foundingDate'],
+      ),
       ownerTelephone: normalizeText(claims['org.schema.Organization.owner.telephone']),
     },
     missingFields: normalizeStringList(claims['org.schema.FamilyRegistration.missingFields'] ?? claims.missingFields),

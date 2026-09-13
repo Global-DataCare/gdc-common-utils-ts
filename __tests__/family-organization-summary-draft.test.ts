@@ -18,12 +18,13 @@ describe('family organization private-draft summary', () => {
     expect(readFamilyOrganizationSummaryFromResponseBody(response({
       'org.schema.FamilyRegistration.status': 'draft_saved',
       'org.schema.Organization.identifier.value': 'private-draft-uuid',
-      'org.schema.Organization.foundingDate': '2022-01',
+      'org.schema.Person.birthDate': '2022-01',
       'org.schema.FamilyRegistration.missingFields': ['alternateName', 'sameAs'],
     }))).toEqual(expect.objectContaining({
       status: 'draft_saved',
       offerId: undefined,
       organizationId: 'private-draft-uuid',
+      subjectInfo: expect.objectContaining({ birthDate: '2022-01' }),
       missingFields: ['alternateName', 'sameAs'],
     }));
   });
