@@ -2,9 +2,18 @@
 
 export type FamilyRegistrationStatus =
   | 'new_created'
+  | 'draft_saved'
   | 'resume_required'
   | 'already_exists'
   | 'not_found';
+
+const FAMILY_REGISTRATION_STATUSES = new Set<FamilyRegistrationStatus>([
+  'new_created',
+  'draft_saved',
+  'resume_required',
+  'already_exists',
+  'not_found',
+]);
 
 export type FamilyOrganizationSubjectInfo = Readonly<{
   identifierType?: string;
@@ -69,8 +78,12 @@ export function readFamilyOrganizationSummaryFromResponseBody(
     ...asRecord(entryResourceMeta.claims),
   };
 
-  const status = normalizeText(claims['org.schema.FamilyRegistration.status'] ?? claims.status) as FamilyRegistrationStatus | undefined;
-  if (!status || status === 'not_found') {
+  const rawStatus = normalizeText(claims['org.schema.FamilyRegistration.status'] ?? claims.status);
+  if (!rawStatus || !FAMILY_REGISTRATION_STATUSES.has(rawStatus as FamilyRegistrationStatus)) {
+    return null;
+  }
+  const status = rawStatus as FamilyRegistrationStatus;
+  if (status === 'not_found') {
     return null;
   }
 

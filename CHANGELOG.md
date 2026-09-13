@@ -12,6 +12,10 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 - Expose `HL7_DEFAULT_INDIVIDUAL_MEMBER_ROLE=ONESELF` separately from the
   animal-care controller relationship `RESPRSN`, retaining the ambiguous old
   controller constant as a deprecated compatibility alias.
+- Add `draft_saved` to the canonical Individual Organization registration
+  lifecycle and reject unknown status strings instead of projecting them as
+  valid summaries. A private draft may therefore be resumed without an Offer
+  or public subject name.
 
 ## [2.9.15] - 2026-09-13
 
