@@ -4,6 +4,8 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.9.15] - 2026-09-13
+
 - Add uniform coding-token accessors to typed clinical entry editors. Existing
   `set...Code("system|code")` calls remain valid, while frontends may pass
   `set...Code(system, code)` or edit the system separately; `get...Code()` now
