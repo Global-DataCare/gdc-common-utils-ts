@@ -58,6 +58,9 @@ Semantic split:
   - `Organization.member.birthDate` comes from the subject birth date
   - `Organization.member.gender` comes from the subject gender
   - the first member role is `ONESELF`
+  - this remains true when a different human controller creates an animal or
+    dependent subject: `member=ONESELF` identifies the subject, while
+    `owner=controller` records who controls the Individual Organization
 - `Person.*`: legal identity of the controller / legal representative
   - `Person.birthDate` and `Person.gender` are the controller's own values
   - in self-registration, those controller values may also seed the first member

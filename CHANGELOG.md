@@ -4,6 +4,15 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.9.16] - 2026-09-13
+
+- Correct the deprecated animal Individual Organization projection so its
+  first `Organization.member` is the animal subject with `ONESELF`, while the
+  creating human remains the separate `Organization.owner` controller.
+- Expose `HL7_DEFAULT_INDIVIDUAL_MEMBER_ROLE=ONESELF` separately from the
+  animal-care controller relationship `RESPRSN`, retaining the ambiguous old
+  controller constant as a deprecated compatibility alias.
+
 ## [2.9.15] - 2026-09-13
 
 - Add uniform coding-token accessors to typed clinical entry editors. Existing

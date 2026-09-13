@@ -70,6 +70,11 @@ identity strings in consumers. Start with:
    gets a new UUID without changing the actor UUID. Email, telephone, OIDC
    `sub`, DCR `client_id`, operational actor DIDs and `kid` remain private
    channel aliases and never become the exported clinical author or attester.
+   An Individual Organization follows the same separation: its initial
+   `Organization.member` is the indexed subject with relationship `ONESELF`,
+   while `Organization.owner` is the creating controller by default.
+   `RESPRSN` is controller authority and must never replace the SELF member's
+   `ONESELF` relationship.
 8. Consent permissions for a bound clinical creator use the assignment UUID
    plus its separate governed role. Do not calculate new permission identity
    from a replaceable phone number, email address, DCR client or key.

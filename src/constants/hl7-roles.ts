@@ -339,8 +339,21 @@ export const HL7_RELATED_PERSON_FUNCTIONAL_ROLES: readonly Hl7RelatedPersonFunct
   },
 ];
 
-/** Default role code for animal-care and non-human subjects. */
+/** Default SELF-subject role for the initial Individual Organization member. */
+export const HL7_DEFAULT_INDIVIDUAL_MEMBER_ROLE = 'ONESELF';
+
+/**
+ * @deprecated This is the human controller relationship, not the animal
+ * Individual Organization member role. Use
+ * `HL7_DEFAULT_CONTROLLER_RELATIONSHIP_ANIMAL_CARE`.
+ */
 export const HL7_DEFAULT_ROLE_ANIMAL_CARE = 'RESPRSN';
+
+/**
+ * Default human controller-to-animal authorization relationship.
+ * This never replaces the animal subject's `ONESELF` member role.
+ */
+export const HL7_DEFAULT_CONTROLLER_RELATIONSHIP_ANIMAL_CARE = 'RESPRSN';
 
 /** Default role code for health sector (patient self-represents). */
 export const HL7_DEFAULT_ROLE_HEALTH = 'ONESELF';

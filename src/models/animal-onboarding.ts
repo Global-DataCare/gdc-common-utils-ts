@@ -1,5 +1,6 @@
 import { ClaimsOrganizationSchemaorg, ClaimsServiceSchemaorg } from '../constants/schemaorg';
 import { DataspaceSectors } from '../constants/sectors';
+import { HL7_DEFAULT_INDIVIDUAL_MEMBER_ROLE } from '../constants/hl7-roles';
 
 /**
  * @deprecated Animal-card vocabulary is owned by the consuming product SDK.
@@ -67,8 +68,11 @@ export function buildNcbiTaxonomyUri(id: NcbiTaxonomyId): string {
  * Projects one controller-authorized animal card request to the existing
  * schema.org individual-organization claim envelope.
  *
- * The indexed subject is always an animal and its human actor is always a
- * responsible controller. Login identity proves only the application session;
+ * The indexed subject is always the first `Organization.member`, with the
+ * HL7 relationship `ONESELF`. The human that creates the envelope remains the
+ * separate `Organization.owner` controller; `RESPRSN` belongs to that
+ * controller authority and must never replace the subject's ONESELF role.
+ * Login identity proves only the application session;
  * GW must still verify the enrollment grant before accepting the request. A
  * card must not be shown as active until the authoritative GW transaction
  * returns success.
@@ -97,7 +101,7 @@ export function buildAnimalOnboardingClaims(
     [ClaimsOrganizationSchemaorg.sameAs]: cardDidWeb,
     [ClaimsOrganizationSchemaorg.memberName]: alternateName,
     [ClaimsOrganizationSchemaorg.memberAdditionalType]: buildNcbiTaxonomyUri(input.ncbiTaxonomyId),
-    [ClaimsOrganizationSchemaorg.memberRole]: 'RESPRSN',
+    [ClaimsOrganizationSchemaorg.memberRole]: HL7_DEFAULT_INDIVIDUAL_MEMBER_ROLE,
     ...(birthDate ? { [ClaimsOrganizationSchemaorg.memberBirthDate]: birthDate } : {}),
     ...(gender ? { [ClaimsOrganizationSchemaorg.memberGender]: gender } : {}),
     [ClaimsOrganizationSchemaorg.ownerEmail]: input.controllerEmail?.trim() || '',

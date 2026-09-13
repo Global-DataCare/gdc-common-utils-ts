@@ -80,6 +80,12 @@ by its attached `Composition.section` graph.
 
 ## Identity Continuity
 
+For every Individual Organization, the initial `Organization.member` is the
+indexed subject itself and uses the HL7 relationship `ONESELF`. The creating
+`Organization.owner` is the controller by default. `ONESELF` describes who the
+subject is; controller authority such as `RESPRSN` describes who may act for
+that subject. Never copy the owner/controller role into the SELF member.
+
 For ICA-backed organization activation, the representative/controller proof is
 intentionally split into two complementary dimensions:
 
