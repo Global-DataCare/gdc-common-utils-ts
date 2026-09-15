@@ -72,6 +72,37 @@ participant and must not be treated as transport authentication.
 SDKs select the carrier. Applications author the Communication and use the
 high-level facade; they do not manually copy transport identity fields.
 
+## Initialize a BFF without downgrading it
+
+Select transport from trusted lifecycle state, not from request input:
+
+```ts
+const transport = profile.dcrClientId
+  ? TransportProfiles.DidcommEncryptedForm
+  : BootstrapTransportProfiles.AuthenticatedDidcommPlain;
+
+const gateway = createGatewayClient({
+  transport,
+  // Required only for the enrolled branch. It reconstructs the registered
+  // wallet and encrypts for the resolved GW recipient DID.
+  secureTransportAdapter: profile.dcrClientId
+    ? await profileRuntime.openSecureTransport(profile)
+    : undefined,
+});
+```
+
+The names above describe the integration decision; use the concrete published
+SDK composition API owned by the consuming BFF. A cardless telephone bootstrap
+has no registered DCR key yet, so it must not manufacture an encrypted sender.
+Its compatibility route must instead verify the HTTP bearer and bind every
+requested phone/email to that verified identity. Once DCR exists, inability to
+open the registered wallet is a hard failure, never a reason to fall back.
+
+An external EHR may send a native FHIR Bundle using
+`application/fhir+json` over TLS with OAuth/SMART authorization. That changes
+the representation and carrier only; it does not move HTTP authentication into
+FHIR fields or make `Communication.sender` a transport proof.
+
 ## FHIR author and attester are source provenance
 
 The authenticated channel proves who submitted and signed the request; it does
