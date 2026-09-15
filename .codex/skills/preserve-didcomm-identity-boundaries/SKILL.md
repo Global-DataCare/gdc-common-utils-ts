@@ -89,6 +89,35 @@ identity strings in consumers. Start with:
     `Communication.status=draft`; use the selected FHIR version's governed
     Communication status and keep application draft state in its owning
     outbox/workflow model.
+11. Keep the clinical representation independent from the carrier. Native
+    `application/fhir+json` may be used by an authenticated EHR compatibility
+    endpoint; DIDComm plain may be used by an authenticated pre-DCR bootstrap
+    or compatibility client; an enrolled first-party profile uses signed and
+    encrypted DIDComm form transport. `plain` means no message-layer JWE, not
+    no HTTPS/TLS.
+12. Never invent a post-DCR sender to encrypt a cardless telephone draft.
+    Before DCR, authenticate the account/contact at HTTP and limit compat
+    operations to the verified identifier. After DCR, reconstruct the exact
+    registered wallet/profile and fail closed if it cannot provide the secure
+    adapter. Transport selection never changes `Composition.author`, attester,
+    SMART subject or permissions.
+
+## BFF initialization decision
+
+Initialize one transport policy at the BFF composition root:
+
+- pre-DCR telephone/cardless bootstrap: authenticated compat transport, only
+  for routes whose manager binds the requested contact to the verified bearer;
+- active portal/telephone profile: encrypted DIDComm form transport using the
+  registered DCR wallet and recipient DID key;
+- external EHR compatibility: native FHIR JSON over TLS with authenticated
+  OAuth/SMART (and mTLS/FAPI where the integration policy requires it);
+- local demo: explicit demo-only plaintext, never inferred from `NODE_ENV` in
+  staging or production.
+
+Do not let a route handler, UI field or retry choose a weaker carrier. The
+composition root selects the profile from trusted lifecycle/configuration
+state and submit plus poll reuse that exact profile.
 
 ## Change procedure
 
