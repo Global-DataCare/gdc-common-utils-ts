@@ -4,6 +4,13 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.9.17] - 2026-09-14
+
+- Keep native FHIR structural metadata and array paths out of generic editable
+  clinical fields, while retaining the complete resource for rendering and
+  transport. This prevents CID-derived `meta.versionId` from crashing an IPS
+  readback without weakening rejection of version-specific claim namespaces.
+
 ## [2.9.16] - 2026-09-13
 
 - Correct the deprecated animal Individual Organization projection so its

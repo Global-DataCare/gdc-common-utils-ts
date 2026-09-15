@@ -309,7 +309,10 @@ export function toClinicalResourceCardView(
  * Short claims take precedence over their expanded
  * `org.hl7.fhir.api.<ResourceType>.<search-param>` equivalent. Versioned
  * `org.hl7.fhir.<version>.*` namespaces are rejected because they are native
- * FHIR representation namespaces, never claims vocabularies.
+ * FHIR representation namespaces, never claims vocabularies. Native
+ * structural projections such as `<ResourceType>.meta.versionId` or array
+ * paths are ignored: they remain part of the FHIR resource, but are not API
+ * SearchParameters and must never become editable clinical fields.
  */
 export function toClinicalResourceClaimFieldViews(
   claims: ClinicalViewClaims,
@@ -323,7 +326,8 @@ export function toClinicalResourceClaimFieldViews(
       throw new Error(`FHIR meta.claims must use org.hl7.fhir.api, not version-specific key: ${rawClaim}`);
     }
     if (!rawClaim.startsWith('org.hl7.fhir.api.') && !/^[A-Z][A-Za-z0-9]+\./.test(rawClaim)) continue;
-    const claim = normalizeFhirApiClaimKey(rawClaim);
+    const claim = normalizeViewClaim(rawClaim);
+    if (!claim) continue;
     const separator = claim.indexOf('.');
     if (separator <= 0 || separator === claim.length - 1) continue;
     if (!fields.has(claim)) {
@@ -340,16 +344,26 @@ export function toClinicalResourceClaimFieldViews(
   for (const [claim, value] of entries) {
     if (claim.startsWith('@') || claim.startsWith('org.hl7.fhir.') || value === undefined) continue;
     if (!/^[A-Z][A-Za-z0-9]+\./.test(claim)) continue;
-    const separator = claim.indexOf('.');
-    if (separator <= 0 || separator === claim.length - 1) continue;
-    fields.set(claim, {
-      claim,
-      parameter: claim.slice(separator + 1),
+    const normalizedClaim = normalizeViewClaim(claim);
+    if (!normalizedClaim) continue;
+    const separator = normalizedClaim.indexOf('.');
+    if (separator <= 0 || separator === normalizedClaim.length - 1) continue;
+    fields.set(normalizedClaim, {
+      claim: normalizedClaim,
+      parameter: normalizedClaim.slice(separator + 1),
       value,
     });
   }
 
   return [...fields.values()].sort((left, right) => left.claim.localeCompare(right.claim));
+}
+
+function normalizeViewClaim(rawClaim: string): string | undefined {
+  try {
+    return normalizeFhirApiClaimKey(rawClaim);
+  } catch {
+    return undefined;
+  }
 }
 
 /**

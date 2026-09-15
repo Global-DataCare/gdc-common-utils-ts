@@ -215,6 +215,19 @@ describe('clinical resource common view', () => {
     })).toThrow(/must use org\.hl7\.fhir\.api/);
   });
 
+  it('ignores native FHIR structural metadata instead of exposing it as an editable API claim', () => {
+    expect(toClinicalResourceClaimFieldViews({
+      '@context': 'org.hl7.fhir.api',
+      'Condition.code': 'http://snomed.info/sct|44054006',
+      'Condition.meta.versionId': 'zQmDerivedVersion',
+      'Condition.identifier[0].value': 'native-structure-only',
+      'org.hl7.fhir.api.Condition.recorded-date': '2026-09-14',
+    })).toEqual([
+      { claim: 'Condition.code', parameter: 'code', value: 'http://snomed.info/sct|44054006' },
+      { claim: 'Condition.recorded-date', parameter: 'recorded-date', value: '2026-09-14' },
+    ]);
+  });
+
   it('exposes claims-first structured clinical fields on section-ready cards', () => {
     const observation = toClinicalResourceCardView({
       fullUrl: 'Observation/lab-1',
