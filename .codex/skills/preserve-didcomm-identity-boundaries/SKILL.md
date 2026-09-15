@@ -89,15 +89,22 @@ identity strings in consumers. Start with:
     `Communication.status=draft`; use the selected FHIR version's governed
     Communication status and keep application draft state in its owning
     outbox/workflow model.
-11. Keep the clinical representation independent from the carrier. Native
+11. Treat a portal installation and a telephone installation as distinct DCR
+    devices. Each has its own `client_id`, `kid`, wallet seed and protected
+    custody envelope. They may be authorized for the same controller, but they
+    never split, copy or share one private seed. WebAuthn/passkey and telephone
+    PIN-plus-host/KMS are custody factors, not actor or SMART identities.
+12. Keep the clinical representation independent from the carrier. Native
     `application/fhir+json` may be used by an authenticated EHR compatibility
     endpoint; DIDComm plain may be used by an authenticated pre-DCR bootstrap
     or compatibility client; an enrolled first-party profile uses signed and
     encrypted DIDComm form transport. `plain` means no message-layer JWE, not
     no HTTPS/TLS.
-12. Never invent a post-DCR sender to encrypt a cardless telephone draft.
-    Before DCR, authenticate the account/contact at HTTP and limit compat
-    operations to the verified identifier. After DCR, reconstruct the exact
+13. Never invent a post-DCR sender to encrypt the initial cardless enrollment
+    request. Before the new device has received its activation grant and DCR
+    client, authenticate the account/contact at HTTP and limit bootstrap
+    operations to producing that grant for the verified identifier. After DCR,
+    reconstruct the exact
     registered wallet/profile and fail closed if it cannot provide the secure
     adapter. Transport selection never changes `Composition.author`, attester,
     SMART subject or permissions.
@@ -106,8 +113,9 @@ identity strings in consumers. Start with:
 
 Initialize one transport policy at the BFF composition root:
 
-- pre-DCR telephone/cardless bootstrap: authenticated compat transport, only
-  for routes whose manager binds the requested contact to the verified bearer;
+- initial device enrollment bootstrap: authenticated compat transport only for
+  the operation that creates the activation/enrollment grant and only where the
+  manager binds the requested contact to the verified bearer;
 - active portal/telephone profile: encrypted DIDComm form transport using the
   registered DCR wallet and recipient DID key;
 - external EHR compatibility: native FHIR JSON over TLS with authenticated
