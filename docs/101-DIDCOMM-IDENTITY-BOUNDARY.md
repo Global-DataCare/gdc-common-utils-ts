@@ -76,6 +76,11 @@ high-level facade; they do not manually copy transport identity fields.
 
 Select transport from trusted lifecycle state, not from request input:
 
+The portal and telephone BFF are separate device installations. Each completes
+its own DCR and persists a different wallet seed under its own custody factors;
+they do not hold shares of one seed. GW may authorize both device clients for
+the same controller without conflating their `client_id`, `kid` or wallet DID.
+
 ```ts
 const transport = profile.dcrClientId
   ? TransportProfiles.DidcommEncryptedForm
@@ -92,11 +97,13 @@ const gateway = createGatewayClient({
 ```
 
 The names above describe the integration decision; use the concrete published
-SDK composition API owned by the consuming BFF. A cardless telephone bootstrap
-has no registered DCR key yet, so it must not manufacture an encrypted sender.
-Its compatibility route must instead verify the HTTP bearer and bind every
-requested phone/email to that verified identity. Once DCR exists, inability to
-open the registered wallet is a hard failure, never a reason to fall back.
+SDK composition API owned by the consuming BFF. The first enrollment request
+cannot use the new device profile before its activation grant and DCR client
+exist, so it must not manufacture an encrypted sender. Its narrowly scoped
+bootstrap route verifies the HTTP bearer, binds every requested phone/email to
+that verified identity and produces the grant consumed by the high-level
+enrollment manager. Once DCR exists, inability to open the registered wallet
+is a hard failure, never a reason to fall back.
 
 An external EHR may send a native FHIR Bundle using
 `application/fhir+json` over TLS with OAuth/SMART authorization. That changes
