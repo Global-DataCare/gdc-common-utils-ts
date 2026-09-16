@@ -494,7 +494,9 @@ The canonical API contract should live in JSDoc on exported code. The README act
   - Jurisdiction is mandatory so `BN`, `EIN`, `TAX` and subnational identifier
     schemes cannot collide; `roleType` remains protected while only the compact
     `roleValue` is serialized.
-- [`buildSmartCompositionReadScope(...)`](src/utils/smart-scope.ts)
+- [`buildScopeSmartCompositionAccess(...)`](src/utils/smart-scope.ts), with
+  `buildSmartCompositionReadScope(...)` retained as a deprecated compatibility
+  alias
   - Builds the current CORE GW pinned SMART root scope for `organization/Composition...` token requests.
   - This is the preferred first scope to teach when the backend only needs subject-scoped read access.
 - [`getOrganizationCredentialFromVpToken(...)`, `getLegalRepresentativeCredentialFromVpToken(...)`, `getServiceControllerCredentialFromVpToken(...)`](src/utils/vp-token.ts)

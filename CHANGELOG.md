@@ -4,6 +4,10 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Add `buildScopeSmartCompositionAccess(...)` as the common-concept-first
+  SMART Composition scope builder for read or `cruds` access, while retaining
+  `buildSmartCompositionReadScope(...)` as a deprecated compatibility alias.
+
 ## [2.9.17] - 2026-09-14
 
 - Keep native FHIR structural metadata and array paths out of generic editable
