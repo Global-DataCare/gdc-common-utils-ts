@@ -9,7 +9,7 @@ import type {
 import type { ConsentRule } from '../models/consent-rule';
 import { evaluateConsentCoverage } from './consent';
 
-export type SmartCompositionReadScopeOptions = {
+export type ScopeSmartCompositionAccessOptions = {
   /**
    * Subject DID pinned by the current CORE GW root scope contract.
    */
@@ -21,12 +21,15 @@ export type SmartCompositionReadScopeOptions = {
    */
   sections?: string | string[];
   /**
-   * Read verb suffix used in the current GW SMART root scope contract.
+   * Access suffix used in the current GW SMART root scope contract.
    *
    * Defaults to `rs`.
    */
   accessVerb?: 'r' | 'rs' | 'cruds';
 };
+
+/** @deprecated Use {@link ScopeSmartCompositionAccessOptions}. */
+export type SmartCompositionReadScopeOptions = ScopeSmartCompositionAccessOptions;
 
 /**
  * Builds the gateway-pinned SMART root scope required by the current CORE GW
@@ -37,12 +40,12 @@ export type SmartCompositionReadScopeOptions = {
  * This is intentionally a gateway-contract helper, not a generic SMART/FHIR
  * scope builder.
  */
-export function buildSmartCompositionReadScope(
-  options: SmartCompositionReadScopeOptions,
+export function buildScopeSmartCompositionAccess(
+  options: ScopeSmartCompositionAccessOptions,
 ): string {
   const subjectDid = String(options.subjectDid || '').trim();
   if (!subjectDid) {
-    throw new Error('buildSmartCompositionReadScope requires subjectDid.');
+    throw new Error('buildScopeSmartCompositionAccess requires subjectDid.');
   }
 
   const sections = Array.isArray(options.sections)
@@ -61,6 +64,16 @@ export function buildSmartCompositionReadScope(
   }
 
   return `organization/Composition.${options.accessVerb || 'rs'}?${query.toString()}`;
+}
+
+/**
+ * @deprecated Use {@link buildScopeSmartCompositionAccess}. The historical
+ * name incorrectly described a helper that also supports `cruds` access.
+ */
+export function buildSmartCompositionReadScope(
+  options: SmartCompositionReadScopeOptions,
+): string {
+  return buildScopeSmartCompositionAccess(options);
 }
 
 export type DeriveGrantedSmartScopesInput = Readonly<{
@@ -106,7 +119,7 @@ export type GrantedSmartScopesResult = Readonly<{
 type ParsedClinicalScope = Readonly<{
   raw: string;
   subject: string;
-  accessVerb: SmartCompositionReadScopeOptions['accessVerb'];
+  accessVerb: ScopeSmartCompositionAccessOptions['accessVerb'];
   requestedSections: string[];
   supported: boolean;
 }>;
@@ -194,7 +207,7 @@ export function deriveGrantedSmartScopes(
       continue;
     }
 
-    grantedScopes.push(buildSmartCompositionReadScope({
+    grantedScopes.push(buildScopeSmartCompositionAccess({
       subjectDid: subject,
       sections: scopeGrantedSections,
       accessVerb: parsed.accessVerb,

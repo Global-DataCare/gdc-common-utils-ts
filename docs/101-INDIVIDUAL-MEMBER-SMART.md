@@ -22,11 +22,11 @@ import {
 } from 'gdc-common-utils-ts/examples/consent-access'
 import { EXAMPLE_RELATED_PERSON_ROLE } from 'gdc-common-utils-ts/examples/shared'
 import {
-  buildSmartCompositionReadScope,
+  buildScopeSmartCompositionAccess,
   deriveGrantedSmartScopes,
 } from 'gdc-common-utils-ts/utils/smart-scope'
 
-const requestedScope = buildSmartCompositionReadScope({
+const requestedScope = buildScopeSmartCompositionAccess({
   subjectDid: EXAMPLE_CONSENT_ACCESS_SUBJECT,
   sections: Object.values(HealthcareSummarySections)
     .map((section) => section.attributeValue),

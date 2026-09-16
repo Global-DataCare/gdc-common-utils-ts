@@ -1,3 +1,4 @@
+// Flow contract: reuse shared test fixtures and canonical types; do not introduce duplicated literals.
 import {
   HealthcareBasicSections,
   HealthcareConsentPurposes,
@@ -10,9 +11,10 @@ import {
 } from '../src/examples/consent-access';
 import { EXAMPLE_RELATED_PERSON_ROLE } from '../src/examples/shared';
 import {
+  buildScopeSmartCompositionAccess,
   buildSmartCompositionReadScope,
   deriveGrantedSmartScopes,
-} from '../src/utils/smart-scope';
+} from '../src';
 import { ClaimConsent } from '../src/models/consent-rule';
 
 /**
@@ -22,6 +24,24 @@ import { ClaimConsent } from '../src/models/consent-rule';
  * sections granted by the controller's active Consent.
  */
 describe('101 individual-member SMART scope derivation', () => {
+  it('builds one access scope through the canonical common-concept-first name and preserves the legacy alias', () => {
+    // `cruds` is the exact access suffix under test: the canonical helper is
+    // intentionally not read-only even though the compatibility alias says so.
+    const canonical = buildScopeSmartCompositionAccess({
+      subjectDid: EXAMPLE_CONSENT_ACCESS_SUBJECT,
+      sections: HealthcareBasicSections.AllergiesAndIntolerances.attributeValue,
+      accessVerb: 'cruds',
+    });
+    const compatibility = buildSmartCompositionReadScope({
+      subjectDid: EXAMPLE_CONSENT_ACCESS_SUBJECT,
+      sections: HealthcareBasicSections.AllergiesAndIntolerances.attributeValue,
+      accessVerb: 'cruds',
+    });
+
+    expect(canonical).toBe(compatibility);
+    expect(canonical).toContain('organization/Composition.cruds?');
+  });
+
   it('narrows an all-sections request to the exact controller grant', () => {
     // Step 1. The member asks for every known IPS summary section. Application
     // code imports the shared registry instead of copying LOINC literals.
