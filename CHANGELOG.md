@@ -4,6 +4,9 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Ignore local Firebase diagnostic logs so credential and tenant diagnostics
+  cannot be staged accidentally during cross-repository release work.
+
 ## [2.9.11] - 2026-09-08
 
 - Add version-neutral Consent claims for grantor, grantee, manager, controller,
