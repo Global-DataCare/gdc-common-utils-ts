@@ -4,6 +4,8 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Ignore local Firebase diagnostic logs so credential and tenant diagnostics
+  cannot be staged accidentally during cross-repository release work.
 - Add `buildScopeSmartCompositionAccess(...)` as the common-concept-first
   SMART Composition scope builder for read or `cruds` access, while retaining
   `buildSmartCompositionReadScope(...)` as a deprecated compatibility alias.
