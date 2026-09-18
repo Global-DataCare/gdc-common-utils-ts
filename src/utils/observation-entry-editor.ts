@@ -83,6 +83,19 @@ export class ObservationEntryEditor extends VitalSignEntryEditor {
   public getHasMemberList(): string[] {
     return getClaimValues(this.getClaims(), ObservationClaim.HasMember);
   }
+
+  /**
+   * Writes the human-readable FHIR R4 `Observation.referenceRange.text` guidance.
+   * @see https://hl7.org/fhir/R4/observation.html
+   */
+  public setReferenceRangeText(value?: string | null): this {
+    return this.setScalarClaim(ObservationClaim.ReferenceRangeText, value);
+  }
+
+  /** Reads the human-readable reference-range guidance. */
+  public getReferenceRangeText(): string | undefined {
+    return this.getScalarClaim(ObservationClaim.ReferenceRangeText);
+  }
 }
 
 registerBundleEntryEditor(BundleEditableResourceTypes.observation, ObservationEntryEditor);

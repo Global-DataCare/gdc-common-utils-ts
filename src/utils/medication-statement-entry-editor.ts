@@ -32,9 +32,33 @@ export class MedicationStatementEntryEditor extends ClinicalResourceEntryEditor 
   /** Returns the medication statement status. */
   public getStatus(): string | undefined { return this.getScalarClaim(MedicationStatementClaim.Status); }
   /** Sets the effective date or period token stored in the flat-claims model. */
-  public setEffective(value?: string | null): this { return this.setScalarClaim(MedicationStatementClaim.Effective, value); }
+  public setEffective(value?: string | null): this {
+    this.removeClaim(MedicationStatementClaim.EffectivePeriodStart);
+    this.removeClaim(MedicationStatementClaim.EffectivePeriodEnd);
+    return this.setScalarClaim(MedicationStatementClaim.Effective, value);
+  }
   /** Returns the effective date or period token. */
   public getEffective(): string | undefined { return this.getScalarClaim(MedicationStatementClaim.Effective); }
+  /** Sets the start of `effectivePeriod` and clears the mutually exclusive dateTime claim. */
+  public setEffectivePeriodStart(value?: string | null): this {
+    if (value?.trim()) this.removeClaim(MedicationStatementClaim.Effective);
+    return this.setScalarClaim(MedicationStatementClaim.EffectivePeriodStart, value);
+  }
+  /** Returns the start of `effectivePeriod`. */
+  public getEffectivePeriodStart(): string | undefined { return this.getScalarClaim(MedicationStatementClaim.EffectivePeriodStart); }
+  /** Sets the end of `effectivePeriod`, promoting an existing dateTime value to the period start. */
+  public setEffectivePeriodEnd(value?: string | null): this {
+    if (value?.trim()) {
+      const effective = this.getEffective();
+      if (effective && !this.getEffectivePeriodStart()) {
+        this.setScalarClaim(MedicationStatementClaim.EffectivePeriodStart, effective);
+      }
+      this.removeClaim(MedicationStatementClaim.Effective);
+    }
+    return this.setScalarClaim(MedicationStatementClaim.EffectivePeriodEnd, value);
+  }
+  /** Returns the end of `effectivePeriod`. */
+  public getEffectivePeriodEnd(): string | undefined { return this.getScalarClaim(MedicationStatementClaim.EffectivePeriodEnd); }
   /** Sets the medication code from `code`, `system|code`, or separate `system, code` arguments. */
   public setCode(code?: string | null): this;
   public setCode(codeSystem: string, codeValue: string): this;

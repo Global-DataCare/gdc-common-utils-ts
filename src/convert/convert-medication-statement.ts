@@ -8,7 +8,12 @@ import { codingFromValue, codingToValue, requireClaim } from './convert-shared';
 export function medicationStatementFlatToFhirR4(claims: FlatClaims): FhirResource {
   const subject = requireClaim(claims, MedicationStatementClaim.Subject);
   const status = requireClaim(claims, MedicationStatementClaim.Status);
-  const effectiveDateTime = claims[MedicationStatementClaim.Effective];
+  const effectivePeriodEnd = claims[MedicationStatementClaim.EffectivePeriodEnd];
+  const effectivePeriodStart = claims[MedicationStatementClaim.EffectivePeriodStart]
+    || (effectivePeriodEnd ? claims[MedicationStatementClaim.Effective] : undefined);
+  const effectiveDateTime = effectivePeriodStart || effectivePeriodEnd
+    ? undefined
+    : claims[MedicationStatementClaim.Effective];
   const medicationText = claims[MedicationStatementClaim.CodeText]
     || claims[MedicationStatementClaim.MedicationText];
   const medicationReference = claims[MedicationStatementClaim.Medication];
@@ -46,7 +51,11 @@ export function medicationStatementFlatToFhirR4(claims: FlatClaims): FhirResourc
     identifier: claims[MedicationStatementClaim.Identifier] ? [{ value: claims[MedicationStatementClaim.Identifier] }] : undefined,
     status,
     subject: { reference: subject },
-    effectiveDateTime,
+    ...(effectiveDateTime ? { effectiveDateTime } : {}),
+    effectivePeriod: effectivePeriodStart || effectivePeriodEnd ? {
+      start: effectivePeriodStart,
+      end: effectivePeriodEnd,
+    } : undefined,
     medicationCodeableConcept: !medicationReference && !hasContainedMedication && claims[MedicationStatementClaim.Code]
       ? {
         coding: codingFromValue(claims[MedicationStatementClaim.Code])?.map((coding) => ({
@@ -98,11 +107,14 @@ export function medicationStatementFhirR4ToFlat(resource: FhirResource): FlatCla
     : undefined;
   const routeCoding = (dosage?.route as { coding?: Array<{ system?: string; code?: string }> } | undefined)?.coding?.[0];
   const doseQuantity = ((dosage?.doseAndRate as Array<Record<string, unknown>> | undefined)?.[0]?.doseQuantity) as Record<string, unknown> | undefined;
+  const effectivePeriod = resource.effectivePeriod as { start?: string; end?: string } | undefined;
   return {
     [MedicationStatementClaim.Identifier]: (resource.identifier as Array<{ value?: string }> | undefined)?.[0]?.value,
     [MedicationStatementClaim.Subject]: (resource.subject as { reference?: string } | undefined)?.reference,
     [MedicationStatementClaim.Status]: resource.status as string | undefined,
     [MedicationStatementClaim.Effective]: resource.effectiveDateTime as string | undefined,
+    [MedicationStatementClaim.EffectivePeriodStart]: effectivePeriod?.start,
+    [MedicationStatementClaim.EffectivePeriodEnd]: effectivePeriod?.end,
     [MedicationStatementClaim.Code]: medicationCode,
     [MedicationStatementClaim.CodeText]: medicationText,
     [MedicationStatementClaim.Medication]: medicationReference?.startsWith('#') ? undefined : medicationReference,

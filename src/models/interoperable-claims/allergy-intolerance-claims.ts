@@ -5,6 +5,36 @@ import type { ClaimSpec } from './types';
 
 // Always create JSDoc, do not use strings inline in keys nor values, use types instead, and reuse the data test examples.
 
+/**
+ * FHIR R4 `AllergyIntolerance.criticality` codes describing potential future harm.
+ *
+ * @see https://hl7.org/fhir/R4/allergyintolerance.html
+ * @see https://build.fhir.org/ig/HL7/fhir-ips/en/StructureDefinition-AllergyIntolerance-uv-ips.html
+ */
+export const AllergyIntoleranceCriticalities = {
+  Low: 'low',
+  High: 'high',
+  UnableToAssess: 'unable-to-assess',
+} as const;
+
+export type AllergyIntoleranceCriticality =
+  typeof AllergyIntoleranceCriticalities[keyof typeof AllergyIntoleranceCriticalities];
+
+/**
+ * FHIR R4 `AllergyIntolerance.reaction.severity` codes for one observed reaction event.
+ *
+ * @see https://hl7.org/fhir/R4/valueset-reaction-event-severity.html
+ * @see https://build.fhir.org/ig/HL7/fhir-ips/en/StructureDefinition-AllergyIntolerance-uv-ips.html
+ */
+export const AllergyIntoleranceReactionSeverities = {
+  Mild: 'mild',
+  Moderate: 'moderate',
+  Severe: 'severe',
+} as const;
+
+export type AllergyIntoleranceReactionSeverity =
+  typeof AllergyIntoleranceReactionSeverities[keyof typeof AllergyIntoleranceReactionSeverities];
+
 export const AllergyIntoleranceClaim = {
   Identifier: 'AllergyIntolerance.identifier',
   Subject: 'AllergyIntolerance.subject',
@@ -40,6 +70,14 @@ export const AllergyIntoleranceClaim = {
    */
   AttachmentContentIds: 'AllergyIntolerance.attachment-content-ids',
   Criticality: 'AllergyIntolerance.criticality',
+  Asserter: 'AllergyIntolerance.asserter',
+  RecordedDate: 'AllergyIntolerance.date',
+  LastOccurrence: 'AllergyIntolerance.last-date',
+  Manifestation: 'AllergyIntolerance.manifestation',
+  Onset: 'AllergyIntolerance.onset',
+  Route: 'AllergyIntolerance.route',
+  Severity: 'AllergyIntolerance.severity',
+  Type: 'AllergyIntolerance.type',
   OnsetDateTime: 'AllergyIntolerance.onset-datetime',
   Recorder: 'AllergyIntolerance.recorder',
 } as const;
@@ -57,10 +95,25 @@ export enum AllergyIntoleranceClaimsFhirApi {
   VerificationStatus = 'org.hl7.fhir.api.AllergyIntolerance.verification-status',
   Category = 'org.hl7.fhir.api.AllergyIntolerance.category',
   Criticality = 'org.hl7.fhir.api.AllergyIntolerance.criticality',
+  Asserter = 'org.hl7.fhir.api.AllergyIntolerance.asserter',
+  Date = 'org.hl7.fhir.api.AllergyIntolerance.date',
+  LastDate = 'org.hl7.fhir.api.AllergyIntolerance.last-date',
+  Manifestation = 'org.hl7.fhir.api.AllergyIntolerance.manifestation',
+  Onset = 'org.hl7.fhir.api.AllergyIntolerance.onset',
+  Route = 'org.hl7.fhir.api.AllergyIntolerance.route',
+  Severity = 'org.hl7.fhir.api.AllergyIntolerance.severity',
+  Type = 'org.hl7.fhir.api.AllergyIntolerance.type',
   OnsetDateTime = 'org.hl7.fhir.api.AllergyIntolerance.onset-datetime',
   Recorder = 'org.hl7.fhir.api.AllergyIntolerance.recorder',
 }
 
+/**
+ * Resource-specific FHIR R4 search parameters. UI presentation remains governed
+ * separately by the applicable IPS StructureDefinition and its obligations.
+ *
+ * @see https://hl7.org/fhir/R4/allergyintolerance.html#search
+ * @see https://build.fhir.org/ig/HL7/fhir-ips/en/CapabilityStatement-ips-server.html
+ */
 export const AllergyIntoleranceSearchParamNames = {
   Identifier: 'identifier',
   Subject: 'subject',
@@ -72,6 +125,14 @@ export const AllergyIntoleranceSearchParamNames = {
   VerificationStatus: 'verification-status',
   Category: 'category',
   Criticality: 'criticality',
+  Asserter: 'asserter',
+  Date: 'date',
+  LastDate: 'last-date',
+  Manifestation: 'manifestation',
+  Onset: 'onset',
+  Route: 'route',
+  Severity: 'severity',
+  Type: 'type',
   OnsetDateTime: 'onset-datetime',
   Recorder: 'recorder',
 } as const;
@@ -93,6 +154,14 @@ AllergyIntoleranceClaimsFhirApi
   [AllergyIntoleranceSearchParamNames.VerificationStatus]: AllergyIntoleranceClaimsFhirApi.VerificationStatus,
   [AllergyIntoleranceSearchParamNames.Category]: AllergyIntoleranceClaimsFhirApi.Category,
   [AllergyIntoleranceSearchParamNames.Criticality]: AllergyIntoleranceClaimsFhirApi.Criticality,
+  [AllergyIntoleranceSearchParamNames.Asserter]: AllergyIntoleranceClaimsFhirApi.Asserter,
+  [AllergyIntoleranceSearchParamNames.Date]: AllergyIntoleranceClaimsFhirApi.Date,
+  [AllergyIntoleranceSearchParamNames.LastDate]: AllergyIntoleranceClaimsFhirApi.LastDate,
+  [AllergyIntoleranceSearchParamNames.Manifestation]: AllergyIntoleranceClaimsFhirApi.Manifestation,
+  [AllergyIntoleranceSearchParamNames.Onset]: AllergyIntoleranceClaimsFhirApi.Onset,
+  [AllergyIntoleranceSearchParamNames.Route]: AllergyIntoleranceClaimsFhirApi.Route,
+  [AllergyIntoleranceSearchParamNames.Severity]: AllergyIntoleranceClaimsFhirApi.Severity,
+  [AllergyIntoleranceSearchParamNames.Type]: AllergyIntoleranceClaimsFhirApi.Type,
   [AllergyIntoleranceSearchParamNames.OnsetDateTime]: AllergyIntoleranceClaimsFhirApi.OnsetDateTime,
   [AllergyIntoleranceSearchParamNames.Recorder]: AllergyIntoleranceClaimsFhirApi.Recorder,
 };
@@ -108,6 +177,14 @@ export const AllergyIntoleranceClaimsFhirApiMap = {
   [AllergyIntoleranceClaimsFhirApi.VerificationStatus]: String,
   [AllergyIntoleranceClaimsFhirApi.Category]: String,
   [AllergyIntoleranceClaimsFhirApi.Criticality]: String,
+  [AllergyIntoleranceClaimsFhirApi.Asserter]: String,
+  [AllergyIntoleranceClaimsFhirApi.Date]: String,
+  [AllergyIntoleranceClaimsFhirApi.LastDate]: String,
+  [AllergyIntoleranceClaimsFhirApi.Manifestation]: String,
+  [AllergyIntoleranceClaimsFhirApi.Onset]: String,
+  [AllergyIntoleranceClaimsFhirApi.Route]: String,
+  [AllergyIntoleranceClaimsFhirApi.Severity]: String,
+  [AllergyIntoleranceClaimsFhirApi.Type]: String,
   [AllergyIntoleranceClaimsFhirApi.OnsetDateTime]: String,
   [AllergyIntoleranceClaimsFhirApi.Recorder]: String,
 };
@@ -127,7 +204,15 @@ export const AllergyIntoleranceClaimSpecs: ClaimSpec[] = [
   { key: AllergyIntoleranceClaim.ClinicalStatus, meaning: 'Clinical status code.', example: 'active' },
   { key: AllergyIntoleranceClaim.VerificationStatus, meaning: 'Verification status code.', example: 'confirmed' },
   { key: AllergyIntoleranceClaim.Category, meaning: 'Category value.', example: 'food' },
-  { key: AllergyIntoleranceClaim.Criticality, meaning: 'Criticality level.', example: 'high' },
+  { key: AllergyIntoleranceClaim.Criticality, meaning: 'Potential future harm if exposed to the substance.', example: AllergyIntoleranceCriticalities.High },
+  { key: AllergyIntoleranceClaim.Asserter, meaning: 'Source of the allergy assertion.', example: 'Practitioner/practitioner-123' },
+  { key: AllergyIntoleranceClaim.RecordedDate, meaning: 'Date the allergy record was first captured.', example: '2026-01-10T10:00:00Z' },
+  { key: AllergyIntoleranceClaim.LastOccurrence, meaning: 'Date of the most recent known reaction.', example: '2026-01-09T18:00:00Z' },
+  { key: AllergyIntoleranceClaim.Manifestation, meaning: 'Clinical manifestation of the reaction.', example: 'http://snomed.info/sct|247472004' },
+  { key: AllergyIntoleranceClaim.Onset, meaning: 'Searchable onset value for the allergy or reaction.', example: '2026-01-10' },
+  { key: AllergyIntoleranceClaim.Route, meaning: 'Exposure route for the reaction.', example: 'http://snomed.info/sct|26643006' },
+  { key: AllergyIntoleranceClaim.Severity, meaning: 'Severity of one observed reaction event, distinct from future-risk criticality.', example: AllergyIntoleranceReactionSeverities.Moderate },
+  { key: AllergyIntoleranceClaim.Type, meaning: 'Allergy or intolerance classification.', example: 'allergy' },
   { key: AllergyIntoleranceClaim.OnsetDateTime, meaning: 'Onset date/time.', example: '2026-01-10T10:00:00Z' },
   { key: AllergyIntoleranceClaim.Recorder, meaning: 'Recorder reference.', example: 'did:web:<domain>:organization:taxid:<TAXID>:member:<MEMBER_ID>:<roleCode>' },
 ];
