@@ -81,10 +81,22 @@ export class AllergyIntoleranceEntryEditor extends ClinicalResourceEntryEditor {
   public setCriticality(criticality?: AllergyIntoleranceCriticality | null): this { return this.setScalarClaim(AllergyIntoleranceClaim.Criticality, criticality); }
   /** Reads the allergy criticality. */
   public getCriticality(): AllergyIntoleranceCriticality | undefined { return this.getScalarClaim(AllergyIntoleranceClaim.Criticality) as AllergyIntoleranceCriticality | undefined; }
-  /** Writes the clinical manifestation required for a reaction event. */
-  public setReactionManifestation(manifestation?: string | null): this { return this.setScalarClaim(AllergyIntoleranceClaim.Manifestation, manifestation); }
-  /** Reads the clinical manifestation for the reaction event. */
-  public getReactionManifestation(): string | undefined { return this.getScalarClaim(AllergyIntoleranceClaim.Manifestation); }
+  /** Writes the clinical manifestation required for a reaction event. Prefer separate coding-system and code-value arguments. */
+  public setReactionManifestation(manifestation?: string | null): this;
+  public setReactionManifestation(codingSystem: string, codeValue: string): this;
+  public setReactionManifestation(manifestationOrCodingSystem?: string | null, codeValue?: string): this {
+    return codeValue === undefined
+      ? this.setCodingTokenCode(AllergyIntoleranceClaim.Manifestation, manifestationOrCodingSystem)
+      : this.setCodingTokenSystemAndCode(AllergyIntoleranceClaim.Manifestation, manifestationOrCodingSystem, codeValue);
+  }
+  /** Reads the complete compatibility token for the reaction manifestation. */
+  public getReactionManifestation(): string | undefined { return this.getCodingTokenSystemAndCode(AllergyIntoleranceClaim.Manifestation); }
+  /** Reads the reaction-manifestation coding system without requiring callers to parse a token. */
+  public getReactionManifestationSystem(): string | undefined { return this.getCodingTokenSystem(AllergyIntoleranceClaim.Manifestation); }
+  /** Reads the reaction-manifestation code value without requiring callers to parse a token. */
+  public getReactionManifestationCode(): string | undefined { return this.getCodingTokenCode(AllergyIntoleranceClaim.Manifestation); }
+  /** Reads the complete `system|code` manifestation token used by canonical flat claims. */
+  public getReactionManifestationSystemAndCode(): string | undefined { return this.getCodingTokenSystemAndCode(AllergyIntoleranceClaim.Manifestation); }
   /** Writes reaction-event severity, which is distinct from potential future-risk criticality. */
   public setReactionSeverity(severity?: AllergyIntoleranceReactionSeverity | null): this { return this.setScalarClaim(AllergyIntoleranceClaim.Severity, severity); }
   /** Reads reaction-event severity. */

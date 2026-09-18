@@ -21,7 +21,9 @@ import {
 } from '../src';
 
 // Exact dates and terminology tokens below are serialization inputs under test.
-const REACTION_MANIFESTATION = 'http://snomed.info/sct|247472004';
+const REACTION_MANIFESTATION_SYSTEM = 'http://snomed.info/sct';
+const REACTION_MANIFESTATION_CODE = '247472004';
+const REACTION_MANIFESTATION = `${REACTION_MANIFESTATION_SYSTEM}|${REACTION_MANIFESTATION_CODE}`;
 const MEDICATION_START = '2026-09-01T08:00:00Z';
 const MEDICATION_END = '2026-09-10T20:00:00Z';
 const IMMUNIZATION_ROUTE = 'http://snomed.info/sct|78421000';
@@ -60,15 +62,21 @@ describe('FHIR clinical detail contract', () => {
   });
 
   it('keeps future risk criticality separate from reaction-event severity and exposes typed editor hints', () => {
-    const claims = firstClaims(new BundleEditor()
+    const allergyEditor = new BundleEditor()
       .setBundleOperation(EmployeeBundleOperations.create)
       .setAllowedResourceType(BundleEditableResourceTypes.allergyIntolerance)
       .newEntry('allergy-example')
       .asAllergy()
       .setSubject(EXAMPLE_SUBJECT_DID)
       .setCriticality(AllergyIntoleranceCriticalities.High)
-      .setReactionManifestation(REACTION_MANIFESTATION)
-      .setReactionSeverity(AllergyIntoleranceReactionSeverities.Moderate)
+      .setReactionManifestation(REACTION_MANIFESTATION_SYSTEM, REACTION_MANIFESTATION_CODE)
+      .setReactionSeverity(AllergyIntoleranceReactionSeverities.Moderate);
+
+    expect(allergyEditor.getReactionManifestationSystem()).toBe(REACTION_MANIFESTATION_SYSTEM);
+    expect(allergyEditor.getReactionManifestationCode()).toBe(REACTION_MANIFESTATION_CODE);
+    expect(allergyEditor.getReactionManifestationSystemAndCode()).toBe(REACTION_MANIFESTATION);
+
+    const claims = firstClaims(allergyEditor
       .doneEntry()
       .build());
 
@@ -97,6 +105,21 @@ describe('FHIR clinical detail contract', () => {
       [AllergyIntoleranceClaim.Subject]: EXAMPLE_SUBJECT_DID,
       [AllergyIntoleranceClaim.Severity]: AllergyIntoleranceReactionSeverities.Severe,
     })).toThrow('AllergyIntolerance.severity requires AllergyIntolerance.manifestation');
+  });
+
+  it('keeps the combined manifestation token as compatibility input and clears it with null', () => {
+    const allergyEditor = new BundleEditor()
+      .setBundleOperation(EmployeeBundleOperations.create)
+      .setAllowedResourceType(BundleEditableResourceTypes.allergyIntolerance)
+      .newEntry('allergy-compatibility-example')
+      .asAllergy()
+      .setReactionManifestation(REACTION_MANIFESTATION);
+
+    expect(allergyEditor.getReactionManifestationSystem()).toBe(REACTION_MANIFESTATION_SYSTEM);
+    expect(allergyEditor.getReactionManifestationCode()).toBe(REACTION_MANIFESTATION_CODE);
+
+    allergyEditor.setReactionManifestation(null);
+    expect(allergyEditor.getReactionManifestation()).toBeUndefined();
   });
 
   it('preserves MedicationStatement effectivePeriod and migrates an existing effective start when the end is set', () => {

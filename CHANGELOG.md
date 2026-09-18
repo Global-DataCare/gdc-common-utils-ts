@@ -4,6 +4,13 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.9.20] - 2026-09-18
+
+- Let `AllergyIntoleranceEntryEditor.setReactionManifestation(...)` accept
+  separate coding-system and code-value arguments, and expose separate system,
+  code and combined-token getters. Retain the combined token overload only for
+  backward compatibility.
+
 ## [2.9.19] - 2026-09-18
 
 - Add the canonical FHIR R4 and IPS `AllergyIntolerance.severity` reaction
