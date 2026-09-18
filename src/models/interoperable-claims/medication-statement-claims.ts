@@ -41,6 +41,16 @@ export const MedicationStatementClaim = {
   Status: 'MedicationStatement.status',
   Category: 'MedicationStatement.category',
   Effective: 'MedicationStatement.effective',
+  /**
+   * Start of FHIR R4 `effectivePeriod`; mutually exclusive with `Effective`.
+   * @see https://hl7.org/fhir/R4/medicationstatement.html
+   */
+  EffectivePeriodStart: 'MedicationStatement.effective-period-start',
+  /**
+   * End of FHIR R4 `effectivePeriod`; mutually exclusive with `Effective`.
+   * @see https://hl7.org/fhir/R4/medicationstatement.html
+   */
+  EffectivePeriodEnd: 'MedicationStatement.effective-period-end',
   /** Official token SearchParameter `code`; maps to the medication concept, not a root FHIR element. */
   Code: 'MedicationStatement.code',
   /** Local/manual `CodeableConcept.text` companion for the medication concept. */
@@ -125,6 +135,8 @@ export const MedicationStatementClaimSpecs: ClaimSpec[] = [
   { key: MedicationStatementClaim.Adherence, meaning: 'Official R5 adherence token SearchParameter.', example: `${MEDICATION_STATEMENT_ADHERENCE_CODE_SYSTEM}|taking-as-directed` },
   { key: MedicationStatementClaim.AdherenceText, meaning: 'Local/manual adherence CodeableConcept.text.', example: 'Tomando según indicación' },
   { key: MedicationStatementClaim.AdherenceDisplay, meaning: 'Canonical adherence Coding.display.', example: 'Taking As Directed' },
+  { key: MedicationStatementClaim.EffectivePeriodStart, meaning: 'Start of the medication treatment period.', example: '2026-09-01T08:00:00Z' },
+  { key: MedicationStatementClaim.EffectivePeriodEnd, meaning: 'End of the medication treatment period.', example: '2026-09-10T20:00:00Z' },
 ];
 
 /**

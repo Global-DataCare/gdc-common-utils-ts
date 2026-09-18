@@ -22,7 +22,11 @@ import {
 } from './bundle-editor-helpers';
 import { BundleEntryEditor } from './bundle-entry-editor';
 import { ClinicalResourceEntryEditor } from './clinical-resource-entry-editor';
-import { AllergyIntoleranceClaim } from '../models/interoperable-claims/allergy-intolerance-claims';
+import {
+  AllergyIntoleranceClaim,
+  type AllergyIntoleranceCriticality,
+  type AllergyIntoleranceReactionSeverity,
+} from '../models/interoperable-claims/allergy-intolerance-claims';
 import { BundleEditableResourceTypes } from '../models/bundle-editor-types';
 import { registerBundleEntryEditor } from './bundle-editor-registry';
 
@@ -74,9 +78,17 @@ export class AllergyIntoleranceEntryEditor extends ClinicalResourceEntryEditor {
   /** Reads the allergy category. */
   public getCategory(): string | undefined { return this.getScalarClaim(AllergyIntoleranceClaim.Category); }
   /** Writes the allergy criticality. */
-  public setCriticality(criticality?: string | null): this { return this.setScalarClaim(AllergyIntoleranceClaim.Criticality, criticality); }
+  public setCriticality(criticality?: AllergyIntoleranceCriticality | null): this { return this.setScalarClaim(AllergyIntoleranceClaim.Criticality, criticality); }
   /** Reads the allergy criticality. */
-  public getCriticality(): string | undefined { return this.getScalarClaim(AllergyIntoleranceClaim.Criticality); }
+  public getCriticality(): AllergyIntoleranceCriticality | undefined { return this.getScalarClaim(AllergyIntoleranceClaim.Criticality) as AllergyIntoleranceCriticality | undefined; }
+  /** Writes the clinical manifestation required for a reaction event. */
+  public setReactionManifestation(manifestation?: string | null): this { return this.setScalarClaim(AllergyIntoleranceClaim.Manifestation, manifestation); }
+  /** Reads the clinical manifestation for the reaction event. */
+  public getReactionManifestation(): string | undefined { return this.getScalarClaim(AllergyIntoleranceClaim.Manifestation); }
+  /** Writes reaction-event severity, which is distinct from potential future-risk criticality. */
+  public setReactionSeverity(severity?: AllergyIntoleranceReactionSeverity | null): this { return this.setScalarClaim(AllergyIntoleranceClaim.Severity, severity); }
+  /** Reads reaction-event severity. */
+  public getReactionSeverity(): AllergyIntoleranceReactionSeverity | undefined { return this.getScalarClaim(AllergyIntoleranceClaim.Severity) as AllergyIntoleranceReactionSeverity | undefined; }
   /** Writes the onset date/time. */
   public setOnsetDateTime(value?: string | null): this { return this.setScalarClaim(AllergyIntoleranceClaim.OnsetDateTime, value); }
   /** Reads the onset date/time. */
