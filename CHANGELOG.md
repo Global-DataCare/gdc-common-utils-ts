@@ -4,6 +4,8 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.9.19] - 2026-09-18
+
 - Add the canonical FHIR R4 and IPS `AllergyIntolerance.severity` reaction
   claim, typed severity and criticality editor values, reaction conversion,
   and the complete resource-specific AllergyIntolerance search catalog.
@@ -13,6 +15,9 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
   route and site remain available through their existing typed methods.
 - Do not accept the portal-local `AllergyIntolerance.reaction-severity` claim
   as a shared alias; consumers must migrate to the canonical `severity` claim.
+
+## [2.9.18] - 2026-09-17
+
 - Ignore local Firebase diagnostic logs so credential and tenant diagnostics
   cannot be staged accidentally during cross-repository release work.
 - Add `buildScopeSmartCompositionAccess(...)` as the common-concept-first
