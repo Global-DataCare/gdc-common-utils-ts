@@ -4,6 +4,12 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Replace the non-generator-compatible `TaskClaimsFhirApi` enum with the
+  canonical `TaskClaim` object while retaining the old export as a deprecated
+  runtime alias.
+- Add the standard FHIR R5 Task workflow and job-correlation claims required
+  for shared asynchronous job status resources.
+
 ## [2.9.20] - 2026-09-18
 
 - Let `AllergyIntoleranceEntryEditor.setReactionManifestation(...)` accept
