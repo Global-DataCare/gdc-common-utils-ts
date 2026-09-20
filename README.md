@@ -335,6 +335,15 @@ import {
 } from 'gdc-common-utils-ts/claims/claims-helpers-medication-statement';
 ```
 
+For every `<ResourceType>.<name>` key, canonical names are exactly the search
+parameters published in that resource's official FHIR `#search` section. Other
+keys must be identified as either FHIR standard extensions or custom
+extensions. See the complete per-resource search and extension references in
+[FHIR-like flat claim origin contract](docs/FHIR-LIKE-FLAT-CLAIMS.md).
+That contract also links the applicable IPS 2.0.1 profiles and ValueSets that
+govern supported creation fields, card presentation and coded values, plus the
+IPS Server CapabilityStatement that defines the server interaction surface.
+
 ### Models
 
 The `models` export contains the shared data shapes used by the SDKs, including:
@@ -509,9 +518,9 @@ The canonical API contract should live in JSDoc on exported code. The README act
 - [`validateCommunicationResourceFhirR4(...)`](src/utils/communication-fhir-r4.ts)
   - Validates FHIR R4 `Communication` resources.
 - [`transformCommunicationClaimsToResourceFhirR4(...)`](src/utils/communication-fhir-r4.ts)
-  - Converts canonical communication claims into FHIR R4 resources.
+  - Converts flat communication claims into FHIR R4 resources.
 - [`extractCommunicationClaimsFromResourceFhirR4(...)`](src/utils/communication-fhir-r4.ts)
-  - Extracts canonical claims from FHIR R4 `Communication`.
+  - Extracts flat claims from FHIR R4 `Communication`.
 - [`detectAttachmentKind(...)`](src/utils/communication-document-reference.ts)
   - Detects `fhir` / `pdf` / `png` / `jpg` / `binary` from MIME type.
 - [`buildDocumentReferenceFromCommunicationPayload(...)`](src/utils/communication-document-reference.ts)
