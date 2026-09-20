@@ -29,6 +29,8 @@ export const ResourceTypesFhirR4 = Object.freeze({
   Invoice: 'Invoice',
   Location: 'Location',
   Medication: 'Medication',
+  MedicationAdministration: 'MedicationAdministration',
+  MedicationDispense: 'MedicationDispense',
   MedicationRequest: 'MedicationRequest',
   MedicationStatement: 'MedicationStatement',
   Observation: 'Observation',

@@ -1,47 +1,18 @@
-// Flow contract: load the complete IPS 2.0.1 server surface -> resolve every declared profile -> expose every profile field with its FHIR types, cardinality, obligations and terminology bindings for creation and card presentation.
+// Flow contract: reuse shared test fixtures and canonical types; do not introduce duplicated literals.
 
 import {
   IPS_FHIR_R4_VERSION,
   IPS_CANONICAL_FLAT_CLAIMS_BY_RESOURCE,
   IPS_PROFILE_CATALOG,
   IPS_RESOURCE_CAPABILITIES,
+  IPS_RESOURCE_TYPES,
   IPS_VALUE_SET_CATALOG,
   IPS_VERSION,
 } from '../src/models/interoperable-claims/ips-profile-catalog';
 import type { IpsProfileElement } from '../src/models/interoperable-claims/ips-profile-types';
+import { ResourceTypesFhirR4 } from '../src/constants/fhir-resource-types';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
-
-const IPS_RESOURCE_TYPES = [
-  'Bundle',
-  'Composition',
-  'Patient',
-  'AllergyIntolerance',
-  'Condition',
-  'MedicationRequest',
-  'MedicationStatement',
-  'CarePlan',
-  'ClinicalImpression',
-  'Consent',
-  'Device',
-  'DeviceUseStatement',
-  'DiagnosticReport',
-  'DocumentReference',
-  'Flag',
-  'ImagingStudy',
-  'Immunization',
-  'ImmunizationRecommendation',
-  'Medication',
-  'MedicationAdministration',
-  'MedicationDispense',
-  'Observation',
-  'Organization',
-  'Practitioner',
-  'PractitionerRole',
-  'Procedure',
-  'RelatedPerson',
-  'Specimen',
-] as const;
 
 describe('FHIR IPS profile catalog', () => {
   it('defines every resource type declared by the IPS server CapabilityStatement', () => {
@@ -50,6 +21,11 @@ describe('FHIR IPS profile catalog', () => {
     expect(IPS_RESOURCE_CAPABILITIES.map(({ resourceType }) => resourceType)).toEqual(
       IPS_RESOURCE_TYPES,
     );
+    expect(
+      IPS_RESOURCE_TYPES.every((resourceType) =>
+        Object.values(ResourceTypesFhirR4).includes(resourceType),
+      ),
+    ).toBe(true);
   });
 
   it('keeps generated contracts split by resource and deduplicated ValueSet', () => {
@@ -89,7 +65,7 @@ describe('FHIR IPS profile catalog', () => {
     }
 
     const observations = IPS_RESOURCE_CAPABILITIES.find(
-      ({ resourceType }) => resourceType === 'Observation',
+      ({ resourceType }) => resourceType === ResourceTypesFhirR4.Observation,
     );
     expect(observations?.supportedProfiles).toHaveLength(16);
   });
@@ -160,7 +136,7 @@ describe('FHIR IPS profile catalog', () => {
     expect(allergyValueSet.usages).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          resourceType: 'AllergyIntolerance',
+          resourceType: ResourceTypesFhirR4.AllergyIntolerance,
           elementId: 'AllergyIntolerance.code',
           purpose: 'primary',
           strength: 'preferred',
@@ -185,7 +161,7 @@ describe('FHIR IPS profile catalog', () => {
         ),
       );
     }
-    expect(IPS_CANONICAL_FLAT_CLAIMS_BY_RESOURCE.Flag).toEqual(
+    expect(IPS_CANONICAL_FLAT_CLAIMS_BY_RESOURCE[ResourceTypesFhirR4.Flag]).toEqual(
       expect.arrayContaining(['Flag.category', 'Flag.status']),
     );
   });

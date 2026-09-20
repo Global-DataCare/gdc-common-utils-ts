@@ -1,5 +1,7 @@
 // Copyright 2026 Conéctate Soluciones y Aplicaciones SL under the Apache License, Version 2.0.
 
+import type { ResourceTypeFhirR4 } from '../../constants/fhir-resource-types';
+
 export type FhirSearchParameterType =
   | 'number'
   | 'date'
@@ -35,7 +37,7 @@ export type IpsProfileElement = Readonly<{
 }>;
 
 export type IpsProfileDefinition = Readonly<{
-  resourceType: string;
+  resourceType: ResourceTypeFhirR4;
   canonicalUrl: string;
   version: string;
   name: string;
@@ -51,7 +53,7 @@ export type FhirSearchParameterDefinition = Readonly<{
 }>;
 
 export type IpsResourceCapability = Readonly<{
-  resourceType: string;
+  resourceType: ResourceTypeFhirR4;
   /** Profiles explicitly advertised by the IPS CapabilityStatement. */
   supportedProfiles: readonly string[];
   /** Effective field contracts: advertised profiles, or the R4 base resource when IPS declares none. */
@@ -64,7 +66,7 @@ export type IpsResourceCapability = Readonly<{
 export type IpsProfileCatalog = Readonly<Record<string, IpsProfileDefinition>>;
 
 export type IpsValueSetUsage = Readonly<{
-  resourceType: string;
+  resourceType: ResourceTypeFhirR4;
   profile: string;
   elementId: string;
   path: string;

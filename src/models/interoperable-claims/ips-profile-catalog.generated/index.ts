@@ -97,6 +97,8 @@ export const IPS_RESOURCE_CAPABILITIES = [
   SpecimenCapability,
 ] as const satisfies readonly IpsResourceCapability[];
 
+export const IPS_RESOURCE_TYPES = Object.freeze(IPS_RESOURCE_CAPABILITIES.map(({ resourceType }) => resourceType));
+
 export const IPS_CANONICAL_FLAT_CLAIMS_BY_RESOURCE = {
   "Bundle": [
     "Bundle._content",

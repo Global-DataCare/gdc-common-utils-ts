@@ -380,6 +380,7 @@ try {
       `export const IPS_FHIR_SEARCH_VERSIONS = ${JSON.stringify([FHIR_R4_VERSION, FHIR_R5_VERSION])} as const;\n\n` +
       `export const IPS_PROFILE_CATALOG = {\n${profileSpreads.join('\n')}\n} as const satisfies IpsProfileCatalog;\n\n` +
       `export const IPS_RESOURCE_CAPABILITIES = [\n${capabilityNames.join('\n')}\n] as const satisfies readonly IpsResourceCapability[];\n\n` +
+      'export const IPS_RESOURCE_TYPES = Object.freeze(IPS_RESOURCE_CAPABILITIES.map(({ resourceType }) => resourceType));\n\n' +
       `export const IPS_CANONICAL_FLAT_CLAIMS_BY_RESOURCE = ${JSON.stringify(canonicalFlatClaimsByResource, null, 2)} as const;\n\n` +
       "export { IPS_VALUE_SET_CATALOG } from './value-sets';\n",
   );

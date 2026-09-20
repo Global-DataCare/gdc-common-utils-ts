@@ -4,6 +4,11 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Derive the IPS resource-type list from the generated CapabilityStatement
+  catalog, constrain every generated profile, capability and ValueSet usage to
+  the canonical FHIR R4 resource-type union, and add the previously missing
+  `MedicationAdministration` and `MedicationDispense` resource constants.
+
 - Add an executable, generated FHIR IPS 2.0.1 catalog for every resource in the
   IPS Server CapabilityStatement. It retains every profile field's FHIR type,
   cardinality, Must Support flag, Creator/Consumer obligations, target/type
