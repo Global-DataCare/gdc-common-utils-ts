@@ -4,7 +4,7 @@
 import type { ClaimSpec } from './types';
 
 /**
- * Canonical flat claim keys for invoice-level business data.
+ * FHIR-like flat claim keys for invoice-level business data.
  *
  * These claims are the claims-first source of truth. FHIR `Invoice` is one
  * downstream projection built from them.
@@ -115,6 +115,12 @@ export const ChargeItemClaim = {
   Status: 'ChargeItem.status',
   /** Parent business aggregate identifier. Example: `invoice-001`. */
   PartOf: 'ChargeItem.part-of',
+  /** Subject that received the chargeable service or item. */
+  Subject: 'ChargeItem.subject',
+  /** Date, date range or timing represented as the canonical search value. */
+  Occurrence: 'ChargeItem.occurrence',
+  /** Reference to supporting clinical or financial information. */
+  SupportingInformation: 'ChargeItem.supporting-information',
   /** Public code such as GTIN/UDI/barcode. Example: `08412345678903`. */
   Code: 'ChargeItem.code',
   /** Local-language UI/help label for the coded product. Example: `Sterile saline bottle 500 mL`. */
@@ -144,6 +150,9 @@ export interface ChargeItemClaims {
   [ChargeItemClaim.Identifier]?: string;
   [ChargeItemClaim.Status]?: string;
   [ChargeItemClaim.PartOf]?: string;
+  [ChargeItemClaim.Subject]?: string;
+  [ChargeItemClaim.Occurrence]?: string;
+  [ChargeItemClaim.SupportingInformation]?: string;
   [ChargeItemClaim.Code]?: string;
   [ChargeItemClaim.CodeText]?: string;
   [ChargeItemClaim.Category]?: string;
@@ -161,6 +170,9 @@ export enum ChargeItemClaimsFhirApiExtended {
   Identifier = 'org.hl7.fhir.api.ChargeItem.identifier',
   Status = 'org.hl7.fhir.api.ChargeItem.status',
   PartOf = 'org.hl7.fhir.api.ChargeItem.part-of',
+  Subject = 'org.hl7.fhir.api.ChargeItem.subject',
+  Occurrence = 'org.hl7.fhir.api.ChargeItem.occurrence',
+  SupportingInformation = 'org.hl7.fhir.api.ChargeItem.supporting-information',
   Code = 'org.hl7.fhir.api.ChargeItem.code',
   CodeText = 'org.hl7.fhir.api.ChargeItem.code-text',
   Category = 'org.hl7.fhir.api.ChargeItem.category',
@@ -178,6 +190,9 @@ export const ChargeItemSearchParamNames = {
   Identifier: 'identifier',
   Status: 'status',
   PartOf: 'part-of',
+  Subject: 'subject',
+  Occurrence: 'occurrence',
+  SupportingInformation: 'supporting-information',
   Code: 'code',
   CodeText: 'code-text',
   Category: 'category',
@@ -211,6 +226,9 @@ export interface ChargeItemClaimsContextualized {
   [ChargeItemClaimsFhirApiExtended.Identifier]?: string;
   [ChargeItemClaimsFhirApiExtended.Status]?: string;
   [ChargeItemClaimsFhirApiExtended.PartOf]?: string;
+  [ChargeItemClaimsFhirApiExtended.Subject]?: string;
+  [ChargeItemClaimsFhirApiExtended.Occurrence]?: string;
+  [ChargeItemClaimsFhirApiExtended.SupportingInformation]?: string;
   [ChargeItemClaimsFhirApiExtended.Code]?: string;
   [ChargeItemClaimsFhirApiExtended.CodeText]?: string;
   [ChargeItemClaimsFhirApiExtended.Category]?: string;
@@ -248,6 +266,9 @@ export const ChargeItemClaimSpecs: ClaimSpec[] = [
   { key: ChargeItemClaim.Identifier, meaning: 'Stable invoice line identifier.', example: 'chargeitem-001' },
   { key: ChargeItemClaim.Status, meaning: 'Charge item lifecycle status from FHIR ChargeItemStatus.', example: 'billable' },
   { key: ChargeItemClaim.PartOf, meaning: 'Parent business aggregate identifier.', example: 'invoice-001' },
+  { key: ChargeItemClaim.Subject, meaning: 'Subject receiving the charged item or service.', example: 'Patient/patient-1' },
+  { key: ChargeItemClaim.Occurrence, meaning: 'When the charged item or service occurred.', example: '2026-09-19' },
+  { key: ChargeItemClaim.SupportingInformation, meaning: 'Supporting clinical or financial resource reference.', example: 'Invoice/invoice-001' },
   { key: ChargeItemClaim.Code, meaning: 'Public code such as GTIN/UDI/barcode.', example: '08412345678903' },
   { key: ChargeItemClaim.CodeText, meaning: 'Local-language UI/help label for the coded product.', example: 'Botella de suero salino estéril 500 mL' },
   { key: ChargeItemClaim.Category, meaning: 'Normalized aggregate reporting category.', example: 'medical-supplies' },
@@ -304,6 +325,9 @@ export function contextualizeChargeItemClaims(
     ...(claims[ChargeItemClaim.Identifier] ? { [ChargeItemClaimsFhirApiExtended.Identifier]: claims[ChargeItemClaim.Identifier] } : {}),
     ...(claims[ChargeItemClaim.Status] ? { [ChargeItemClaimsFhirApiExtended.Status]: claims[ChargeItemClaim.Status] } : {}),
     ...(claims[ChargeItemClaim.PartOf] ? { [ChargeItemClaimsFhirApiExtended.PartOf]: claims[ChargeItemClaim.PartOf] } : {}),
+    ...(claims[ChargeItemClaim.Subject] ? { [ChargeItemClaimsFhirApiExtended.Subject]: claims[ChargeItemClaim.Subject] } : {}),
+    ...(claims[ChargeItemClaim.Occurrence] ? { [ChargeItemClaimsFhirApiExtended.Occurrence]: claims[ChargeItemClaim.Occurrence] } : {}),
+    ...(claims[ChargeItemClaim.SupportingInformation] ? { [ChargeItemClaimsFhirApiExtended.SupportingInformation]: claims[ChargeItemClaim.SupportingInformation] } : {}),
     ...(claims[ChargeItemClaim.Code] ? { [ChargeItemClaimsFhirApiExtended.Code]: claims[ChargeItemClaim.Code] } : {}),
     ...(claims[ChargeItemClaim.CodeText] ? { [ChargeItemClaimsFhirApiExtended.CodeText]: claims[ChargeItemClaim.CodeText] } : {}),
     ...(claims[ChargeItemClaim.Category] ? { [ChargeItemClaimsFhirApiExtended.Category]: claims[ChargeItemClaim.Category] } : {}),

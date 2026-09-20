@@ -3,7 +3,7 @@
 // File: src/models/interoperable-claims/communication-claims.ts
 
 /**
- * Canonical flat claim keys for FHIR `Communication`.
+ * FHIR-like flat claim keys for FHIR `Communication`.
  *
  * Good practice note:
  * - any code, examples, scripts, or tests that write/read reusable

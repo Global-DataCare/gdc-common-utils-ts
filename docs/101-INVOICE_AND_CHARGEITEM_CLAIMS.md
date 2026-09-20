@@ -11,7 +11,7 @@ portal, and backend-facing SDK layers.
 
 Use this when you need to understand:
 
-- which business fields are modeled as canonical flat claims
+- which business fields are modeled as FHIR-like flat claims
 - which parts align directly with HL7 FHIR `Invoice` and `ChargeItem`
 - which parts are operational helpers added for UI/search/readback
 - how to build or read invoice rows without starting from raw claim strings
@@ -28,7 +28,7 @@ This layer is claims-first.
 
 That means:
 
-- canonical business data lives in flat claims
+- claims-first business data lives in flat claims
 - FHIR `Invoice` is one downstream projection
 - repeated `ChargeItem` rows can later be compacted into one FHIR `Invoice`
   with several line items
@@ -169,7 +169,7 @@ The shared contract is not “FHIR only”.
 
 The current boundary is:
 
-- canonical business data = short claims without transport/version prefix
+- claims-first business data = short claims without transport/version prefix
 - optional contextualized claims = `org.hl7.fhir.api.*`
 - FHIR resources = one projection target
 

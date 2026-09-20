@@ -5,7 +5,7 @@ import type { ClaimSpec } from './types';
 import { ObservationCategoryCodes } from '../../constants/observation-category';
 
 /**
- * Canonical flat claims for a persisted Observation.
+ * FHIR-like flat claims for a persisted Observation.
  *
  * Naming contract:
  * - version-specific suffixes go at the end of helper names, e.g.

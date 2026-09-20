@@ -31,7 +31,7 @@ export type MedicationStatementAdherenceCode =
   typeof MedicationStatementAdherenceCodes[keyof typeof MedicationStatementAdherenceCodes];
 
 /**
- * Canonical flat claim keys for the lightweight `MedicationStatement.*` mapping
+ * FHIR-like flat claim keys for the lightweight `MedicationStatement.*` mapping
  * used by shared examples, GW ingestion, and converter roundtrip tests.
  */
 export const MedicationStatementClaim = {

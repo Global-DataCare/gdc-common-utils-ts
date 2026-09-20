@@ -4,6 +4,22 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Add an executable, generated FHIR IPS 2.0.1 catalog for every resource in the
+  IPS Server CapabilityStatement. It retains every profile field's FHIR type,
+  cardinality, Must Support flag, Creator/Consumer obligations, target/type
+  profiles and ValueSet bindings, including all nine R4 vital-sign profiles.
+- Generate typed canonical flat-search claims for every IPS resource from the
+  official FHIR R4 SearchParameter definitions and distinguish them from FHIR
+  standard extensions and custom extensions.
+- Split generated IPS contracts by resource and deduplicated ValueSet, chunking
+  unusually large concept lists instead of producing a monolithic generated
+  catalog.
+- Add the standard `Flag.flag-detail` and `Flag.flag-priority` extension claims,
+  preserve the Alerts section `104605-1` CodeableConcept pattern, and retain
+  the FHIR release provenance of each canonical search parameter.
+- Restore `ChargeItem.subject`, `ChargeItem.occurrence` and
+  `ChargeItem.supporting-information` to the shared TypeScript source so UIs
+  and Python consumers no longer rely on a Python-only compatibility patch.
 - Replace the non-generator-compatible `TaskClaimsFhirApi` enum with the
   canonical `TaskClaim` object while retaining the old export as a deprecated
   runtime alias.
