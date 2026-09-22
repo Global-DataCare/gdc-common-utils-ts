@@ -12,43 +12,12 @@ import type { IpsProfileElement } from '../src/models/interoperable-claims/ips-p
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-const IPS_RESOURCE_TYPES = [
-  'Bundle',
-  'Composition',
-  'Patient',
-  'AllergyIntolerance',
-  'Condition',
-  'MedicationRequest',
-  'MedicationStatement',
-  'CarePlan',
-  'ClinicalImpression',
-  'Consent',
-  'Device',
-  'DeviceUseStatement',
-  'DiagnosticReport',
-  'DocumentReference',
-  'Flag',
-  'ImagingStudy',
-  'Immunization',
-  'ImmunizationRecommendation',
-  'Medication',
-  'MedicationAdministration',
-  'MedicationDispense',
-  'Observation',
-  'Organization',
-  'Practitioner',
-  'PractitionerRole',
-  'Procedure',
-  'RelatedPerson',
-  'Specimen',
-] as const;
-
 describe('FHIR IPS profile catalog', () => {
   it('defines every resource type declared by the IPS server CapabilityStatement', () => {
     expect(IPS_VERSION).toBe('2.0.1');
     expect(IPS_FHIR_R4_VERSION).toBe('4.0.1');
     expect(IPS_RESOURCE_CAPABILITIES.map(({ resourceType }) => resourceType)).toEqual(
-      IPS_RESOURCE_TYPES,
+      Object.keys(IPS_CANONICAL_FLAT_CLAIMS_BY_RESOURCE),
     );
   });
 
