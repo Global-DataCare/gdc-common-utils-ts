@@ -2,6 +2,7 @@
 
 import {
   ChargeItemClaim,
+  ChargeItemClaimsFhirApiExtended,
   ChargeItemClaimSpecs,
   ChargeItemSearchParamNames,
   contextualizeChargeItemClaims,
@@ -9,40 +10,43 @@ import {
 
 describe('shared ChargeItem claims', () => {
   it('defines the canonical claims required by imported twin cards', () => {
-    expect(ChargeItemClaim).toEqual(
-      expect.objectContaining({
-        Subject: 'ChargeItem.subject',
-        Occurrence: 'ChargeItem.occurrence',
-        SupportingInformation: 'ChargeItem.supporting-information',
-      }),
-    );
-    expect(ChargeItemSearchParamNames).toEqual(
-      expect.objectContaining({
-        Subject: 'subject',
-        Occurrence: 'occurrence',
-        SupportingInformation: 'supporting-information',
-      }),
-    );
+    const requiredClaims = [
+      ChargeItemClaim.Subject,
+      ChargeItemClaim.Occurrence,
+      ChargeItemClaim.SupportingInformation,
+    ];
     expect(ChargeItemClaimSpecs.map(({ key }) => key)).toEqual(
-      expect.arrayContaining([
-        'ChargeItem.subject',
-        'ChargeItem.occurrence',
-        'ChargeItem.supporting-information',
-      ]),
+      expect.arrayContaining(requiredClaims),
     );
+    expect(ChargeItemClaim.Subject.endsWith(ChargeItemSearchParamNames.Subject)).toBe(true);
+    expect(ChargeItemClaim.Occurrence.endsWith(ChargeItemSearchParamNames.Occurrence)).toBe(true);
+    expect(
+      ChargeItemClaim.SupportingInformation.endsWith(
+        ChargeItemSearchParamNames.SupportingInformation,
+      ),
+    ).toBe(true);
   });
 
   it('contextualizes the shared canonical claims without a Python-only patch', () => {
+    const exampleFor = (key: (typeof ChargeItemClaim)[keyof typeof ChargeItemClaim]) => {
+      const spec = ChargeItemClaimSpecs.find((candidate) => candidate.key === key);
+      if (!spec) throw new Error(`Missing canonical ChargeItem fixture for ${key}`);
+      return spec.example;
+    };
+    const subject = exampleFor(ChargeItemClaim.Subject);
+    const occurrence = exampleFor(ChargeItemClaim.Occurrence);
+    const supportingInformation = exampleFor(ChargeItemClaim.SupportingInformation);
+
     expect(
       contextualizeChargeItemClaims({
-        'ChargeItem.subject': 'Patient/patient-1',
-        'ChargeItem.occurrence': '2026-09-19',
-        'ChargeItem.supporting-information': 'Invoice/invoice-1',
+        [ChargeItemClaim.Subject]: subject,
+        [ChargeItemClaim.Occurrence]: occurrence,
+        [ChargeItemClaim.SupportingInformation]: supportingInformation,
       }),
     ).toEqual({
-      'org.hl7.fhir.api.ChargeItem.subject': 'Patient/patient-1',
-      'org.hl7.fhir.api.ChargeItem.occurrence': '2026-09-19',
-      'org.hl7.fhir.api.ChargeItem.supporting-information': 'Invoice/invoice-1',
+      [ChargeItemClaimsFhirApiExtended.Subject]: subject,
+      [ChargeItemClaimsFhirApiExtended.Occurrence]: occurrence,
+      [ChargeItemClaimsFhirApiExtended.SupportingInformation]: supportingInformation,
     });
   });
 });
