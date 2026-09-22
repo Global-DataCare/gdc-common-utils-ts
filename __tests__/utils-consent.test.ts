@@ -14,6 +14,7 @@ import {
 } from '../src/utils/consent';
 import {
   EXAMPLE_CONSENT_ACCESS_JURISDICTION,
+  EXAMPLE_CONSENT_ACCESS_COUNTRY_ACTOR_IDENTIFIER,
   EXAMPLE_CONSENT_ACCESS_PROVIDER_DID,
   EXAMPLE_CONSENT_ACCESS_PROVIDER_EMAIL,
   EXAMPLE_CONSENT_ACCESS_RELATED_PERSON_EMAIL,
@@ -47,6 +48,10 @@ describe('consent utilities', () => {
     expect(parseConsentActorToken('DOC@EXAMPLE.COM')).toEqual({ kind: 'email', value: 'doc@example.com' });
     expect(parseConsentActorToken('tel:+34 600 111 222')).toEqual({ kind: 'phone', value: 'tel:+34600111222' });
     expect(parseConsentActorToken('ES')).toEqual({ kind: 'country', value: 'ES' });
+    expect(parseConsentActorToken(EXAMPLE_CONSENT_ACCESS_COUNTRY_ACTOR_IDENTIFIER)).toEqual({
+      kind: 'country',
+      value: EXAMPLE_CONSENT_ACCESS_COUNTRY_ACTOR_IDENTIFIER,
+    });
     expect(parseConsentActorToken('not-a-valid-actor')).toBeUndefined();
   });
 
@@ -57,6 +62,9 @@ describe('consent utilities', () => {
       'ES',
     ]);
     expect(normalizeConsentActors(['tel:+34 600 111 222', 'ES'])).toEqual(['tel:+34600111222', 'ES']);
+    expect(normalizeConsentActors([EXAMPLE_CONSENT_ACCESS_COUNTRY_ACTOR_IDENTIFIER])).toEqual([
+      EXAMPLE_CONSENT_ACCESS_COUNTRY_ACTOR_IDENTIFIER,
+    ]);
   });
 
   it('throws when no resolvable actor remains after parsing', () => {

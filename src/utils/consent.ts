@@ -169,7 +169,8 @@ export function isValidConsentPeriodBoundary(value: string): boolean {
  * Parses a single canonical consent actor token into its resolved kind/value.
  *
  * @param rawToken Raw actor token such as `did:...`, `user@example.org`,
- * `tel:+34600111222`, or `ES`.
+ * `tel:+34600111222`, `ES`, `urn:iso:3166:ES`, or
+ * `urn:iso:3166-2:CA-BC`.
  * @returns The normalized parsed token or `undefined` when the token cannot be resolved.
  */
 export function parseConsentActorToken(rawToken: string): ParsedConsentActorToken | undefined {
@@ -192,6 +193,16 @@ export function parseConsentActorToken(rawToken: string): ParsedConsentActorToke
 
   if (/^[A-Z]{2}$/.test(token)) {
     return { kind: 'country', value: token };
+  }
+
+  const isoCountry = token.match(/^urn:iso:3166:([a-z]{2})$/i);
+  if (isoCountry) {
+    return { kind: 'country', value: `urn:iso:3166:${isoCountry[1].toUpperCase()}` };
+  }
+
+  const isoSubdivision = token.match(/^urn:iso:3166-2:([a-z]{2}-[a-z0-9]{1,3})$/i);
+  if (isoSubdivision) {
+    return { kind: 'country', value: `urn:iso:3166-2:${isoSubdivision[1].toUpperCase()}` };
   }
 
   return undefined;
