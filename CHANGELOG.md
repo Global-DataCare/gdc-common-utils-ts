@@ -4,6 +4,9 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Accept canonical ISO 3166 country and ISO 3166-2 subdivision URNs as
+  `Consent.actor-identifier` inputs without collapsing their governed value.
+  This lets shared Consent builders serve country-scoped VET and UHC grants.
 - Add an executable, generated FHIR IPS 2.0.1 catalog for every resource in the
   IPS Server CapabilityStatement. It retains every profile field's FHIR type,
   cardinality, Must Support flag, Creator/Consumer obligations, target/type
