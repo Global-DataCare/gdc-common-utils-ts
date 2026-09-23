@@ -15,6 +15,8 @@ import {
 import {
   EXAMPLE_CONSENT_ACCESS_JURISDICTION,
   EXAMPLE_CONSENT_ACCESS_COUNTRY_ACTOR_IDENTIFIER,
+  EXAMPLE_CONSENT_ACCESS_SUBDIVISION,
+  EXAMPLE_CONSENT_ACCESS_SUBDIVISION_ACTOR_IDENTIFIER,
   EXAMPLE_CONSENT_ACCESS_PROVIDER_DID,
   EXAMPLE_CONSENT_ACCESS_PROVIDER_EMAIL,
   EXAMPLE_CONSENT_ACCESS_RELATED_PERSON_EMAIL,
@@ -208,6 +210,25 @@ describe('consent utilities', () => {
       canonicalValue: 'did:web:hospital.example.org',
       isOrganizationTarget: true,
     });
+  });
+
+  it('normalizes canonical ISO jurisdiction URNs to the same consent target as the runtime country code', () => {
+    const canonicalTarget = normalizeConsentTarget(EXAMPLE_CONSENT_ACCESS_COUNTRY_ACTOR_IDENTIFIER);
+    const runtimeTarget = normalizeConsentTarget(EXAMPLE_CONSENT_ACCESS_JURISDICTION);
+
+    expect(canonicalTarget).toMatchObject({
+      kind: 'jurisdiction',
+      canonicalValue: EXAMPLE_CONSENT_ACCESS_JURISDICTION,
+      isJurisdictionTarget: true,
+    });
+    expect(canonicalTarget.canonicalValue).toBe(runtimeTarget.canonicalValue);
+
+    expect(normalizeConsentTarget(EXAMPLE_CONSENT_ACCESS_SUBDIVISION_ACTOR_IDENTIFIER))
+      .toMatchObject({
+        kind: 'jurisdiction',
+        canonicalValue: EXAMPLE_CONSENT_ACCESS_SUBDIVISION,
+        isJurisdictionTarget: true,
+      });
   });
 
   it('resolves consent actor with direct, organization, and jurisdiction targets', () => {

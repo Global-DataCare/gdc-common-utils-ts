@@ -388,6 +388,8 @@ function normalizeJurisdiction(value: string): string {
   if (/^[A-Z]{2}$/i.test(trimmed)) return trimmed.toUpperCase();
   const isoStd = trimmed.match(/^urn:iso:std:iso:3166\|([a-z]{2})$/i);
   if (isoStd) return isoStd[1].toUpperCase();
+  const isoSubdivision = trimmed.match(/^urn:iso:3166-2:([a-z]{2}-[a-z0-9]{1,3})$/i);
+  if (isoSubdivision) return isoSubdivision[1].toUpperCase();
   const iso = trimmed.match(/^urn:iso:3166(?:-2)?:([a-z]{2})(?:[-:].*)?$/i);
   if (iso) return iso[1].toUpperCase();
   return trimmed.toUpperCase();
@@ -541,7 +543,7 @@ export function normalizeConsentTarget(
     return {
       raw,
       kind: 'jurisdiction',
-      canonicalValue: parsed.value,
+      canonicalValue: normalizeJurisdiction(parsed.value),
       isDirectTarget: false,
       isOrganizationTarget: false,
       isJurisdictionTarget: true,
