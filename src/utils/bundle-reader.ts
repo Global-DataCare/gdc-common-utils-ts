@@ -4,6 +4,9 @@ import {
   IssueSeverity,
   type IssueSeverityCode,
 } from '../models/issue';
+import type { BundleEntry, BundleJsonApi } from '../models/bundle';
+import type { BundleType } from '../models/bundle-editor-types';
+import { BundleEditor } from './bundle-editor-core';
 import { BundleQuery, type BundleResourceIdFilters } from './bundle-query';
 
 export type BundleReaderEntry = Record<string, unknown>;
@@ -120,8 +123,8 @@ export class BundleReader {
   private readonly bundle: Record<string, unknown>;
   private activeEntryIndex: number | null = null;
 
-  constructor(bundle: Record<string, unknown>) {
-    this.bundle = cloneEntry(bundle);
+  constructor(bundle: unknown) {
+    this.bundle = cloneEntry(asRecord(bundle));
   }
 
   /** Returns the current bundle resource type when present. */
@@ -142,6 +145,24 @@ export class BundleReader {
       ? this.bundle.entry
       : (Array.isArray(this.bundle.data) ? this.bundle.data : []);
     return entries.map((entry) => cloneEntry(entry as BundleReaderEntry));
+  }
+
+  /**
+   * Creates a detached editable clone of this received Bundle.
+   *
+   * `BundleReader` remains the read-only navigation and response-analysis
+   * surface. Call this method when an application wants the typed
+   * `asAllergy()`, `asMedicationStatement()`, `asImmunization()`, and other
+   * entry getters/setters supplied by `BundleEditor`. Changes made through the
+   * returned editor never mutate the Bundle held by this reader.
+   */
+  public toBundleEditor(): BundleEditor {
+    const bundle: BundleJsonApi<BundleEntry> = {
+      resourceType: this.getResourceType() as BundleJsonApi<BundleEntry>['resourceType'],
+      type: this.getBundleType() as BundleType,
+      data: this.getEntries().map((entry) => cloneEntry(entry) as BundleEntry),
+    };
+    return new BundleEditor().setBundle(bundle);
   }
 
   /** Opens one entry by index. */

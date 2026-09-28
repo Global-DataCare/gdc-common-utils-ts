@@ -391,7 +391,23 @@ level cards by mistake.
 
 ## `BundleReader`
 
-`BundleReader` is the generic reader for received bundles and stored bundles.
+`BundleReader` is the generic, read-only reader for received bundles and
+stored bundles. Resource-specific getters and setters live on the typed entry
+editors. Convert explicitly to a detached editable clone when both are needed:
+
+```ts
+const reader = new BundleReader(receivedBundle);
+const editableBundle = reader.toBundleEditor();
+const allergy = editableBundle.openEntryByArrayIndex(0).asAllergy();
+
+const severity = allergy.getReactionSeverity();
+allergy.setReactionSeverity(nextSeverity);
+```
+
+This supports both FHIR-style `entry[]` and JSON-API-style `data[]` Bundles.
+Editing the returned `BundleEditor` does not mutate the Bundle held by the
+reader. See [Clinical Entry Getters And Setters 101](./101-CLINICAL-ENTRY-GETTERS-SETTERS.md)
+for every typed resource family.
 
 It currently supports:
 
@@ -402,6 +418,7 @@ It currently supports:
 - reading bundle totals and aggregate result counts
 - returning one frontend-oriented response analysis
 - reading either FHIR-style `entry[]` bundles or JSON:API-like `data[]` bundles
+- producing a detached `BundleEditor` clone for typed resource editing
 
 ### Supported Bundle Queries
 
@@ -479,6 +496,9 @@ reader.getEntrySummaries();
 reader.getEntriesWithWarningOrErrorIssues();
 reader.getResponseAnalysis();
 
+const editableBundle = reader.toBundleEditor();
+editableBundle.openEntryByArrayIndex(0).asMedicationStatement();
+
 reader.openEntry(0);
 reader.getEntryResponseStatus();
 reader.getIssueSeverities();
@@ -489,6 +509,7 @@ See also:
 
 - [`__tests__/101-bundle-reader.test.ts`](../__tests__/101-bundle-reader.test.ts)
 - [`__tests__/101-bundle-response-analysis.test.ts`](../__tests__/101-bundle-response-analysis.test.ts)
+- [`__tests__/101-bundle-reader-typed-editing.test.ts`](../__tests__/101-bundle-reader-typed-editing.test.ts)
 
 ## Supported Types
 

@@ -258,6 +258,19 @@ export class BundleEditor {
     return new BundleEntryEditor(this, entryIndex);
   }
 
+  /**
+   * Reopens one existing entry by its current array position.
+   *
+   * Prefer `openEntry(resourceIdOrFullUrl)` when a stable identifier is
+   * available. This positional form exists for the explicit
+   * `BundleReader.toBundleEditor()` handoff, where the reader has already
+   * selected one entry index and the received resource may not expose an id.
+   */
+  public openEntryByArrayIndex(index: number): BundleEntryEditor {
+    this.getMutableEntry(index);
+    return new BundleEntryEditor(this, index);
+  }
+
   /** Returns cloned staged entries for inspection or debugging. */
   public getEntries(): readonly BuiltBundleEntry[] {
     return this.entries.map((entry) => cloneEntry(entry));

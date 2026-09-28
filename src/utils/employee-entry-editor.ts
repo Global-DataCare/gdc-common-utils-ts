@@ -87,14 +87,29 @@ export class EmployeeEntryEditor extends BundleEntryEditor {
     return this.setClaim(ClaimsPersonSchemaorg.worksFor, String(worksFor).trim());
   }
 
+  /** Reads the canonical organization for which the employee works. */
+  public getWorksFor(): string | undefined {
+    return normalizeOptionalIdentifier(this.getClaim(ClaimsPersonSchemaorg.worksFor));
+  }
+
   /** Writes the canonical employee `memberOf` claim on this entry. */
   public setMemberOf(memberOf: string): this {
     return this.setClaim(ClaimsPersonSchemaorg.memberOf, String(memberOf).trim());
   }
 
+  /** Reads the canonical organization membership reference. */
+  public getMemberOf(): string | undefined {
+    return normalizeOptionalIdentifier(this.getClaim(ClaimsPersonSchemaorg.memberOf));
+  }
+
   /** Writes the canonical employee organization tax id claim on this entry. */
   public setMemberOfOrgTaxId(taxId: string): this {
     return this.setClaim(ClaimsPersonSchemaorg.memberOfOrgTaxId, String(taxId).trim());
+  }
+
+  /** Reads the canonical fiscal identifier attached to the membership. */
+  public getMemberOfOrgTaxId(): string | undefined {
+    return normalizeOptionalIdentifier(this.getClaim(ClaimsPersonSchemaorg.memberOfOrgTaxId));
   }
 }
 registerBundleEntryEditor(BundleEditableResourceTypes.employee, EmployeeEntryEditor);
