@@ -167,6 +167,45 @@ The same creation and reopen pattern is available for every registered family:
 All typed editors also inherit the generic entry getters/setters for `fullUrl`,
 `resource.id`, claims, request operation and optimistic version matching.
 
+## Exact Paired Accessor Index
+
+Each suffix below represents both `set<Suffix>(...)` and `get<Suffix>()` on
+that editor. Coding helpers that return only one token component, such as
+`getCodeValue()`, `getRouteCode()` or `getCategoryCode()`, are additional
+read-only views of the same stored token.
+
+| Editor | Paired getter/setter suffixes |
+|---|---|
+| AllergyIntolerance | `Identifier`, `Subject`, `Code`, `CodeSystem`, `SystemAndCode`, `CodeTextLocal`, `CodeDisplay`, `ClinicalStatus`, `VerificationStatus`, `Category`, `Criticality`, `ReactionManifestation`, `ReactionSeverity`, `OnsetDateTime`, `Recorder`, `ContainedDocumentIdentifierList` |
+| CarePlan | `Identifier`, `Subject`, `Status`, `Intent`, `Category`, `CategoryCodeSystem`, `CategorySystemAndCode`, `Encounter`, `Date`, `Note`, `ActivityCode`, `ActivityCodeSystem`, `ActivitySystemAndCode`, `ActivityOutcome`, `ActivityOutcomeCodeSystem`, `ActivityOutcomeSystemAndCode` |
+| ClinicalImpression | `Identifier`, `Subject`, `Status`, `Description`, `Encounter`, `EffectiveDateTime`, `Assessor`, `Summary`, `PrognosisCode`, `PrognosisCodeSystem`, `PrognosisSystemAndCode` |
+| Condition | `Identifier`, `Subject`, `Code`, `CodeSystem`, `SystemAndCode`, `CodeTextLocal`, `CodeDisplay`, `ClinicalStatus`, `VerificationStatus`, `Category`, `CategoryCodeSystem`, `CategorySystemAndCode`, `Severity`, `SeverityCodeSystem`, `SeveritySystemAndCode`, `OnsetDateTime`, `Recorder`, `ContainedDocumentIdentifierList` |
+| Consent | `Identifier`, `Subject`, `Status`, `Decision`, `ActorIdentifierList`, `ActorRoleList`, `PurposeList`, `SectionList`, `ResourceTypeList`, `Date`, `PeriodStart`, `PeriodEnd` |
+| Coverage | `Identifier`, `Status`, `Type`, `TypeCodeSystem`, `TypeSystemAndCode`, `PolicyHolder`, `Subscriber`, `Beneficiary`, `Relationship`, `RelationshipCodeSystem`, `RelationshipSystemAndCode`, `PeriodStart`, `PeriodEnd`, `PayorList` |
+| Device | `Identifier`, `Patient`, `Status`, `Type`, `TypeCodeSystem`, `TypeSystemAndCode`, `Manufacturer`, `Model`, `DeviceName`, `SerialNumber`, `Organization`, `Location`, `Url`, `Note` |
+| DeviceUseStatement | `Identifier`, `Subject`, `Status`, `Device`, `RecordedOn`, `TimingDateTime`, `ReasonCode`, `ReasonCodeSystem`, `ReasonSystemAndCode`, `Source` |
+| DiagnosticReport | `Identifier`, `Subject`, `Status`, `Date`, `Category`, `CategoryCodeSystem`, `CategorySystemAndCode`, `Code`, `CodeSystem`, `SystemAndCode`, `CodeTextLocal`, `CodeDisplay`, `Encounter`, `PerformerList`, `ResultList`, `SpecimenList`, `ContainedDocumentIdentifierList`, `PresentedFormContentType`, `PresentedFormData`, `PresentedFormUrl` |
+| DocumentReference | `Identifier`, `Subject`, `Type`, `TypeCodeSystem`, `TypeSystemAndCode`, `Category`, `CategoryCodeSystem`, `CategorySystemAndCode`, `ContentType`, `ContentData`, `ContentHash`, `Location`, `Description`, `Date`, `Author` |
+| Employee | `Identifier`, `Email`, `Role`, `WorksFor`, `MemberOf`, `MemberOfOrgTaxId` |
+| Encounter | `Identifier`, `Subject`, `Status`, `Class`, `ClassCodeSystem`, `ClassSystemAndCode`, `Type`, `TypeCodeSystem`, `TypeSystemAndCode`, `ParticipantList`, `ServiceProvider`, `PeriodStart`, `PeriodEnd`, `ReasonCode`, `ReasonCodeSystem`, `ReasonSystemAndCode` |
+| Flag | `Identifier`, `Subject`, `Status`, `Category`, `CategoryCodeSystem`, `CategorySystemAndCode`, `Code`, `CodeSystem`, `SystemAndCode`, `CodeTextLocal`, `CodeDisplay`, `Date`, `Encounter`, `PeriodStart`, `PeriodEnd` |
+| Immunization | `Identifier`, `Subject`, `Status`, `Date`, `VaccineCode`, `VaccineCodeSystem`, `VaccineSystemAndCode`, `VaccineCodeTextLocal`, `VaccineCodeDisplay`, `Location`, `Manufacturer`, `LotNumber`, `PerformerList`, `ReasonCode`, `ReasonCodeSystem`, `ReasonSystemAndCode`, `StatusReason`, `StatusReasonCodeSystem`, `StatusReasonSystemAndCode`, `TargetDisease`, `TargetDiseaseCodeSystem`, `TargetDiseaseSystemAndCode`, `Route`, `RouteCodeSystem`, `RouteSystemAndCode`, `Site`, `SiteCodeSystem`, `SiteSystemAndCode`, `DoseSequence`, `Series`, `ReactionDate`, `Note`, `ClinicalNote` |
+| MedicationStatement | `Identifier`, `Subject`, `Status`, `Effective`, `EffectivePeriodStart`, `EffectivePeriodEnd`, `Code`, `CodeSystem`, `SystemAndCode`, `Medication`, `MedicationText`, `CodeTextLocal`, `CodeDisplay`, `Adherence`, `AdherenceCode`, `AdherenceCodeSystem`, `AdherenceSystemAndCode`, `AdherenceCodeTextLocal`, `AdherenceCodeDisplay`, `Note`, `DosageInstruction`, `CategoryList`, `DoseQuantityValue`, `DoseQuantityUnit`, `DoseQuantityUnitCodeSystem`, `DoseQuantityUnitSystemAndCode`, `DosageRoute`, `DosageRouteCodeSystem`, `DosageRouteSystemAndCode`, `TimingFrequency`, `TimingPeriod`, `TimingPeriodUnit`, `DosageAsNeeded`, `ContainedResourceReferenceList`, `UserSelected`, `ContainedDocumentIdentifierList` |
+| Observation | `Method`, `MethodCodeSystem`, `MethodSystemAndCode`, `BasedOn`, `Encounter`, `Performer`, `HasMember`, `HasMemberList`, `ReferenceRangeText` plus the shared observation-component accessors below |
+| Procedure | `Identifier`, `Subject`, `Status`, `Date`, `Code`, `CodeSystem`, `SystemAndCode`, `CodeTextLocal`, `CodeDisplay`, `Encounter`, `Location`, `ReasonCode`, `ReasonCodeSystem`, `ReasonSystemAndCode`, `BodySite`, `BodySiteCodeSystem`, `BodySiteSystemAndCode`, `Note`, `ClinicalNote`, `PerformerList`, `BasedOnList`, `ReasonReferenceList` |
+| RelatedPerson | `Identifier`, `Active`, `Subject`, `Relationship`, `RelationshipCodeSystem`, `RelationshipSystemAndCode`, `RoleList`, `Name`, `Telecom`, `RelatedEntityType`, `ActorIdentifierList` |
+| VitalSign | `Identifier`, `Subject`, `Status`, `Category`, `CategoryCodeSystem`, `CategorySystemAndCode`, `Date`, `Note`, `HeartRate`, `BodyTemperature`, `SystolicBloodPressure`, `DiastolicBloodPressure` plus the shared observation-component accessors below |
+
+Observation and vital-sign editors inherit these paired component suffixes:
+`Code`, `CodeDisplay`, `CodeSystem`, `CodeTextLocal`, `CodeValue`, `LocalText`,
+`SystemAndCode`, `ValueConcept`, `ValueConceptCodeSystem`,
+`ValueConceptSystemAndCode`, `ValueDate`, `ValueQuantityNumber`,
+`ValueQuantityUnit`, `ValueQuantityUnitCodeSystem`,
+`ValueQuantityUnitSystemAndCode` and `ValueString`.
+
+Clinical resource editors also inherit `Language`, `SectionList`,
+`UserSelected` and `ContainedResourceReferenceList` where applicable.
+
 Two setters are intentionally composite rather than symmetric scalar fields:
 
 - `setVitalSignType(...)` writes category, status, observation coding, display
