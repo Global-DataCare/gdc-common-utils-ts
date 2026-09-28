@@ -159,38 +159,26 @@ classified as:
 - `Context-derived automatically`
 - `Low-level / fallback only`
 
-## Missing Editor Matrix Work
+## Current Editor Coverage
 
-The reader matrix is now in much better shape than the editor matrix.
+Typed entry points and symmetric field-level getters/setters are available for
+all resource families registered by `BundleEditor`, including allergy,
+medication, condition, immunization, procedure, diagnostic report,
+observation, vital sign, device, device use, care plan, flag, clinical
+impression, encounter, coverage, document reference, consent, related person
+and employee.
 
-Still missing for a complete IPS editor story:
+For the exact entry method and accessor groups, see
+[Clinical Entry Getters And Setters 101](./101-CLINICAL-ENTRY-GETTERS-SETTERS.md).
+Received Bundles remain read-only in `BundleReader`; use
+`reader.toBundleEditor()` to obtain a detached clone before calling typed
+getters or setters.
 
-- canonical `IpsBundleEditor`
-- readonly subject context in the editor instance
-- `toFhirR4()`
-- `fromFhirR4()`
-- family-specific editor entry points such as:
-  - `asAllergy()`
-  - `asMedicationStatement()`
-  - `asCondition()`
-  - `asImmunization()`
-  - `asProcedure()`
-  - `asDiagnosticReport()`
-- explicit typed get/set coverage for the remaining IPS families:
-  - `Patient`
-  - `Practitioner`
-  - `Organization`
-  - `PractitionerRole`
-  - `Device`
-  - `DeviceUseStatement`
-  - `ImagingStudy`
-  - `Specimen`
-  - `CarePlan`
-  - `Flag`
-  - `ClinicalImpression`
-  - `Encounter`
-  - `Coverage`
-  - `DocumentReference`
+Separate future IPS projection work may still add resource families that are
+not currently registered editors, such as Patient, Practitioner,
+PractitionerRole, Organization, ImagingStudy and Specimen. That projection
+work must not be confused with missing getters on the editors that already
+exist.
 
 ## Real-World IPS Example Alignment
 

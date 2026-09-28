@@ -4,6 +4,15 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Add an explicit detached `BundleReader.toBundleEditor()` handoff so received
+  FHIR-style `entry[]` and JSON-API-style `data[]` Bundles can use every typed
+  clinical getter/setter without mutating the server response.
+- Add positional entry reopening for reader-to-editor handoff and complete the
+  missing employee organization getters for `worksFor`, `memberOf` and fiscal
+  identifier fields.
+- Document all registered clinical entry editor families, coding-token
+  accessors and the typed allergy, medication, immunization and observation
+  fields used by consuming portals.
 - Accept canonical ISO 3166 country and ISO 3166-2 subdivision URNs as
   `Consent.actor-identifier` inputs without collapsing their governed value.
   Normalize those canonical rule targets to the same runtime country or

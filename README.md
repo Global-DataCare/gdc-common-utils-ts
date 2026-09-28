@@ -378,9 +378,11 @@ import { JweObject, JwtCompactParts } from 'gdc-common-utils-ts/models';
 - [docs/101-CLINICAL-IPS.md](docs/101-CLINICAL-IPS.md)
   - shortest high-level onboarding for `ipsBundleReader`, section summaries,
     family queries, and UI-ready narrative helpers
+- [docs/101-CLINICAL-ENTRY-GETTERS-SETTERS.md](docs/101-CLINICAL-ENTRY-GETTERS-SETTERS.md)
+  - complete typed getter/setter guide for creating entries and reopening
+    received `entry[]` or `data[]` Bundles through an editable clone
 - [docs/REFERENCE-CLINICAL-IPS-API.md](docs/REFERENCE-CLINICAL-IPS-API.md)
-  - canonical claim/method matrix with `TODO` coverage for missing typed
-    `get...` / `set...` helpers
+  - canonical claim/method matrix and reader/query reference
 
 ## Dataspace Protocol And Discovery
 
