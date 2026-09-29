@@ -4,6 +4,11 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.9.25] - 2026-09-29
+
+- Remove the package's accidental dependency on itself so clean consumers get
+  one governed `gdc-common-utils-ts` instance instead of a recursive package
+  graph.
 - Add an explicit detached `BundleReader.toBundleEditor()` handoff so received
   FHIR-style `entry[]` and JSON-API-style `data[]` Bundles can use every typed
   clinical getter/setter without mutating the server response.
