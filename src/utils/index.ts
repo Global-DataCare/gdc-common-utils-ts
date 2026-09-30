@@ -69,6 +69,7 @@ export * from './individual-smart';
 export * from './individual-organization-claims';
 export * from './inter-tenant-access-contract';
 export * from './legal-organization-onboarding-editor';
+export * from './legal-sector-organization-urn';
 export * from './organization-lifecycle';
 export * from './organization-employee-lifecycle';
 export * from './organization-did-binding';

@@ -759,6 +759,18 @@ Example:
 import { ICryptography, MlkemPublicJwk } from 'gdc-common-utils-ts/interfaces/Cryptography.types';
 ```
 
+## Sector tenant identity
+
+Use `buildLegalSectorOrganizationUrn(...)` to derive the stable public identity
+of one legal organization inside one data-space sector. Use
+`buildLegalSectorOrganizationAssetId(...)` for its opaque Fabric lookup key.
+Changing the hosting provider or tenant DID does not change that key.
+
+For tenant lifecycle calls, keep the neutral legal identifier in
+`setIdentifierValue(...)` and select the exact hosted tenant with
+`setTenantDid(...)`. Obtain that DID from the registered tenant/profile or
+authority response; do not reconstruct it from display names.
+
 ## Auth-Flow Boundaries
 
 This package provides primitives, not orchestration.
