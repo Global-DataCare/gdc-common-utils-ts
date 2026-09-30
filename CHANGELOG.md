@@ -4,6 +4,16 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.9.26] - 2026-09-30
+
+- Add the canonical legal organization-and-sector URN builder
+  and its stable SHA3-256 multihash asset identifier for provider routing.
+- Add `OrganizationLifecycleEditor.setTenantDid(...)` and `getTenantDid()` so
+  lifecycle requests can select one exact hosted tenant when the same legal
+  organization operates in several sectors.
+- Preserve structural URN segments in lowercase while retaining the issuing
+  authority's exact casing for the official organization identifier.
+
 ## [2.9.25] - 2026-09-29
 
 - Remove the package's accidental dependency on itself so clean consumers get

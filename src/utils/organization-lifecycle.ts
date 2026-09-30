@@ -129,6 +129,17 @@ export class OrganizationLifecycleEditor {
     return this;
   }
 
+  /** Selects the exact hosted tenant DID when one legal organization has multiple sector tenants. */
+  setTenantDid(tenantDid: string): this {
+    this.draft = patchDraft(this.draft, {
+      claims: {
+        ...this.draft.claims,
+        [ClaimsOrganizationSchemaorg.sameAs]: String(tenantDid).trim(),
+      },
+    });
+    return this;
+  }
+
   setTaxId(taxId: string): this {
     this.draft = patchDraft(this.draft, {
       claims: {
@@ -169,6 +180,11 @@ export class OrganizationLifecycleEditor {
   /** Returns the jurisdiction-defined identifier type used by lifecycle authorization. */
   getIdentifierType(): string | undefined {
     return normalizeText(this.draft.claims[ClaimsOrganizationSchemaorg.identifierType]) || undefined;
+  }
+
+  /** Returns the exact hosted tenant DID selected for this lifecycle operation. */
+  getTenantDid(): string | undefined {
+    return normalizeText(this.draft.claims[ClaimsOrganizationSchemaorg.sameAs]) || undefined;
   }
 
   getTaxId(): string | undefined {

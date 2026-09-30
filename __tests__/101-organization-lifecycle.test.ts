@@ -12,6 +12,7 @@ import {
   ClaimsOrganizationSchemaorg,
   EXAMPLE_TENANT_DISABLE_MESSAGE,
   EXAMPLE_TENANT_DISABLE_REQUEST_TYPE,
+  EXAMPLE_TENANT_SERVICE_DID,
   OrganizationLifecycleEditor,
   OrganizationLifecycleOperations,
 } from '../src';
@@ -22,6 +23,7 @@ describe('101: organization lifecycle editor', () => {
       .setIdentifier(String(EXAMPLE_TENANT_DISABLE_MESSAGE.claims[ClaimsOrganizationSchemaorg.identifier]))
       .setIdentifierType(String(EXAMPLE_TENANT_DISABLE_MESSAGE.claims[ClaimsOrganizationSchemaorg.identifierType]))
       .setIdentifierValue(String(EXAMPLE_TENANT_DISABLE_MESSAGE.claims[ClaimsOrganizationSchemaorg.identifierValue]))
+      .setTenantDid(EXAMPLE_TENANT_SERVICE_DID)
       .setTaxId(String(EXAMPLE_TENANT_DISABLE_MESSAGE.claims[ClaimsOrganizationSchemaorg.taxId]))
       .setOperation(OrganizationLifecycleOperations.Disable)
       .setRequestType(EXAMPLE_TENANT_DISABLE_REQUEST_TYPE)
@@ -35,6 +37,7 @@ describe('101: organization lifecycle editor', () => {
       EXAMPLE_TENANT_DISABLE_MESSAGE.claims[ClaimsOrganizationSchemaorg.identifierValue],
     );
     expect(editor.getIdentifierType()).toBe('taxID');
+    expect(editor.getTenantDid()).toBe(EXAMPLE_TENANT_SERVICE_DID);
     expect(editor.getTaxId()).toBe(
       EXAMPLE_TENANT_DISABLE_MESSAGE.claims[ClaimsOrganizationSchemaorg.taxId],
     );
@@ -50,7 +53,12 @@ describe('101: organization lifecycle editor', () => {
           request: { method: 'POST' },
           resource: {
             resourceType: 'Organization',
-            meta: { claims: EXAMPLE_TENANT_DISABLE_MESSAGE.claims },
+            meta: {
+              claims: {
+                ...EXAMPLE_TENANT_DISABLE_MESSAGE.claims,
+                [ClaimsOrganizationSchemaorg.sameAs]: EXAMPLE_TENANT_SERVICE_DID,
+              },
+            },
           },
         }],
       },
