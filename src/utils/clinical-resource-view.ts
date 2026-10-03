@@ -841,8 +841,16 @@ function resolveDate(
     ]) || resolveFhirDate(resourceType, resource);
   }
 
+  const resourceDate = readCanonicalClaimValue(claims, `${resourceType}.date`);
+  if (resourceDate) return resourceDate;
+  if (resourceType === ResourceTypesFhirR4.Observation) {
+    const effectiveDateTime = readCanonicalClaimValue(claims, ObservationClaim.EffectiveDateTime);
+    if (effectiveDateTime) return effectiveDateTime;
+  }
+  const nativeDate = resolveFhirDate(resourceType, resource);
+  if (nativeDate) return nativeDate;
   const genericDate = findBySuffix(claims, '.date');
-  return genericDate || resolveFhirDate(resourceType, resource) || undefined;
+  return genericDate || undefined;
 }
 
 function resolvePeriodStart(

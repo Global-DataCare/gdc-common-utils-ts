@@ -3,6 +3,7 @@ import { ResourceTypesFhirR4 } from '../src/constants/fhir-resource-types.js';
 import { ClaimConsent } from '../src/models/consent-rule.js';
 import { AllergyIntoleranceClaim } from '../src/models/interoperable-claims/allergy-intolerance-claims.js';
 import { CommunicationClaim } from '../src/models/interoperable-claims/communication-claims.js';
+import { CompositionClaim } from '../src/models/interoperable-claims/composition-claims.js';
 import { ConditionClaim } from '../src/models/interoperable-claims/condition-claims.js';
 import { FlagClaim } from '../src/models/interoperable-claims/flag-claims.js';
 import { ImmunizationClaim } from '../src/models/interoperable-claims/immunization-claims.js';
@@ -68,6 +69,25 @@ describe('clinical resource common view', () => {
         type: 'actor',
       },
     ]);
+  });
+
+  it.each([
+    [ResourceTypesFhirR4.Immunization, ImmunizationClaim.Date, '2026-04-10T10:00:00Z'],
+    [ResourceTypesFhirR4.Observation, ObservationClaim.EffectiveDateTime, '2026-09-30T10:15:00Z'],
+  ])('uses the %s clinical date instead of Composition authoring time', (resourceType, clinicalDateClaim, clinicalDate) => {
+    const view = toClinicalResourceCommonView({
+      resource: {
+        resourceType,
+        meta: {
+          claims: {
+            [CompositionClaim.Date]: '2026-10-03T18:31:42Z',
+            [clinicalDateClaim]: clinicalDate,
+          },
+        },
+      },
+    });
+
+    expect(view.date).toBe(clinicalDate);
   });
 
   it('falls back title to resourceType and captures communication actors', () => {
