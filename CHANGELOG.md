@@ -4,6 +4,12 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.9.27] - 2026-10-03
+
+- Resolve clinical card dates from the selected resource's exact date claim or
+  native FHIR field before any generic suffix fallback, preventing
+  `Composition.date` from replacing an Immunization or Observation event time.
+
 ## [2.9.26] - 2026-09-30
 
 - Add the canonical legal organization-and-sector URN builder
