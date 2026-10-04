@@ -10,6 +10,7 @@ import { BirthSex, GenderIdentity } from '../constants/identity-gender';
 import { IdKind, SecureIdTypesIndividual } from '../constants/identity-identifiers';
 import { HL7_CODING_SYSTEM_V3_ROLE_CODE } from '../constants/hl7-roles';
 import {
+  HealthcareActorRoleCodes,
   HealthcareActorRoles,
   HealthcareBasicSections,
   HealthcareConsentPurposes,
@@ -31,7 +32,7 @@ import {
 import { encodeHexToMultibase58btc } from '../utils/multibase58';
 import {
   buildOrganizationAuthorizationUrnCds,
-  buildOrganizationMemberAuthorizationUrnCds,
+  buildOrganizationEmployeeAuthorizationUrnCds,
 } from '../utils/organization-authorization-urn';
 import {
   MedicationStatementClaim,
@@ -307,14 +308,10 @@ export const EXAMPLE_HEALTHCARE_ROLE_PHYSICIAN_TEXT = 'physician' as const;
 export const EXAMPLE_INDIVIDUAL_CONTROLLER_ROLE_TYPE = HL7_CODING_SYSTEM_V3_ROLE_CODE;
 export const EXAMPLE_INDIVIDUAL_CONTROLLER_ROLE_VALUE = EXAMPLE_ORGANIZATION_CONTROLLER_ROLE;
 export const EXAMPLE_PROFESSIONAL_AUTHORIZATION_URN_CDS =
-  buildOrganizationMemberAuthorizationUrnCds({
+  buildOrganizationEmployeeAuthorizationUrnCds({
     organizationUrn: EXAMPLE_PROVIDER_ORGANIZATION_AUTHORIZATION_URN_CDS,
-    memberId: buildSecureIdValueMember({
-      secureIdTypeMember: SecureIdTypesIndividual.Email,
-      privateIdValueMember: EXAMPLE_EMAIL_PROFESSIONAL,
-    }),
-    roleType: ISCO08_CODING_SYSTEM,
-    roleValue: HealthcareActorRoles.GeneralistMedicalPractitioner,
+    employeeUuid: EXAMPLE_KYC_CONTROLLER_USER_UUID,
+    roleCode: HealthcareActorRoleCodes.GeneralistMedicalPractitioner,
   });
 export const EXAMPLE_RELATED_PERSON_ROLE = 'v3-RoleCode|RESPRSN' as const;
 export const EXAMPLE_SECURE_ID_VALUE_INDIVIDUAL = buildSecureIdValueIndividual({

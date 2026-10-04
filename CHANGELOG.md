@@ -4,6 +4,16 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.9.28] - 2026-10-04
+
+- Add the canonical employee authorization URN builder rooted in an existing
+  legal-organization URN. It encodes the employee UUID's 16 raw bytes as
+  Base58btc, keeps the official legal identifier unchanged, and serializes the
+  bare ISCO-08 role code as the final segment.
+- Add typed HL7 v2-0203 `TAX` and `EN` organization identifier codes plus the
+  governed `BN` extension, and migrate reusable professional examples away
+  from email-derived employee identifiers.
+
 ## [2.9.27] - 2026-10-03
 
 - Resolve clinical card dates from the selected resource's exact date claim or

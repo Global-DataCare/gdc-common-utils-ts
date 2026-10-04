@@ -2,6 +2,7 @@
 
 import { ClaimsOrganizationSchemaorg } from '../constants/schemaorg';
 import type { ClaimsRecord } from '../models/resource-document';
+import { encodeHexToMultibase58btc } from './multibase58';
 
 export type OrganizationAuthorizationUrnInput = Readonly<{
   identifierType: string;
@@ -13,7 +14,7 @@ export type OrganizationAuthorizationUrnCdsInput = Readonly<{
   jurisdiction: string;
   /** Version of the stable CDS identifier grammar. Defaults to v1. */
   version?: string;
-  /** Governed legal identifier type such as TAX, EIN or BN. */
+  /** Governed legal identifier type such as TAX, EN or BN. */
   identifierType: string;
   /** Canonical value issued by that jurisdiction's identifier authority. */
   identifierValue: string;
@@ -27,6 +28,15 @@ export type OrganizationMemberAuthorizationUrnCdsInput = Readonly<{
   roleType: string;
   /** Coded role value serialized as the final compact path segment. */
   roleValue: string;
+}>;
+
+export type OrganizationEmployeeAuthorizationUrnCdsInput = Readonly<{
+  /** Existing canonical organization URN. Its official identifier is preserved byte-for-byte. */
+  organizationUrn: string;
+  /** Employee UUID, either bare or prefixed with `urn:uuid:`. */
+  employeeUuid: string;
+  /** Bare ISCO-08 code. The fixed coding system is implicit in this grammar. */
+  roleCode: string;
 }>;
 
 export type MemberAuthorizationUrnInput = Readonly<{
@@ -83,7 +93,7 @@ export function buildOrganizationAuthorizationUrn(
  * Format:
  * `urn:cds-<jurisdiction>:<version>:organization:<identifier-type>:<identifier-value>`
  *
- * Jurisdiction is mandatory because identifier schemes such as BN, EIN and
+ * Jurisdiction is mandatory because identifier schemes such as BN, EN and
  * TAX are interpreted by different national/subnational authorities.
  */
 export function buildOrganizationAuthorizationUrnCds(
@@ -127,6 +137,41 @@ export function buildOrganizationMemberAuthorizationUrnCds(
     throw new Error('CDS organization member authorization URN requires roleType and a colon-free roleValue.');
   }
   return `${organizationUrn}:member:${memberId}:${roleValue}`;
+}
+
+/**
+ * Appends an employee identity and role to an existing legal-organization URN.
+ *
+ * Format:
+ * `urn:cds-<jurisdiction>:v1:organization:<type>:<official-id>:member:<uuid-base58btc>:<isco-08-code>`
+ *
+ * The UUID is encoded from its 16 raw bytes. It is neither hashed nor encoded
+ * from its textual representation. The organization URN is never rebuilt or
+ * lowercased, so the authority-issued legal identifier remains unchanged.
+ */
+export function buildOrganizationEmployeeAuthorizationUrnCds(
+  input: OrganizationEmployeeAuthorizationUrnCdsInput,
+): string {
+  const organizationUrn = String(input.organizationUrn || '').trim();
+  const employeeUuid = String(input.employeeUuid || '').trim().replace(/^urn:uuid:/i, '');
+  const roleCode = String(input.roleCode || '').trim();
+
+  if (!CDS_ORGANIZATION_URN_PATTERN.test(organizationUrn)) {
+    throw new Error('CDS employee authorization URN requires a canonical CDS organization URN.');
+  }
+  if (!/^[0-9a-f]{8}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{12}$/i.test(employeeUuid)) {
+    throw new Error('CDS employee authorization URN requires an employee UUID.');
+  }
+  if (!/^[0-9]+$/.test(roleCode)) {
+    throw new Error('CDS employee authorization URN requires a bare ISCO-08 role code.');
+  }
+
+  return buildOrganizationMemberAuthorizationUrnCds({
+    organizationUrn,
+    memberId: encodeHexToMultibase58btc(employeeUuid),
+    roleType: 'ISCO-08',
+    roleValue: roleCode,
+  });
 }
 
 /**
