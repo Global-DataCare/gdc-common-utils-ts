@@ -33,6 +33,22 @@ export const HL7_V2_0203_IDENTIFIER_CODES = Object.freeze({
   PatientIdentifier: 'PI',
 } as const);
 
+/**
+ * HL7 v2-0203 organization identifier codes used by governed legal identities.
+ *
+ * `BN` is a governed extension for jurisdictions whose official legal identifier
+ * is a business number. It is intentionally kept separate from the HL7 codes.
+ */
+export const HL7_V2_0203_ORGANIZATION_IDENTIFIER_CODES = Object.freeze({
+  TaxIdentifier: 'TAX',
+  EmployerNumber: 'EN',
+} as const);
+
+export const GovernedOrganizationIdentifierCodes = Object.freeze({
+  ...HL7_V2_0203_ORGANIZATION_IDENTIFIER_CODES,
+  BusinessNumber: 'BN',
+} as const);
+
 export type Hl7V20203IdentifierCode =
   typeof HL7_V2_0203_IDENTIFIER_CODES[keyof typeof HL7_V2_0203_IDENTIFIER_CODES];
 

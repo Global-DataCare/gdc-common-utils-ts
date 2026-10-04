@@ -1,7 +1,7 @@
 // Copyright 2026 Antifraud Services Inc. under the Apache License, Version 2.0.
 
 import { ServiceCapability } from '../constants/service-capabilities';
-import { HealthcareConsentPurposes, ISCO08_CODING_SYSTEM } from '../constants/healthcare';
+import { HealthcareActorRoleCodes, HealthcareConsentPurposes } from '../constants/healthcare';
 import { SecureIdTypesIndividual } from '../constants/identity-identifiers';
 import { DataspaceSectors } from '../constants/sectors';
 import { ClaimConsent } from '../models/consent-rule';
@@ -14,7 +14,7 @@ import {
 } from '../utils/inter-tenant-access-contract';
 import {
   buildOrganizationAuthorizationUrnCds,
-  buildOrganizationMemberAuthorizationUrnCds,
+  buildOrganizationEmployeeAuthorizationUrnCds,
 } from '../utils/organization-authorization-urn';
 import { buildProfessionalDidWeb, buildSecureIdValueMember } from '../utils/did';
 import {
@@ -22,6 +22,7 @@ import {
   EXAMPLE_CONTROLLER_DID,
   EXAMPLE_HEALTHCARE_ACTOR_ROLE_PHYSICIAN,
   EXAMPLE_JURISDICTION,
+  EXAMPLE_KYC_CONTROLLER_USER_UUID,
   EXAMPLE_RESEARCH_API_ORGANIZATION_DID,
   EXAMPLE_RESEARCH_CONTROLLER_DID,
   EXAMPLE_RESEARCH_TENANT_IDENTIFIER,
@@ -160,14 +161,10 @@ export const EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONSUMER_ORGANIZATION_URN =
   });
 
 export const EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONSUMER_MEMBER_URN =
-  buildOrganizationMemberAuthorizationUrnCds({
+  buildOrganizationEmployeeAuthorizationUrnCds({
     organizationUrn: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONSUMER_ORGANIZATION_URN,
-    memberId: buildSecureIdValueMember({
-      secureIdTypeMember: SecureIdTypesIndividual.Email,
-      privateIdValueMember: EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONSUMER_PROFESSIONAL_EMAIL,
-    }),
-    roleType: ISCO08_CODING_SYSTEM,
-    roleValue: EXAMPLE_HEALTHCARE_ACTOR_ROLE_PHYSICIAN,
+    employeeUuid: EXAMPLE_KYC_CONTROLLER_USER_UUID,
+    roleCode: HealthcareActorRoleCodes.GeneralistMedicalPractitioner,
   });
 
 export const EXAMPLE_INTER_TENANT_ACCESS_CONTRACT_CONTEXT_WITH_URNS = Object.freeze({
