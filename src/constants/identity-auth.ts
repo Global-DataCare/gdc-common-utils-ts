@@ -51,6 +51,7 @@ export const SmartOpenIdAcrValues = Object.freeze({
 /** Wire-level request keys used by identity/auth operations. */
 export const IdentityAuthRequestFields = Object.freeze({
   SubjectToken: 'subject_token',
+  EmployeeAuthorizationUrn: 'employee_authorization_urn',
   ClientInstanceId: 'client_instance_id',
   LicenseId: 'license_id',
   ClientId: 'client_id',

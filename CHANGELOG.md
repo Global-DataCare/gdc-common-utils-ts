@@ -4,6 +4,10 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Add the shared `employee_authorization_urn` identity-exchange field so a
+  server-side portal can start DCR for an existing licensed professional while
+  routing the sector independently from the neutral employee URN.
+
 ## [2.9.28] - 2026-10-04
 
 - Add the canonical employee authorization URN builder rooted in an existing
