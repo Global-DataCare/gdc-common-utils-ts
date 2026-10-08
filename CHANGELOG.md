@@ -4,6 +4,11 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.9.30] - 2026-10-07
+
+- Preserve typed `ResearchSubject/<uuid>` Composition subjects when building a
+  FHIR document Bundle, materialize professional attesters, and reject malformed
+  typed references instead of silently converting them into Patient stubs.
 - Add the shared `employee_authorization_urn` identity-exchange field so a
   server-side portal can start DCR for an existing licensed professional while
   routing the sector independently from the neutral employee URN.
