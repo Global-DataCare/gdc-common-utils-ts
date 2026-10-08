@@ -19,7 +19,11 @@ import {
   type BundleOperation,
   type ResourceTypeEntryEditor,
 } from '../models/bundle-editor-types';
-import { CompositionClaim } from '../models/interoperable-claims/composition-claims';
+import {
+  CompositionAttesterModes,
+  CompositionClaim,
+  type CompositionAttesterMode,
+} from '../models/interoperable-claims/composition-claims';
 import { getClaimValues, setClaimValues } from '../claims/claim-list-helpers';
 import { buildBundleDocumentFromClaims, type ValidateBundleDocumentResult } from './bundle-document-builder';
 import {
@@ -41,6 +45,12 @@ import {
   resolveEntryTypeForOperation,
   resolveRequestMethodForOperation,
 } from './bundle-editor-helpers';
+
+export type CompositionAttesterInput = Readonly<{
+  reference: string;
+  mode: CompositionAttesterMode;
+  time?: string;
+}>;
 
 export class BundleEditor {
   private bundleOperation: BundleOperation | null = null;
@@ -214,6 +224,42 @@ export class BundleEditor {
   /** Returns the normalized `Composition.author` reference list staged for the future document root. */
   public getCompositionAuthorList(): string[] {
     return this.getCompositionCsvClaimList(CompositionClaim.Author);
+  }
+
+  /** Replaces the aligned professional/legal attestation metadata for the document Composition. */
+  public setCompositionAttesterList(attesters: readonly CompositionAttesterInput[]): this {
+    const normalized = attesters.map((attester) => ({
+      reference: normalizeOptionalIdentifier(attester.reference),
+      mode: normalizeOptionalIdentifier(attester.mode) as CompositionAttesterMode | undefined,
+      time: normalizeOptionalIdentifier(attester.time),
+    }));
+    if (normalized.some((attester) => !attester.reference || !attester.mode
+      || !Object.values(CompositionAttesterModes).includes(attester.mode))) {
+      throw new TypeError('bundle_document_attester_invalid');
+    }
+    if (normalized.length === 0) {
+      delete this.compositionClaims[CompositionClaim.Attester];
+      delete this.compositionClaims[CompositionClaim.AttesterMode];
+      delete this.compositionClaims[CompositionClaim.AttesterTime];
+      return this;
+    }
+    this.compositionClaims[CompositionClaim.Attester] = normalized.map(({ reference }) => reference).join(',');
+    this.compositionClaims[CompositionClaim.AttesterMode] = normalized.map(({ mode }) => mode).join(',');
+    this.compositionClaims[CompositionClaim.AttesterTime] = normalized.map(({ time }) => time || '').join(',');
+    return this;
+  }
+
+  /** Returns the positionally aligned Composition attesters currently staged for document authoring. */
+  public getCompositionAttesterList(): CompositionAttesterInput[] {
+    const references = String(this.compositionClaims[CompositionClaim.Attester] || '').split(',');
+    const modes = String(this.compositionClaims[CompositionClaim.AttesterMode] || '').split(',');
+    const times = String(this.compositionClaims[CompositionClaim.AttesterTime] || '').split(',');
+    if (references.length === 1 && !references[0]) return [];
+    return references.map((reference, index) => ({
+      reference,
+      mode: modes[index] as CompositionAttesterMode,
+      ...(times[index] ? { time: times[index] } : {}),
+    }));
   }
 
   /**

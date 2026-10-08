@@ -80,6 +80,23 @@ function splitCsv(value: unknown): string[] {
     .filter(Boolean);
 }
 
+function buildCompositionSubjectResource(subjectReference: string): Record<string, unknown> {
+  const typedReference = /^([A-Z][A-Za-z0-9]*)\/([^/]+)$/.exec(subjectReference);
+  if (typedReference) {
+    return {
+      resourceType: typedReference[1],
+      id: typedReference[2],
+    };
+  }
+  if (/^[A-Z][A-Za-z0-9]*\//.test(subjectReference)) {
+    throw new TypeError('bundle_document_subject_reference_invalid');
+  }
+  return {
+    resourceType: ResourceTypesFhirR4.Patient,
+    id: subjectReference,
+  };
+}
+
 export function getSimpleClaimAttributeName(key: string): string {
   const value = asTrimmedString(key);
   if (!value) return '';
@@ -599,6 +616,9 @@ export function buildBundleDocumentFromClaims(
   const compositionTitle = asTrimmedString(compositionClaims[CompositionClaim.Title]);
   const compositionDate = asTrimmedString(compositionClaims[CompositionClaim.Date]);
   const compositionAuthorList = splitCsv(compositionClaims[CompositionClaim.Author]);
+  const compositionAttesterList = splitCsv(compositionClaims[CompositionClaim.Attester]);
+  const compositionAttesterModeList = splitCsv(compositionClaims[CompositionClaim.AttesterMode]);
+  const compositionAttesterTimeList = String(compositionClaims[CompositionClaim.AttesterTime] || '').split(',');
   const compositionSections = new Map<string, { code: { coding: Array<{ code: string; system?: string }> }; entry: Array<{ reference: string }> }>();
   const visibleEntries: Array<{ resource: Record<string, unknown> }> = [];
   const resourceByReference = new Map<string, Record<string, unknown>>();
@@ -683,16 +703,20 @@ export function buildBundleDocumentFromClaims(
           ...(compositionAuthorList.length > 0 ? {
             author: compositionAuthorList.map((reference) => ({ reference })),
           } : {}),
+          ...(compositionAttesterList.length > 0 ? {
+            attester: compositionAttesterList.map((reference, index) => ({
+              party: { reference },
+              mode: compositionAttesterModeList[index],
+              ...(compositionAttesterTimeList[index] ? { time: compositionAttesterTimeList[index] } : {}),
+            })),
+          } : {}),
           meta: { claims: compositionClaims },
           section: Array.from(compositionSections.values()),
         },
       },
       ...(compositionSubject
         ? [{
-          resource: {
-            resourceType: 'Patient',
-            id: compositionSubject,
-          },
+          resource: buildCompositionSubjectResource(compositionSubject),
         }]
         : []),
       ...visibleEntries,
