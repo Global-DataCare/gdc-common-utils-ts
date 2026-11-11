@@ -806,3 +806,7 @@ When integrating the converged SDKs:
 
 ## Roadmap and Briefing
 - `docs/BRIEFING_DATASPACE_EN.md`
+
+## Entregable E9 — pruebas unitarias y testeo
+
+La [validación local completa del 11 de noviembre](deliverables/e9-testing/20261111T121038Z/README.md) contiene la matriz superada y sus registros.

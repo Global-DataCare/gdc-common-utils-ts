@@ -1,0 +1,99 @@
+{
+  "schemaVersion": "gdc.e9.testing/v1",
+  "expediente": "E9-20261111T121038Z",
+  "scope": "component subset",
+  "status": "SUPERADO_COMPONENTE",
+  "executionDate": "2026-11-11",
+  "platform": "macOS (Darwin)",
+  "node": "v26.13.0",
+  "npm": "11.20.0",
+  "sources": {
+    "gdc-common-utils-ts": {
+      "repository": "gdc-common-utils-ts",
+      "version": "2.9.30",
+      "commit": "7f2caba88bd5ac8cc0e9a1fd90efce76110ea551"
+    }
+  },
+  "suites": [
+    {
+      "id": "common-coverage",
+      "source": {
+        "repository": "gdc-common-utils-ts",
+        "version": "2.9.30",
+        "commit": "7f2caba88bd5ac8cc0e9a1fd90efce76110ea551"
+      },
+      "node": "v26.13.0",
+      "npm": "11.20.0",
+      "command": [
+        "npm",
+        "run",
+        "test:coverage",
+        "--",
+        "--runInBand",
+        "--watchman=false",
+        "--detectOpenHandles"
+      ],
+      "exitCode": 0,
+      "startedAt": "2026-11-11T12:11:08.528170+00:00",
+      "finishedAt": "2026-11-11T12:13:28.154007+00:00",
+      "elapsedSeconds": 139.316,
+      "tests": {
+        "total": 935,
+        "passed": 935,
+        "failed": 0,
+        "skipped": 0,
+        "cancelled": 0,
+        "pending": 0
+      },
+      "log": {
+        "path": "logs/common-coverage.log",
+        "originalSha256": "fe5b9210b23a90cb5c56f487a0cb7932c2e142fbf2a47c67bf05d67220bab442",
+        "sha256": "4e57c08a7b250e866c8e0677835344e9d49c253a2da0436d47c12ee1b06e12f7"
+      },
+      "provenance": "provenance/common-coverage.json"
+    }
+  ],
+  "checks": [
+    {
+      "repository": "gdc-common-utils-ts",
+      "label": "01-install",
+      "exitCode": 0,
+      "log": {
+        "path": "checks/gdc-common-utils-ts-01-install.log",
+        "sha256": "bb02f3d0dd36d6d969aed661262504f5df74b73d6fc63851e3db10944c689677"
+      }
+    },
+    {
+      "repository": "gdc-common-utils-ts",
+      "label": "03-typecheck",
+      "exitCode": 0,
+      "log": {
+        "path": "checks/gdc-common-utils-ts-03-typecheck.log",
+        "sha256": "365ed646ab57c71bfc3421ce1901d979edb4c03497c4653b03a20b8e84f34e61"
+      }
+    },
+    {
+      "repository": "gdc-common-utils-ts",
+      "label": "final-dependencies",
+      "exitCode": 0,
+      "log": {
+        "path": "checks/gdc-common-utils-ts-final-dependencies.log",
+        "sha256": "640cf4fd2568484b8ff89d33545b9ebb9785c75dd39bdef3e17d0a27e0dea610"
+      }
+    }
+  ],
+  "privateInputSha256": {},
+  "sanitization": [
+    "local workspace and home paths normalized",
+    "private signed PDF paths replaced by content hashes",
+    "private organization identifiers replaced by hashes",
+    "compact local tokens and private PEMs redacted if present",
+    "test names, outcomes, counters and commands otherwise preserved",
+    "console line endings normalized to LF"
+  ],
+  "publication": {
+    "gitBranch": "main",
+    "npmPublish": "not performed",
+    "imagesOrDeployment": "not performed"
+  }
+}
