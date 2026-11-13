@@ -849,17 +849,6 @@ function ruleMatchesResourceType(rule: ConsentRule & Record<string, unknown>, re
   return resourceTypes.includes(resourceType) || resourceTypes.includes('*');
 }
 
-function ruleMatchesResourceContext(rule: ConsentRule, context: ConsentCoverageRequest['resourceContext']): boolean {
-  const codes = splitCsv(readConsentRuleClaim(rule, ClaimConsent.provisionCode));
-  if (!context) {
-    // Missing classification cannot broaden a coded permit or discard a denial.
-    return codes.length === 0 || readConsentRuleClaim(rule, ClaimConsent.decision) === 'deny';
-  }
-  if (!context.resourceType || !ruleMatchesResourceType(rule as ConsentRule & Record<string, unknown>, context.resourceType)) return false;
-  if (codes.length === 0) return true;
-  return Array.isArray(context.provisionCodes) && codes.some(code => context.provisionCodes.includes(code));
-}
-
 function resolveRuleMatch(
   rule: ConsentRule,
   actor: ResolvedConsentActor,
@@ -949,7 +938,6 @@ export function evaluateConsentCoverage(
           ruleMatchesRole(rule, request.actorRole)
           && ruleMatchesPurpose(rule, request.purpose)
           && ruleMatchesSection(rule, section)
-          && ruleMatchesResourceContext(rule, request.resourceContext)
           && ruleMatchesResourceType(rule as ConsentRule & Record<string, unknown>, resourceType))
         .map((rule) => toRuleMatch(rule, actor, section, resourceType))
         .filter((match): match is ConsentRuleMatch => Boolean(match))

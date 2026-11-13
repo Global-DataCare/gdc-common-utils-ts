@@ -4,6 +4,10 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.9.32] - 2026-11-13
+
+- Apply the explicitly approved rollback of the unapproved 2.9.31 catalogue and Consent-context changes. Restore the pre-task 2.9.30 source behavior; retain the release history. Further evaluation changes require separate approval.
+
 ## [2.9.31] - 2026-11-13
 
 - Enforce canonical Consent resource/code constraints against trusted instance classification. Missing context cannot broaden a coded permit or discard a denial; unconstrained legacy rules retain their coverage.
