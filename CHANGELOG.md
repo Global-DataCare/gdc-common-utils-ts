@@ -4,6 +4,8 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.9.31] - 2026-11-13
+
 - Enforce canonical Consent resource/code constraints against trusted instance classification. Missing context cannot broaden a coded permit or discard a denial; unconstrained legacy rules retain their coverage.
 
 - Add the distinct ISCO-08 dentist occupation (2261) to the canonical healthcare role catalogue and health-care sector policy; retain separate controller authority.
