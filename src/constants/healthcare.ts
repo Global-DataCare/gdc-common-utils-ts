@@ -577,6 +577,8 @@ export const HealthcareActorRoles = Object.freeze({
   MidwiferyProfessional: 'ISCO-08|2222',
   Paramedic: 'ISCO-08|2240',
   Veterinarian: 'ISCO-08|2250',
+  /** ISCO-08 dentists; distinct from medical doctors and controller authority. */
+  Dentist: 'ISCO-08|2261',
   /** ISCO-08 laboratory occupation for non-medical life-science work. */
   LifeScienceTechnician: 'ISCO-08|3141',
   /** ISCO-08 laboratory occupation for human medical/pathology work. */
@@ -607,6 +609,7 @@ export const HealthcareActorRoleCodes = Object.freeze({
   MidwiferyProfessional: '2222',
   Paramedic: '2240',
   Veterinarian: '2250',
+  Dentist: '2261',
   LifeScienceTechnician: '3141',
   MedicalAndPathologyLaboratoryTechnician: '3212',
   VeterinaryTechnicianOrAssistant: '3240',
@@ -616,6 +619,14 @@ export const HealthcareActorRoleCodes = Object.freeze({
 
 function buildProfessionalIscoRoles(): Readonly<Record<string, HealthcareActorRoleDescriptor>> {
   const entries: Array<[string, HealthcareActorRoleDescriptor]> = [
+    [HealthcareActorRoleCodes.Dentist, Object.freeze({
+      family: HealthcareRoleFamilies.ProfessionalOccupationIsco08,
+      codingSystem: ISCO08_CODING_SYSTEM,
+      code: HealthcareActorRoleCodes.Dentist,
+      claim: HealthcareActorRoles.Dentist,
+      i18nKey: `${ISCO08_I18N_NAMESPACE}.${HealthcareActorRoleCodes.Dentist}`,
+      titleEn: 'Dentist',
+    })],
     [
       HealthcareActorRoleCodes.MedicalDoctors,
       Object.freeze({
@@ -843,6 +854,7 @@ const HealthcareProfessionalAndControllerRoles = Object.freeze({
 export const HealthcareProfessionalRoleCodesBySector = Object.freeze({
   [DataspaceSectors.HealthCare]: Object.freeze([
     HealthcareActorRoleCodes.Controller,
+    HealthcareActorRoleCodes.Dentist,
     HealthcareActorRoleCodes.MedicalDoctors,
     HealthcareActorRoleCodes.GeneralistMedicalPractitioner,
     HealthcareActorRoleCodes.SpecialistMedicalPractitioner,
