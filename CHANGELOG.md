@@ -4,6 +4,8 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+## [2.9.33] - 2026-11-20
+
 - Prepare Ocean dataset publications from Schema.org and linked catalogue
   services. Restore original v4/v5 DDO JSON from the privately retained source.
 - Add the tested Ocean DDO v4/v5 catalogue conversion and direct JSON:API
