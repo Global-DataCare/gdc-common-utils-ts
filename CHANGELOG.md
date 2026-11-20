@@ -4,6 +4,9 @@ All notable changes to `gdc-common-utils-ts` will be documented in this file.
 
 ## [Unreleased]
 
+- Add the tested Ocean DDO v4/v5 catalogue conversion and direct JSON:API
+  primary document support for catalogue DIDComm bodies.
+
 ## [2.9.32] - 2026-11-13
 
 - Apply the explicitly approved rollback of the unapproved 2.9.31 catalogue and Consent-context changes. Restore the pre-task 2.9.30 source behavior; retain the release history. Further evaluation changes require separate approval.

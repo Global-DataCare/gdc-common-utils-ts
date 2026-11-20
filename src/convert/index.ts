@@ -23,3 +23,5 @@ export * from './convert-clinical-impression';
 export * from './convert-consent';
 export * from './convert-practitioner-role';
 export * from './schemaorg-to-gaia-x';
+
+export * from './ocean-catalogue';
