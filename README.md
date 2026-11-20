@@ -335,10 +335,30 @@ publisher's files, policy and pricing. Send the returned asset with the
 publisher's SDK. Keep the landing page associated with the asset for
 reimport; the publisher assigns a new DID and, for v5, a new proof.
 
-`buildCataloguePrimaryDocument` assembles direct JSON:API entries and
-`withCatalogueBody` places them in the caller's DIDComm body. Use separate
-batches for Product and Service entries. Supply the recipient operation
-and sign and send with the existing SDK.
+The publisher BFF can prepare a notification from one or more resolved DDOs:
+
+```ts
+import {
+  buildCataloguePrimaryDocument,
+  projectOceanDatasetEntries,
+  withCatalogueBody,
+} from 'gdc-common-utils-ts/convert/ocean-catalogue'
+
+const entries = sources.flatMap(projectOceanDatasetEntries)
+const document = buildCataloguePrimaryDocument(entries)
+const message = withCatalogueBody(envelope, document)
+```
+
+`sources` contains trusted `{ ddo, landingPage? }` values and `envelope` is the
+message envelope for the authorized recipient operation. The JSON:API
+primary document is directly at `message.body` and its resources at
+`message.body.data`. Pass the message to the existing SDK for signing and
+delivery. Keep Product and Service submissions in separate batches.
+
+The receiver must explicitly support imports of these `Dataset` and
+`DataService` entries. A DSP `catalog/request` operation only reads a
+catalogue. Tenant enrollment and participant credentials use their respective
+identity flows.
 
 ### Claims
 
