@@ -316,6 +316,17 @@ import {
 } from 'gdc-common-utils-ts/convert';
 ```
 
+### Ocean catalogue exchange
+
+`projectOceanDatasetEntries` reads an already trusted public Ocean DDO v4
+or v5 and preserves the external asset DID and related access services.
+Import it from `gdc-common-utils-ts/convert/ocean-catalogue`.
+
+`buildCataloguePrimaryDocument` assembles direct JSON:API entries and
+`withCatalogueBody` places them in the caller's DIDComm body. Use separate
+batches for Product and Service entries. Supply the recipient operation
+and sign and send with the existing SDK.
+
 ### Claims
 
 The `claims` export exposes resource-specific flat claim helpers such as:
