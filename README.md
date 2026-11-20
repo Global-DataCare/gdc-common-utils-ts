@@ -322,6 +322,19 @@ import {
 or v5 and preserves the external asset DID and related access services.
 Import it from `gdc-common-utils-ts/convert/ocean-catalogue`.
 
+`captureOceanDataset({ json, landingPage })` also returns the original JSON
+for private storage. Send only the public entries to the catalogue.
+`restoreOceanDataset(entries, source)` returns the exact original v4/v5
+JSON text after checking that the entries for the dataset still match.
+
+`toSchemaOrgDataset(entries, datasetId)` returns portable Schema.org metadata.
+To publish a new dataset, pass a Schema.org `Dataset` and its related
+`DataService` entries to `buildOceanDatasetPublication`. Supply an Ocean SDK
+asset builder, author, provider for v5, and a service factory with the
+publisher's files, policy and pricing. Send the returned asset with the
+publisher's SDK. Keep the landing page associated with the asset for
+reimport; the publisher assigns a new DID and, for v5, a new proof.
+
 `buildCataloguePrimaryDocument` assembles direct JSON:API entries and
 `withCatalogueBody` places them in the caller's DIDComm body. Use separate
 batches for Product and Service entries. Supply the recipient operation
